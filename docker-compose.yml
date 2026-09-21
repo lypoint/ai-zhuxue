@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: aizhuxue
+      POSTGRES_USER: aizhuxue
+      POSTGRES_PASSWORD: aizhuxue-dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aizhuxue"]
+      interval: 3s
+      retries: 10
+
+  api:
+    build: ./server
+    environment:
+      ENV: prod
+      DATABASE_URL: postgresql+psycopg2://aizhuxue:aizhuxue-dev@db:5432/aizhuxue
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
+      LLM_PROVIDER: ${LLM_PROVIDER:-glm}
+      GLM_API_KEY: ${GLM_API_KEY:-}
+      FENCE_MODE: ${FENCE_MODE:-llm}
+      GUARDIAN_VERIFY_PROVIDER: ${GUARDIAN_VERIFY_PROVIDER:-mock}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:

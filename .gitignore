@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 数据库：库文件与快照一律不入库（含用户会话/对话/操作日志）
+# 表结构由 Alembic 迁移链管理：alembic upgrade head 从零建库
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+backups/
+
+# 环境与密钥：真实 Key 经密管/编排注入，勿提交
+.env
+.env.local
+.env.*.local
+
+# Flutter / Dart
+app/.dart_tool/
+app/build/
+app/.flutter-plugins*
+app/ios/Pods/
+app/ios/Flutter/ephemeral
+
+# macOS / 编辑器
+.DS_Store
+.idea/
+.vscode/

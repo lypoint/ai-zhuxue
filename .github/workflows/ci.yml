@@ -1,0 +1,35 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: server } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt pytest
+      - run: python -m pytest -q
+      - env:
+          FENCE_MODE: llm
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CHAT_MODEL: deepseek/deepseek-chat-v3.1
+          FENCE_MODEL: deepseek/deepseek-chat-v3.1
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "skip llm fence eval (no key)"
+          else
+            python -m tools.eval_fence --check   # llm 模式围栏指标阈值断言（已实测达标）
+          fi
+  app:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: app } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
