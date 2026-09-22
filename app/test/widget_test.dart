@@ -11,7 +11,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     Api.I.clearToken();
     await tester.pumpWidget(const StudentApp());
-    expect(find.text('绑定家长端'), findsOneWidget);
+    expect(find.text('输入家长端绑定码'), findsOneWidget);
     expect(find.text('绑定并开始学习'), findsOneWidget);
   });
 
@@ -19,7 +19,7 @@ void main() {
     SharedPreferences.setMockInitialValues({'token': 'fake'});
     await Api.I.loadToken();
     await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
-    expect(find.text('你好！今天想学什么？可以问我作业和知识点。'), findsOneWidget);
-    expect(find.byIcon(Icons.send), findsOneWidget);
+    expect(find.text('你好！今天想学什么？'), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
   });
 }

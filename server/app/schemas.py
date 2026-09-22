@@ -66,10 +66,11 @@ class FenceEventOut(BaseModel):
 
 
 class FamilySettingsIn(BaseModel):
-    daily_message_cap: int = Field(ge=10, le=1000)
-    review_enabled: bool = True
-    quiet_enabled: bool = True        # P1：家长可整体关闭时段限制
-    quiet_start: int = Field(default=22, ge=0, le=23)
-    quiet_end: int = Field(default=6, ge=0, le=23)
-    daily_minutes_cap: int = Field(default=60, ge=0, le=480)  # 每日时长上限（分钟），0=不限
-    notify_fence: bool = True  # 学习引导通知开关（security 告警不可关）
+    # 部分更新：只改一个策略时，不应把其它家长设置重置为默认值。
+    daily_message_cap: int | None = Field(default=None, ge=10, le=1000)
+    review_enabled: bool | None = None
+    quiet_enabled: bool | None = None        # P1：家长可整体关闭时段限制
+    quiet_start: int | None = Field(default=None, ge=0, le=23)
+    quiet_end: int | None = Field(default=None, ge=0, le=23)
+    daily_minutes_cap: int | None = Field(default=None, ge=0, le=480)  # 0=不限
+    notify_fence: bool | None = None  # security 告警不可关闭

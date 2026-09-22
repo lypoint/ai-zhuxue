@@ -16,43 +16,42 @@ _WEB_PAGE = """<!DOCTYPE html>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
-  .bubble.assistant p { margin: 4px 0; }
-  .bubble.assistant pre { background:#282c34; color:#abb2bf; padding:10px; border-radius:8px; overflow-x:auto; font-size:13px; }
-  .bubble.assistant code { background:#EFEFED; padding:1px 5px; border-radius:4px; font-size:13px; }
+  :root { --primary:#2F8B7D; --primary-dark:#21665C; --ink:#1E2A35; --muted:#71808E; --line:#E4EAEF; --surface:#fff; }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#EDF9F5 0,#F7FAFC 34%,#F7FAFC 100%); color:var(--ink); height:100vh; display:flex; flex-direction:column; }
+  header { background:rgba(255,255,255,.86); color:var(--ink); padding:16px 20px; font-size:18px; font-weight:750; border-bottom:1px solid rgba(228,234,239,.8); backdrop-filter:blur(12px); }
+  header span { color:var(--primary); margin-right:8px; }
+  main { flex:1; overflow-y:auto; padding:24px 16px; max-width:760px; width:100%; margin:0 auto; }
+  .bubble { max-width:82%; padding:12px 15px; border-radius:18px; margin:8px 0; line-height:1.58; white-space:pre-wrap; word-break:break-word; box-shadow:0 5px 16px rgba(40,70,80,.06); }
+  .user { background:var(--primary); color:#fff; margin-left:auto; border-bottom-right-radius:6px; }
+  .assistant { background:var(--surface); border:1px solid var(--line); border-bottom-left-radius:6px; }
+  footer { padding:12px 16px 16px; background:rgba(255,255,255,.9); border-top:1px solid var(--line); backdrop-filter:blur(12px); }
+  .row { display:flex; gap:8px; max-width:760px; margin:0 auto; }
+  input, button { font-size:15px; padding:12px 15px; border-radius:14px; border:1px solid var(--line); outline:none; }
+  input { flex:1; background:#fff; box-shadow:0 4px 14px rgba(40,70,80,.04); }
+  input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(47,139,125,.12); }
+  button { background:var(--primary); color:#fff; border:none; cursor:pointer; font-weight:700; }
+  button:hover { background:var(--primary-dark); }
+  button:disabled { opacity:.5; }
+  #gate { max-width:390px; margin:12vh auto 0; text-align:center; background:rgba(255,255,255,.88); padding:28px; border:1px solid var(--line); border-radius:24px; box-shadow:0 18px 50px rgba(35,75,80,.1); }
+  #gate h3 { font-size:24px; margin-bottom:8px; }
+  #drawer { position:fixed; inset:0 32% 0 0; background:rgba(255,255,255,.96); z-index:50; box-shadow:10px 0 30px rgba(20,45,55,.16); display:none; flex-direction:column; padding:18px; backdrop-filter:blur(14px); }
+  #drawer .item { padding:12px 10px; border-radius:12px; cursor:pointer; font-size:14px; }
+  #drawer .item:hover { background:#EDF8F5; }
+  #drawer .item.active { background:#DFF3EE; color:var(--primary-dark); font-weight:700; }
+  #drawer .item small { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+  #drawer .new { width:100%; margin-bottom:10px; }
+  #gate input { width:100%; text-align:center; letter-spacing:4px; font-size:21px; margin:14px 0; }
+  #gate button { width:100%; }
+  .hint { color:var(--muted); font-size:13px; margin-top:10px; }
+  .err { color:#C0392B; font-size:13px; margin-top:8px; }
+  .bubble.assistant p { margin:4px 0; }
+  .bubble.assistant pre { background:#17232B; color:#D7E5E7; padding:12px; border-radius:12px; overflow-x:auto; font-size:13px; }
+  .bubble.assistant code { background:#EFF5F4; padding:1px 5px; border-radius:5px; font-size:13px; }
   .bubble.assistant pre code { background:none; padding:0; }
-  .bubble.assistant table { border-collapse:collapse; margin:6px 0; }
-  .bubble.assistant th, .bubble.assistant td { border:1px solid #D0D0D0; padding:4px 10px; font-size:13px; }
-</style>
-<style>
-  :root { --primary: #15857A; }
-  * { box-sizing: border-box; margin: 0; }
-  body { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
-         background: #F7F7F5; color: #37352F; height: 100vh; display: flex; flex-direction: column; }
-  header { background: var(--primary); color: #fff; padding: 14px 20px; font-size: 18px; }
-  main { flex: 1; overflow-y: auto; padding: 16px; max-width: 720px; width: 100%; margin: 0 auto; }
-  .bubble { max-width: 78%; padding: 10px 14px; border-radius: 14px; margin: 6px 0;
-            line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-  .user { background: var(--primary); color: #fff; margin-left: auto; }
-  .assistant { background: #E9E9E8; }
-  footer { padding: 12px; background: #fff; border-top: 1px solid #E9E9E8; }
-  .row { display: flex; gap: 8px; max-width: 720px; margin: 0 auto; }
-  input, button { font-size: 15px; padding: 10px 14px; border-radius: 10px; border: 1px solid #D0D0D0; }
-  input { flex: 1; }
-  button { background: var(--primary); color: #fff; border: none; cursor: pointer; }
-  button:disabled { opacity: .5; }
-  #gate { max-width: 360px; margin: 18vh auto 0; text-align: center; }
-  #drawer { position: fixed; inset: 0 30% 0 0; background: #fff; z-index: 50;
-            box-shadow: 4px 0 16px rgba(0,0,0,.15); display: none; flex-direction: column;
-            padding: 16px; }
-  #drawer .item { padding: 10px 8px; border-radius: 8px; cursor: pointer; font-size: 14px; }
-  #drawer .item:hover { background: #F0F7F5; }
-  #drawer .item.active { background: #E8F5F1; color: var(--primary); font-weight: 600; }
-  #drawer .item small { display: block; color: #8C8A84; font-size: 11px; }
-  #drawer .new { width: 100%; margin-bottom: 8px; }
-  #gate input { width: 100%; text-align: center; letter-spacing: 4px; font-size: 20px; margin: 12px 0; }
-  #gate button { width: 100%; }
-  .hint { color: #8C8A84; font-size: 13px; margin-top: 10px; }
-  .err { color: #C0392B; font-size: 13px; margin-top: 8px; }
+  .bubble.assistant table { border-collapse:collapse; margin:8px 0; }
+  .bubble.assistant th, .bubble.assistant td { border:1px solid var(--line); padding:5px 10px; font-size:13px; }
+  @media (max-width:640px) { #drawer { inset:0 16% 0 0; } #gate { margin-top:8vh; } }
 </style>
 </head>
 <body>

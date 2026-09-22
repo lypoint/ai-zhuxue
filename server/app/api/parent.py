@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from ..config import settings
 from ..db import get_db
 from ..api.deps import current_guardian
 from ..models import Conversation, FamilySettings, FenceEvent, Guardian, Message, Student
@@ -25,11 +26,11 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
     return {
         "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname},
         "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band} for s in students],
-        "settings": {"daily_message_cap": settings_row.daily_message_cap if settings_row else 200,
+        "settings": {"daily_message_cap": settings_row.daily_message_cap if settings_row else settings.fence_daily_message_cap,
                      "review_enabled": settings_row.review_enabled if settings_row else True,
-                     "quiet_enabled": settings_row.quiet_enabled if settings_row else True,
-                     "quiet_start": settings_row.quiet_start if settings_row else 22,
-                     "quiet_end": settings_row.quiet_end if settings_row else 6,
+                     "quiet_enabled": settings_row.quiet_enabled if settings_row else settings.fence_quiet_enabled,
+                     "quiet_start": settings_row.quiet_start if settings_row else settings.fence_quiet_start,
+                     "quiet_end": settings_row.quiet_end if settings_row else settings.fence_quiet_end,
                      "daily_minutes_cap": settings_row.daily_minutes_cap if settings_row else 60,
                      "notify_fence": settings_row.notify_fence if settings_row else True},
     }
@@ -159,15 +160,17 @@ def update_settings(body: FamilySettingsIn, guardian: Guardian = Depends(current
                     db: Session = Depends(get_db)):
     fs = db.query(FamilySettings).filter_by(family_id=guardian.family_id).first()
     if not fs:
-        fs = FamilySettings(family_id=guardian.family_id)
+        fs = FamilySettings(family_id=guardian.family_id,
+                            daily_message_cap=settings.fence_daily_message_cap,
+                            quiet_enabled=settings.fence_quiet_enabled,
+                            quiet_start=settings.fence_quiet_start,
+                            quiet_end=settings.fence_quiet_end)
         db.add(fs)
-    fs.daily_message_cap = body.daily_message_cap
-    fs.review_enabled = body.review_enabled
-    fs.quiet_enabled = body.quiet_enabled
-    fs.quiet_start = body.quiet_start
-    fs.quiet_end = body.quiet_end
-    fs.daily_minutes_cap = body.daily_minutes_cap
-    fs.notify_fence = body.notify_fence
+    for field in ("daily_message_cap", "review_enabled", "quiet_enabled", "quiet_start",
+                  "quiet_end", "daily_minutes_cap", "notify_fence"):
+        value = getattr(body, field)
+        if value is not None:
+            setattr(fs, field, value)
     db.commit()
     return {"ok": True}
 

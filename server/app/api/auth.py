@@ -32,7 +32,14 @@ async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_
         db.flush()
         guardian = Guardian(family_id=family.id, phone=body.phone, nickname=body.nickname,
                             verified_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc))
-        db.add(FamilySettings(family_id=family.id))
+        # 家庭设置从全局策略继承，家长后续仍可在端内覆盖。
+        db.add(FamilySettings(
+            family_id=family.id,
+            daily_message_cap=settings.fence_daily_message_cap,
+            quiet_enabled=settings.fence_quiet_enabled,
+            quiet_start=settings.fence_quiet_start,
+            quiet_end=settings.fence_quiet_end,
+        ))
         db.add(guardian)
         db.flush()
         # P0 商业闭环：注册即开 30 天免费试用
