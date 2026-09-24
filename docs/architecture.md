@@ -8,8 +8,8 @@
 ┌─────────────┐     ┌─────────────┐     ┌──────────────┐
 │ 学生端 App   │     │ 家长端 App   │     │ Web 端(仅聊天)│
 │ (Flutter,   │     │ (Flutter,   │     │ (规划中,复用  │
-│  ROLE=      │     │  ROLE=      │     │  chat API)   │
-│  student)   │     │  parent)    │     │              │
+│ app_student │     │ app_parent  │     │  chat API)   │
+│ +app_core)  │     │ +app_core)  │     │              │
 └──────┬──────┘     └──────┬──────┘     └──────┬───────┘
        │ HTTPS/JWT         │ HTTPS/JWT         │
        ▼                   ▼                   ▼
@@ -99,7 +99,7 @@
 
 | 决策 | 理由 |
 |---|---|
-| Flutter 单库双 flavor（dart-define ROLE） | 双端 UI 同构度高（都是列表+表单+聊天），一套代码降低双端成本；原生能力需求当前很少 |
+| Flutter 三包结构（app_core 共享库 + app_student + app_parent） | 双端 UI 同构度高（都是列表+表单+聊天），共享 api/theme 收敛进 app_core 免重复；两个独立 app 各自 applicationId，可同机并存、分别上架 |
 | 围栏放服务端而非端侧 | 家长审查数据需要服务端落库；围栏可独立评测迭代；端侧仅做输入前提示。注意：规避设计分析中「端侧判定」是备选路径，当前不采用 |
 | 围栏四阶段流水落库 | 验收指标（学习应答率/误拦截率/绕过率）需要逐阶段数据；误拦截申诉也要靠它 |
 | LLM 统一 OpenAI 兼容抽象 | 三家模型商条款风险不同（DeepSeek/Kimi 已核实非禁止性，智谱待商务确认），需可一键切换并锁价 |

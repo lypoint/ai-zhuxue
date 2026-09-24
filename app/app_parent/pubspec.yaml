@@ -1,0 +1,25 @@
+name: app_parent
+description: "AI 助学 · 家长端：三要素核验、家庭管控、孩子对话与围栏流水全量审查。"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  app_core:
+    path: ../app_core
+  gpt_markdown: 1.0.19
+  qr_flutter: ^4.1.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  shared_preferences: ^2.2.0 # 仅测试桩使用（SharedPreferences.setMockInitialValues）
+
+flutter:
+  uses-material-design: true

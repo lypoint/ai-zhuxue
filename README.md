@@ -40,13 +40,18 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 配置经环境变量注入（复制 `.env.example` 为 `.env`）：`FENCE_MODE=llm` 配 `GLM_API_KEY`/`OPENROUTER_API_KEY` 启用 LLM 分类；默认 `heuristic` 规则模式（无 Key 可跑）。
 
-**Flutter 双端**（同一代码库，dart-define 切换）：
+**Flutter 双端**（`app/` 下三个包：共享库 `app_core` + 学生端 `app_student` + 家长端 `app_parent`）：
 
 ```bash
-cd app
+# 学生端
+cd app/app_student
 flutter pub get
-flutter run --dart-define=ROLE=student   # 学生端
-flutter run --dart-define=ROLE=parent    # 家长端
+flutter run   # 需要真机/模拟器；家长端同理在 app/app_parent
+
+# 家长端
+cd app/app_parent
+flutter pub get
+flutter run
 # API 地址：--dart-define=API_BASE=http://<host>:8100（模拟器默认 10.0.2.2:8100）
 ```
 

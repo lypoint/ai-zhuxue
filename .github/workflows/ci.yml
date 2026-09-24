@@ -25,7 +25,10 @@ jobs:
           fi
   app:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: app } }
+    strategy:
+      matrix:
+        package: [app_core, app_student, app_parent]
+    defaults: { run: { working-directory: app/${{ matrix.package }} } }
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2

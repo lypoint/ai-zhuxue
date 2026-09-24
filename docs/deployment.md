@@ -52,9 +52,12 @@ JWT_SECRET=$(openssl rand -hex 32) GLM_API_KEY=sk-… FENCE_MODE=llm docker comp
 ## 4. Flutter 构建产物
 
 ```bash
-# 学生端 / 家长端（同一代码库，dart-define 切换）
-flutter build apk --dart-define=ROLE=student --dart-define=API_BASE=https://api.example.com
-flutter build apk --dart-define=ROLE=parent --dart-define=API_BASE=https://api.example.com
+# 学生端（applicationId com.aizhuxue.student）
+cd app/app_student
+flutter build apk --dart-define=API_BASE=https://api.example.com
+# 家长端（applicationId com.aizhuxue.parent）
+cd app/app_parent
+flutter build apk --dart-define=API_BASE=https://api.example.com
 flutter build ipa   # iOS：需开发者账号签名
 ```
 
