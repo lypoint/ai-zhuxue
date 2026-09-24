@@ -1,6 +1,4 @@
-"""CMS 单页：运营数据看板 + LLM 分组管理。/cms 提供（管理员 Token 登录）。"""
-
-CMS_HTML = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -103,7 +101,9 @@ CMS_HTML = """<!DOCTYPE html>
 </div>
 
 <script>
-const API = location.origin;
+const API = new URLSearchParams(location.search).get('api')
+  || window.CMS_API_BASE
+  || location.origin;   // 同源部署兜底
 const $ = id => document.getElementById(id);
 let TOK = sessionStorage.getItem('cms_tok') || '';
 let ROLE = sessionStorage.getItem('cms_role') || 'ops';
@@ -252,4 +252,4 @@ async function loadLogs() {
 if (TOK) boot();
 </script>
 </body>
-</html>"""
+</html>

@@ -9,7 +9,6 @@ from .api import admin, auth, bind, chat, parent
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
-from .admin_page import CMS_HTML
 from .web_page import WEB_PAGE_HTML
 
 
@@ -42,12 +41,6 @@ app.include_router(admin.router)
 def web_chat():
     """Web 端：仅提供聊天功能（2026-09-14 提案第四轮澄清的范围冻结）。审查/管理功能不进 web 端。"""
     return WEB_PAGE_HTML
-
-
-@app.get("/cms", response_class=HTMLResponse, include_in_schema=False)
-def cms():
-    """管理后台：运营数据看板 + LLM 分组配置（管理员 Token 鉴权，见 /admin API）。"""
-    return CMS_HTML
 
 
 @app.get("/health")

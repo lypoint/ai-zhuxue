@@ -14,7 +14,7 @@
        │ HTTPS/JWT         │ HTTPS/JWT         │
        ▼                   ▼                   ▼
 ┌─────────────────────────────────────────────────────┐
-│                FastAPI (server/app)                  │
+│         FastAPI API 服务 (server/app, :8100)         │
 │  auth(注册/登录)  bind(绑定码)  chat(聊天)  parent(审查) │
 │         │                    │                       │
 │         │             ┌──────┴────────┐              │
@@ -31,6 +31,14 @@
    阿里云/腾讯云          open.bigmodel.cn 等
    信息核验 API           (已备案大模型)
 ```
+
+## 1.5 CMS 独立服务
+
+管理后台（CMS）是**独立 FastAPI 服务**（`cms/`，默认端口 8101）：只托管单页（`GET /`），
+所有数据操作跨端口调用 API server 的 `/admin` 组接口。两服务互不依赖进程存活：
+- 停 CMS：API、App、Web 聊天不受影响；
+- 停 API server：CMS 页面仍可打开（接口调用报错）。
+页面后端地址解析：`?api=` 参数 > `CMS_API_BASE` 环境变量注入 > 同源兜底。
 
 ## 2. 核心数据流
 

@@ -56,7 +56,16 @@ flutter run --dart-define=ROLE=parent    # 家长端
 JWT_SECRET=$(openssl rand -hex 32) FENCE_MODE=llm docker compose up -d --build
 ```
 
-**CMS**：`http://localhost:8000/cms`（管理员账号或 `ADMIN_TOKENS` 环境变量）。
+**CMS**（独立服务，与 API server 分离部署、互不影响起停）：`http://localhost:8101/`（管理员账号或 `ADMIN_TOKENS` 环境变量）。
+
+```bash
+# 本地开发（页面服务，API 默认指向 http://localhost:8100）
+server/.venv/bin/uvicorn cms.main:app --port 8101
+# 或指向其他后端地址
+CMS_API_BASE=http://<api-host>:<port> server/.venv/bin/uvicorn cms.main:app --port 8101
+```
+
+CMS 页面确定后端地址的优先级：URL `?api=` 参数 > 服务端注入的 `CMS_API_BASE` > 同源兜底。
 
 ## 质量保障
 

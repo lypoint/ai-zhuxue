@@ -73,8 +73,7 @@ def test_duplicate_group_rejected(client, admin):
     assert client.post("/admin/llm-groups", headers=admin, json=body).status_code == 400
 
 
-def test_cms_page_served(client):
+def test_cms_no_longer_served_by_api(client):
+    """CMS 已拆分为独立服务（../cms，端口 8101）；API server 不再托管 /cms。"""
     resp = client.get("/cms")
-    assert resp.status_code == 200
-    assert "LLM 分组管理" in resp.text
-    assert "/admin/overview" in resp.text
+    assert resp.status_code == 404

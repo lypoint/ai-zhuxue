@@ -186,7 +186,7 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 1. **库内管理员**：`POST /admin/login {username, password}` → `{token, role, name}`（session_token 存库比对）；角色 `super`（全部权限）/ `ops`（只读运营，写操作 403）；
 2. **环境变量后门**：Header `Authorization: Bearer <ADMIN_TOKENS 之一>` = super（部署引导期）。
 
-前端入口 `GET /cms`（单页：账号密码登录或 Token 登录，ops 角色隐藏写操作入口）。敏感操作留痕 `GET /admin/logs`（仅 super）。
+管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，账号密码登录或 Token 登录，ops 角色隐藏写操作入口；跨端口调用本组 `/admin` API。页面后端地址优先级：`?api=` 参数 > `CMS_API_BASE` 环境变量注入 > 同源兜底。敏感操作留痕 `GET /admin/logs`（仅 super）。
 
 ### GET /admin/overview — 核心运营面板
 ```json
