@@ -28,7 +28,9 @@ jobs:
     strategy:
       matrix:
         package: [app_core, app_student, app_parent]
-    defaults: { run: { working-directory: app/${{ matrix.package }} } }
+    defaults:
+      run:
+        working-directory: app/${{ matrix.package }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
