@@ -229,7 +229,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refresh() async {
-    final data = await Api.I.familyOverview();
+    Map<String, dynamic> data;
+    try {
+      data = await Api.I.familyOverview();
+    } on ApiException catch (e) {
+      // token 失效（登出吊销/过期）：清本地会话并回登录页，避免白屏死路
+      if (e.status == 401 && mounted) {
+        await Api.I.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+      return;
+    }
     final settings = data['settings'] as Map<String, dynamic>;
     _capCtrl.text = (settings['daily_message_cap'] as num).toString();
     _minutesCtrl.text = (settings['daily_minutes_cap'] as num).toString();
@@ -1021,7 +1034,15 @@ class _SubscriptionCard extends StatelessWidget {
                 ],
               ),
             ),
-            FilledButton(onPressed: onPay, child: Text(active ? '续费' : '立即开通')),
+            // 防御性约束：个别环境（模拟器 gfxstream）CJK 字形测量异常会使按钮
+            // 占满整行、把 Expanded 文本列压成 40px；封顶宽度在正常设备上无视觉差异。
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 140),
+              child: FilledButton(
+                onPressed: onPay,
+                child: Text(active ? '续费' : '立即开通'),
+              ),
+            ),
           ],
         ),
       ),

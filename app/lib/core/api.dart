@@ -132,13 +132,13 @@ class Api {
       _send('GET', '/parent/family');
   Future<Map<String, dynamic>> createBindCode() => _send('POST', '/bind/code');
   Future<List<dynamic>> conversations(int studentId) async =>
-      (await _send('GET', '/parent/students/$studentId/conversations'))
+      (await _sendRaw('GET', '/parent/students/$studentId/conversations'))
           as List<dynamic>;
   Future<List<dynamic>> messages(int conversationId) async =>
-      (await _send('GET', '/parent/conversations/$conversationId/messages'))
+      (await _sendRaw('GET', '/parent/conversations/$conversationId/messages'))
           as List<dynamic>;
   Future<List<dynamic>> fenceEvents(int conversationId) async =>
-      (await _send('GET', '/parent/conversations/$conversationId/fence-events'))
+      (await _sendRaw('GET', '/parent/conversations/$conversationId/fence-events'))
           as List<dynamic>;
   Future<void> updateSettings(
     int dailyCap,

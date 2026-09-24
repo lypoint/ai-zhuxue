@@ -196,6 +196,13 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         reply = Message(conversation_id=conv.id, role="assistant",
                         content=fence.REJECT_REPLY, fence_action="reject")
         db.add(reply)
+        # 与 /chat/stream 对齐：拒绝时发家长通知（敏感=security，其余=fence）。
+        _notify(student.family_id,
+                "security" if verdict["category"] == "sensitive" else "fence",
+                "⚠️ 已拦截一条敏感内容" if verdict["category"] == "sensitive"
+                else "已拦截一条非学习内容",
+                f"{student.nickname}尝试询问：「{body.content[:50]}」。建议关注并与孩子沟通。",
+                conversation_id=conv.id, db=db)
         db.commit()
         return reply
 
@@ -229,6 +236,11 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     db.add(UsageLog(student_id=student.id, purpose="chat", provider=result["provider"],
                     model=result["model"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"]))
+    if verdict["decision"] == "rewrite":
+        # 与 /chat/stream 对齐：改写引导也通知家长（每天最多一条防骚扰）。
+        _notify(student.family_id, "fence", "已引导话题回到学习",
+                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
+                conversation_id=conv.id, once_per_day=True, db=db)
     db.commit()
     reply = await _output_check(result["content"], student, conv.id, reply, db)
     return reply

@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- release 构建只合并 main manifest，联网权限必须声明在这里（debug 模板仅覆盖 debug 变体） -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="aizhuxue"
         android:name="${applicationName}"
