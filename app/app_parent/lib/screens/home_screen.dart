@@ -62,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: const InputDecoration(labelText: '昵称'),
               ),
               DropdownButtonFormField<String>(
+                // ignore: deprecated_member_use
                 value: gradeBand,
                 decoration: const InputDecoration(labelText: '学段'),
                 items: const [
