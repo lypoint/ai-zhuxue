@@ -87,6 +87,7 @@ const $ = id => document.getElementById(id);
 let conversationId = null, busy = false;
 
 function token() { return localStorage.getItem('az_student_token'); }
+function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function deviceId() {
   let d = localStorage.getItem('az_device_id');
   if (!d) { d = 'web-' + crypto.randomUUID(); localStorage.setItem('az_device_id', d); }
@@ -164,8 +165,8 @@ async function loadSessions() {
     const list = $('sessList');
     list.innerHTML = sessions.map(s => `
       <div class="item ${s.conversation_id === conversationId ? 'active' : ''}" onclick="openSession(${s.conversation_id})">
-        ${s.title}
-        <small>${s.message_count} 条 · ${(s.last_time || '').replace('T', ' ').slice(0, 16)}</small>
+        ${esc(s.title)}
+        <small>${esc(s.message_count)} 条 · ${esc((s.last_time || '').replace('T', ' ').slice(0, 16))}</small>
       </div>`).join('');
   } catch (_) {}
 }

@@ -7,6 +7,7 @@ import '../widgets/student_review_card.dart';
 import '../widgets/management_settings_card.dart';
 import 'notifications_screen.dart';
 import 'login_screen.dart';
+import 'device_manage_screen.dart';
 
 /// 家庭总览：订阅状态、绑定码、孩子列表（分龄/审查/收藏）、未成年人模式管控设置。
 class HomeScreen extends StatefulWidget {
@@ -389,6 +390,14 @@ class _HomeScreenState extends State<HomeScreen> {
               onRename: () => _renameStudent(s),
               onGradeBandChanged: (band) => _setGradeBand(s, band),
               onRebind: () => _rebindStudent(s),
+              onManageDevices: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => DeviceManageScreen(
+                    studentId: s['id'] as int,
+                    studentName: s['nickname'] as String? ?? '',
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),

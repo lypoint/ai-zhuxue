@@ -231,6 +231,7 @@ class AdminUser(TimestampMixin, Base):
     password_hash: Mapped[str] = mapped_column(String(160))
     role: Mapped[str] = mapped_column(String(20), default="admin")  # super | admin | support (ops兼容)
     session_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    session_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     note: Mapped[str] = mapped_column(String(100), default="")
 
 

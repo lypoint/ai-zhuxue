@@ -20,6 +20,7 @@ services:
       ENV: prod
       DATABASE_URL: postgresql+psycopg2://aizhuxue:aizhuxue-dev@db:5432/aizhuxue
       JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET before starting}
+      LLM_KEY_SECRET: ${LLM_KEY_SECRET:-}   # api_key 落库加密密钥；空则回落 JWT_SECRET
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       LLM_PROVIDER: ${LLM_PROVIDER:-glm}
@@ -30,7 +31,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"   # 仅本机可达；对外走 caddy TLS 或自行前置反代
 
   # CMS 独立服务：只托管管理后台页面，指向 api:8000；起停/升级与 api 互不影响
   cms:
@@ -42,7 +43,29 @@ services:
     depends_on:
       - api
     ports:
-      - "8101:8101"
+      - "127.0.0.1:8101:8101"   # 仅本机可达；对外走 caddy TLS 或自行前置反代
+
+  # TLS 终结（可选 profile）：docker compose --profile tls up -d
+  # 需设置 API_DOMAIN（必填）与 CMS_DOMAIN；证书 ACME 自动签发续期。
+  # 未启用时请自行前置 Nginx/Caddy/云 LB 做 HTTPS，禁止直接暴露 8000/8101。
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["tls"]
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN (e.g. api.example.com) to enable TLS}
+      CMS_DOMAIN: ${CMS_DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - cms
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

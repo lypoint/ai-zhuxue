@@ -8,12 +8,14 @@ class StudentReviewCard extends StatelessWidget {
   final Map<String, dynamic> student;
   final VoidCallback onRename;
   final VoidCallback onRebind;
+  final VoidCallback onManageDevices;
   final Future<void> Function(String band) onGradeBandChanged;
   const StudentReviewCard({
     super.key,
     required this.student,
     required this.onRename,
     required this.onRebind,
+    required this.onManageDevices,
     required this.onGradeBandChanged,
   });
 
@@ -88,6 +90,11 @@ class StudentReviewCard extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.devices_other, size: 20),
+              tooltip: '设备管理',
+              onPressed: onManageDevices,
+            ),
+            IconButton(
+              icon: const Icon(Icons.phonelink_setup, size: 20),
               tooltip: '重新绑定设备',
               onPressed: onRebind,
             ),

@@ -100,6 +100,39 @@ def create_rebind_code(student_id: int, guardian: Guardian = Depends(current_gua
             "expires_at": bind.expires_at.isoformat(), "purpose": "rebind"}
 
 
+# ---------- 设备管理：家长可见当前设备并远程踢出（token 被盗时的止损手段） ----------
+
+@router.get("/students/{student_id}/devices")
+def list_student_devices(student_id: int, guardian: Guardian = Depends(current_guardian),
+                         db: Session = Depends(get_db)):
+    student = _own_student(guardian, student_id, db)
+    devices = (db.query(StudentDevice).filter_by(student_id=student.id)
+               .order_by(StudentDevice.is_current.desc(), StudentDevice.id.desc()).all())
+    return [{"id": d.id, "device_name": d.device_name, "is_current": d.is_current,
+             "last_seen_at": d.last_seen_at.isoformat() if d.last_seen_at else None,
+             "bound_at": d.created_at.isoformat() if d.created_at else None,
+             "revoked_at": d.revoked_at.isoformat() if d.revoked_at else None}
+            for d in devices]
+
+
+@router.post("/students/{student_id}/devices/{device_id}/revoke")
+def revoke_student_device(student_id: int, device_id: int,
+                          guardian: Guardian = Depends(current_guardian),
+                          db: Session = Depends(get_db)):
+    """踢出设备：吊销该设备并 token_version+1，被踢设备上的旧 token 立即失效。"""
+    import datetime as dt
+    student = _own_student(guardian, student_id, db)
+    device = db.get(StudentDevice, device_id)
+    if not device or device.student_id != student.id:
+        raise HTTPException(404, "device not found")
+    if device.is_current and device.revoked_at is None:
+        device.is_current = False
+        device.revoked_at = dt.datetime.now(dt.timezone.utc)
+        student.token_version = (student.token_version or 1) + 1
+        db.commit()
+    return {"ok": True, "device_id": device_id, "revoked": True}
+
+
 @router.get("/students/{student_id}/conversations", response_model=list[ConversationOut])
 def list_conversations(student_id: int, include_student_deleted: bool = True,
                        status: str | None = None,

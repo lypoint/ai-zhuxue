@@ -157,6 +157,13 @@ class Api {
 
   Future<Map<String, dynamic>> rebindCode(int studentId) =>
       createBindCode(purpose: 'rebind', targetStudentId: studentId);
+  Future<List<dynamic>> studentDevices(int studentId) async =>
+      (await _sendRaw('GET', '/parent/students/$studentId/devices'))
+          as List<dynamic>;
+  Future<void> revokeStudentDevice(int studentId, int deviceId) => _send(
+        'POST',
+        '/parent/students/$studentId/devices/$deviceId/revoke',
+      );
   Future<List<dynamic>> conversations(int studentId, {String? status}) async {
     final suffix = status == null
         ? ''

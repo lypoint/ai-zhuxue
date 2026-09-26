@@ -18,6 +18,7 @@ from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode
                       FenceEvent, FenceFeedback, Guardian, LLMGroup, Message, Student,
                       PricingConfig, Subscription, SubscriptionOrder, UsageLog)
 from ..services.llm import PRICE_PER_MTOK
+from ..services.keyvault import encrypt_api_key
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -64,6 +65,9 @@ def log(db: Session, principal: AdminPrincipal, action: str, detail: str = ""):
     db.commit()
 
 
+ADMIN_SESSION_HOURS = 12  # CMS session token 有效期；过期后重新登录
+
+
 def require_admin(authorization: str = Header(default=""),
                   db: Session = Depends(get_db)) -> AdminPrincipal:
     """鉴权：ADMIN_TOKENS（super 后门）优先；其次 admin_users.session_token。
@@ -77,7 +81,15 @@ def require_admin(authorization: str = Header(default=""),
     if token:
         user = db.query(AdminUser).filter_by(session_token=token).first()
         if user:
-            return AdminPrincipal(user.username, user.role)
+            expires = user.session_expires_at
+            if expires is not None and expires.tzinfo is None:   # SQLite naive 兼容
+                expires = expires.replace(tzinfo=dt.timezone.utc)
+            if expires and expires < dt.datetime.now(dt.timezone.utc):
+                user.session_token = None        # 过期即失效，下次必须重新登录
+                user.session_expires_at = None
+                db.commit()
+            else:
+                return AdminPrincipal(user.username, user.role)
     raise HTTPException(403, "admin token required")
 
 
@@ -105,6 +117,7 @@ def admin_login(body: LoginIn, db: Session = Depends(get_db)):
     if not user.password_hash.startswith("pbkdf2_sha256$"):
         user.password_hash = _hash_password(body.password)
     user.session_token = secrets.token_hex(32)
+    user.session_expires_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=ADMIN_SESSION_HOURS)
     db.commit()
     return {"token": user.session_token,
             "role": "admin" if user.role == "ops" else user.role,
@@ -537,6 +550,7 @@ def create_group(body: GroupIn, principal: AdminPrincipal = Depends(require_admi
     values["teacher_name"] = values["teacher_name"].strip()
     if not values["teacher_name"]:
         raise HTTPException(422, "teacher_name 不能为空")
+    values["api_key"] = encrypt_api_key(values["api_key"])   # 落库即密文
     grp = LLMGroup(**values)
     db.add(grp)
     db.commit()

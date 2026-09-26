@@ -86,9 +86,10 @@ def resolve_active_group(family_id: int | None = None, group_id: int | None = No
 
 
 def _group_payload(grp, routed_by: str) -> dict:
+    from .keyvault import decrypt_api_key
     return {"id": grp.id, "name": grp.name, "provider": grp.provider,
             "chat_model": grp.chat_model, "fence_model": grp.fence_model,
-            "api_key": grp.api_key or "", "daily_cap": grp.daily_message_cap,
+            "api_key": decrypt_api_key(grp.api_key or ""), "daily_cap": grp.daily_message_cap,
             "routed_by": routed_by, "teacher_name": grp.teacher_name,
             "teacher_avatar_url": grp.teacher_avatar_url,
             "post_trial_free_enabled": grp.post_trial_free_enabled}

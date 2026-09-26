@@ -1,0 +1,31 @@
+# TLS 终结：Caddy 自动 HTTPS（ACME）。启用前提——服务器可访问公网且 80/443 已放行。
+# 用法：
+#   1) 在 product/.env 或环境变量里设置 API_DOMAIN=cms.example.com（以及可选 CMS_DOMAIN）
+#   2) docker compose --profile tls up -d
+# 启用后 api/cms 不应直接对外暴露端口（compose 已把 8000/8101 绑到 127.0.0.1）。
+{
+	# 内网/无域名测试环境可用：docker compose run --rm caddy caddy trust
+	# （自签本地 CA 时删掉下面 acme 段，改用 `tls internal`）
+	email admin@example.com
+}
+
+{$API_DOMAIN} {
+	reverse_proxy api:8000 {
+		# SSE：关闭缓冲，聊天流式回放不卡顿
+		flush_interval -1
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+}
+
+{$CMS_DOMAIN} {
+	reverse_proxy cms:8101
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+	}
+}

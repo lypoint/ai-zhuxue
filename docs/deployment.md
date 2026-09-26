@@ -52,9 +52,27 @@ JWT_SECRET=$(openssl rand -hex 32) CORS_ORIGINS=http://localhost:8101 GLM_API_KE
 ```
 
 - `db`：Postgres 16 + 健康检查 + 数据卷 `pgdata`；
-- `api`：等 db 健康后启动，暴露 8000。生产建议前置 Nginx/Caddy 做 TLS 与限流；
+- `api`：等 db 健康后启动，8000 仅绑定 127.0.0.1；对外必须走 TLS（见下）；
 - 短信尚未接入：`ENV=prod` 的监护人注册/登录接口返回 503；现有有效令牌仍可使用。正式开放前须接入一次性短信码验证。
 - **时区**：日界与时段禁用按 `TZ_OFFSET_HOURS`（默认 8）换算，与容器时区无关，无需设置 TZ。
+
+### 3.1 HTTPS / TLS（强制）
+
+api/cms 端口已只绑 127.0.0.1，不再裸奔 HTTP。两种对外方式：
+
+```bash
+# 方式 A：内置 Caddy（ACME 自动签发续期，需公网域名 + 80/443 放行）
+cd product
+JWT_SECRET=$(openssl rand -hex 32) LLM_KEY_SECRET=$(openssl rand -hex 32) \
+  API_DOMAIN=api.example.com CMS_DOMAIN=cms.example.com \
+  GLM_API_KEY=sk-… FENCE_MODE=llm docker compose --profile tls up -d --build
+
+# 方式 B：自备 Nginx/云 LB 做反代
+#   - 反代到 127.0.0.1:8000（API）与 127.0.0.1:8101（CMS）；
+#   - SSE 场景关闭代理缓冲（Nginx: proxy_buffering off；X-Accel-Buffering 已设）。
+```
+
+新增环境变量：`LLM_KEY_SECRET`（CMS 存入的 LLM api_key 落库加密密钥，未设置回落 JWT_SECRET；**一旦有分组配了 key 并上线，就不要再改**，否则密文不可解）。
 
 ## 4. Flutter 构建产物
 
@@ -72,12 +90,22 @@ flutter build ipa   # iOS：需开发者账号签名
 
 **工程**
 - [x] Alembic 迁移链可用（`alembic upgrade head` 从零建出全部 25 表；表结构变更走新迁移文件）
-- [ ] JWT_SECRET/DB 密码/LLM Key 走密管，禁入 git
-- [ ] API 限流（登录与 chat 端点）+ 请求日志 + 错误告警
+- [ ] JWT_SECRET/LLM_KEY_SECRET/DB 密码/LLM Key 走密管，禁入 git
+- [x] API 限流（/auth、/chat、/admin/login 共库分钟窗口；多进程生效）
+- [ ] 请求日志 + 错误告警
 - [ ] PostgreSQL 定期备份与恢复演练
-- [ ] HTTPS（TLS 终结）+ App 端证书校验
-- [ ] 短信服务商接入 + 短信码频控（固定码仅 ENV=dev/test 生效）
+- [ ] HTTPS（TLS 终结）：`--profile tls` Caddy 或自备反代；App 端证书校验
+- [ ] 短信服务商接入 + 短信码频控（固定码仅 ENV=dev/test 生效；prod 注册未开放前返回 503）
 - [ ] usage_logs → 成本看板（验证人均 token 假设）
+
+**安全加固（2026-09-26 落地）**
+- [x] prod 启动自检：JWT_SECRET/ADMIN_TOKENS 弱配置直接拒启
+- [x] Admin 密码 pbkdf2（60 万轮，登录时自动升级旧 SHA256 账号）
+- [x] Admin session token 12 小时过期
+- [x] CMS/Web 前端全量输出转义（innerHTML XSS）
+- [x] LLM api_key 落库加密（encv1 封装，密钥 LLM_KEY_SECRET；存量明文兼容读）
+- [x] 家长端设备管理：`GET /parent/students/{id}/devices`、`POST .../devices/{id}/revoke`（踢出即 token_version+1）
+- [x] 学生 token 强制携带设备信息，缺设备字段的旧 token 拒绝
 
 **合规（依赖外部流程，见 compliance-design.md）**
 - [ ] 三要素核验真实接入（阿里云/腾讯云开通）并留核验凭证
