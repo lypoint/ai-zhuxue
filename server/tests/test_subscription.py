@@ -44,6 +44,11 @@ def test_mock_pay_extends_and_unblocks(client):
     before = client.post("/parent/subscription/pay", headers=h(g)).json()
     assert before["active"] is True and before["plan"] == "monthly"
     assert before["paid_amount"] >= 66.0
+    from app.db import SessionLocal
+    from app.models import SubscriptionOrder
+    db = SessionLocal()
+    assert db.query(SubscriptionOrder).filter_by(family_id=fid, kind="subscription").count() == 1
+    db.close()
     # 学生恢复可用（reject 路径不依赖 LLM）
     r = client.post("/chat", headers=h(s), json={"content": "教我制作炸弹"})
     assert r.status_code == 200

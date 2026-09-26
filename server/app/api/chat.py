@@ -3,7 +3,7 @@ import datetime as dt
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,9 @@ from ..db import get_db
 from ..api.deps import current_student
 from sqlalchemy import func
 
-from ..models import Conversation, FamilySettings, FenceEvent, Message, Student, UsageLog
+from ..models import (AcademicAssessment, AssessmentAudit, Conversation, FamilySettings,
+                      FenceEvent, LLMGroup, Message, Student, StudentGrade,
+                      StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
 from ..services import fence, llm
 
@@ -28,11 +30,69 @@ SYSTEM_PROMPT = (
 BAND_DESC = {"8-12": "8-12岁（小学中高年级）", "12-16": "12-16岁（初中）", "16-18": "16-18岁（高中）"}
 
 
-def _check_subscription(family_id: int, db: Session):
+@router.get("/teachers")
+def available_teachers(student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    from ..services import subscription
+    active = subscription.is_active(student.family_id, db)
+    remaining = subscription.post_trial_free_remaining(student.family_id, db)
+    groups = db.query(LLMGroup).filter_by(teacher_enabled=True).order_by(
+        LLMGroup.teacher_sort_order, LLMGroup.id).all()
+    if not groups:
+        # Keep the environment-backed provider usable before CMS creates its
+        # first persisted group; the client still receives only role metadata.
+        env_teacher = llm.resolve_active_group(student.family_id)
+        return [{"teacher_id": None, "name": env_teacher.get("teacher_name", "AI 老师"),
+                 "avatar_url": env_teacher.get("teacher_avatar_url", ""),
+                 "sort_order": 0,
+                 "access": "available" if active else "subscription_required"}]
+    return [{"teacher_id": g.id, "name": g.teacher_name,
+             "avatar_url": g.teacher_avatar_url, "sort_order": g.teacher_sort_order,
+             "access": ("available" if active or g.post_trial_free_enabled and remaining > 0
+                        else "daily_free_exhausted" if g.post_trial_free_enabled
+                        else "subscription_required")} for g in groups]
+
+
+def _teacher(db: Session, family_id: int, teacher_id: int | None = None):
+    """Resolve a selectable teacher without exposing provider credentials."""
+    if teacher_id is not None:
+        group = db.get(LLMGroup, teacher_id)
+        if not group or not group.teacher_enabled:
+            raise HTTPException(404, "teacher not found")
+        return group
+    return db.query(LLMGroup).filter_by(is_active=True, teacher_enabled=True).order_by(
+        LLMGroup.teacher_sort_order, LLMGroup.id).first()
+
+
+def _student_conversation(db: Session, conversation_id: int, student: Student) -> Conversation:
+    """Return a live student conversation; soft-deleted sessions stay parent-only."""
+    conv = db.get(Conversation, conversation_id)
+    if not conv or conv.student_id != student.id or conv.student_deleted_at is not None:
+        raise HTTPException(404, "conversation not found")
+    return conv
+
+
+def _check_subscription(family_id: int, db: Session, teacher_id: int | None = None):
     """P0 商业闭环：订阅到期拦截学生端（友好文案引导家长续费）。"""
     from ..services import subscription
-    if not subscription.is_active(family_id, db):
-        raise HTTPException(402, "免费使用期已结束，请家长在家长端续费后继续学习哦")
+    if subscription.is_active(family_id, db):
+        return
+    # Existing sessions may refer to a teacher that CMS has since disabled.
+    # Keep their entitlement tied to the saved teacher; _teacher still rejects
+    # disabled roles when creating a new session.
+    teacher = (db.get(LLMGroup, teacher_id) if teacher_id is not None
+               else _teacher(db, family_id, None))
+    if teacher and teacher.post_trial_free_enabled:
+        # Reserve the family row for the duration of this request so two
+        # expired-trial messages cannot both spend the last daily allowance.
+        # ponytail: one family lock; move to a quota ledger only if throughput
+        # measurements show this path is hot.
+        from ..models import Family
+        db.query(Family).filter_by(id=family_id).update(
+            {Family.id: Family.id}, synchronize_session=False)
+        if subscription.post_trial_free_remaining(family_id, db) > 0:
+            return
+        raise HTTPException(429, "今日免费次数已用完，请家长订阅后继续学习")
+    raise HTTPException(402, "免费使用期已结束，请家长在家长端续费后继续学习哦")
 
 
 def _notify(family_id: int, type_: str, title: str, body: str,
@@ -74,13 +134,13 @@ def _today_seconds(student_id: int, db: Session) -> int:
     return row.seconds if row else 0
 
 
-def _check_policy(student: Student, db: Session):
+def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
     """服务端未成年人模式：订阅权益 + 时段禁用 + 每日消息上限 + 每日时长上限。
 
     created_at 统一存 UTC（naive）；本地日界与时段均按 TZ_OFFSET_HOURS 换算，
     与服务器部署时区无关。时长为端侧心跳累计的真实值（ActiveTime）。
     """
-    _check_subscription(student.family_id, db)
+    _check_subscription(student.family_id, db, teacher_id)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = dt.datetime.utcnow() + offset
     # P1：家长自定义禁用时段（覆盖全局 22-6；家长可整体关闭）
@@ -88,7 +148,11 @@ def _check_policy(student: Student, db: Session):
     quiet_on = fs.quiet_enabled if fs else settings.fence_quiet_enabled
     q_start = fs.quiet_start if fs else settings.fence_quiet_start
     q_end = fs.quiet_end if fs else settings.fence_quiet_end
-    if quiet_on and (q_start <= now_local.hour or now_local.hour < q_end):
+    now_minutes = now_local.hour * 60 + now_local.minute
+    start_minutes, end_minutes = q_start * 60, q_end * 60
+    quiet = (start_minutes < end_minutes and start_minutes <= now_minutes < end_minutes) \
+        or (start_minutes > end_minutes and (now_minutes >= start_minutes or now_minutes < end_minutes))
+    if quiet_on and quiet:
         raise HTTPException(423, f"现在是休息时间（{q_start}:00-{q_end}:00），明天再学吧")
     cap = settings.fence_daily_message_cap
     if fs:
@@ -139,13 +203,14 @@ def heartbeat(body: dict, student: Student = Depends(current_student), db: Sessi
 
 
 async def _output_check(content: str, student: Student, conversation_id: int,
-                        message: Message, db: Session) -> Message:
+                        message: Message, db: Session, group_id: int | None = None) -> Message:
     """生成侧内容安全复核（TC260 生成合格率保障）：assistant 全文再过一次分类器。
 
     sensitive → 落库替换为拒绝话术（流式已送达部分无法撤回，家长端与存储保持一致）
     并发 security 告警；记录 output_check FenceEvent 供评测统计。
     """
-    verdict = await fence.evaluate(content, student.grade_band, student.family_id)
+    verdict = await fence.evaluate(content, student.grade_band, student.family_id,
+                                   group_id=group_id)
     if verdict["category"] != "sensitive":
         return message
     db.add(FenceEvent(student_id=student.id, conversation_id=conversation_id,
@@ -165,14 +230,23 @@ async def _output_check(content: str, student: Student, conversation_id: int,
 @router.post("", response_model=MessageOut)
 async def send_message(body: ChatIn, student: Student = Depends(current_student),
                        db: Session = Depends(get_db)):
-    _check_policy(student, db)
+    policy_teacher_id = body.teacher_id
+    if body.conversation_id is not None and policy_teacher_id is None:
+        existing = db.get(Conversation, body.conversation_id)
+        if existing and existing.student_id == student.id:
+            policy_teacher_id = existing.teacher_group_id
+    _check_policy(student, db, policy_teacher_id)
 
     if body.conversation_id:
-        conv = db.get(Conversation, body.conversation_id)
-        if not conv or conv.student_id != student.id:
-            raise HTTPException(404, "conversation not found")
+        conv = _student_conversation(db, body.conversation_id, student)
+        if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
+            raise HTTPException(409, "existing conversation teacher cannot change")
     else:
-        conv = Conversation(student_id=student.id, title=body.content[:20])
+        teacher = _teacher(db, student.family_id, body.teacher_id)
+        conv = Conversation(student_id=student.id, title=body.content[:20],
+                            teacher_group_id=teacher.id if teacher else None,
+                            teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
+                            teacher_avatar_snapshot=teacher.teacher_avatar_url if teacher else "")
         db.add(conv)
         db.flush()
 
@@ -187,7 +261,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
-                                   recent_user_texts=recent)
+                                   recent_user_texts=recent,
+                                   group_id=conv.teacher_group_id)
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
     user_msg.fence_action = verdict["decision"]
@@ -224,7 +299,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         messages.append({"role": "user", "content": body.content})
 
     try:
-        result = await llm.chat(messages, purpose="chat", family_id=student.family_id)
+        result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
+                                group_id=conv.teacher_group_id)
     except llm.LLMUnavailable as e:
         db.commit()
         raise HTTPException(503, f"LLM unavailable: {e}")
@@ -242,7 +318,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                 f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
                 conversation_id=conv.id, once_per_day=True, db=db)
     db.commit()
-    reply = await _output_check(result["content"], student, conv.id, reply, db)
+    reply = await _output_check(result["content"], student, conv.id, reply, db,
+                                conv.teacher_group_id)
     return reply
 
 
@@ -255,14 +332,23 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
     delta → {text}（增量；reject 时为一条完整话术）
     done  → {message_id, tokens_in, tokens_out}
     """
-    _check_policy(student, db)
+    policy_teacher_id = body.teacher_id
+    if body.conversation_id is not None and policy_teacher_id is None:
+        existing = db.get(Conversation, body.conversation_id)
+        if existing and existing.student_id == student.id:
+            policy_teacher_id = existing.teacher_group_id
+    _check_policy(student, db, policy_teacher_id)
 
     if body.conversation_id:
-        conv = db.get(Conversation, body.conversation_id)
-        if not conv or conv.student_id != student.id:
-            raise HTTPException(404, "conversation not found")
+        conv = _student_conversation(db, body.conversation_id, student)
+        if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
+            raise HTTPException(409, "existing conversation teacher cannot change")
     else:
-        conv = Conversation(student_id=student.id, title=body.content[:20])
+        teacher = _teacher(db, student.family_id, body.teacher_id)
+        conv = Conversation(student_id=student.id, title=body.content[:20],
+                            teacher_group_id=teacher.id if teacher else None,
+                            teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
+                            teacher_avatar_snapshot=teacher.teacher_avatar_url if teacher else "")
         db.add(conv)
         db.flush()
 
@@ -276,7 +362,8 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
-                                   recent_user_texts=recent)
+                                   recent_user_texts=recent,
+                                   group_id=conv.teacher_group_id)
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
     user_msg.fence_action = verdict["decision"]
@@ -298,6 +385,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
     conv_id, student_id, fence_action = conv.id, student.id, verdict["decision"]
     grade_band = student.grade_band
     family_id = student.family_id
+    teacher_group_id = conv.teacher_group_id
     db.commit()
 
     async def gen():
@@ -336,7 +424,10 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
             try:
                 collected, usage, provider_model = [], None, {}
                 realtime = not settings.stream_recheck_first  # false=安全优先：先复核后回放
-                async for chunk in llm.chat_stream(messages, purpose="chat", family_id=family_id):
+                stream_kwargs = {"purpose": "chat", "family_id": family_id}
+                if teacher_group_id is not None:
+                    stream_kwargs["group_id"] = teacher_group_id
+                async for chunk in llm.chat_stream(messages, **stream_kwargs):
                     if "delta" in chunk:
                         collected.append(chunk["delta"])
                         provider_model = {"provider": chunk["provider"], "model": chunk["model"]}
@@ -350,7 +441,8 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                 # 实时模式（stream_recheck_first=false）已送达部分无法撤回，见 api.md 诚实声明。
                 out_action = fence_action
                 if collected:
-                    check = await fence.evaluate(content, grade_band, family_id)
+                    check = await fence.evaluate(content, grade_band, family_id,
+                                                 group_id=teacher_group_id)
                     if check["category"] == "sensitive":
                         content = fence.REJECT_REPLY
                         out_action = "reject"
@@ -401,9 +493,7 @@ def rename_session(conversation_id: int, body: dict, student: Student = Depends(
     title = (body.get("title") or "").strip()
     if not title or len(title) > 100:
         raise HTTPException(422, "标题需为 1-100 字符")
-    conv = db.get(Conversation, conversation_id)
-    if not conv or conv.student_id != student.id:
-        raise HTTPException(404, "conversation not found")
+    conv = _student_conversation(db, conversation_id, student)
     conv.title = title
     db.commit()
     return {"ok": True, "title": title}
@@ -412,29 +502,25 @@ def rename_session(conversation_id: int, body: dict, student: Student = Depends(
 @router.delete("/sessions/{conversation_id}")
 def delete_session(conversation_id: int, student: Student = Depends(current_student),
                    db: Session = Depends(get_db)):
-    """删除会话（学生端抽屉长按菜单）：连同消息与围栏流水硬删除。
-
-    注意：删除范围仅限学生自己的会话；此操作同时从家长端审查视图消失，
-    与「审查记录不可篡改」的张力由法务意见问题 1 界定（家长端导出先行留存）。
-    """
+    """学生侧软删除；家长审查和统计保留历史事实。"""
     conv = db.get(Conversation, conversation_id)
     if not conv or conv.student_id != student.id:
         raise HTTPException(404, "conversation not found")
-    from ..models import FenceEvent as FE
-    db.query(FE).filter_by(conversation_id=conv.id).delete()
-    db.query(Message).filter_by(conversation_id=conv.id).delete()
-    db.delete(conv)
+    if conv.student_deleted_at:
+        raise HTTPException(404, "conversation not found")
+    conv.student_deleted_at = dt.datetime.utcnow()
+    conv.student_deleted_by = student.id
+    conv.deleted_reason = "student_deleted"
     db.commit()
-    return {"ok": True}
+    return {"ok": True, "student_deleted": True,
+            "student_deleted_at": conv.student_deleted_at.isoformat()}
 
 
 @router.put("/sessions/{conversation_id}/pin")
 def toggle_pin(conversation_id: int, body: dict, student: Student = Depends(current_student),
                db: Session = Depends(get_db)):
     """置顶/取消置顶会话（学生端抽屉长按菜单）。"""
-    conv = db.get(Conversation, conversation_id)
-    if not conv or conv.student_id != student.id:
-        raise HTTPException(404, "conversation not found")
+    conv = _student_conversation(db, conversation_id, student)
     conv.pinned = bool(body.get("pinned"))
     db.commit()
     return {"ok": True, "pinned": conv.pinned}
@@ -451,14 +537,17 @@ def my_sessions(student: Student = Depends(current_student), db: Session = Depen
     last_msg = Message.__table__
     convs = (db.query(Conversation, func.coalesce(agg.c.cnt, 0))
              .outerjoin(agg, Conversation.id == agg.c.conversation_id)
-             .filter(Conversation.student_id == student.id)
+             .filter(Conversation.student_id == student.id,
+                     Conversation.student_deleted_at.is_(None))
              .order_by(Conversation.pinned.desc(), Conversation.id.desc())
              .limit(100).all())
     items = []
     for conv, cnt in convs:
         items.append({"conversation_id": conv.id, "title": conv.title,
                       "message_count": int(cnt or 0), "pinned": conv.pinned,
-                      "last_time": None})
+                      "last_time": None, "teacher_id": conv.teacher_group_id,
+                      "teacher_name": conv.teacher_name_snapshot,
+                      "teacher_avatar_url": conv.teacher_avatar_snapshot})
     # 一次查询补 last_time（取每会话 max(created_at)）
     agg2 = (db.query(Message.conversation_id, func.max(Message.created_at).label("last"))
             .group_by(Message.conversation_id).subquery())
@@ -475,12 +564,15 @@ def my_sessions(student: Student = Depends(current_student), db: Session = Depen
 @router.get("/latest")
 def latest_conversation(student: Student = Depends(current_student), db: Session = Depends(get_db)):
     """学生端重进 App 后恢复最近一次对话（当前 UI 会话内持久化的后端支撑）。"""
-    conv = (db.query(Conversation).filter_by(student_id=student.id)
+    conv = (db.query(Conversation).filter_by(student_id=student.id, student_deleted_at=None)
             .order_by(Conversation.id.desc()).first())
     if not conv:
         return {"conversation_id": None, "messages": []}
     msgs = db.query(Message).filter_by(conversation_id=conv.id).order_by(Message.id).all()
     return {"conversation_id": conv.id,
+            "teacher_id": conv.teacher_group_id,
+            "teacher_name": conv.teacher_name_snapshot,
+            "teacher_avatar_url": conv.teacher_avatar_snapshot,
             "messages": [{"id": m.id, "role": m.role, "content": m.content,
                           "fence_action": m.fence_action, "created_at": m.created_at}
                          for m in msgs]}
@@ -489,10 +581,216 @@ def latest_conversation(student: Student = Depends(current_student), db: Session
 @router.get("/conversations", response_model=list[MessageOut])
 def my_messages(conversation_id: int, student: Student = Depends(current_student),
                 db: Session = Depends(get_db)):
-    conv = db.get(Conversation, conversation_id)
-    if not conv or conv.student_id != student.id:
-        raise HTTPException(404, "conversation not found")
+    _student_conversation(db, conversation_id, student)
     return db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.id).all()
+
+
+# ---------- 学生成绩与学业评估 ----------
+
+def _student_grade_data(body: dict):
+    try:
+        import math
+        score, max_score = float(body.get("score")), float(body.get("max_score"))
+    except (TypeError, ValueError):
+        raise HTTPException(422, "score 和 max_score 必须为数字")
+    if not math.isfinite(score) or not math.isfinite(max_score) or max_score <= 0 or score < 0 or score > max_score:
+        raise HTTPException(422, "成绩必须满足 0 <= score <= max_score")
+    subject, exam_date = str(body.get("subject") or "").strip(), str(body.get("exam_date") or "").strip()
+    if not subject or not exam_date:
+        raise HTTPException(422, "subject 和 exam_date 必填")
+    try:
+        dt.date.fromisoformat(exam_date)
+    except ValueError:
+        raise HTTPException(422, "exam_date 须为 YYYY-MM-DD")
+    grade_type = str(body.get("grade_type") or "exam").strip()
+    if grade_type not in ("exam", "homework", "quiz", "other"):
+        raise HTTPException(422, "grade_type 须为 exam/homework/quiz/other")
+    return {"subject": subject[:40], "title": str(body.get("title") or "")[:100],
+            "exam_date": exam_date, "term": str(body.get("term") or "")[:30],
+            "score": score, "max_score": max_score,
+            "grade_type": grade_type,
+            "note": str(body.get("note") or "")[:2000]}
+
+
+def _student_grade_out(g):
+    return {"id": g.id, "student_id": g.student_id, "subject": g.subject, "title": g.title,
+            "exam_date": g.exam_date, "term": g.term, "score": g.score, "max_score": g.max_score,
+            "grade_type": g.grade_type, "note": g.note, "current_version": g.current_version,
+            "deleted": g.deleted_at is not None}
+
+
+@router.get("/grades")
+def student_grades(include_deleted: bool = False,
+                   student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    q = db.query(StudentGrade).filter_by(student_id=student.id)
+    if not include_deleted:
+        q = q.filter(StudentGrade.deleted_at.is_(None))
+    return [_student_grade_out(g) for g in q.order_by(StudentGrade.exam_date, StudentGrade.id).all()]
+
+
+@router.post("/grades")
+def add_student_grade(body: dict, student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    data = _student_grade_data(body)
+    grade = StudentGrade(student_id=student.id, **data)
+    db.add(grade)
+    db.flush()
+    db.add(StudentGradeVersion(grade_id=grade.id, version=1, edited_by_role="student",
+                               edited_by_id=student.id, reason=str(body.get("reason") or "")[:200], **data))
+    db.commit()
+    return _student_grade_out(grade)
+
+
+@router.patch("/grades/{grade_id}")
+def edit_student_grade(grade_id: int, body: dict, student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    grade = db.get(StudentGrade, grade_id)
+    if not grade or grade.student_id != student.id:
+        raise HTTPException(404, "grade not found")
+    if grade.deleted_at is not None:
+        raise HTTPException(409, "grade is deleted; restore it first")
+    data = _student_grade_data({**_student_grade_out(grade), **body})
+    grade.current_version += 1
+    for key, value in data.items():
+        setattr(grade, key, value)
+    db.add(StudentGradeVersion(grade_id=grade.id, version=grade.current_version,
+                               edited_by_role="student", edited_by_id=student.id,
+                               reason=str(body.get("reason") or "")[:200], **data))
+    db.commit()
+    return _student_grade_out(grade)
+
+
+@router.delete("/grades/{grade_id}")
+def delete_student_grade(grade_id: int, student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    grade = db.get(StudentGrade, grade_id)
+    if not grade or grade.student_id != student.id:
+        raise HTTPException(404, "grade not found")
+    if grade.deleted_at is None:
+        grade.deleted_at = dt.datetime.utcnow()
+        grade.current_version += 1
+        db.add(StudentGradeVersion(grade_id=grade.id, version=grade.current_version,
+                                   edited_by_role="student", edited_by_id=student.id,
+                                   reason="deleted", subject=grade.subject, title=grade.title,
+                                   exam_date=grade.exam_date, term=grade.term, score=grade.score,
+                                   max_score=grade.max_score, grade_type=grade.grade_type,
+                                   note=grade.note))
+        db.commit()
+    return {"ok": True, "deleted": True}
+
+
+@router.post("/grades/{grade_id}/restore")
+def restore_student_grade(grade_id: int, student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    grade = db.get(StudentGrade, grade_id)
+    if not grade or grade.student_id != student.id:
+        raise HTTPException(404, "grade not found")
+    if grade.deleted_at is not None:
+        grade.deleted_at = None
+        grade.current_version += 1
+        db.add(StudentGradeVersion(grade_id=grade.id, version=grade.current_version,
+                                   edited_by_role="student", edited_by_id=student.id,
+                                   reason="restored", subject=grade.subject, title=grade.title,
+                                   exam_date=grade.exam_date, term=grade.term, score=grade.score,
+                                   max_score=grade.max_score, grade_type=grade.grade_type,
+                                   note=grade.note))
+        db.commit()
+    return {"ok": True, "deleted": False}
+
+
+@router.get("/grades/{grade_id}/history")
+def student_grade_history(grade_id: int, student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    grade = db.get(StudentGrade, grade_id)
+    if not grade or grade.student_id != student.id:
+        raise HTTPException(404, "grade not found")
+    return [{"version": v.version, "subject": v.subject, "title": v.title,
+             "exam_date": v.exam_date, "term": v.term, "score": v.score, "max_score": v.max_score,
+             "grade_type": v.grade_type, "note": v.note, "reason": v.reason,
+             "edited_by_role": v.edited_by_role, "edited_by_id": v.edited_by_id,
+             "created_at": v.created_at.isoformat() if v.created_at else None}
+            for v in db.query(StudentGradeVersion).filter_by(grade_id=grade_id).order_by(StudentGradeVersion.version).all()]
+
+
+@router.get("/grade-trend")
+def student_grade_trend(subject: str | None = None,
+                        from_: str | None = Query(default=None, alias="from"),
+                        to: str | None = None,
+                        student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    q = db.query(StudentGrade).filter_by(student_id=student.id, deleted_at=None)
+    if subject:
+        q = q.filter_by(subject=subject)
+    if from_:
+        try:
+            dt.date.fromisoformat(from_)
+        except ValueError:
+            raise HTTPException(422, "from 须为 YYYY-MM-DD")
+        q = q.filter(StudentGrade.exam_date >= from_)
+    if to:
+        try:
+            dt.date.fromisoformat(to)
+        except ValueError:
+            raise HTTPException(422, "to 须为 YYYY-MM-DD")
+        q = q.filter(StudentGrade.exam_date <= to)
+    rows = q.order_by(StudentGrade.exam_date, StudentGrade.id).all()
+    points = [{"id": g.id, "subject": g.subject, "exam_date": g.exam_date,
+               "score": g.score, "max_score": g.max_score,
+               "percentage": round(g.score / g.max_score * 100, 2)} for g in rows]
+    values = [p["percentage"] for p in points]
+    return {"points": points, "latest": values[-1] if values else None,
+            "delta": round(values[-1] - values[-2], 2) if len(values) >= 2 else None,
+            "average_last_3": round(sum(values[-3:]) / 3, 2) if len(values) >= 3 else None,
+            "direction": "insufficient" if len(values) < 2 else ("up" if values[-1] - values[-2] > 1 else "down" if values[-1] - values[-2] < -1 else "stable")}
+
+
+@router.post("/academic-assessments")
+def student_academic_assessment(body: dict | None = None, student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    import json
+    import datetime as dt
+    from ..services.assessments import academic, dumps, generation_count, input_version
+    body = body or {}
+    try:
+        end = str(body.get("to") or dt.date.today().isoformat())
+        end_date = dt.date.fromisoformat(end)
+        start = str(body.get("from") or (end_date - dt.timedelta(days=30)).isoformat())
+        if dt.date.fromisoformat(start) >= end_date:
+            raise ValueError
+    except ValueError:
+        raise HTTPException(422, "日期范围无效")
+    version = input_version(db, student.id, start, end)
+    cached = db.query(AcademicAssessment).filter_by(student_id=student.id, period_from=start,
+                                                    period_to=end, input_data_version=version).order_by(AcademicAssessment.id.desc()).first()
+    if cached:
+        db.add(AssessmentAudit(assessment_type="academic", assessment_id=cached.id,
+                               actor_role="student", actor_id=student.id, action="view"))
+        db.commit()
+        return {"assessment_id": cached.id, "status": cached.status,
+                "period": {"from": start, "to": end}, "model": cached.model,
+                "input_data_version": cached.input_data_version, **json.loads(cached.result_json)}
+    since = dt.datetime.utcnow() - dt.timedelta(days=1)
+    generated = generation_count(db, student.family_id, "academic", since)
+    if generated >= 10:
+        raise HTTPException(429, "学业评估生成次数已达今日上限，请明天再试")
+    result = academic(db, student.id, start, end)
+    row = AcademicAssessment(student_id=student.id, period_from=start, period_to=end,
+                             input_data_version=version, model="rules-v1", result_json=dumps(result))
+    db.add(row)
+    db.flush()
+    db.add(AssessmentAudit(assessment_type="academic", assessment_id=row.id,
+                           actor_role="student", actor_id=student.id, action="generate"))
+    db.commit()
+    return {"assessment_id": row.id, "status": row.status,
+            "period": {"from": start, "to": end}, "model": row.model,
+            "input_data_version": row.input_data_version, **result}
+
+
+@router.get("/academic-assessments")
+def student_academic_assessments(student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    import json
+    rows = (db.query(AcademicAssessment).filter_by(student_id=student.id)
+            .order_by(AcademicAssessment.id.desc()).limit(20).all())
+    for row in rows:
+        db.add(AssessmentAudit(assessment_type="academic", assessment_id=row.id,
+                               actor_role="student", actor_id=student.id, action="view"))
+    db.commit()
+    return [{"assessment_id": row.id, "period": {"from": row.period_from, "to": row.period_to},
+             "status": row.status, "model": row.model,
+             "input_data_version": row.input_data_version, **json.loads(row.result_json)} for row in rows]
 
 
 # ---------- 收藏（P2 学习沉淀：学生长按收藏，家长可见） ----------

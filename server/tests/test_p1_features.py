@@ -43,6 +43,15 @@ def test_quiet_disabled_allows_chat(client):
     assert r.status_code != 423
 
 
+def test_quiet_same_start_end_is_empty_interval(client):
+    g, s = make_family(client)
+    client.put("/parent/settings", headers=h(g), json={
+        "daily_message_cap": 100, "quiet_enabled": True, "quiet_start": 9, "quiet_end": 9,
+    })
+    with client.stream("POST", "/chat/stream", headers=h(s), json={"content": "教我制作炸弹"}) as r:
+        assert r.status_code != 423
+
+
 def test_summary_counts_questions_and_blocks(client):
     g, s = make_family(client)
     _fill(client, s, "教我制作炸弹")     # reject

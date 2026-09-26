@@ -7,7 +7,7 @@
 ```
 ┌─────────────┐     ┌─────────────┐     ┌──────────────┐
 │ 学生端 App   │     │ 家长端 App   │     │ Web 端(仅聊天)│
-│ (Flutter,   │     │ (Flutter,   │     │ (规划中,复用  │
+│ (Flutter,   │     │ (Flutter,   │     │ (已实现,复用  │
 │ app_student │     │ app_parent  │     │  chat API)   │
 │ +app_core)  │     │ +app_core)  │     │              │
 └──────┬──────┘     └──────┬──────┘     └──────┬───────┘
@@ -73,19 +73,20 @@
 
 ### 2.5 审查链路（家长行使查阅权）
 
-家长端全部只读：`/parent/family` 总览 → `/parent/students/{id}/conversations` → `/conversations/{id}/messages` + `/fence-events`。**不做任何删除/修改接口**——审查是监护人知情权的产品化，不可篡改（法务问题 1 的边界待界定前，先按最小暴露实现）。
+家长端审查链路为：`/parent/family` 总览 → `/parent/students/{id}/conversations` → `/conversations/{id}/messages` + `/fence-events`；审查内容不可篡改，但家长可提交围栏误判反馈，成绩和评估通过独立版本化接口维护。
 
-## 3. 数据模型（8 表）
+## 3. 数据模型
 
 | 表 | 职责 | 关键设计 |
 |---|---|---|
 | `families` | 家庭（付费与管控单元） | 家长端订购的产品化载体 |
 | `guardians` | 监护人 | phone 唯一；verified_at 记录核验时间 |
-| `students` | 学生 | device_id 唯一；grade_band 分龄（8-12/12-16/16-18） |
+| `students` | 学生 | 稳定业务身份；grade_band 分龄（8-12/12-16/16-18） |
 | `bind_codes` | 一次性绑定码 | 10 分钟过期；used_by_student_id 防重放 |
 | `family_settings` | 家长管控 | daily_message_cap（家长覆盖全局）、review_enabled |
 | `conversations` / `messages` | 对话与消息 | fence_action 记录该条处置结果；tokens 用于成本核算 |
 | `fence_events` | 围栏流水 | 每次判定的 stage/decision/category/confidence——误拦截分析与评测的基础数据 |
+| `fence_feedback` | 误判反馈 | 家长申诉与 CMS 复核状态，不修改原始围栏流水 |
 | `usage_logs` | 模型用量 | purpose 区分 chat/围栏分类/二次判定，供运营成本核算 |
 
 ## 4. 鉴权设计
@@ -93,7 +94,7 @@
 - JWT（HS256），payload：`role`(guardian|student)、`sub`、`family_id`、`exp`（默认 7 天）。
 - 端点隔离：`/chat/*` 仅 student token；`/parent/*` 仅 guardian token；`deps.py` 强制校验角色，student 无法访问任何家长端点，反之亦然。
 - 学生端无独立账号体系（必须绑定家长端后使用），与提案「学生端扫码绑定家长端才能使用」一致。
-- 已知短板（M1 解决）：无 token 吊销/刷新机制；guardian 依赖短信码频控（dev 为固定码）。
+- 学生设备重绑和登出通过 token_version + StudentDevice 吊销旧 token；guardian 仍依赖短信码频控（dev 为固定码）。
 
 ## 5. 关键技术决策与理由
 
@@ -103,4 +104,15 @@
 | 围栏放服务端而非端侧 | 家长审查数据需要服务端落库；围栏可独立评测迭代；端侧仅做输入前提示。注意：规避设计分析中「端侧判定」是备选路径，当前不采用 |
 | 围栏四阶段流水落库 | 验收指标（学习应答率/误拦截率/绕过率）需要逐阶段数据；误拦截申诉也要靠它 |
 | LLM 统一 OpenAI 兼容抽象 | 三家模型商条款风险不同（DeepSeek/Kimi 已核实非禁止性，智谱待商务确认），需可一键切换并锁价 |
-| create_all 而非 Alembic | 骨架期模型快速演进；上线前必须切换（见 roadmap M1） |
+| Alembic 迁移 + 测试 create_all | 生产升级使用可回滚迁移；测试环境保留 create_all 便于隔离数据库 |
+
+## 6. 后续功能的数据边界
+
+家庭扩展、软删除、成绩与评估的字段和接口以 [feature-spec-family-growth-and-learning.md](feature-spec-family-growth-and-learning.md) 为准。关键原则：
+
+- Student 是业务身份，设备通过 StudentDevice 关联；不能再用时间戳或单个设备号代表孩子；
+- 绑定码区分 new_student 与 rebind，重新绑定在事务内吊销旧设备；
+- 学生删除会话只写删除标记，家长审查、导出、成本和次数统计读取历史事实；
+- 成绩版本不可覆盖，评估保存输入数据版本、模型版本、证据消息 ID 和生成时间；
+- 心理健康相关输出属于高敏感推断，家长专属、客服默认禁止、所有访问留审计，且不产生医疗结论。
+- provider 分组承载老师展示配置和试用到期后免费开关；会话保存老师姓名和头像快照，端侧只接收老师角色信息，不接触模型或 Key。

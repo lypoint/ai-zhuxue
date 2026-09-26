@@ -24,6 +24,7 @@
 | [docs/deployment.md](docs/deployment.md) | 配置项全表、本地/Docker 部署、生产 Checklist |
 | [docs/compliance-design.md](docs/compliance-design.md) | 法规要求 → 产品机制 → 待法务界定点 对照 |
 | [docs/roadmap.md](docs/roadmap.md) | M0–M3 路线图与依赖关系 |
+| [docs/feature-spec-family-growth-and-learning.md](docs/feature-spec-family-growth-and-learning.md) | 家庭扩展、订阅名额、设备重绑、审查留存、成绩与评估功能规格 |
 
 ## 快速开始
 
@@ -32,7 +33,7 @@
 ```bash
 cd server
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/alembic upgrade head                       # 从零建库（全部 17 表）
+.venv/bin/alembic upgrade head                       # 从零建库（全部 25 表）
 .venv/bin/uvicorn app.main:app --port 8100
 ```
 
@@ -74,7 +75,7 @@ CMS 页面确定后端地址的优先级：URL `?api=` 参数 > 服务端注入�
 
 ## 质量保障
 
-- `server/tests/`：**85 例 pytest**（围栏规则/处置策略/审计流水、API 端到端、RBAC 角色隔离、绑定码防重放、每日上限强制、用量成本、家长审查、赠送扣除）；
+- `server/tests/`：**109 例 pytest**（围栏规则/处置策略/审计流水、API 端到端、RBAC 角色隔离、绑定码防重放、每日上限强制、用量成本、家长审查、赠送扣除、家庭设备、老师角色、成绩评估）；
 - `app/test/`：widget 测试；`flutter analyze` 零告警；
 - `tools/eval_fence.py`：围栏题库指标评测 + `--check` 阈值断言（CI 中 key 缺失自动跳过）；
 - CI：`.github/workflows/ci.yml`（pytest + flutter analyze/test + 围栏指标回归）。

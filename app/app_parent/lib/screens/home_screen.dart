@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _family;
   String? _bindCode;
+  String _bindLabel = '学生端绑定码';
   bool _showOnboarding = false;
   Map<String, dynamic>? _subscription;
   int _unread = 0;
@@ -29,8 +30,141 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _makeCode() async {
-    final data = await Api.I.createBindCode();
-    setState(() => _bindCode = data['code'] as String);
+    try {
+      final data = await Api.I.createBindCode();
+      if (!mounted) return;
+      setState(() {
+        _bindCode = data['code'] as String;
+        _bindLabel = '学生端绑定码';
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+  }
+
+  Future<void> _addStudent() async {
+    final ctrl = TextEditingController(text: '我的孩子');
+    var gradeBand = '8-12';
+    final form = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('添加孩子'),
+        content: StatefulBuilder(
+          builder: (ctx, setDialogState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                maxLength: 50,
+                decoration: const InputDecoration(labelText: '昵称'),
+              ),
+              DropdownButtonFormField<String>(
+                value: gradeBand,
+                decoration: const InputDecoration(labelText: '学段'),
+                items: const [
+                  DropdownMenuItem(value: '8-12', child: Text('8-12 岁')),
+                  DropdownMenuItem(value: '12-16', child: Text('12-16 岁')),
+                  DropdownMenuItem(value: '16-18', child: Text('16-18 岁')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => gradeBand = value);
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, {
+              'name': ctrl.text.trim(),
+              'gradeBand': gradeBand,
+            }),
+            child: const Text('继续'),
+          ),
+        ],
+      ),
+    );
+    final name = form?['name'];
+    gradeBand = form?['gradeBand'] ?? gradeBand;
+    if (name == null || name.isEmpty || !mounted) return;
+    try {
+      final data = await Api.I.createStudent(name, gradeBand: gradeBand);
+      setState(() {
+        _bindCode = data['bind_code'] as String;
+        _bindLabel = '$name 的绑定码';
+      });
+      _refresh();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.status == 409) {
+        final add = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('需要增加孩子名额'),
+            content: const Text('当前订阅没有可用名额，是否增加 1 个名额？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('增加名额'),
+              ),
+            ],
+          ),
+        );
+        if (add == true) _buySeatAndRetry(name, gradeBand);
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+  }
+
+  Future<void> _buySeatAndRetry(String name, String gradeBand) async {
+    try {
+      await Api.I.addSubscriptionSeats(
+        1,
+        idempotencyKey: 'seat-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      final data = await Api.I.createStudent(name, gradeBand: gradeBand);
+      if (!mounted) return;
+      setState(() {
+        _bindCode = data['bind_code'] as String;
+        _bindLabel = '$name 的绑定码';
+      });
+      _refresh();
+    } on ApiException catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
+  Future<void> _rebindStudent(Map<String, dynamic> student) async {
+    try {
+      final data = await Api.I.rebindCode(student['id'] as int);
+      if (!mounted) return;
+      setState(() {
+        _bindCode = data['bind_code'] as String;
+        _bindLabel = '${student['nickname']} 的重新绑定码';
+      });
+    } on ApiException catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+    }
   }
 
   Future<void> _refresh() async {
@@ -152,6 +286,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _addSeat() async {
+    try {
+      await Api.I.addSubscriptionSeats(
+        1,
+        idempotencyKey: 'seat-${DateTime.now().microsecondsSinceEpoch}',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('已增加 1 个孩子名额')));
+      _refresh();
+    } on ApiException catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   Future<void> _logout() async {
     await Api.I.logout();
     if (!mounted) return;
@@ -159,6 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
     ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
+
   @override
   Widget build(BuildContext context) {
     final family = _family;
@@ -220,7 +374,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (sub != null) SubscriptionCard(sub: sub, onPay: _pay),
+          if (sub != null)
+            SubscriptionCard(sub: sub, onPay: _pay, onAddSeat: _addSeat),
           if (_showOnboarding) _onboardingCard(),
           _guardianCard(family, students.length),
           const SizedBox(height: 8),
@@ -229,6 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
               student: s,
               onRename: () => _renameStudent(s),
               onGradeBandChanged: (band) => _setGradeBand(s, band),
+              onRebind: () => _rebindStudent(s),
             ),
           ),
           const SizedBox(height: 8),
@@ -241,6 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
   Widget _onboardingCard() {
     return Card(
       color: const Color(0xFFFFF8E7),
@@ -278,6 +435,11 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: const Icon(Icons.family_restroom),
         title: Text(family['guardian']['nickname'] as String? ?? '家长'),
         subtitle: Text('家庭 · $childCount 个孩子'),
+        trailing: FilledButton.icon(
+          onPressed: _addStudent,
+          icon: const Icon(Icons.person_add, size: 17),
+          label: const Text('添加孩子'),
+        ),
       ),
     );
   }
@@ -289,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text('学生端绑定码（10 分钟内有效）'),
+            Text('$_bindLabel（10 分钟内有效）'),
             const SizedBox(height: 8),
             Text(
               _bindCode!,

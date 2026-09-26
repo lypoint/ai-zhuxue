@@ -28,7 +28,7 @@ def test_rename_rejects_blank_and_long(client):
                         json={"title": "x" * 101}).status_code == 422
 
 
-def test_delete_session_removes_messages_and_events(client):
+def test_delete_session_soft_deletes_for_student_but_keeps_parent_history(client):
     g, s = make_family(client)
     _fill(client, s, "教我制作炸弹")
     cid = client.get("/chat/sessions", headers=h(s)).json()[0]["conversation_id"]
@@ -36,12 +36,24 @@ def test_delete_session_removes_messages_and_events(client):
     sid = client.get("/parent/family", headers=h(g)).json()["students"][0]["id"]
     assert len(client.get(f"/parent/students/{sid}/conversations", headers=h(g)).json()) == 1
     # 学生删除
-    assert client.delete(f"/chat/sessions/{cid}", headers=h(s)).json() == {"ok": True}
+    deleted = client.delete(f"/chat/sessions/{cid}", headers=h(s)).json()
+    assert deleted["ok"] is True and deleted["student_deleted"] is True
     assert client.get("/chat/sessions", headers=h(s)).json() == []
-    # 家长端同步消失
-    assert client.get(f"/parent/students/{sid}/conversations", headers=h(g)).json() == []
+    # 家长端保留审查历史并标记孩子已删除
+    parent_rows = client.get(f"/parent/students/{sid}/conversations", headers=h(g)).json()
+    assert len(parent_rows) == 1 and parent_rows[0]["student_deleted"] is True
+    assert client.get(f"/parent/students/{sid}/conversations?status=active", headers=h(g)).json() == []
+    assert len(client.get(f"/parent/students/{sid}/conversations?status=deleted", headers=h(g)).json()) == 1
     # 再删一次 404
     assert client.delete(f"/chat/sessions/{cid}", headers=h(s)).status_code == 404
+    # Soft deletion is a parent-review retention state, not a hidden student
+    # API escape hatch.
+    assert client.get(f"/chat/conversations?conversation_id={cid}", headers=h(s)).status_code == 404
+    assert client.patch(f"/chat/sessions/{cid}", headers=h(s), json={"title": "再次修改"}).status_code == 404
+    assert client.put(f"/chat/sessions/{cid}/pin", headers=h(s), json={"pinned": True}).status_code == 404
+    assert client.post(f"/chat", headers=h(s), json={
+        "conversation_id": cid, "content": "继续学习",
+    }).status_code == 404
 
 
 def test_cannot_touch_other_family_session(client):

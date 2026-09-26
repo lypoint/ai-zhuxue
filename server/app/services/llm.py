@@ -45,7 +45,7 @@ class LLMUnavailable(Exception):
     pass
 
 
-def resolve_active_group(family_id: int | None = None) -> dict:
+def resolve_active_group(family_id: int | None = None, group_id: int | None = None) -> dict:
     """返回生效分组 {"name","provider","chat_model","fence_model","api_key","daily_cap","routed_by"}。
 
     路由优先级：
@@ -59,33 +59,43 @@ def resolve_active_group(family_id: int | None = None) -> dict:
         from ..models import Family, LLMGroup
         db = SessionLocal()
         try:
+            if group_id is not None:
+                grp = db.get(LLMGroup, group_id)
+                # Existing conversations keep their provider snapshot even if
+                # CMS stops the teacher for new conversations.
+                if grp:
+                    return _group_payload(grp, "teacher:" + str(group_id))
             if family_id is not None:
                 tag = db.query(Family.tag).filter_by(id=family_id).scalar()
                 if tag:
-                    grp = db.query(LLMGroup).filter_by(tag=tag).first()
+                    grp = db.query(LLMGroup).filter_by(tag=tag, teacher_enabled=True).first()
                     if grp:
                         return _group_payload(grp, "tag:" + tag)
-            grp = db.query(LLMGroup).filter_by(is_active=True).first()
+            grp = db.query(LLMGroup).filter_by(is_active=True, teacher_enabled=True).first()
             if grp:
                 return _group_payload(grp, "active")
         finally:
             db.close()
     except Exception:
         pass
-    return {"name": "env", "provider": settings.llm_provider,
+    return {"id": None, "name": "env", "provider": settings.llm_provider,
             "chat_model": settings.chat_model, "fence_model": settings.fence_model,
-            "api_key": "", "daily_cap": 0, "routed_by": "env"}
+            "api_key": "", "daily_cap": 0, "routed_by": "env",
+            "teacher_name": "AI 老师", "teacher_avatar_url": "",
+            "post_trial_free_enabled": False}
 
 
 def _group_payload(grp, routed_by: str) -> dict:
-    return {"name": grp.name, "provider": grp.provider,
+    return {"id": grp.id, "name": grp.name, "provider": grp.provider,
             "chat_model": grp.chat_model, "fence_model": grp.fence_model,
             "api_key": grp.api_key or "", "daily_cap": grp.daily_message_cap,
-            "routed_by": routed_by}
+            "routed_by": routed_by, "teacher_name": grp.teacher_name,
+            "teacher_avatar_url": grp.teacher_avatar_url,
+            "post_trial_free_enabled": grp.post_trial_free_enabled}
 
 
-def _provider(purpose: str = "chat", family_id: int | None = None):
-    grp = resolve_active_group(family_id)
+def _provider(purpose: str = "chat", family_id: int | None = None, group_id: int | None = None):
+    grp = resolve_active_group(family_id, group_id)
     name = grp["provider"]
     if name not in PROVIDERS:
         raise LLMUnavailable(f"unknown provider {name}")
@@ -99,9 +109,10 @@ def _provider(purpose: str = "chat", family_id: int | None = None):
 
 
 async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 1024,
-               temperature: float = 0.7, family_id: int | None = None) -> dict:
+               temperature: float = 0.7, family_id: int | None = None,
+               group_id: int | None = None) -> dict:
     """返回 {"content", "tokens_in", "tokens_out", "provider", "model"}；无 Key 时抛 LLMUnavailable。"""
-    name, p, key, model = _provider(purpose, family_id)
+    name, p, key, model = _provider(purpose, family_id, group_id)
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(
             f"{p['base_url']}/chat/completions",
@@ -129,10 +140,11 @@ async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 10
 
 
 async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: int = 1024,
-                      temperature: float = 0.7, family_id: int | None = None):
+                      temperature: float = 0.7, family_id: int | None = None,
+                      group_id: int | None = None):
     """流式对话（OpenAI 兼容 SSE）。逐段 yield 文本增量；结束时 yield
     {"usage": {...}, "provider": ..., "model": ...} 汇总。无 Key 抛 LLMUnavailable。"""
-    name, p, key, model = _provider(purpose, family_id)
+    name, p, key, model = _provider(purpose, family_id, group_id)
     async with httpx.AsyncClient(timeout=120) as client:
         async with client.stream(
             "POST", f"{p['base_url']}/chat/completions",

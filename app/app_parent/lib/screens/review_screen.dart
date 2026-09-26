@@ -21,6 +21,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   Map<String, dynamic>? _summary;
   List<dynamic>? _searchHits;
   final _searchCtrl = TextEditingController();
+  String _status = 'all';
 
   @override
   void initState() {
@@ -44,7 +45,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<void> _load() async {
-    final list = await Api.I.conversations(widget.studentId);
+    final list = await Api.I.conversations(widget.studentId, status: _status);
     Map<String, dynamic>? usage;
     Map<String, dynamic>? summary;
     try {
@@ -65,10 +66,23 @@ class _ReviewScreenState extends State<ReviewScreen> {
     });
   }
 
-  void _openConversation(int id, String title) => Navigator.of(context).push(
+  void _openConversation(
+    int id,
+    String title, {
+    String teacherName = 'AI 老师',
+    String teacherAvatarUrl = '',
+    bool studentDeleted = false,
+    String? studentDeletedAt,
+  }) => Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (_) =>
-          ConversationDetailScreen(conversationId: id, title: title),
+      builder: (_) => ConversationDetailScreen(
+        conversationId: id,
+        title: title,
+        teacherName: teacherName,
+        teacherAvatarUrl: teacherAvatarUrl,
+        studentDeleted: studentDeleted,
+        studentDeletedAt: studentDeletedAt,
+      ),
     ),
   );
 
@@ -81,6 +95,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           : ListView(
               padding: const EdgeInsets.all(12),
               children: [
+                _statusFilter(),
                 _searchBar(),
                 if (_searchHits != null) ..._searchResults(),
                 if (_summary != null) _summaryCard(),
@@ -92,15 +107,32 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   ),
                 ..._conversations!.map((c) {
                   final conv = c as Map<String, dynamic>;
+                  final avatar = conv['teacher_avatar_url'] as String? ?? '';
                   return ListTile(
-                    leading: const Icon(Icons.forum),
-                    title: Text(conv['title'] as String? ?? ''),
+                    leading: _teacherAvatar(avatar),
+                    title: Row(
+                      children: [
+                        Expanded(child: Text(conv['title'] as String? ?? '')),
+                        if (conv['student_deleted'] == true)
+                          const Chip(
+                            label: Text(
+                              '孩子已删除',
+                              style: TextStyle(fontSize: 11),
+                            ),
+                          ),
+                      ],
+                    ),
                     subtitle: Text(
-                      (conv['created_at'] as String? ?? '').replaceAll('T', ' '),
+                      '${conv['teacher_name'] ?? 'AI 老师'} · ${(conv['created_at'] as String? ?? '').replaceAll('T', ' ')}',
                     ),
                     onTap: () => _openConversation(
                       conv['id'] as int,
                       conv['title'] as String? ?? '',
+                      teacherName: conv['teacher_name'] as String? ?? 'AI 老师',
+                      teacherAvatarUrl:
+                          conv['teacher_avatar_url'] as String? ?? '',
+                      studentDeleted: conv['student_deleted'] == true,
+                      studentDeletedAt: conv['student_deleted_at'] as String?,
                     ),
                   );
                 }),
@@ -108,6 +140,39 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
     );
   }
+
+  Widget _teacherAvatar(String url) => CircleAvatar(
+    child: url.isEmpty
+        ? const Icon(Icons.school)
+        : ClipOval(
+            child: Image.network(
+              url,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Icon(Icons.school),
+            ),
+          ),
+  );
+
+  Widget _statusFilter() => Row(
+    children: [
+      const Text('显示：', style: TextStyle(fontSize: 13)),
+      DropdownButton<String>(
+        value: _status,
+        items: const [
+          DropdownMenuItem(value: 'all', child: Text('全部')),
+          DropdownMenuItem(value: 'active', child: Text('孩子未删除')),
+          DropdownMenuItem(value: 'deleted', child: Text('孩子已删除')),
+        ],
+        onChanged: (value) {
+          if (value == null || value == _status) return;
+          setState(() => _status = value);
+          _load();
+        },
+      ),
+    ],
+  );
 
   Widget _searchBar() {
     return Padding(
@@ -168,6 +233,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             onTap: () => _openConversation(
               h['conversation_id'] as int,
               h['title'] as String? ?? '',
+              teacherName: h['teacher_name'] as String? ?? 'AI 老师',
+              teacherAvatarUrl: h['teacher_avatar_url'] as String? ?? '',
+              studentDeleted: h['student_deleted'] == true,
             ),
           ),
         );

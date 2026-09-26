@@ -15,22 +15,30 @@ class GuardianRegisterIn(BaseModel):
 class TokenOut(BaseModel):
     token: str
     role: str  # guardian | student
+    student_id: int | None = None
+    student_device_id: int | None = None
+    replaced_device_count: int = 0
 
 
 class StudentLoginIn(BaseModel):
     bind_code: str
-    device_id: str = Field(min_length=8, max_length=64)
+    installation_id: str | None = Field(default=None, min_length=8, max_length=64)
+    device_id: str | None = Field(default=None, min_length=8, max_length=64)  # 迁移期兼容
+    device_name: str = ""
     nickname: str = ""
 
 
 class BindCodeOut(BaseModel):
     code: str
     expires_at: datetime
+    purpose: str = "new_student"
+    target_student_id: int | None = None
 
 
 class ChatIn(BaseModel):
     conversation_id: int | None = None
     content: str = Field(min_length=1, max_length=4000)
+    teacher_id: int | None = None
 
 
 class MessageOut(BaseModel):
@@ -39,6 +47,9 @@ class MessageOut(BaseModel):
     content: str
     fence_action: str | None
     created_at: datetime
+    teacher_id: int | None = None
+    teacher_name: str = "AI 老师"
+    teacher_avatar_url: str = ""
 
     class Config:
         from_attributes = True
@@ -48,6 +59,11 @@ class ConversationOut(BaseModel):
     id: int
     title: str
     created_at: datetime
+    student_deleted: bool = False
+    student_deleted_at: datetime | None = None
+    teacher_id: int | None = None
+    teacher_name: str = "AI 老师"
+    teacher_avatar_url: str = ""
 
     class Config:
         from_attributes = True
@@ -60,6 +76,8 @@ class FenceEventOut(BaseModel):
     category: str
     confidence: float
     created_at: datetime
+    intent: str = ""
+    safety_education: bool = False
 
     class Config:
         from_attributes = True

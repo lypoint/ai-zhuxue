@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// 后端地址：Android 模拟器用 10.0.2.2 访问宿主机。
 /// 覆盖方式：flutter run --dart-define=API_BASE=http://192.168.x.x:8100
@@ -112,7 +114,7 @@ class Api {
 
   Future<String> studentLogin(
     String bindCode,
-    String deviceId,
+    String installationId,
     String nickname,
   ) async {
     final data = await _send(
@@ -120,7 +122,8 @@ class Api {
       '/auth/student/login',
       body: {
         'bind_code': bindCode,
-        'device_id': deviceId,
+        'installation_id': installationId,
+        'device_id': installationId,
         'nickname': nickname,
       },
     );
@@ -130,16 +133,64 @@ class Api {
 
   Future<Map<String, dynamic>> familyOverview() =>
       _send('GET', '/parent/family');
-  Future<Map<String, dynamic>> createBindCode() => _send('POST', '/bind/code');
-  Future<List<dynamic>> conversations(int studentId) async =>
-      (await _sendRaw('GET', '/parent/students/$studentId/conversations'))
-          as List<dynamic>;
+  Future<Map<String, dynamic>> students() => _send('GET', '/parent/students');
+
+  Future<Map<String, dynamic>> createStudent(
+    String nickname, {
+    String gradeBand = '8-12',
+  }) => _send(
+    'POST',
+    '/parent/students',
+    body: {'nickname': nickname, 'grade_band': gradeBand},
+  );
+  Future<Map<String, dynamic>> createBindCode({
+    String purpose = 'new_student',
+    int? targetStudentId,
+  }) => _send(
+    'POST',
+    '/bind/code',
+    body: {
+      'purpose': purpose,
+      if (targetStudentId != null) 'target_student_id': targetStudentId,
+    },
+  );
+
+  Future<Map<String, dynamic>> rebindCode(int studentId) =>
+      createBindCode(purpose: 'rebind', targetStudentId: studentId);
+  Future<List<dynamic>> conversations(int studentId, {String? status}) async {
+    final suffix = status == null
+        ? ''
+        : '?status=${Uri.encodeQueryComponent(status)}';
+    return (await _sendRaw(
+          'GET',
+          '/parent/students/$studentId/conversations$suffix',
+        ))
+        as List<dynamic>;
+  }
+
   Future<List<dynamic>> messages(int conversationId) async =>
       (await _sendRaw('GET', '/parent/conversations/$conversationId/messages'))
           as List<dynamic>;
   Future<List<dynamic>> fenceEvents(int conversationId) async =>
-      (await _sendRaw('GET', '/parent/conversations/$conversationId/fence-events'))
+      (await _sendRaw(
+            'GET',
+            '/parent/conversations/$conversationId/fence-events',
+          ))
           as List<dynamic>;
+  Future<Map<String, dynamic>> submitFenceFeedback(
+    int conversationId, {
+    int? messageId,
+    int? eventId,
+    String note = '',
+  }) => _send(
+    'POST',
+    '/parent/conversations/$conversationId/feedback',
+    body: {
+      if (messageId != null) 'message_id': messageId,
+      if (eventId != null) 'event_id': eventId,
+      if (note.trim().isNotEmpty) 'note': note.trim(),
+    },
+  );
   Future<void> updateSettings(
     int dailyCap,
     bool reviewEnabled, {
@@ -253,8 +304,20 @@ class Api {
   // ---------- 订阅（P0） ----------
   Future<Map<String, dynamic>> subscription() =>
       _send('GET', '/parent/subscription');
-  Future<Map<String, dynamic>> paySubscription() =>
-      _send('POST', '/parent/subscription/pay');
+  Future<Map<String, dynamic>> paySubscription({String? idempotencyKey}) =>
+      _send(
+        'POST',
+        '/parent/subscription/pay',
+        body: {if (idempotencyKey != null) 'idempotency_key': idempotencyKey},
+      );
+  Future<Map<String, dynamic>> addSubscriptionSeats(
+    int count, {
+    required String idempotencyKey,
+  }) => _send(
+    'POST',
+    '/parent/subscription/seats',
+    body: {'count': count, 'idempotency_key': idempotencyKey},
+  );
 
   // ---------- 通知中心（P0） ----------
   Future<Map<String, dynamic>> notifications({bool unreadOnly = false}) =>
@@ -264,6 +327,155 @@ class Api {
       );
   Future<void> readAllNotifications() =>
       _send('POST', '/parent/notifications/read-all');
+
+  Future<String> installationId() async {
+    const secure = FlutterSecureStorage();
+    try {
+      final existing = await secure.read(key: 'installation_id');
+      if (existing != null && existing.length >= 8) return existing;
+      final value = _newInstallationId();
+      await secure.write(key: 'installation_id', value: value);
+      return value;
+    } catch (_) {
+      // Test/web fallback; mobile builds use Keychain/Keystore above.
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final existing = prefs.getString('installation_id');
+    if (existing != null && existing.length >= 8) return existing;
+    final value = _newInstallationId();
+    await prefs.setString('installation_id', value);
+    return value;
+  }
+
+  String _newInstallationId() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
+
+  Future<List<dynamic>> teachers() async =>
+      (await _sendRaw('GET', '/chat/teachers')) as List<dynamic>;
+
+  Future<List<dynamic>> studentGrades({bool includeDeleted = false}) async {
+    final suffix = includeDeleted ? '?include_deleted=true' : '';
+    return (await _sendRaw('GET', '/chat/grades$suffix')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> addStudentGrade(Map<String, dynamic> grade) =>
+      _send('POST', '/chat/grades', body: grade);
+  Future<Map<String, dynamic>> editStudentGrade(
+    int gradeId,
+    Map<String, dynamic> grade,
+  ) => _send('PATCH', '/chat/grades/$gradeId', body: grade);
+  Future<void> deleteStudentGrade(int gradeId) =>
+      _send('DELETE', '/chat/grades/$gradeId');
+  Future<void> restoreStudentGrade(int gradeId) =>
+      _send('POST', '/chat/grades/$gradeId/restore');
+  Future<List<dynamic>> studentGradeHistory(int gradeId) async =>
+      (await _sendRaw('GET', '/chat/grades/$gradeId/history')) as List<dynamic>;
+  Future<Map<String, dynamic>> studentGradeTrend({String? subject, String? from, String? to}) async {
+    final query = <String, String>{
+      if (subject != null && subject.isNotEmpty) 'subject': subject,
+      if (from != null && from.isNotEmpty) 'from': from,
+      if (to != null && to.isNotEmpty) 'to': to,
+    };
+    final suffix = query.isEmpty
+        ? ''
+        : '?${query.entries.map((e) => '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}').join('&')}';
+    return _send('GET', '/chat/grade-trend$suffix');
+  }
+
+  Future<Map<String, dynamic>> studentAcademicAssessment({
+    String? from,
+    String? to,
+  }) => _send(
+    'POST',
+    '/chat/academic-assessments',
+    body: {if (from != null) 'from': from, if (to != null) 'to': to},
+  );
+  Future<List<dynamic>> studentAcademicAssessments() async =>
+      (await _sendRaw('GET', '/chat/academic-assessments')) as List<dynamic>;
+
+  Future<List<dynamic>> parentGrades(
+    int studentId, {
+    bool includeDeleted = false,
+  }) async {
+    final suffix = includeDeleted ? '?include_deleted=true' : '';
+    return (await _sendRaw('GET', '/parent/students/$studentId/grades$suffix'))
+        as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> addParentGrade(
+    int studentId,
+    Map<String, dynamic> grade,
+  ) => _send('POST', '/parent/students/$studentId/grades', body: grade);
+  Future<Map<String, dynamic>> editParentGrade(
+    int studentId,
+    int gradeId,
+    Map<String, dynamic> grade,
+  ) => _send(
+    'PATCH',
+    '/parent/students/$studentId/grades/$gradeId',
+    body: grade,
+  );
+  Future<void> deleteParentGrade(int studentId, int gradeId) =>
+      _send('DELETE', '/parent/students/$studentId/grades/$gradeId');
+  Future<void> restoreParentGrade(int studentId, int gradeId) =>
+      _send('POST', '/parent/students/$studentId/grades/$gradeId/restore');
+  Future<List<dynamic>> parentGradeHistory(int studentId, int gradeId) async =>
+      (await _sendRaw(
+            'GET',
+            '/parent/students/$studentId/grades/$gradeId/history',
+          ))
+          as List<dynamic>;
+  Future<Map<String, dynamic>> parentGradeTrend(
+    int studentId, {
+    String? subject,
+    String? from,
+    String? to,
+  }) async {
+    final query = <String, String>{
+      if (subject != null && subject.isNotEmpty) 'subject': subject,
+      if (from != null && from.isNotEmpty) 'from': from,
+      if (to != null && to.isNotEmpty) 'to': to,
+    };
+    final suffix = query.isEmpty
+        ? ''
+        : '?${query.entries.map((e) => '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}').join('&')}';
+    return _send('GET', '/parent/students/$studentId/grade-trend$suffix');
+  }
+
+  Future<Map<String, dynamic>> parentAcademicAssessment(int studentId) => _send(
+    'POST',
+    '/parent/students/$studentId/academic-assessments',
+    body: {},
+  );
+  Future<List<dynamic>> parentAcademicAssessments(int studentId) async =>
+      (await _sendRaw(
+            'GET',
+            '/parent/students/$studentId/academic-assessments',
+          ))
+          as List<dynamic>;
+  Future<Map<String, dynamic>> parentWellbeingAssessment(int studentId) =>
+      _send(
+        'POST',
+        '/parent/students/$studentId/wellbeing-assessments',
+        body: {},
+      );
+  Future<List<dynamic>> parentWellbeingAssessments(int studentId) async =>
+      (await _sendRaw(
+            'GET',
+            '/parent/students/$studentId/wellbeing-assessments',
+          ))
+          as List<dynamic>;
+  Future<void> ackWellbeingAssessment(int assessmentId, String status) => _send(
+    'POST',
+    '/parent/wellbeing-assessments/$assessmentId/ack',
+    body: {'status': status},
+  );
 
   /// 退出登录：服务端吊销当前 token（版本+1），并清除本地
   Future<void> logout() async {
@@ -276,18 +488,26 @@ class Api {
   }
 
   /// 发消息（非流式）：返回 assistant 消息。fence 429/423 等业务码由 ApiException 抛出。
-  Future<Map<String, dynamic>> sendChat(int? conversationId, String content) =>
-      _send(
-        'POST',
-        '/chat',
-        body: {'conversation_id': conversationId, 'content': content},
-      );
+  Future<Map<String, dynamic>> sendChat(
+    int? conversationId,
+    String content, {
+    int? teacherId,
+  }) => _send(
+    'POST',
+    '/chat',
+    body: {
+      'conversation_id': conversationId,
+      'content': content,
+      if (teacherId != null) 'teacher_id': teacherId,
+    },
+  );
 
   /// 流式聊天（SSE）。onDelta 逐段回调增量文本；meta 事件先回调 onMeta；
   /// 返回 done 事件数据（message_id/tokens）。流内 error 事件抛 ApiException(503)。
   Future<Map<String, dynamic>> sendChatStream(
     int? conversationId,
     String content, {
+    int? teacherId,
     void Function(String text)? onDelta,
     void Function(Map<String, dynamic> meta)? onMeta,
   }) async {
@@ -299,6 +519,7 @@ class Api {
         ..body = jsonEncode({
           'conversation_id': conversationId,
           'content': content,
+          if (teacherId != null) 'teacher_id': teacherId,
         });
       final resp = await client.send(req);
       if (resp.statusCode >= 400) {

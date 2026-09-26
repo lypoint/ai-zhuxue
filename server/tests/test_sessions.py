@@ -10,7 +10,7 @@ def test_sessions_lists_conversations_newest_first(client):
             pass  # 消费流，数据落库
     d = client.get("/chat/sessions", headers=h(s)).json()
     assert len(d) == 3
-    assert all({"conversation_id", "title", "message_count", "pinned", "last_time"} == set(x) for x in d)
+    assert all({"conversation_id", "title", "message_count", "pinned", "last_time"}.issubset(x) for x in d)
     ids = [x["conversation_id"] for x in d]
     assert ids == sorted(ids, reverse=True)
     # 测试环境无 LLM Key：reject 有完整问答（2 条），allow/rewrite 流内 error、仅 user 落库（1 条）

@@ -17,6 +17,10 @@
 | `FENCE_QUIET_ENABLED` | `true` | 22–6 时段禁用开关（测试可关） |
 | `FENCE_QUIET_START` / `FENCE_QUIET_END` | `22` / `6` | 禁用时段（按 `TZ_OFFSET_HOURS` 换算，与服务器时区无关） |
 | `TZ_OFFSET_HOURS` | `8` | 本地日界/时段换算用的时区偏移（中国=8）；created_at 统一存 UTC |
+| `PRICING_BASE_MONTHLY_PRICE` | `66` | 首次初始化时的基础月费（元）；运行中以 CMS 数据库配置为准 |
+| `PRICING_ADDITIONAL_SEAT_PRICE` | `33` | 首次初始化时的增量孩子名额价格（元）；运行中以 CMS 配置为准 |
+| `PRICING_TRIAL_DAYS` | `30` | 首次初始化时的新用户试用天数 |
+| `PRICING_POST_TRIAL_DAILY_FREE_COUNT` | `0` | 首次初始化时的到期后每日免费次数；老师角色开关仍由 CMS 控制 |
 | `GUARDIAN_VERIFY_PROVIDER` | `mock` | `mock` \| `aliyun` \| `tencent`（后两者待接入） |
 
 ## 2. 本地开发
@@ -24,7 +28,7 @@
 ```bash
 cd server
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/alembic upgrade head                       # 从零建库（全部 17 表）
+.venv/bin/alembic upgrade head                       # 从零建库（全部 25 表）
 .venv/bin/uvicorn app.main:app --port 8100          # SQLite + mock 核验
 FENCE_QUIET_ENABLED=false .venv/bin/uvicorn app.main:app --port 8100   # 测试时段放开
 ```
@@ -33,7 +37,7 @@ FENCE_QUIET_ENABLED=false .venv/bin/uvicorn app.main:app --port 8100   # 测试�
 
 ```bash
 cd server
-.venv/bin/python -m pytest -q                        # 单元+端到端测试（85 例）
+.venv/bin/python -m pytest -q                        # 单元+端到端测试（109 例）
 .venv/bin/python -m tools.eval_fence                 # heuristic 指标
 FENCE_MODE=llm GLM_API_KEY=sk-… .venv/bin/python -m tools.eval_fence   # 验收形态
 ```
@@ -64,7 +68,7 @@ flutter build ipa   # iOS：需开发者账号签名
 ## 5. 生产 Checklist（骨架 → 上线）
 
 **工程**
-- [x] Alembic 迁移链可用（`alembic upgrade head` 从零建出全部 17 表；表结构变更走新迁移文件）
+- [x] Alembic 迁移链可用（`alembic upgrade head` 从零建出全部 25 表；表结构变更走新迁移文件）
 - [ ] JWT_SECRET/DB 密码/LLM Key 走密管，禁入 git
 - [ ] API 限流（登录与 chat 端点）+ 请求日志 + 错误告警
 - [ ] PostgreSQL 定期备份与恢复演练
@@ -78,7 +82,7 @@ flutter build ipa   # iOS：需开发者账号签名
 - [ ] App 备案 + 算法备案/安全评估（如法务意见认定需要）
 - [ ] 《未成年人个人信息处理规则》、PIA 报告、监护人同意书上线（法务交付物）
 - [ ] 公示所用已备案模型名称及备案号
-- [ ] 围栏验收达标报告（题库 ≥300/库，指标全部过线）
+- [x] 围栏离线验收报告（六组题库各 300 题，自动指标全部过线；真实模型评测仍需凭证后复跑）
 
 **产品**
 - [ ] 家长端实付订阅接入（真实支付通道，费率按通道确认）

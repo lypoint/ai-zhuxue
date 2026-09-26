@@ -20,10 +20,10 @@ class _BindScreenState extends State<BindScreen> {
       _error = null;
     });
     try {
-      final deviceId = 'dev-${DateTime.now().millisecondsSinceEpoch}';
+      final installationId = await Api.I.installationId();
       await Api.I.studentLogin(
         _codeCtrl.text.trim().toUpperCase(),
-        deviceId,
+        installationId,
         '我的孩子',
       );
       if (!mounted) return;
@@ -55,7 +55,11 @@ class _BindScreenState extends State<BindScreen> {
             CircleAvatar(
               radius: 34,
               backgroundColor: Theme.of(context).colorScheme.primary,
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 32),
+              child: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 32,
+              ),
             ),
             const SizedBox(height: 18),
             const Text(
@@ -80,7 +84,10 @@ class _BindScreenState extends State<BindScreen> {
                   children: [
                     const Text(
                       '输入家长端绑定码',
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     const Text(

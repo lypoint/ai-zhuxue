@@ -20,19 +20,33 @@ REDLINE_PATTERNS = [
     r"赌博|赌球|博彩",
     r"枪支|弹药|炸弹|爆炸物",
     r"怎么(?:杀|弄死).{0,6}人",
-    r"偷东西|恐吓信|假币|霸凌|作弊考试|考试作弊",
+    r"偷东西|恐吓信|假币|作弊考试|考试作弊",
     r"黑别人(?:的)?账号|进入别人电脑",
     r"管制刀具|违禁刀|翻墙进",
     r"安眠药.{0,6}(?:出事|死)",
     r"酒驾|醉驾",
     r"危险气体|制取.{0,6}气体",
+    r"(?:怎么|如何|怎样|教我|请给出|哪里可以买到|写一份关于|别人让我做|如果没有限制|作为小说情节|帮我规划|我想尝试|告诉我).{0,12}杀人",
+    r"安眠药.{0,20}(?:不会被发现|怎么处理|如何|使用|多少)",
 ]
+
+SAFETY_EDUCATION_PATTERNS = (
+    r"如何(?:预防|应对|制止).{0,8}(?:(?:校园|网络|学校)?(?:霸凌|欺凌))",
+    r"(?:被同学欺负|遭遇霸凌|(?:校园|学校|网络)反霸凌|反欺凌政策|霸凌求助)",
+    r"同学欺负我怎么办",
+)
+SAFETY_HARM_PATTERNS = (
+    r"(?:怎样|怎么|如何).{0,8}(?:霸凌|欺负)同学",
+    r"(?:让别人受伤|把同学打伤).{0,12}(?:不被发现|不留痕)",
+)
 
 # 学习信号（heuristic 降级模式用；llm 模式仅作参考不直接放行）
 STUDY_HINTS = re.compile(
     r"作业|题目|方程|函数|单词|语法|作文|阅读|背诵|公式|定理|历史|地理|物理|化学|生物|"
     r"数学|语文|英语|考试|复习|预习|知识点|讲解|怎么解|为什么|如何写|翻译|"
-    r"光合|细胞|元素周期|化学反应|古诗|修辞|成语|应用题|几何|三角形",
+    r"光合|细胞|元素周期|化学反应|古诗|修辞|成语|应用题|几何|三角形|"
+    r"二战|唐诗|宋词|小数|阿基米德|万有引力|立方根|平方根|四大发明|地球自转|"
+    r"圆周率|正反比例|电磁感应|科举|牛顿|定律|一般过去时|概率|统计图表",
     re.I,
 )
 ENTERTAINMENT_HINTS = re.compile(r"游戏|明星|八卦|追剧|段子|笑话|吐槽|直播|网红|皮肤|充值")
@@ -66,10 +80,12 @@ def _heuristic_classify(content: str) -> tuple[str, float]:
     return "other", 0.5
 
 
-async def _llm_classify(content: str, system: str, family_id: int | None = None) -> tuple[str, float, dict]:
+async def _llm_classify(content: str, system: str, family_id: int | None = None,
+                       group_id: int | None = None) -> tuple[str, float, dict]:
     result = await llm.chat(
         [{"role": "system", "content": system}, {"role": "user", "content": content}],
-        purpose="fence_classify", max_tokens=64, temperature=0.0, family_id=family_id,
+        purpose="fence_classify", max_tokens=64, temperature=0.0,
+        family_id=family_id, group_id=group_id,
     )
     try:
         data = json.loads(re.search(r"\{.*\}", result["content"], re.S).group(0))
@@ -79,7 +95,8 @@ async def _llm_classify(content: str, system: str, family_id: int | None = None)
 
 
 async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None = None,
-                   recent_user_texts: list[str] | None = None) -> dict:
+                   recent_user_texts: list[str] | None = None,
+                   group_id: int | None = None) -> dict:
     """返回 {decision: allow|rewrite|reject, category, confidence, stages: [FenceEvent dict...]}。
 
     recent_user_texts：当前消息之前的最近用户输入（最多取 2 条）。仅 llm 模式启用
@@ -89,55 +106,78 @@ async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None
     """
     stages = []
 
-    def record(stage, decision, category, confidence, detail=""):
+    def record(stage, decision, category, confidence, detail="", intent="", safety_education=False):
         stages.append({"stage": stage, "decision": decision, "category": category,
-                       "confidence": confidence, "detail": detail})
+                       "confidence": confidence, "detail": detail,
+                       "intent": intent, "safety_education": safety_education})
         return decision
 
-    # 1) 红线白名单：命中即拒，不做分类
+    # 1) 安全教育白名单优先于词语命中，允许求助和预防类回答。
+    if any(re.search(pattern, content) for pattern in SAFETY_EDUCATION_PATTERNS):
+        record("whitelist", "allow", "study", 1.0, "safety education whitelist",
+               "safety_education", True)
+        record("policy", "allow", "study", 1.0, "safety education",
+               "safety_education", True)
+        return {"decision": "allow", "category": "study", "confidence": 1.0,
+                "intent": "safety_education", "safety_education": True, "stages": stages}
+
+    # 2) 明确伤害意图仍拒绝；仅出现“霸凌”不再硬拒绝。
+    if any(re.search(pattern, content) for pattern in SAFETY_HARM_PATTERNS):
+        record("whitelist", "reject", "sensitive", 1.0, "safety harm intent",
+               "harm", False)
+        record("policy", "reject", "sensitive", 1.0, "safety harm intent",
+               "harm", False)
+        return {"decision": "reject", "category": "sensitive", "confidence": 1.0,
+                "intent": "harm", "safety_education": False, "stages": stages}
+
+    # 3) 红线词兜底：命中即硬拒，不做分类
     for pattern in REDLINE_PATTERNS:
         if re.search(pattern, content):
-            record("whitelist", "reject", "sensitive", 1.0, pattern)
-            record("policy", "reject", "sensitive", 1.0, "whitelist hard reject")
-            return {"decision": "reject", "category": "sensitive", "confidence": 1.0, "stages": stages}
+            record("whitelist", "reject", "sensitive", 1.0, pattern, "harm", False)
+            record("policy", "reject", "sensitive", 1.0, "whitelist hard reject", "harm", False)
+            return {"decision": "reject", "category": "sensitive", "confidence": 1.0,
+                    "intent": "harm", "safety_education": False, "stages": stages}
 
     # 2) 分类
     if settings.fence_mode == "llm":
         try:
-            category, confidence, llm_result = await _llm_classify(content, CLASSIFY_SYSTEM, family_id)
+            category, confidence, llm_result = await _llm_classify(
+                content, CLASSIFY_SYSTEM, family_id, group_id)
         except llm.LLMUnavailable:
             category, confidence = _heuristic_classify(content)
             record("classifier", "pending", category, confidence, "llm unavailable -> heuristic")
         else:
-            record("classifier", "pending", category, confidence, "llm")
+            record("classifier", "pending", category, confidence, "llm", category, False)
     else:
         category, confidence = _heuristic_classify(content)
-        record("classifier", "pending", category, confidence, "heuristic")
+        record("classifier", "pending", category, confidence, "heuristic", category, False)
 
     # 2.5) 上下文级检查（仅 llm 模式；多轮铺垫防御的轻量版）
     if (settings.fence_mode == "llm" and recent_user_texts
             and category != "sensitive"):
         joined = "\n".join([*recent_user_texts[-2:], content])[:2000]
         try:
-            ctx_cat, ctx_conf, _ = await _llm_classify(joined, CLASSIFY_SYSTEM, family_id)
+            ctx_cat, ctx_conf, _ = await _llm_classify(
+                joined, CLASSIFY_SYSTEM, family_id, group_id)
         except llm.LLMUnavailable:
-            record("context_check", "allow", category, confidence, "llm unavailable, skip")
+            record("context_check", "allow", category, confidence, "llm unavailable, skip", category, False)
         else:
             if ctx_cat == "sensitive":
                 category, confidence = ctx_cat, max(confidence, ctx_conf)
                 record("context_check", "pending", category, confidence,
-                       "context join -> sensitive")
+                       "context join -> sensitive", "harm", False)
             else:
-                record("context_check", "allow", category, confidence, "context clean")
+                record("context_check", "allow", category, confidence, "context clean", category, False)
 
     # 3) 低置信度二次判定（仅 llm 模式；heuristic 的 0.55/0.5 阈值直接走处置）
     if settings.fence_mode == "llm" and confidence < 0.6 and category != "sensitive":
         try:
-            category2, confidence2, _ = await _llm_classify(content, SECOND_PASS_SYSTEM, family_id)
-            record("second_pass", "pending", category2, confidence2, "second pass")
+            category2, confidence2, _ = await _llm_classify(
+                content, SECOND_PASS_SYSTEM, family_id, group_id)
+            record("second_pass", "pending", category2, confidence2, "second pass", category2, False)
             category, confidence = category2, max(confidence, confidence2)
         except llm.LLMUnavailable:
-            record("second_pass", "allow", category, confidence, "llm unavailable, keep first pass")
+            record("second_pass", "allow", category, confidence, "llm unavailable, keep first pass", category, False)
 
     # 4) 分级处置
     if category == "study":
@@ -146,8 +186,9 @@ async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None
         decision = "reject"
     else:
         decision = "rewrite"  # 引导性改写：不硬拒绝，把话题带回学习
-    record("policy", decision, category, confidence)
-    return {"decision": decision, "category": category, "confidence": confidence, "stages": stages}
+    record("policy", decision, category, confidence, intent=category, safety_education=False)
+    return {"decision": decision, "category": category, "confidence": confidence,
+            "intent": category, "safety_education": False, "stages": stages}
 
 
 GUIDANCE_PREFIX = "咱们把话题放回学习上吧。"

@@ -11,6 +11,7 @@ class ChatDrawer extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onOpenStats;
   final VoidCallback onOpenFavorites;
+  final VoidCallback onOpenGrades;
   final VoidCallback onLogout;
   final ValueChanged<int> onOpenSession;
   final ValueChanged<Map<String, dynamic>> onSessionMenu;
@@ -25,6 +26,7 @@ class ChatDrawer extends StatelessWidget {
     required this.onSearchChanged,
     required this.onOpenStats,
     required this.onOpenFavorites,
+    required this.onOpenGrades,
     required this.onLogout,
     required this.onOpenSession,
     required this.onSessionMenu,
@@ -67,6 +69,11 @@ class ChatDrawer extends StatelessWidget {
               leading: const Icon(Icons.star_border),
               title: const Text('我的收藏'),
               onTap: onOpenFavorites,
+            ),
+            ListTile(
+              leading: const Icon(Icons.insights),
+              title: const Text('成绩与学习评估'),
+              onTap: onOpenGrades,
             ),
             ListTile(
               leading: const Icon(Icons.logout),

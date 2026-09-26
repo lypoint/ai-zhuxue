@@ -9,6 +9,7 @@ import '../widgets/message_bubble.dart';
 import 'bind_screen.dart';
 import 'favorites_screen.dart';
 import 'my_stats_screen.dart';
+import 'grades_screen.dart';
 
 /// 学习聊天页：流式对话、会话抽屉、心跳时长上报、消息收藏与政策拦截提示。
 class ChatScreen extends StatefulWidget {
@@ -24,6 +25,9 @@ class _ChatScreenState extends State<ChatScreen> {
   int? _conversationId;
   bool _sending = false;
   List<dynamic>? _sessions;
+  List<dynamic>? _teachers;
+  int? _teacherId;
+  String _teacherName = 'AI 学习助手';
   String _search = '';
   Timer? _hbTimer;
 
@@ -46,8 +50,99 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _restore();
+    _loadTeachers();
     _startHeartbeat();
   }
+
+  Future<void> _loadTeachers() async {
+    try {
+      final teachers = await Api.I.teachers();
+      if (mounted) {
+        setState(() {
+          _teachers = teachers;
+          // The first CMS-sorted teacher is the family default for a new chat.
+          if (_conversationId == null && teachers.isNotEmpty) {
+            final teacher = (teachers.cast<Map<String, dynamic>>().firstWhere(
+              (item) => item['access'] == 'available',
+              orElse: () => teachers.first as Map<String, dynamic>,
+            ));
+            _teacherId = teacher['teacher_id'] as int?;
+            _teacherName = teacher['name'] as String? ?? 'AI 学习助手';
+          }
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _chooseTeacher() async {
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(
+              title: Text(
+                '选择老师',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            ...(_teachers ?? const []).map((raw) {
+              final teacher = raw as Map<String, dynamic>;
+              final available = teacher['access'] == 'available';
+              final access = teacher['access'] as String?;
+              return ListTile(
+                enabled: available,
+                leading: _teacherAvatar(teacher['avatar_url'] as String? ?? ''),
+                title: Text(teacher['name'] as String? ?? 'AI 老师'),
+                trailing: available
+                    ? null
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.lock_outline, size: 18),
+                          const SizedBox(width: 4),
+                          Text(
+                            access == 'daily_free_exhausted'
+                                ? '今日次数已用完'
+                                : '需订阅',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                onTap: available ? () => Navigator.of(ctx).pop(teacher) : null,
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    if (_conversationId != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('老师只在新对话开始时生效')));
+      return;
+    }
+    setState(() {
+      _teacherId = selected['teacher_id'] as int?;
+      _teacherName = selected['name'] as String? ?? 'AI 学习助手';
+    });
+  }
+
+  Widget _teacherAvatar(String url) => CircleAvatar(
+    child: url.isEmpty
+        ? const Icon(Icons.school)
+        : ClipOval(
+            child: Image.network(
+              url,
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Icon(Icons.school),
+            ),
+          ),
+  );
 
   Future<void> _restore() async {
     try {
@@ -57,6 +152,8 @@ class _ChatScreenState extends State<ChatScreen> {
       if (convId != null && msgs.isNotEmpty && mounted) {
         setState(() {
           _conversationId = convId;
+          _teacherId = data['teacher_id'] as int?;
+          _teacherName = data['teacher_name'] as String? ?? _teacherName;
           for (final m in msgs) {
             _bubbles.add(Bubble(m['role'] as String, m['content'] as String));
           }
@@ -93,8 +190,18 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final msgs = await Api.I.conversationMessages(conversationId);
       if (!mounted) return;
+      Map<String, dynamic>? session;
+      for (final item in (_sessions ?? const [])) {
+        if (item is Map<String, dynamic> &&
+            item['conversation_id'] == conversationId) {
+          session = item;
+          break;
+        }
+      }
       setState(() {
         _conversationId = conversationId;
+        _teacherId = session?['teacher_id'] as int?;
+        _teacherName = session?['teacher_name'] as String? ?? _teacherName;
         _bubbles.clear();
         for (final m in msgs) {
           _bubbles.add(
@@ -288,7 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('删除会话？'),
-        content: const Text('该会话的全部消息将被删除，且家长端不再可见。此操作不可撤销。'),
+        content: const Text('该会话会从孩子端隐藏，家长仍可在审查记录中查看。此操作不可撤销。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -358,6 +465,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final done = await Api.I.sendChatStream(
         _conversationId,
         text,
+        teacherId: _conversationId == null ? _teacherId : null,
         onMeta: (meta) => _conversationId =
             meta['conversation_id'] as int? ?? _conversationId,
         onDelta: (delta) {
@@ -377,7 +485,29 @@ class _ChatScreenState extends State<ChatScreen> {
       _loadSessions();
     } on ApiException catch (e) {
       updateLast('⚠️ ${e.message}');
-      if (mounted) await _policyDialog(e);
+      if (e.status == 401 && mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('设备已重新绑定'),
+            content: Text(e.message),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('重新绑定'),
+              ),
+            ],
+          ),
+        );
+        await Api.I.logout();
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const BindScreen()),
+          );
+        }
+      } else if (mounted) {
+        await _policyDialog(e);
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -395,6 +525,13 @@ class _ChatScreenState extends State<ChatScreen> {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const FavoritesScreen()));
+  }
+
+  Future<void> _openGrades() async {
+    Navigator.of(context).pop();
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const GradesScreen()));
   }
 
   Future<void> _logout() async {
@@ -427,10 +564,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('AI 学习助手'),
+            Text('$_teacherName'),
             Text(
               '受保护学习空间',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
@@ -447,6 +584,13 @@ class _ChatScreenState extends State<ChatScreen> {
             },
           ),
         ),
+        actions: [
+          IconButton(
+            tooltip: '选择老师',
+            onPressed: _teachers == null ? null : _chooseTeacher,
+            icon: const Icon(Icons.school_outlined),
+          ),
+        ],
       ),
       drawer: ChatDrawer(
         sessions: _sessions,
@@ -457,6 +601,7 @@ class _ChatScreenState extends State<ChatScreen> {
         onSearchChanged: (v) => setState(() => _search = v),
         onOpenStats: _openStats,
         onOpenFavorites: _openFavorites,
+        onOpenGrades: _openGrades,
         onLogout: _logout,
         onOpenSession: _openSession,
         onSessionMenu: _sessionMenu,

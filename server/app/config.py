@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     fence_quiet_start: int = 22           # 22:00-6:00 禁用（未成年人模式建设指南）
     fence_quiet_end: int = 6
 
+    # 订阅策略：仅用于首次初始化数据库配置，运行中的业务始终读库。
+    pricing_base_monthly_price: float = 66.0
+    pricing_additional_seat_price: float = 33.0
+    pricing_trial_days: int = 30
+    pricing_post_trial_daily_free_count: int = 0
+
     # 监护人核验：mock（开发）| aliyun | tencent
     guardian_verify_provider: str = "mock"
 

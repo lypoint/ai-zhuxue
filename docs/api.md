@@ -34,9 +34,9 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 
 ### POST /auth/student/login — 学生端登录（凭绑定码）
 ```json
-{"bind_code": "6E629AC5", "device_id": "emulator-5554-01", "nickname": "小明"}
+{"bind_code": "6E629AC5", "installation_id": "uuid-from-keychain", "nickname": "小明"}
 ```
-→ `200 {"token","role":"student"}`。同一 device_id 重复登录复用学生身份并重新归属家庭。
+→ `200 {"token","role":"student", "student_id", "student_device_id", "replaced_device_count"}`。installation_id 持久化用于找回同一孩子；重新绑定时新设备生效，旧设备全部吊销。旧 device_id 参数仅在迁移期兼容，不再作为学生业务身份。
 错误：`400 bind code invalid or expired`（码不存在/已使用/超 10 分钟）。
 
 ---
@@ -49,6 +49,9 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 
 ### GET /bind/codes — 当前有效码列表
 → `200 [{"code","expires_at"}]`（未使用且未过期）。
+
+### DELETE /bind/codes/{code} — 作废绑定码
+仅限所属家庭的监护人；未使用码作废后不可再次登录，重复或跨家庭返回 404。
 
 ---
 
@@ -81,7 +84,7 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 
 ---
 
-## 家长端 `/parent`（guardian，全部只读）
+## 家长端 `/parent`（guardian；审查内容只读，成绩/评估/管控使用独立写接口）
 
 ### GET /parent/family — 家庭总览
 ```json
@@ -91,17 +94,22 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 ```
 
 ### GET /parent/students/{student_id}/conversations — 该学生全部对话
-→ `200 [ConversationOut...]`（按 id 倒序）。学生不属于本家庭 → 404。
+→ `200 [ConversationOut...]`（按 id 倒序，含老师姓名/头像快照和 `student_deleted` 标记）。
+支持 `status=all|active|deleted` 筛选；学生不属于本家庭 → 404。
 
 ### GET /parent/conversations/{id}/messages — 逐条消息
-→ `200 [MessageOut...]`（含每条的 `fence_action`）。
+→ `200 [MessageOut...]`（含每条的 `fence_action` 以及会话老师快照 `teacher_id`、`teacher_name`、`teacher_avatar_url`）。
+
+### POST /parent/conversations/{id}/feedback — 提交围栏误判
+`{"message_id": 12, "event_id": 18, "note": "可选说明"}` → `{ "ok": true, "feedback_id": 3, "status": "open" }`。仅限本家庭；反馈进入 CMS 失效样本队列，重复开放反馈幂等返回。
 
 ### GET /parent/conversations/{id}/fence-events — 围栏判定流水
 → `200 [FenceEventOut...]`：
 ```json
 {"id":1,"stage":"classifier|whitelist|second_pass|policy",
  "decision":"allow|rewrite|reject","category":"study|entertainment|sensitive|other",
- "confidence":0.7,"created_at":"…"}
+ "confidence":0.7,"intent":"study|harm|safety_education",
+ "safety_education":false,"created_at":"…"}
 ```
 
 ### GET /parent/students/{student_id}/export — 审查数据全量导出（条例 34 复制权）
@@ -129,7 +137,7 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 `{"title": "新标题"}`（1–100 字符）→ `200 {"ok": true, "title"}`。仅限本人会话，跨家庭/他人 404。
 
 ### DELETE /chat/sessions/{id} — 删除会话（student）
-连同消息与围栏流水硬删除，家长端审查视图同步消失（学生删除权与审查留存的张力见 compliance-design 问题 1；家长导出可先行留存）。跨家庭/他人 404。
+学生侧软删除：学生端隐藏，家长审查、搜索、导出仍可见并标记 `student_deleted=true`，删除不回滚次数、时长和成本。跨家庭/他人 404；家庭注销/法务删除才触发正式数据删除。
 
 ### GET /chat/latest — 学生端恢复最近对话（student）
 → `200 {conversation_id: int|null, messages: [MessageOut...]}`
@@ -175,7 +183,7 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 
 - 时间均为 UTC ISO8601（SQLite 落库为 naive UTC）。
 - `fence_action` 为 null 表示该消息未经过围栏（当前仅 assistant 首条引导/系统消息）。
-- 无删除/编辑接口（家长审查不可篡改）；M1 起补充账号注销与数据删除（个保法要求，见 compliance-design.md）。
+- 家长审查接口不提供改写历史消息的能力；学生会话删除为软删除，家庭注销/法务流程才触发正式数据删除（见 compliance-design.md）。
 
 
 ---
@@ -183,10 +191,10 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 ## CMS `/admin`（RBAC 管理员）
 
 鉴权（2026-09-19 RBAC 改造）：
-1. **库内管理员**：`POST /admin/login {username, password}` → `{token, role, name}`（session_token 存库比对）；角色 `super`（全部权限）/ `ops`（只读运营，写操作 403）；
+1. **库内管理员**：`POST /admin/login {username, password}` → `{token, role, name}`（session_token 存库比对）；角色 `super`（全部权限）/ `admin`（普通管理员）/ `support`（客服最小权限）；迁移期 `ops` 按 `admin` 兼容。
 2. **环境变量后门**：Header `Authorization: Bearer <ADMIN_TOKENS 之一>` = super（部署引导期）。
 
-管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，账号密码登录或 Token 登录，ops 角色隐藏写操作入口；跨端口调用本组 `/admin` API。页面后端地址优先级：`?api=` 参数 > `CMS_API_BASE` 环境变量注入 > 同源兜底。敏感操作留痕 `GET /admin/logs`（仅 super）。
+管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，账号密码登录或 Token 登录，admin 和 support 角色按权限隐藏操作入口；跨端口调用本组 `/admin` API。页面后端地址优先级：`?api=` 参数 > `CMS_API_BASE` 环境变量注入 > 同源兜底。敏感操作留痕 `GET /admin/logs`（super 可查看全部，admin/support 仅查看本人记录）。
 
 ### GET /admin/overview — 核心运营面板
 ```json
@@ -201,17 +209,26 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 ### GET /admin/families?page=&size= — 家族列表
 监护人手机号脱敏（139****0000）；含学生列表与消息量。
 
+### POST /admin/families/{id}/bind-code — 客服协助绑定
+客服、管理员和超级管理员可生成一次性新孩子码或重新绑定码；仅返回码、有效期和目标孩子，不返回聊天内容。
+
+### DELETE /admin/families/{id}/bind-code/{code} — 作废绑定码
+admin/super/support 均可作废该家庭尚未使用的绑定码，并写入操作日志。
+
 ### GET /admin/fence-events?decision=&page= — 围栏流水审计
 
+### GET/PATCH /admin/fence-feedback — 误判反馈与失效样本
+`GET` 返回待复核反馈；客服角色的消息内容脱敏。`PATCH /admin/fence-feedback/{id}` 使用 `status=open|reviewed|dismissed`，仅 super/admin 可修改并写入日志。
+
 ### GET /admin/llm-groups — 分组列表（含当前生效分组）
-### POST /admin/llm-groups — 创建分组 `{name, provider, chat_model, fence_model, api_key?, daily_message_cap?, note?}`（super）
+### POST /admin/llm-groups — 创建分组 `{name, provider, chat_model, fence_model, api_key?, daily_message_cap?, note?, teacher_name?, teacher_avatar_url?, teacher_enabled?, teacher_sort_order?, post_trial_free_enabled?}`（super）
 ### PUT /admin/llm-groups/{id}/activate — 激活（全局唯一生效；**新对话立即生效，无需重启**）（super）
 
-### 会员赠送/扣除（2026-09-19，super 专属）
+### 会员赠送/扣除（2026-09-19，super/admin）
 - `POST /admin/families/{id}/grant {days: 1–3650, note?}` — 赠送会员天数（自当前到期日起顺延，试用中则自今起）；
 - `POST /admin/families/{id}/revoke {days: 1–3650, note?}` — 扣除会员天数（到期时间提前 N 天，最早扣到当前时间即立即到期）；
 - `GET /admin/logs?page=&size=` — 操作日志（admin/action/detail，倒序；赠送/扣除/分组变更全留痕）。
-非 super 角色调用一律 403。
+admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效，价格、账号和分组创建/激活/删除仍仅 super。
 
 ### 家庭标签路由（2026-09-19）
 
@@ -228,6 +245,12 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 - `GET /admin/families/{id}/routing` 查看该家庭实际路由结果（`routed_by: tag:xxx|active|env`）。
 ### DELETE /admin/llm-groups/{id} — 删除（激活中的删除后回退环境变量配置）
 
+### GET /admin/users — CMS 账号列表
+仅 super；返回账号名、角色和备注，不返回密码哈希。
+
+### GET /admin/assessment-audits — 评估审计索引
+仅 super/admin；返回评估类型、评估 ID、操作者、动作和时间，不返回评估正文或孩子消息。
+
 **运行时优先级**：`llm_groups.is_active` 分组 > 环境变量（`LLM_PROVIDER` 等）。分组内 api_key 为空时沿用环境变量 Key。
 
 
@@ -235,12 +258,13 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 
 ## 订阅 `/parent/subscription`（P0 商业闭环）
 
-注册即开 30 天免费试用；到期后学生端 `/chat` 返回 **402**（detail：免费使用期已结束，请家长在家长端续费）。
+注册即开 30 天免费试用；到期后仅 CMS 开启“试用到期后免费”的老师可消耗全局每日免费次数，其他老师返回 **402**，次数耗尽返回 **429**。
 
 ### GET /parent/subscription — 订阅状态
 ```json
 {"plan":"free_trial|monthly","active":true,"expires_at":"…","days_left":29,
- "price_cny":66.0,"provider":"mock","paid_amount":0.0}
+ "price_cny":66.0,"provider":"mock","paid_amount":0.0,
+ "base_monthly_price_cents":6600,"additional_seat_price_cents":3300}
 ```
 
 ### POST /parent/subscription/pay — 续费（骨架期 mock）
@@ -272,3 +296,46 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 - `GET /chat/favorites` — 我的收藏（倒序，≤200）；
 - `DELETE /chat/favorites/{id}` — 取消收藏；
 - 家长可见：`GET /parent/students/{id}/favorites`（了解孩子兴趣点，只读）。
+
+
+---
+
+## 家庭扩展、成绩与评估 API
+
+完整业务规则见 [feature-spec-family-growth-and-learning.md](feature-spec-family-growth-and-learning.md)。以下端点已纳入当前 API。
+
+### 家庭与设备
+
+- `GET /parent/students`：孩子列表、名额占用、当前设备摘要。
+- `POST /parent/students`：创建孩子；无可用名额时返回 `409 seat_required`。
+- `POST /parent/students/{id}/rebind-code`：生成指定孩子的重新绑定二维码，旧码失效。
+- `POST /bind/code`：`purpose=new_student|rebind`、可选 `target_student_id`；一次性、10 分钟有效。
+- `POST /auth/student/login`：使用持久化 `installation_id`；新设备绑定会吊销同一孩子的旧设备。
+
+### 老师角色
+
+- `GET /chat/teachers`：返回当前家庭可选老师的 `teacher_id`、`name`、`avatar_url`、`sort_order`、`access`；`access` 为 `available|subscription_required|daily_free_exhausted`，不返回 provider、模型或 Key。
+- `POST /chat`、`POST /chat/stream`：新会话可传 `teacher_id`；已有会话固定原老师。
+- `GET /chat/sessions`：返回 `teacher_id`、`teacher_name`、`teacher_avatar_url` 快照。
+- `PATCH /admin/llm-groups/{id}/teacher-profile`：super/admin 按权限修改老师姓名、头像、启用状态、排序和 `post_trial_free_enabled`；修改只影响新会话，写入 AdminLog。
+- 家长会话列表、消息详情、导出和评估证据返回同一老师快照，保证历史同步。
+
+### 订阅与 CMS
+
+- `GET /parent/subscription`：返回 `seat_count`、`used_seats`、基础价、增量价、免费期和到期后每日免费次数。
+- `POST /parent/subscription/seats`：按当前周期剩余天数折算并立即增加孩子名额，必须携带幂等键。
+- `GET/POST /admin/pricing-config`：super 读取/修改基础价、增量价、试用天数、到期后每日免费次数。
+- `POST /admin/users`、`PATCH /admin/users/{id}`：super 创建和调整 `super/admin/support` 账号。
+
+### 成绩与趋势
+
+- `GET/POST/PATCH/DELETE /chat/grades[/{grade_id}]`：学生只可访问本人；删除为逻辑删除，`GET /chat/grades?include_deleted=true` 可查看并恢复。
+- `GET/POST/PATCH/DELETE /parent/students/{id}/grades[/{grade_id}]`：家长只可访问本家庭孩子；编辑、删除和恢复均产生新版本。
+- `GET /chat/grades/{grade_id}/history`、`GET /parent/students/{id}/grades/{grade_id}/history`：返回版本、操作者、时间和修改原因。
+- `GET /chat/grade-trend?subject=&from=&to=`、`GET /parent/students/{id}/grade-trend?subject=&from=&to=`：按百分比返回趋势点、差值、平均值和方向。
+
+### 评估
+
+- `POST/GET /chat/academic-assessments`、`POST/GET /parent/students/{id}/academic-assessments`：生成或读取带证据、输入时间范围、数据版本、模型版本和免责声明的学业评估；生成按主体每日限额。
+- `POST/GET /parent/students/{id}/wellbeing-assessments`：家长专属的“身心状态关注提示”；不输出诊断结论。
+- `POST /parent/wellbeing-assessments/{id}/ack`：记录家长已关注/无需跟进。查看、生成、导出均写审计日志。

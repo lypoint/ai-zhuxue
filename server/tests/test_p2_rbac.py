@@ -42,6 +42,33 @@ def test_ops_login_and_read_only(client, super_admin):
     assert r.status_code == 403
 
 
+def test_support_scope_redacts_operations_and_model_details(client, super_admin):
+    from app.db import SessionLocal
+    from app.models import AdminUser
+    import hashlib
+
+    name = f"support-{uuid.uuid4().hex[:8]}"
+    db = SessionLocal()
+    db.add(AdminUser(username=name, password_hash=hashlib.sha256(b"pw123456").hexdigest(),
+                     role="support"))
+    db.commit()
+    db.close()
+    login = client.post("/admin/login", json={"username": name, "password": "pw123456"})
+    support = h(login.json()["token"])
+    overview = client.get("/admin/overview", headers=support).json()
+    assert "cost" not in overview and "fence" not in overview and "llm_group" not in overview
+    group = client.post("/admin/llm-groups", headers=super_admin, json={
+        "name": f"support-redact-{uuid.uuid4().hex[:8]}", "provider": "glm",
+        "chat_model": "m", "fence_model": "m"}).json()
+    item = next(x for x in client.get("/admin/llm-groups", headers=support).json()["items"]
+                if x["id"] == group["id"])
+    assert item["provider"] is None and item["chat_model"] is None and item["has_key"] is None
+    assert client.put("/admin/families/1/tag", headers=support,
+                      json={"tag": None}).status_code == 403
+    assert client.get("/admin/assessment-audits", headers=support).status_code == 403
+    assert client.get("/admin/pricing-config", headers=support).status_code == 403
+
+
 def test_env_token_is_super(client, super_admin):
     r = client.post("/admin/llm-groups", headers=super_admin, json={
         "name": "env-super", "provider": "glm", "chat_model": "m", "fence_model": "m"})
@@ -66,10 +93,10 @@ def test_grant_and_revoke_membership_with_log(client, super_admin):
     # 家庭收到赠送通知
     n = client.get("/parent/notifications", headers=h(g)).json()["items"]
     assert any("获赠" in x["title"] for x in n)
-    # ops 不可赠送
+    # 普通管理员可赠送/扣除会员，UI 负责二次确认
     ops = _create_ops_user(client, super_admin, "ops-grant")
     assert client.post(f"/admin/families/{fid}/grant", headers=ops,
-                       json={"days": 1}).status_code == 403
+                       json={"days": 1}).status_code == 200
 
 
 def test_rename_student_nickname(client):
