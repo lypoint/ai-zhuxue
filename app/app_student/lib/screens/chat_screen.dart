@@ -567,7 +567,7 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$_teacherName'),
+            Text(_teacherName),
             Text(
               '受保护学习空间',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),

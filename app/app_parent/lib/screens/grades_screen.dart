@@ -44,10 +44,11 @@ class _GradesScreenState extends State<GradesScreen> {
         _wellbeingRows = values[3] as List<dynamic>;
       });
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -141,10 +142,11 @@ class _GradesScreenState extends State<GradesScreen> {
       }
       _load();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -239,10 +241,11 @@ class _GradesScreenState extends State<GradesScreen> {
           ),
         );
       } on ApiException catch (e) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(e.message)));
+        }
       }
     }
     if (action == 'delete') {
@@ -270,10 +273,11 @@ class _GradesScreenState extends State<GradesScreen> {
         });
       }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -284,10 +288,11 @@ class _GradesScreenState extends State<GradesScreen> {
         setState(() => _wellbeingRows = [result, ...?_wellbeingRows]);
       }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 

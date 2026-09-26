@@ -144,10 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       _refresh();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -160,10 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
         _bindLabel = '${student['nickname']} 的重新绑定码';
       });
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -298,10 +300,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ).showSnackBar(const SnackBar(content: Text('已增加 1 个孩子名额')));
       _refresh();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 

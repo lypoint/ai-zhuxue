@@ -27,17 +27,19 @@ class _GradesScreenState extends State<GradesScreen> {
         Api.I.studentGradeTrend(),
         Api.I.studentAcademicAssessments(),
       ]);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _grades = values[0] as List<dynamic>;
           _trend = values[1] as Map<String, dynamic>;
           _assessmentRows = values[2] as List<dynamic>;
         });
+      }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -129,10 +131,11 @@ class _GradesScreenState extends State<GradesScreen> {
       }
       _load();
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
@@ -237,10 +240,11 @@ class _GradesScreenState extends State<GradesScreen> {
         });
       }
     } on ApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 
