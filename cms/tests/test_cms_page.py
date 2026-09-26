@@ -26,10 +26,11 @@ def test_index_served(client):
 
 
 def test_api_base_injected(client):
-    """页面必须带 window.CMS_API_BASE 注入与三级回退逻辑（?api= > 注入 > 同源）。"""
+    """页面只接受服务端配置的 API 地址，忽略 URL 查询参数。"""
     resp = client.get("/")
-    assert f"window.CMS_API_BASE='{API_BASE_FALLBACK}'" in resp.text
-    assert "URLSearchParams(location.search).get('api')" in resp.text
+    assert f'window.CMS_API_BASE="{API_BASE_FALLBACK}"' in resp.text
+    assert "new URLSearchParams(location.search).get('api')" not in resp.text
+    assert "https://attacker.example" not in client.get("/?api=https://attacker.example").text
 
 
 def test_health(client):

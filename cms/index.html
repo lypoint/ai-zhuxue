@@ -152,9 +152,7 @@
 </div>
 
 <script>
-const API = new URLSearchParams(location.search).get('api')
-  || window.CMS_API_BASE
-  || location.origin;   // 同源部署兜底
+const API = window.CMS_API_BASE || location.origin;
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
 let TOK = sessionStorage.getItem('cms_tok') || '';

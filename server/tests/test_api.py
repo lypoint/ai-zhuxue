@@ -1,4 +1,6 @@
 """API 端到端测试：注册→绑定→聊天（围栏）→家长审查→设置。"""
+import uuid
+
 from tests.conftest import h
 
 
@@ -83,7 +85,11 @@ def test_daily_cap_enforced(client, guardian_token, student_token):
     raise AssertionError(f"cap not enforced: {codes}")
 
 
-def test_bind_code_single_use(client, guardian_token):
+def test_bind_code_single_use(client):
+    guardian_token = client.post("/auth/guardian/register", json={
+        "phone": f"139{uuid.uuid4().int % 10**8:08d}", "sms_code": "123456",
+        "real_name": "测试", "id_number": "11010120100307857X",
+    }).json()["token"]
     code = client.post("/bind/code", headers=h(guardian_token)).json()["code"]
     ok = client.post("/auth/student/login", json={
         "bind_code": code, "device_id": "pytest-device-02", "nickname": "小 red"})
@@ -91,3 +97,8 @@ def test_bind_code_single_use(client, guardian_token):
     reuse = client.post("/auth/student/login", json={
         "bind_code": code, "device_id": "pytest-device-03", "nickname": "小 blue"})
     assert reuse.status_code == 400
+    another = client.post("/bind/code", headers=h(guardian_token)).json()["code"]
+    # 旧客户端仅提供 device_id，也不能用第二个绑定码绕过席位限制。
+    over_seat = client.post("/auth/student/login", json={
+        "bind_code": another, "device_id": "pytest-device-04"})
+    assert over_seat.status_code == 409

@@ -7,6 +7,8 @@
 | `ENV` | `dev` | dev=固定短信码 123456 可用；prod 请务必切换 |
 | `DATABASE_URL` | `sqlite:///./aizhuxue.db` | 生产用 `postgresql+psycopg2://…`（compose 已配） |
 | `JWT_SECRET` | `change-me-in-prod` | **生产必须覆盖**，密钥管理服务注入 |
+| `CORS_ORIGINS` | 空 | 生产 CMS 页面的完整 Origin；多个用逗号分隔 |
+| `FORWARDED_ALLOW_IPS` | `127.0.0.1` | 使用反向代理时填可信代理 IP，由 Uvicorn 读取真实客户端 IP |
 | `JWT_EXPIRE_HOURS` | `168` | token 有效期（小时） |
 | `LLM_PROVIDER` | `glm` | `glm` \| `deepseek` \| `kimi`（OpenAI 兼容） |
 | `GLM_API_KEY` / `DEEPSEEK_API_KEY` / `KIMI_API_KEY` | 空 | 对应厂商开放平台 Key |
@@ -21,7 +23,7 @@
 | `PRICING_ADDITIONAL_SEAT_PRICE` | `33` | 首次初始化时的增量孩子名额价格（元）；运行中以 CMS 配置为准 |
 | `PRICING_TRIAL_DAYS` | `30` | 首次初始化时的新用户试用天数 |
 | `PRICING_POST_TRIAL_DAILY_FREE_COUNT` | `0` | 首次初始化时的到期后每日免费次数；老师角色开关仍由 CMS 控制 |
-| `GUARDIAN_VERIFY_PROVIDER` | `mock` | `mock` \| `aliyun` \| `tencent`（后两者待接入） |
+| `GUARDIAN_VERIFY_PROVIDER` | `mock` | 核验服务尚未接入；生产注册/登录接口暂返回 503 |
 
 ## 2. 本地开发
 
@@ -46,11 +48,12 @@ FENCE_MODE=llm GLM_API_KEY=sk-… .venv/bin/python -m tools.eval_fence   # 验�
 
 ```bash
 cd product
-JWT_SECRET=$(openssl rand -hex 32) GLM_API_KEY=sk-… FENCE_MODE=llm docker compose up -d --build
+JWT_SECRET=$(openssl rand -hex 32) CORS_ORIGINS=http://localhost:8101 GLM_API_KEY=sk-… FENCE_MODE=llm docker compose up -d --build
 ```
 
 - `db`：Postgres 16 + 健康检查 + 数据卷 `pgdata`；
 - `api`：等 db 健康后启动，暴露 8000。生产建议前置 Nginx/Caddy 做 TLS 与限流；
+- 短信尚未接入：`ENV=prod` 的监护人注册/登录接口返回 503；现有有效令牌仍可使用。正式开放前须接入一次性短信码验证。
 - **时区**：日界与时段禁用按 `TZ_OFFSET_HOURS`（默认 8）换算，与容器时区无关，无需设置 TZ。
 
 ## 4. Flutter 构建产物
@@ -73,7 +76,7 @@ flutter build ipa   # iOS：需开发者账号签名
 - [ ] API 限流（登录与 chat 端点）+ 请求日志 + 错误告警
 - [ ] PostgreSQL 定期备份与恢复演练
 - [ ] HTTPS（TLS 终结）+ App 端证书校验
-- [ ] 短信服务商接入 + 短信码频控（dev 固定码仅 ENV=dev 生效）
+- [ ] 短信服务商接入 + 短信码频控（固定码仅 ENV=dev/test 生效）
 - [ ] usage_logs → 成本看板（验证人均 token 假设）
 
 **合规（依赖外部流程，见 compliance-design.md）**

@@ -38,7 +38,7 @@
 所有数据操作跨端口调用 API server 的 `/admin` 组接口。两服务互不依赖进程存活：
 - 停 CMS：API、App、Web 聊天不受影响；
 - 停 API server：CMS 页面仍可打开（接口调用报错）。
-页面后端地址解析：`?api=` 参数 > `CMS_API_BASE` 环境变量注入 > 同源兜底。
+页面后端地址解析：`CMS_API_BASE` 环境变量注入 > 同源兜底；URL 查询参数不能覆盖 API 地址。
 
 ## 2. 核心数据流
 
@@ -94,7 +94,7 @@
 - JWT（HS256），payload：`role`(guardian|student)、`sub`、`family_id`、`exp`（默认 7 天）。
 - 端点隔离：`/chat/*` 仅 student token；`/parent/*` 仅 guardian token；`deps.py` 强制校验角色，student 无法访问任何家长端点，反之亦然。
 - 学生端无独立账号体系（必须绑定家长端后使用），与提案「学生端扫码绑定家长端才能使用」一致。
-- 学生设备重绑和登出通过 token_version + StudentDevice 吊销旧 token；guardian 仍依赖短信码频控（dev 为固定码）。
+- 学生设备重绑和登出通过 token_version + StudentDevice 吊销旧 token；短信尚未接入时生产环境拒绝监护人注册/登录，开发环境使用固定码。
 
 ## 5. 关键技术决策与理由
 

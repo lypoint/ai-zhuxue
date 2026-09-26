@@ -3,6 +3,7 @@
 管理员账号来自环境变量 ADMIN_TOKENS（逗号分隔），骨架期够用；M2 换管理员表+RBAC。
 """
 import datetime as dt
+import hashlib
 import os
 import secrets
 
@@ -39,9 +40,22 @@ class AdminPrincipal:
         return self.role in ("super", "admin")
 
 
-def _sha(text: str) -> str:
-    import hashlib
-    return hashlib.sha256(text.encode()).hexdigest()
+def _hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 600_000)
+    return f"pbkdf2_sha256$600000${salt.hex()}${digest.hex()}"
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    if not stored.startswith("pbkdf2_sha256$"):
+        # 旧 SHA-256 账号登录成功后升级，避免要求现有管理员重置密码。
+        return secrets.compare_digest(hashlib.sha256(password.encode()).hexdigest(), stored)
+    try:
+        _, iterations, salt, digest = stored.split("$")
+        actual = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(iterations))
+        return secrets.compare_digest(actual, bytes.fromhex(digest))
+    except (ValueError, OverflowError):
+        return False
 
 
 def log(db: Session, principal: AdminPrincipal, action: str, detail: str = ""):
@@ -86,8 +100,10 @@ class LoginIn(BaseModel):
 def admin_login(body: LoginIn, db: Session = Depends(get_db)):
     """库内管理员登录（RBAC）；返回 session token 与角色。"""
     user = db.query(AdminUser).filter_by(username=body.username).first()
-    if not user or user.password_hash != _sha(body.password):
+    if not user or not _verify_password(body.password, user.password_hash):
         raise HTTPException(401, "用户名或密码错误")
+    if not user.password_hash.startswith("pbkdf2_sha256$"):
+        user.password_hash = _hash_password(body.password)
     user.session_token = secrets.token_hex(32)
     db.commit()
     return {"token": user.session_token,
@@ -177,7 +193,7 @@ def create_admin_user(body: AdminUserIn, principal: AdminPrincipal = Depends(req
         raise HTTPException(422, "role 须为 super/admin/support")
     if db.query(AdminUser).filter_by(username=body.username).first():
         raise HTTPException(409, "username already exists")
-    user = AdminUser(username=body.username, password_hash=_sha(body.password),
+    user = AdminUser(username=body.username, password_hash=_hash_password(body.password),
                      role=body.role, note=body.note)
     db.add(user)
     db.commit()
@@ -201,7 +217,7 @@ def update_admin_user(user_id: int, body: dict, principal: AdminPrincipal = Depe
         password = body["password"]
         if not isinstance(password, str) or not 8 <= len(password) <= 128:
             raise HTTPException(422, "password 长度须为 8-128 位")
-        user.password_hash = _sha(password)
+        user.password_hash = _hash_password(password)
     if "note" in body:
         user.note = str(body["note"])[:100]
     db.commit()

@@ -177,7 +177,7 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 
 ## 限流
 
-`/auth/*` 每分钟 20 次、`/chat*` 每分钟 30 次（按登录主体或 IP，滑动窗口），超限 429。单进程内存实现；`ENV=test` 时豁免（专项测试直接调用 `app.ratelimit.limiter`）。
+`/auth/*` 每 IP 每分钟 20 次、`/chat*` 每 IP 每分钟 300 次且每学生每分钟 30 次、`/admin/login` 每 IP 每分钟 10 次、其余 `/admin/*` 每 IP 每分钟 120 次。数据库固定分钟计数在多进程间共享，超限 429，`ENV=test` 时豁免。反向代理部署须正确配置可信代理地址，使应用获得真实客户端 IP。
 
 ## 数据模型约定
 
@@ -194,7 +194,7 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 1. **库内管理员**：`POST /admin/login {username, password}` → `{token, role, name}`（session_token 存库比对）；角色 `super`（全部权限）/ `admin`（普通管理员）/ `support`（客服最小权限）；迁移期 `ops` 按 `admin` 兼容。
 2. **环境变量后门**：Header `Authorization: Bearer <ADMIN_TOKENS 之一>` = super（部署引导期）。
 
-管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，账号密码登录或 Token 登录，admin 和 support 角色按权限隐藏操作入口；跨端口调用本组 `/admin` API。页面后端地址优先级：`?api=` 参数 > `CMS_API_BASE` 环境变量注入 > 同源兜底。敏感操作留痕 `GET /admin/logs`（super 可查看全部，admin/support 仅查看本人记录）。
+管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，账号密码登录或 Token 登录，admin 和 support 角色按权限隐藏操作入口；跨端口调用本组 `/admin` API。页面后端地址由 `CMS_API_BASE` 环境变量注入，未配置时同源兜底。敏感操作留痕 `GET /admin/logs`（super 可查看全部，admin/support 仅查看本人记录）。
 
 ### GET /admin/overview — 核心运营面板
 ```json

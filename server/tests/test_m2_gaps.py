@@ -17,7 +17,8 @@ def test_logout_revokes_token(client):
     # 登出后旧 token 立即失效
     assert client.get("/chat/sessions", headers=h(s)).status_code == 401
     # 重新绑定（新登录）获得新 token 可用
-    code = client.post("/bind/code", headers=h(g)).json()["code"]
+    sid = client.get("/parent/family", headers=h(g)).json()["students"][0]["id"]
+    code = client.post(f"/parent/students/{sid}/rebind-code", headers=h(g)).json()["bind_code"]
     s2 = client.post("/auth/student/login", json={
         "bind_code": code, "device_id": f"rev-{uuid.uuid4().hex[:8]}", "nickname": "小明"}).json()["token"]
     assert client.get("/chat/sessions", headers=h(s2)).status_code == 200

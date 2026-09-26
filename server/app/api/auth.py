@@ -19,7 +19,10 @@ DEV_SMS_CODE = "123456"
 
 @router.post("/guardian/register", response_model=TokenOut)
 async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_db)):
-    if settings.env == "dev" and body.sms_code != DEV_SMS_CODE and body.sms_code != "":
+    # 短信服务尚未接入，生产环境不能把任意短信码当作登录凭证。
+    if settings.env == "prod":
+        raise HTTPException(503, "监护人短信验证尚未接入，暂不可注册或登录")
+    if body.sms_code != DEV_SMS_CODE:
         raise HTTPException(400, "invalid sms code")
 
     result = await verify_guardian(body.real_name, body.id_number, body.phone)
@@ -104,7 +107,6 @@ def student_login(body: StudentLoginIn, db: Session = Depends(get_db)):
         raise HTTPException(400, "bind code purpose invalid")
 
     installation_id = body.installation_id or body.device_id
-    legacy_device_login = body.installation_id is None and body.device_id is not None
     if not installation_id:
         raise HTTPException(422, "installation_id required")
     target = (db.query(Student).filter_by(id=bind.target_student_id,
@@ -119,9 +121,8 @@ def student_login(body: StudentLoginIn, db: Session = Depends(get_db)):
     if student and student.family_id != bind.family_id:
         raise HTTPException(409, "installation already belongs to another family")
     if not student:
-        # Current clients use installation_id and always obey the seat limit;
-        # device_id-only callers remain temporarily compatible during rollout.
-        if not subscription.can_add_student(bind.family_id, db) and not legacy_device_login:
+        # 旧客户端只提供 device_id 时也必须遵守席位上限。
+        if not subscription.can_add_student(bind.family_id, db):
             raise HTTPException(409, "no student seat available")
         student = Student(family_id=bind.family_id, device_id=installation_id,
                           installation_id=installation_id,

@@ -59,7 +59,7 @@ flutter run
 **Docker 部署**：
 
 ```bash
-JWT_SECRET=$(openssl rand -hex 32) FENCE_MODE=llm docker compose up -d --build
+JWT_SECRET=$(openssl rand -hex 32) CORS_ORIGINS=http://localhost:8101 FENCE_MODE=llm docker compose up -d --build
 ```
 
 **CMS**（独立服务，与 API server 分离部署、互不影响起停）：`http://localhost:8101/`（管理员账号或 `ADMIN_TOKENS` 环境变量）。
@@ -71,7 +71,7 @@ server/.venv/bin/uvicorn cms.main:app --port 8101
 CMS_API_BASE=http://<api-host>:<port> server/.venv/bin/uvicorn cms.main:app --port 8101
 ```
 
-CMS 页面确定后端地址的优先级：URL `?api=` 参数 > 服务端注入的 `CMS_API_BASE` > 同源兜底。
+CMS 页面仅使用服务端注入的 `CMS_API_BASE`，未配置时使用同源地址；跨域部署需设置 API 的 `CORS_ORIGINS`。
 
 ## 质量保障
 

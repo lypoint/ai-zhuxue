@@ -1,13 +1,16 @@
 """集中配置：全部来自环境变量，生产通过 docker-compose/.env 注入。"""
+from typing import Literal
+
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     # 基础
-    env: str = "dev"                      # dev | prod
+    env: Literal["dev", "test", "prod"] = "dev"
     database_url: str = "sqlite:///./aizhuxue.db"
     jwt_secret: str = "change-me-in-prod"
     jwt_expire_hours: int = 24 * 7
+    cors_origins: str = ""  # 生产后台页面的完整 Origin，多个用逗号分隔
 
     # LLM 提供商：glm | deepseek | kimi（均 OpenAI 兼容协议）
     llm_provider: str = "glm"

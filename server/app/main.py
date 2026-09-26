@@ -1,4 +1,5 @@
 import contextlib
+import os
 import pathlib
 
 from fastapi import FastAPI
@@ -14,6 +15,10 @@ from .web_page import WEB_PAGE_HTML
 
 @contextlib.asynccontextmanager
 async def lifespan(_: FastAPI):
+    if settings.env == "prod" and (settings.jwt_secret == "change-me-in-prod" or len(settings.jwt_secret) < 32):
+        raise RuntimeError("生产环境必须设置至少 32 字符的 JWT_SECRET")
+    if settings.env == "prod" and any(len(token.strip()) < 32 for token in os.getenv("ADMIN_TOKENS", "").split(",") if token.strip()):
+        raise RuntimeError("生产环境 ADMIN_TOKENS 中每个令牌必须至少 32 字符")
     if settings.env in ("dev", "test"):
         Base.metadata.create_all(engine)          # 开发便利；prod 走 Alembic
     else:
@@ -27,7 +32,9 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="ai-zhuxue API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=["*"] if settings.env != "prod" else [x.strip() for x in settings.cors_origins.split(",") if x.strip()],
+    allow_methods=["*"], allow_headers=["*"],
 )
 app.add_middleware(RateLimitMiddleware)
 app.include_router(auth.router)

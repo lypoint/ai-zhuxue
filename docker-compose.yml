@@ -19,7 +19,9 @@ services:
     environment:
       ENV: prod
       DATABASE_URL: postgresql+psycopg2://aizhuxue:aizhuxue-dev@db:5432/aizhuxue
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
+      JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET before starting}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       LLM_PROVIDER: ${LLM_PROVIDER:-glm}
       GLM_API_KEY: ${GLM_API_KEY:-}
       FENCE_MODE: ${FENCE_MODE:-llm}
@@ -36,7 +38,7 @@ services:
       context: .
       dockerfile: cms/Dockerfile
     environment:
-      CMS_API_BASE: http://api:8000
+      CMS_API_BASE: ${CMS_API_BASE:-http://localhost:8000}
     depends_on:
       - api
     ports:

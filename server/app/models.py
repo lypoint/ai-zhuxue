@@ -15,6 +15,13 @@ class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class RateLimitWindow(Base):
+    __tablename__ = "rate_limit_windows"
+    bucket_key: Mapped[str] = mapped_column(String(160), primary_key=True)
+    window_start: Mapped[int] = mapped_column(Integer, index=True)
+    hits: Mapped[int] = mapped_column(Integer)
+
+
 class Family(TimestampMixin, Base):
     __tablename__ = "families"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -221,7 +228,7 @@ class AdminUser(TimestampMixin, Base):
     __tablename__ = "admin_users"
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True)
-    password_hash: Mapped[str] = mapped_column(String(64))  # sha256
+    password_hash: Mapped[str] = mapped_column(String(160))
     role: Mapped[str] = mapped_column(String(20), default="admin")  # super | admin | support (ops兼容)
     session_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     note: Mapped[str] = mapped_column(String(100), default="")

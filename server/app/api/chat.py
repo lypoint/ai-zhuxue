@@ -12,7 +12,7 @@ from ..db import get_db
 from ..api.deps import current_student
 from sqlalchemy import func
 
-from ..models import (AcademicAssessment, AssessmentAudit, Conversation, FamilySettings,
+from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family, FamilySettings,
                       FenceEvent, LLMGroup, Message, Student, StudentGrade,
                       StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
@@ -140,6 +140,9 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
     created_at 统一存 UTC（naive）；本地日界与时段均按 TZ_OFFSET_HOURS 换算，
     与服务器部署时区无关。时长为端侧心跳累计的真实值（ActiveTime）。
     """
+    # ponytail: 串行化同一家庭的配额预留；消息在模型调用前提交，吞吐不足时改用计数器。
+    db.query(Family).filter_by(id=student.family_id).update(
+        {Family.id: Family.id}, synchronize_session=False)
     _check_subscription(student.family_id, db, teacher_id)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = dt.datetime.utcnow() + offset
@@ -168,6 +171,14 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
                 f"{student.nickname}今天的对话次数已用完，明天再来吧。（每日上限可在家长端调整）",
                 once_per_day=True, db=db)
         raise HTTPException(429, "今天的对话次数用完了，明天再来吧")
+    group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student.family_id)
+    if group and group.daily_message_cap:
+        group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
+                       .filter(Conversation.student_id == student.id,
+                               Conversation.teacher_group_id == group.id,
+                               Message.role == "user", Message.created_at >= local_midnight_utc).count())
+        if group_count >= group.daily_message_cap:
+            raise HTTPException(429, "该老师今日对话次数已用完")
     # P1 完整时长管控：真实使用时长上限（端侧心跳累计；0=家长不限时）
     if fs and fs.daily_minutes_cap > 0:
         used = _today_seconds(student.id, db)
@@ -253,6 +264,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     user_msg = Message(conversation_id=conv.id, role="user", content=body.content)
     db.add(user_msg)
     db.flush()
+    db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
 
     # 围栏判定（带最近用户消息作上下文：多轮铺垫防御）
     recent = [m.content for m in (db.query(Message)
@@ -355,6 +367,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
     user_msg = Message(conversation_id=conv.id, role="user", content=body.content)
     db.add(user_msg)
     db.flush()
+    db.commit()  # 与普通聊天共用同一预留时点。
 
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
