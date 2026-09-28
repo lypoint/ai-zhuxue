@@ -87,26 +87,36 @@ def resolve_active_group(family_id: int | None = None, group_id: int | None = No
 
 def _group_payload(grp, routed_by: str) -> dict:
     from .keyvault import decrypt_api_key
+    fence = grp.fence_config
     return {"id": grp.id, "name": grp.name, "provider": grp.provider,
-            "chat_model": grp.chat_model, "fence_model": grp.fence_model,
+            "base_url": grp.base_url, "chat_model": grp.chat_model, "fence_model": grp.fence_model,
+            "fence_config": ({"base_url": fence.base_url, "api_key": decrypt_api_key(fence.api_key),
+                              "model_id": fence.model_id} if fence else None),
             "api_key": decrypt_api_key(grp.api_key or ""), "daily_cap": grp.daily_message_cap,
             "routed_by": routed_by, "teacher_name": grp.teacher_name,
             "teacher_avatar_url": grp.teacher_avatar_url,
-            "post_trial_free_enabled": grp.post_trial_free_enabled}
+            "post_trial_daily_free_count": grp.post_trial_daily_free_count}
 
 
 def _provider(purpose: str = "chat", family_id: int | None = None, group_id: int | None = None):
     grp = resolve_active_group(family_id, group_id)
+    if purpose != "chat" and grp.get("fence_config"):
+        fence = grp["fence_config"]
+        return "custom", {"base_url": fence["base_url"]}, fence["api_key"], fence["model_id"]
     name = grp["provider"]
-    if name not in PROVIDERS:
+    if name not in PROVIDERS and not grp.get("base_url"):
         raise LLMUnavailable(f"unknown provider {name}")
-    key = grp["api_key"] or PROVIDERS[name]["key"]()
+    preset = PROVIDERS.get(name)
+    p = {"base_url": grp["base_url"]} if grp.get("base_url") else preset
+    key = grp["api_key"] or (preset["key"]() if preset else "")
     if not key:
         raise LLMUnavailable(f"{name} api key not configured")
     model = grp["chat_model"] if purpose == "chat" else (grp["fence_model"] or grp["chat_model"])
     if not model:
-        model = PROVIDERS[name]["default_model"]
-    return name, PROVIDERS[name], key, model
+        model = preset["default_model"] if preset else ""
+    if not model:
+        raise LLMUnavailable(f"{name} model not configured")
+    return name, p, key, model
 
 
 async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 1024,

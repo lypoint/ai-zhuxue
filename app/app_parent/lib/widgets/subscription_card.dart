@@ -17,7 +17,7 @@ class SubscriptionCard extends StatelessWidget {
     final active = sub['active'] == true;
     final trial = sub['plan'] == 'free_trial';
     final days = sub['days_left'] as num? ?? 0;
-    final postTrialFree = sub['post_trial_daily_free_count'] as num? ?? 0;
+    final freeTeacherCount = sub['free_teacher_count'] as num? ?? 0;
     return Card(
       color: active ? const Color(0xFFE8F5F1) : const Color(0xFFFDEDEC),
       child: Padding(
@@ -36,16 +36,16 @@ class SubscriptionCard extends StatelessWidget {
                   Text(
                     active
                         ? (trial ? '免费试用中 · 剩余 $days 天' : '订阅生效中 · 剩余 $days 天')
-                        : (postTrialFree > 0 ? '订阅已到期 · 部分老师仍可免费使用' : '订阅已到期'),
+                        : (freeTeacherCount > 0 ? '订阅已到期 · 部分老师设有免费额度' : '订阅已到期'),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    '孩子名额 ${sub['used_seats'] ?? 0}/${sub['seat_count'] ?? 1} · ${active ? '到期后孩子将无法继续使用' : postTrialFree > 0 ? '符合条件的老师可继续使用' : '续费后孩子即可继续学习'}',
+                    '孩子名额 ${sub['used_seats'] ?? 0}/${sub['seat_count'] ?? 1} · ${active ? '到期后请查看老师免费额度' : freeTeacherCount > 0 ? '孩子可按各老师额度使用' : '续费后孩子即可继续学习'}',
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
-                  if (!active && postTrialFree > 0)
+                  if (!active && freeTeacherCount > 0)
                     Text(
-                      '开启免费权益的老师可每天免费 $postTrialFree 次',
+                      '$freeTeacherCount 位老师设有每日免费回复，每个学生单独计次',
                       style: const TextStyle(fontSize: 12, color: Colors.orange),
                     ),
                 ],

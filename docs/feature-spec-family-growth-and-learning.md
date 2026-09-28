@@ -63,9 +63,9 @@
 | 基础订阅价格 | 66 元/月 | 包含 1 个有效孩子名额 |
 | 增加孩子名额价格 | 33 元/月/名额 | 每增加 1 个有效孩子名额，按当前计费周期顺延/计费 |
 | 新用户免费时长 | 30 天 | 注册家庭开始计时；CMS 修改只影响新家庭 |
-| 免费期结束后每日免费次数 | 0 次 | 试用到期且未订阅时，按本地日每天可免费发起的学习提问次数；超过后 402/429，家长可订阅 |
+| 免费期结束后每日免费次数 | 每位老师默认 0 次 | 试用到期且未订阅时，每位老师按本地日为每个学生计算已回复次数；超过后返回 429，家长可订阅 |
 
-以上均为 CMS 可配置值，金额使用人民币分，避免浮点计算。到期后的免费次数只适用于未订阅家庭，按家庭本地日重置；已订阅家庭按订阅名额和家庭管控上限执行。价格修改不追溯已生效订单；订单保存下单时的价格快照。
+以上均为 CMS 可配置值，金额使用人民币分，避免浮点计算。到期后的免费次数只适用于未订阅家庭，按学生本地日重置；已订阅家庭按订阅名额和家庭管控上限执行。价格修改不追溯已生效订单；订单保存下单时的价格快照。
 
 **名额口径**：家庭拥有 `seat_count` 个已购买或获赠名额；第一个名额包含在基础订阅中。有效孩子数不能超过名额数。停用/注销孩子释放名额，但历史数据不自动删除。
 
@@ -76,7 +76,7 @@
 | 能力 | 超级管理员 `super` | 普通管理员 `admin` | 客服 `support` |
 |---|---|---|---|
 | 查看运营看板 | ✓ | ✓ | 仅基础工单指标 |
-| 修改价格、免费期、免费次数 | ✓ | — | — |
+| 修改价格、免费期 | ✓ | — | — |
 | 管理 CMS 账号和角色 | ✓ | — | — |
 | 查看家庭基本信息 | ✓ | ✓ | 脱敏后可见 |
 | 查看完整聊天与心理评估 | ✓（留审计） | 按授权范围 | 默认禁止，需临时授权并留痕 |
@@ -94,7 +94,7 @@
 
 - 订阅策略显示当前值、最近修改人、修改时间、下一次生效范围。
 - 修改价格和免费期必须填写原因，并写入 `AdminLog`。
-- 配置校验：价格 ≥ 0；基础价和增量价最多 2 位小数；免费天数 0–365；每日免费次数 0–1000。
+- 配置校验：价格 ≥ 0；基础价和增量价最多 2 位小数；免费天数 0–365。老师每日免费次数在 LLM 分组中配置。
 - 提供“恢复默认值”按钮，但仍需确认并留痕。
 - 所有业务请求读取数据库中的当前配置，环境变量只作为首次初始化默认值。
 
@@ -105,10 +105,10 @@ CMS 在现有 LLM provider/分组配置上增加老师展示信息。一个可�
 | 配置项 | 说明 |
 |---|---|
 | `teacher_name` | 学生端和家长端展示名，1–30 字；必填 |
-| `teacher_avatar_url` | 头像 HTTPS 地址或对象存储地址；加载失败使用默认头像 |
+| `teacher_avatar_url` | CMS 上传头像后生成的图片地址；加载失败使用默认头像 |
 | `teacher_enabled` | 是否可被新会话选择；停用不影响历史会话 |
 | `teacher_sort_order` | 学生端展示顺序，数值越小越靠前 |
-| `post_trial_free_enabled` | 试用到期且未订阅时，是否允许使用该老师；默认关闭 |
+| `post_trial_daily_free_count` | 试用到期后该老师每天回复每个学生的免费次数；≤0 不免费 |
 
 规则：
 
@@ -118,7 +118,7 @@ CMS 在现有 LLM provider/分组配置上增加老师展示信息。一个可�
 - 创建会话时保存 `teacher_group_id` 以及老师姓名、头像快照；CMS 后续改名、换头像或停用不改变历史展示。
 - 家长查看孩子会话列表、消息详情、导出和学业评估证据时，均显示该会话的老师姓名和头像快照，实现家长端与孩子端历史同步。
 - provider、模型和 Key 仍由服务端管理；学生选择的是产品角色，不是模型路由权限。
-- `post_trial_free_enabled=true` 只表示该老师具备到期后免费资格，实际每日可用次数仍受 CMS 全局 `post_trial_daily_free_count` 限制；关闭时该老师在试用到期后不可新建对话。
+- 每个老师按 `post_trial_daily_free_count` 独立计算每个学生每日收到的回复次数；同家庭学生互不占额，≤0 时到期后不可新建该老师对话。
 - 已订阅家庭不受该开关限制；试用期内所有启用老师均可使用。到期未订阅时，学生端老师列表标注“需订阅”或隐藏不可用老师，服务端必须再次校验，不能只依赖前端。
 
 ## 4. 身份、设备和绑定数据设计
@@ -134,8 +134,9 @@ CMS 在现有 LLM provider/分组配置上增加老师展示信息。一个可�
 | `BindCode` | `family_id`, `target_student_id`, `purpose`, `expires_at`, `used_at`, `revoked_at` | `purpose=new_student|rebind`；绑定码不可重放 |
 | `Subscription` | `seat_count`, `base_price_snapshot`, `additional_seat_price_snapshot` | 当前权益和计费快照 |
 | `SubscriptionOrder` | `family_id`, `kind`, `amount`, `status`, `price_snapshot`, `idempotency_key` | 订阅、加名额、赠送、退款的订单事实 |
-| `PricingConfig` | `base_monthly_price`, `additional_seat_price`, `trial_days`, `post_trial_daily_free_count`, `version` | CMS 生效配置；修改采用新版本 |
-| `LLMGroup` / 老师配置 | `teacher_name`, `teacher_avatar_url`, `teacher_enabled`, `teacher_sort_order`, `post_trial_free_enabled` | provider 分组的学生可见角色和试用后权益；Key 和模型字段不下发端侧 |
+| `PricingConfig` | `base_monthly_price`, `additional_seat_price`, `trial_days`, `version` | CMS 生效配置；修改采用新版本 |
+| `FenceConfig` | `name`, `base_url`, `api_key`, `model_id` | 独立的围栏模型配置 |
+| `LLMGroup` / 老师配置 | `base_url`, `api_key`, `chat_model`, `fence_config_id`, `teacher_name`, `teacher_avatar_url`, `teacher_enabled`, `teacher_sort_order`, `post_trial_daily_free_count`, `tag` | 学生可见老师角色及试用后权益；Key 和模型字段不下发端侧 |
 | `Conversation` | `teacher_group_id`, `teacher_name_snapshot`, `teacher_avatar_snapshot` | 固化会话老师身份，家长历史与学生历史一致 |
 
 `installation_id` 使用 UUID，客户端存储在 Keychain/Keystore；不得使用手机号、设备硬件号或时间戳作为业务身份。服务端以 `(student_id, installation_id)` 唯一约束去重。
@@ -303,9 +304,9 @@ quiet_enabled == false       => 不禁用
 - `POST /parent/students/{id}/rebind-code`：生成指定孩子的重新绑定二维码。
 - `GET /parent/subscription`：增加 `seat_count`、`used_seats`、基础价、增量价、下一周期变更。
 - `POST /parent/subscription/seats`：申请增加名额，使用幂等键。
-- `POST /admin/pricing-config`、`GET /admin/pricing-config`：CMS 配置价格和免费权益。
+- `POST /admin/pricing-config`、`GET /admin/pricing-config`：CMS 配置价格和试用天数；老师免费权益由 LLM 分组配置。
 - `POST /admin/users`、`PATCH /admin/users/{id}`：仅 super 管理 CMS 角色。
-- `PATCH /admin/llm-groups/{id}/teacher-profile`：维护老师姓名、头像、启用状态、排序和 `post_trial_free_enabled`；字段变更写入 AdminLog。
+- `PATCH /admin/llm-groups/{id}/teacher-profile`：维护老师姓名、头像、启用状态、排序和 `post_trial_daily_free_count`；字段变更写入 AdminLog。
 
 ### 9.2 老师选择与审查同步
 
@@ -365,7 +366,7 @@ quiet_enabled == false       => 不禁用
 
 - super/admin/support 登录和接口权限与矩阵一致；越权返回 403，并写日志。
 - 修改 CMS 价格/免费策略后，新家庭读取新值，旧订单保持价格快照。
-- 试用到期后，只有 `post_trial_free_enabled=true` 的老师可消耗全局每日免费次数；关闭老师返回订阅提示，已订阅家庭不受影响。
+- 试用到期后，只有每日免费次数大于 0 的老师可继续回复；额度按老师和学生独立计算，已订阅家庭不受影响。
 - 心理提示不输出诊断结论；展示证据和免责声明；查看、生成、导出均有审计记录。
 
 ## 11. 研发拆分建议

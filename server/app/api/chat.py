@@ -34,7 +34,6 @@ BAND_DESC = {"8-12": "8-12岁（小学中高年级）", "12-16": "12-16岁（初
 def available_teachers(student: Student = Depends(current_student), db: Session = Depends(get_db)):
     from ..services import subscription
     active = subscription.is_active(student.family_id, db)
-    remaining = subscription.post_trial_free_remaining(student.family_id, db)
     groups = db.query(LLMGroup).filter_by(teacher_enabled=True).order_by(
         LLMGroup.teacher_sort_order, LLMGroup.id).all()
     if not groups:
@@ -45,10 +44,15 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
                  "avatar_url": env_teacher.get("teacher_avatar_url", ""),
                  "sort_order": 0,
                  "access": "available" if active else "subscription_required"}]
+    tag = db.query(Family.tag).filter_by(id=student.family_id).scalar()
+    groups.sort(key=lambda g: (0 if tag and g.tag == tag else 1 if g.is_active else 2,
+                               g.teacher_sort_order, g.id))
     return [{"teacher_id": g.id, "name": g.teacher_name,
              "avatar_url": g.teacher_avatar_url, "sort_order": g.teacher_sort_order,
-             "access": ("available" if active or g.post_trial_free_enabled and remaining > 0
-                        else "daily_free_exhausted" if g.post_trial_free_enabled
+             "access": ("available" if active or g.post_trial_daily_free_count > 0 and
+                        subscription.post_trial_free_remaining(
+                            student.id, db, g.id, g.post_trial_daily_free_count) > 0
+                        else "daily_free_exhausted" if g.post_trial_daily_free_count > 0
                         else "subscription_required")} for g in groups]
 
 
@@ -59,6 +63,11 @@ def _teacher(db: Session, family_id: int, teacher_id: int | None = None):
         if not group or not group.teacher_enabled:
             raise HTTPException(404, "teacher not found")
         return group
+    tag = db.query(Family.tag).filter_by(id=family_id).scalar()
+    if tag:
+        group = db.query(LLMGroup).filter_by(tag=tag, teacher_enabled=True).first()
+        if group:
+            return group
     return db.query(LLMGroup).filter_by(is_active=True, teacher_enabled=True).order_by(
         LLMGroup.teacher_sort_order, LLMGroup.id).first()
 
@@ -71,26 +80,20 @@ def _student_conversation(db: Session, conversation_id: int, student: Student) -
     return conv
 
 
-def _check_subscription(family_id: int, db: Session, teacher_id: int | None = None):
+def _check_subscription(student: Student, db: Session, teacher_id: int | None = None):
     """P0 商业闭环：订阅到期拦截学生端（友好文案引导家长续费）。"""
     from ..services import subscription
-    if subscription.is_active(family_id, db):
-        return
+    if subscription.is_active(student.family_id, db):
+        return False
     # Existing sessions may refer to a teacher that CMS has since disabled.
     # Keep their entitlement tied to the saved teacher; _teacher still rejects
     # disabled roles when creating a new session.
     teacher = (db.get(LLMGroup, teacher_id) if teacher_id is not None
-               else _teacher(db, family_id, None))
-    if teacher and teacher.post_trial_free_enabled:
-        # Reserve the family row for the duration of this request so two
-        # expired-trial messages cannot both spend the last daily allowance.
-        # ponytail: one family lock; move to a quota ledger only if throughput
-        # measurements show this path is hot.
-        from ..models import Family
-        db.query(Family).filter_by(id=family_id).update(
-            {Family.id: Family.id}, synchronize_session=False)
-        if subscription.post_trial_free_remaining(family_id, db) > 0:
-            return
+               else _teacher(db, student.family_id, None))
+    if teacher and teacher.post_trial_daily_free_count > 0:
+        if subscription.post_trial_free_remaining(
+                student.id, db, teacher.id, teacher.post_trial_daily_free_count) > 0:
+            return True
         raise HTTPException(429, "今日免费次数已用完，请家长订阅后继续学习")
     raise HTTPException(402, "免费使用期已结束，请家长在家长端续费后继续学习哦")
 
@@ -143,7 +146,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
     # ponytail: 串行化同一家庭的配额预留；消息在模型调用前提交，吞吐不足时改用计数器。
     db.query(Family).filter_by(id=student.family_id).update(
         {Family.id: Family.id}, synchronize_session=False)
-    _check_subscription(student.family_id, db, teacher_id)
+    quota_pending = _check_subscription(student, db, teacher_id)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = dt.datetime.utcnow() + offset
     # P1：家长自定义禁用时段（覆盖全局 22-6；家长可整体关闭）
@@ -187,6 +190,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
                     f"{student.nickname}今天已使用约 {used // 60} 分钟（上限 {fs.daily_minutes_cap} 分钟），明天再来吧。",
                     once_per_day=True, db=db)
             raise HTTPException(429, "今天的学习时间用完了，出去活动一下吧，明天再来学！")
+    return quota_pending
 
 
 @router.post("/heartbeat")
@@ -246,7 +250,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         existing = db.get(Conversation, body.conversation_id)
         if existing and existing.student_id == student.id:
             policy_teacher_id = existing.teacher_group_id
-    _check_policy(student, db, policy_teacher_id)
+    quota_pending = _check_policy(student, db, policy_teacher_id)
 
     if body.conversation_id:
         conv = _student_conversation(db, body.conversation_id, student)
@@ -261,7 +265,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         db.add(conv)
         db.flush()
 
-    user_msg = Message(conversation_id=conv.id, role="user", content=body.content)
+    user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
+                       fence_action="pending" if quota_pending else None)
     db.add(user_msg)
     db.flush()
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
@@ -272,14 +277,21 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                .filter(Conversation.student_id == student.id, Message.role == "user",
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
-    verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
-                                   recent_user_texts=recent,
-                                   group_id=conv.teacher_group_id)
+    try:
+        verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
+                                       recent_user_texts=recent,
+                                       group_id=conv.teacher_group_id)
+    except Exception:
+        user_msg.fence_action = None
+        db.commit()
+        raise
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
-    user_msg.fence_action = verdict["decision"]
+    if not quota_pending:
+        user_msg.fence_action = verdict["decision"]
 
     if verdict["decision"] == "reject":
+        user_msg.fence_action = "reject"
         reply = Message(conversation_id=conv.id, role="assistant",
                         content=fence.REJECT_REPLY, fence_action="reject")
         db.add(reply)
@@ -314,13 +326,19 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
                                 group_id=conv.teacher_group_id)
     except llm.LLMUnavailable as e:
+        user_msg.fence_action = verdict["decision"]
         db.commit()
         raise HTTPException(503, f"LLM unavailable: {e}")
+    except Exception:
+        user_msg.fence_action = verdict["decision"]
+        db.commit()
+        raise
 
     reply = Message(conversation_id=conv.id, role="assistant", content=result["content"],
                     fence_action=verdict["decision"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"])
     db.add(reply)
+    user_msg.fence_action = verdict["decision"]
     db.add(UsageLog(student_id=student.id, purpose="chat", provider=result["provider"],
                     model=result["model"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"]))
@@ -349,7 +367,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
         existing = db.get(Conversation, body.conversation_id)
         if existing and existing.student_id == student.id:
             policy_teacher_id = existing.teacher_group_id
-    _check_policy(student, db, policy_teacher_id)
+    quota_pending = _check_policy(student, db, policy_teacher_id)
 
     if body.conversation_id:
         conv = _student_conversation(db, body.conversation_id, student)
@@ -364,7 +382,8 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
         db.add(conv)
         db.flush()
 
-    user_msg = Message(conversation_id=conv.id, role="user", content=body.content)
+    user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
+                       fence_action="pending" if quota_pending else None)
     db.add(user_msg)
     db.flush()
     db.commit()  # 与普通聊天共用同一预留时点。
@@ -374,12 +393,18 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                .filter(Conversation.student_id == student.id, Message.role == "user",
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
-    verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
-                                   recent_user_texts=recent,
-                                   group_id=conv.teacher_group_id)
+    try:
+        verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
+                                       recent_user_texts=recent,
+                                       group_id=conv.teacher_group_id)
+    except Exception:
+        user_msg.fence_action = None
+        db.commit()
+        raise
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
-    user_msg.fence_action = verdict["decision"]
+    if not quota_pending:
+        user_msg.fence_action = verdict["decision"]
     # P0 安全闭环：家长通知。敏感拦截=security（安全告警），其余拦截/改写=fence
     if verdict["decision"] == "reject":
         _notify(student.family_id,
@@ -395,7 +420,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
     # 关键：请求级 session 在 StreamingResponse 开始发送前就会被 get_db 关闭，
     # 生成器里继续用它只会丢失数据（user 消息/事件静默不落库）。
     # 因此围栏结果先在此提交，流内写入用独立 session。
-    conv_id, student_id, fence_action = conv.id, student.id, verdict["decision"]
+    conv_id, student_id, user_msg_id, fence_action = conv.id, student.id, user_msg.id, verdict["decision"]
     grade_band = student.grade_band
     family_id = student.family_id
     teacher_group_id = conv.teacher_group_id
@@ -405,16 +430,16 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
         def sse(event, data):
             return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-        yield sse("meta", {"conversation_id": conv_id, "fence_action": fence_action,
-                           "category": verdict["category"]})
-
         from ..db import SessionLocal
         sdb = SessionLocal()
         try:
+            yield sse("meta", {"conversation_id": conv_id, "fence_action": fence_action,
+                               "category": verdict["category"]})
             if fence_action == "reject":
                 reply = Message(conversation_id=conv_id, role="assistant",
                                 content=fence.REJECT_REPLY, fence_action="reject")
                 sdb.add(reply)
+                sdb.get(Message, user_msg_id).fence_action = fence_action
                 sdb.commit()
                 yield sse("delta", {"text": fence.REJECT_REPLY})
                 yield sse("done", {"message_id": reply.id, "tokens_in": 0, "tokens_out": 0})
@@ -478,6 +503,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                                 tokens_in=usage["tokens_in"] if usage else 0,
                                 tokens_out=usage["tokens_out"] if usage else 0)
                 sdb.add(reply)
+                sdb.get(Message, user_msg_id).fence_action = fence_action
                 if usage:
                     row = UsageLog(student_id=student_id, purpose="chat",
                                    tokens_in=usage["tokens_in"], tokens_out=usage["tokens_out"],
@@ -490,9 +516,16 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                                    "tokens_in": usage["tokens_in"] if usage else 0,
                                    "tokens_out": usage["tokens_out"] if usage else 0})
             except llm.LLMUnavailable as e:
+                sdb.get(Message, user_msg_id).fence_action = fence_action
                 sdb.commit()
                 yield sse("error", {"message": f"LLM unavailable: {e}"})
         finally:
+            if quota_pending:
+                sdb.rollback()
+                pending = sdb.get(Message, user_msg_id)
+                if pending and pending.fence_action == "pending":
+                    pending.fence_action = fence_action
+                    sdb.commit()
             sdb.close()
 
     return StreamingResponse(gen(), media_type="text/event-stream",

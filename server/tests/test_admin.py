@@ -1,18 +1,37 @@
 """CMS：管理员鉴权、运营数据、LLM 分组配置与热切换。"""
-import os
-
 import pytest
 
-from tests.conftest import h, make_family
+from tests.conftest import h, make_admin, make_family
 
 
 @pytest.fixture()
-def admin(monkeypatch):
-    monkeypatch.setenv("ADMIN_TOKENS", "test-admin-token")
-    return {"Authorization": "Bearer test-admin-token"}
+def admin(client):
+    return make_admin(client)
 
 
-def test_admin_requires_token(client, admin):
+def test_first_admin_cli(tmp_path, monkeypatch):
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    from app.db import Base
+    from app.models import AdminUser
+    from tools import create_admin
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'admin.db'}")
+    Base.metadata.create_all(engine)
+    sessions = sessionmaker(bind=engine)
+    monkeypatch.setattr(create_admin, "SessionLocal", sessions)
+    monkeypatch.setattr("builtins.input", lambda _: "owner")
+    monkeypatch.setattr(create_admin, "getpass", lambda _: "strong-password")
+    create_admin.main()
+    with sessions() as db:
+        assert db.query(AdminUser).filter_by(username="owner", role="super").count() == 1
+    with pytest.raises(SystemExit, match="已存在"):
+        create_admin.main()
+    engine.dispose()
+
+
+def test_admin_requires_login(client, admin):
     assert client.get("/admin/overview").status_code == 403
     assert client.get("/admin/overview", headers={"Authorization": "Bearer wrong"}).status_code == 403
 

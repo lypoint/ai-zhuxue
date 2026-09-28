@@ -22,7 +22,7 @@
 | `PRICING_BASE_MONTHLY_PRICE` | `66` | 首次初始化时的基础月费（元）；运行中以 CMS 数据库配置为准 |
 | `PRICING_ADDITIONAL_SEAT_PRICE` | `33` | 首次初始化时的增量孩子名额价格（元）；运行中以 CMS 配置为准 |
 | `PRICING_TRIAL_DAYS` | `30` | 首次初始化时的新用户试用天数 |
-| `PRICING_POST_TRIAL_DAILY_FREE_COUNT` | `0` | 首次初始化时的到期后每日免费次数；老师角色开关仍由 CMS 控制 |
+| `PRICING_POST_TRIAL_DAILY_FREE_COUNT` | `0` | 旧配置兼容字段；实际免费次数按 CMS 中各老师分组配置 |
 | `GUARDIAN_VERIFY_PROVIDER` | `mock` | 核验服务尚未接入；生产注册/登录接口暂返回 503 |
 
 ## 2. 本地开发
@@ -99,7 +99,7 @@ flutter build ipa   # iOS：需开发者账号签名
 - [ ] usage_logs → 成本看板（验证人均 token 假设）
 
 **安全加固（2026-09-26 落地）**
-- [x] prod 启动自检：JWT_SECRET/ADMIN_TOKENS 弱配置直接拒启
+- [x] prod 启动自检：JWT_SECRET 弱配置直接拒启
 - [x] Admin 密码 pbkdf2（60 万轮，登录时自动升级旧 SHA256 账号）
 - [x] Admin session token 12 小时过期
 - [x] CMS/Web 前端全量输出转义（innerHTML XSS）

@@ -8,7 +8,7 @@ import uuid
 from decimal import Decimal, ROUND_HALF_UP
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.exc import IntegrityError
 
 from ..config import settings
@@ -122,13 +122,13 @@ def is_active(family_id: int, db: Session) -> bool:
     return get_status(family_id, db)["active"]
 
 
-def post_trial_free_count(family_id: int, db: Session) -> int:
-    return get_pricing_config(db).post_trial_daily_free_count
-
-
-def post_trial_free_used(family_id: int, db: Session) -> int:
-    """Count today's free messages in the configured project timezone."""
+def post_trial_free_used(student_id: int, db: Session, group_id: int | None = None,
+                         include_pending: bool = False) -> int:
+    """Count today's replies to one student; optionally reserve in-flight replies."""
     from ..models import Conversation, Message, Student
+    family_id = db.query(Student.family_id).filter_by(id=student_id).scalar()
+    if family_id is None:
+        return 0
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     local_now = dt.datetime.utcnow() + offset
     start_utc = local_now.replace(hour=0, minute=0, second=0, microsecond=0) - offset
@@ -138,16 +138,29 @@ def post_trial_free_used(family_id: int, db: Session) -> int:
     if sub and sub.expires_at:
         expires = sub.expires_at if sub.expires_at.tzinfo is None else sub.expires_at.replace(tzinfo=None)
         start_utc = max(start_utc, expires)
-    return int(db.query(func.count(Message.id)).join(
+    reply_filter = and_(Message.role == "assistant", Message.content != "",
+                        or_(Message.fence_action.is_(None), Message.fence_action != "reject"))
+    if include_pending:
+        # ponytail: a crashed request may leave 'pending'; release it after 30 minutes.
+        pending_since = dt.datetime.utcnow() - dt.timedelta(minutes=30)
+        reply_filter = or_(reply_filter, and_(Message.role == "user",
+                                              Message.fence_action == "pending",
+                                              Message.created_at >= pending_since))
+    query = db.query(func.count(Message.id)).join(
         Conversation, Message.conversation_id == Conversation.id
     ).filter(
-        Conversation.student_id.in_(db.query(Student.id).filter(Student.family_id == family_id)),
-        Message.role == "user", Message.created_at >= start_utc,
-    ).scalar() or 0)
+        Conversation.student_id == student_id,
+        reply_filter, Message.created_at >= start_utc,
+    )
+    if group_id is not None:
+        query = query.filter(Conversation.teacher_group_id == group_id)
+    return int(query.scalar() or 0)
 
 
-def post_trial_free_remaining(family_id: int, db: Session) -> int:
-    return max(0, post_trial_free_count(family_id, db) - post_trial_free_used(family_id, db))
+def post_trial_free_remaining(student_id: int, db: Session, group_id: int,
+                              free_count: int) -> int:
+    return max(0, free_count - post_trial_free_used(student_id, db, group_id,
+                                                     include_pending=True))
 
 
 def mock_pay(family_id: int, db: Session, idempotency_key: str | None = None) -> dict:

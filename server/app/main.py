@@ -1,8 +1,8 @@
 import contextlib
-import os
 import pathlib
+import re
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
@@ -17,8 +17,6 @@ from .web_page import WEB_PAGE_HTML
 async def lifespan(_: FastAPI):
     if settings.env == "prod" and (settings.jwt_secret == "change-me-in-prod" or len(settings.jwt_secret) < 32):
         raise RuntimeError("生产环境必须设置至少 32 字符的 JWT_SECRET")
-    if settings.env == "prod" and any(len(token.strip()) < 32 for token in os.getenv("ADMIN_TOKENS", "").split(",") if token.strip()):
-        raise RuntimeError("生产环境 ADMIN_TOKENS 中每个令牌必须至少 32 字符")
     if settings.env in ("dev", "test"):
         Base.metadata.create_all(engine)          # 开发便利；prod 走 Alembic
     else:
@@ -53,6 +51,16 @@ def web_chat():
 @app.get("/logo.svg", include_in_schema=False)
 def logo():
     return FileResponse(pathlib.Path(__file__).with_name("logo.svg"), media_type="image/svg+xml")
+
+
+@app.get("/teacher-avatars/{filename}", include_in_schema=False)
+def teacher_avatar(filename: str):
+    if not re.fullmatch(r"[0-9a-f]{32}\.(png|jpg|webp)", filename):
+        raise HTTPException(404)
+    path = pathlib.Path(settings.upload_dir) / filename
+    if not path.is_file():
+        raise HTTPException(404)
+    return FileResponse(path)
 
 
 @app.get("/health")

@@ -1,22 +1,23 @@
-"""CMS API：管理员鉴权 + 运营数据 + LLM 分组管理。
-
-管理员账号来自环境变量 ADMIN_TOKENS（逗号分隔），骨架期够用；M2 换管理员表+RBAC。
-"""
+"""CMS API：管理员鉴权 + 运营数据 + LLM 分组管理。"""
 import datetime as dt
 import hashlib
-import os
+import pathlib
 import secrets
+import time
+from urllib.parse import urlsplit
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..db import get_db
 from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode, Conversation, Family,
-                      FenceEvent, FenceFeedback, Guardian, LLMGroup, Message, Student,
-                      PricingConfig, Subscription, SubscriptionOrder, UsageLog)
+                      FenceConfig, FenceEvent, FenceFeedback, Guardian, LLMGroup, Message, Student,
+                      PricingConfig, RateLimitWindow, Subscription, SubscriptionOrder, UsageLog)
+from ..ratelimit import _hit
 from ..services.llm import PRICE_PER_MTOK
 from ..services.keyvault import encrypt_api_key
 
@@ -68,16 +69,10 @@ def log(db: Session, principal: AdminPrincipal, action: str, detail: str = ""):
 ADMIN_SESSION_HOURS = 12  # CMS session token 有效期；过期后重新登录
 
 
-def require_admin(authorization: str = Header(default=""),
+def require_admin(request: Request, authorization: str = Header(default=""),
                   db: Session = Depends(get_db)) -> AdminPrincipal:
-    """鉴权：ADMIN_TOKENS（super 后门）优先；其次 admin_users.session_token。
-
-    返回 AdminPrincipal；需要写权限的端点再检查 principal.can_manage。
-    """
+    """用账号密码登录后签发的会话凭证鉴权。"""
     token = authorization.removeprefix("Bearer ").strip()
-    allowed = {t.strip() for t in os.environ.get("ADMIN_TOKENS", "").split(",") if t.strip()}
-    if token in allowed:
-        return AdminPrincipal("env-admin", "super")
     if token:
         user = db.query(AdminUser).filter_by(session_token=token).first()
         if user:
@@ -90,7 +85,10 @@ def require_admin(authorization: str = Header(default=""),
                 db.commit()
             else:
                 return AdminPrincipal(user.username, user.role)
-    raise HTTPException(403, "admin token required")
+    if token and request.url.path == "/admin/overview":
+        log(db, AdminPrincipal("anonymous", "support"), "admin.session.invalid",
+            f"ip={request.client.host if request.client else 'unknown'}")
+    raise HTTPException(403, "请先登录或重新登录")
 
 
 def require_manage(principal: AdminPrincipal):
@@ -104,21 +102,31 @@ def require_operate(principal: AdminPrincipal):
 
 
 class LoginIn(BaseModel):
-    username: str
+    username: str = Field(min_length=1, max_length=50)
     password: str
 
 
 @router.post("/login")
-def admin_login(body: LoginIn, db: Session = Depends(get_db)):
+def admin_login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     """库内管理员登录（RBAC）；返回 session token 与角色。"""
+    ip = request.client.host if request.client else "unknown"
+    window = int(time.time() // 900) * 15
+    key = "admin-login:account:" + body.username.casefold()
+    if settings.env != "test" and not _hit(db, key, 5, window):
+        log(db, AdminPrincipal(body.username, "support"), "admin.login.blocked", f"ip={ip}")
+        raise HTTPException(429, "登录尝试过多，请 15 分钟后再试")
     user = db.query(AdminUser).filter_by(username=body.username).first()
     if not user or not _verify_password(body.password, user.password_hash):
+        log(db, AdminPrincipal(body.username, "support"), "admin.login.failed", f"ip={ip}")
         raise HTTPException(401, "用户名或密码错误")
     if not user.password_hash.startswith("pbkdf2_sha256$"):
         user.password_hash = _hash_password(body.password)
     user.session_token = secrets.token_hex(32)
     user.session_expires_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=ADMIN_SESSION_HOURS)
-    db.commit()
+    if settings.env != "test":
+        db.query(RateLimitWindow).filter_by(
+            bucket_key=hashlib.sha256(key.encode()).hexdigest()).delete()
+    log(db, AdminPrincipal(user.username, user.role), "admin.login.success", f"ip={ip}")
     return {"token": user.session_token,
             "role": "admin" if user.role == "ops" else user.role,
             "name": user.username}
@@ -152,7 +160,7 @@ def get_pricing_config(principal: AdminPrincipal = Depends(require_admin), db: S
             "last_modified_by": last.admin if last else None,
             "last_modified_at": last.created_at.isoformat() if last and last.created_at else None,
             "last_reason": last.detail if last else None,
-            "effective_scope": "新家庭和新订单；到期后免费次数立即作用于未订阅家庭"}
+            "effective_scope": "新家庭和新订单；老师免费次数在 LLM 分组中配置"}
 
 
 @router.post("/pricing-config")
@@ -425,12 +433,95 @@ def update_fence_feedback(feedback_id: int, body: FenceFeedbackUpdate,
 
 # ---------- LLM 分组管理 ----------
 
+class FenceConfigIn(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    base_url: str = Field(min_length=1, max_length=500)
+    api_key: str = Field(min_length=1, max_length=200)
+    model_id: str = Field(min_length=1, max_length=120)
+
+
+@router.get("/fence-configs")
+def list_fence_configs(principal: AdminPrincipal = Depends(require_admin),
+                       db: Session = Depends(get_db)):
+    require_operate(principal)
+    return [{"id": f.id, "name": f.name, "base_url": f.base_url,
+             "model_id": f.model_id, "has_key": bool(f.api_key)}
+            for f in db.query(FenceConfig).order_by(FenceConfig.id).all()]
+
+
+@router.post("/fence-configs")
+def create_fence_config(body: FenceConfigIn, principal: AdminPrincipal = Depends(require_admin),
+                        db: Session = Depends(get_db)):
+    require_manage(principal)
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(422, "围栏名称不能为空")
+    if db.query(FenceConfig).filter_by(name=name).first():
+        raise HTTPException(409, "围栏名称已存在")
+    if not body.api_key.strip():
+        raise HTTPException(422, "apiKey 不能为空")
+    config = FenceConfig(name=name, base_url=_base_url(body.base_url),
+                         api_key=encrypt_api_key(body.api_key.strip()), model_id=body.model_id.strip())
+    if not config.model_id:
+        raise HTTPException(422, "模型 ID 不能为空")
+    db.add(config)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "围栏名称已存在")
+    log(db, principal, "fence_config.create", f"id={config.id} name={name}")
+    return {"ok": True, "id": config.id, "name": name}
+
+
+@router.delete("/fence-configs/{config_id}")
+def delete_fence_config(config_id: int, principal: AdminPrincipal = Depends(require_admin),
+                        db: Session = Depends(get_db)):
+    require_manage(principal)
+    config = db.get(FenceConfig, config_id)
+    if not config:
+        raise HTTPException(404, "围栏配置不存在")
+    if db.query(LLMGroup.id).filter_by(fence_config_id=config_id).first():
+        raise HTTPException(409, "围栏配置已被 LLM 分组使用")
+    name = config.name
+    db.delete(config)
+    log(db, principal, "fence_config.delete", f"id={config_id} name={name}")
+    return {"ok": True}
+
+
+@router.post("/teacher-avatar")
+async def upload_teacher_avatar(request: Request,
+                                principal: AdminPrincipal = Depends(require_admin)):
+    require_operate(principal)
+    data = bytearray()
+    async for chunk in request.stream():
+        if len(data) + len(chunk) > 2_000_000:
+            raise HTTPException(413, "头像不能超过 2 MB")
+        data.extend(chunk)
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        ext = "png"
+    elif data.startswith(b"\xff\xd8\xff"):
+        ext = "jpg"
+    elif data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        ext = "webp"
+    else:
+        raise HTTPException(422, "只支持 PNG、JPEG、WebP 图片")
+    filename = secrets.token_hex(16) + "." + ext
+    directory = pathlib.Path(settings.upload_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / filename).write_bytes(data)
+    return {"url": str(request.url_for("teacher_avatar", filename=filename))}
+
+
 class GroupIn(BaseModel):
     name: str = Field(min_length=1, max_length=50)
-    provider: str = Field(min_length=2, max_length=20)
-    chat_model: str = Field(min_length=1, max_length=80)
-    fence_model: str = Field(min_length=1, max_length=80)
-    api_key: str = ""
+    base_url: str = Field(default="", max_length=500)
+    model_id: str = Field(default="", max_length=120)
+    fence_config_id: int | None = None
+    provider: str = Field(default="custom", max_length=20)  # 旧分组兼容
+    chat_model: str = Field(default="", max_length=120)
+    fence_model: str = Field(default="", max_length=80)
+    api_key: str = Field(default="", max_length=200)
     daily_message_cap: int = Field(default=0, ge=0, le=10000)
     note: str = Field(default="", max_length=200)
     tag: str | None = Field(default=None, max_length=50)  # 绑定标签：持此标签的家庭路由到本分组
@@ -438,12 +529,27 @@ class GroupIn(BaseModel):
     teacher_avatar_url: str = Field(default="", max_length=500)
     teacher_enabled: bool = True
     teacher_sort_order: int = 0
-    post_trial_free_enabled: bool = False
+    post_trial_daily_free_count: int = Field(default=0, le=10000)
+
+
+def _base_url(value: str) -> str:
+    url = value.strip().rstrip("/")
+    parts = urlsplit(url)
+    if (parts.scheme != "https" and not (settings.env != "prod" and parts.scheme == "http")
+            or not parts.hostname or any(c.isspace() for c in url)
+            or parts.username or parts.password or parts.query or parts.fragment):
+        raise HTTPException(422, "baseUrl 须为完整 HTTPS 地址")
+    try:
+        parts.port
+    except ValueError:
+        raise HTTPException(422, "baseUrl 端口无效")
+    return url
 
 
 def _validate_teacher_avatar(url: str) -> str:
     url = (url or "").strip()
-    if url and not url.startswith(("https://", "oss://", "s3://")):
+    schemes = ("https://", "oss://", "s3://") + (("http://",) if settings.env != "prod" else ())
+    if url and not url.startswith(schemes):
         raise HTTPException(422, "teacher_avatar_url 须为 HTTPS 或对象存储地址")
     return url
 
@@ -524,14 +630,17 @@ def list_groups(principal: AdminPrincipal = Depends(require_admin),db: Session =
                       .filter(Family.tag.isnot(None)).group_by(Family.tag).all())
     items = [{"id": g.id, "name": g.name,
                        "provider": g.provider if principal.role != "support" else None,
+                       "base_url": g.base_url if principal.role != "support" else None,
                        "chat_model": g.chat_model if principal.role != "support" else None,
                        "fence_model": g.fence_model if principal.role != "support" else None,
+                       "fence_config_id": g.fence_config_id,
+                       "fence_name": g.fence_config.name if g.fence_config else None,
                        "has_key": bool(g.api_key) if principal.role != "support" else None,
                        "daily_message_cap": g.daily_message_cap if principal.role != "support" else None,
                        "note": g.note, "is_active": g.is_active, "tag": g.tag,
                        "teacher_name": g.teacher_name, "teacher_avatar_url": g.teacher_avatar_url,
                        "teacher_enabled": g.teacher_enabled, "teacher_sort_order": g.teacher_sort_order,
-                       "post_trial_free_enabled": g.post_trial_free_enabled,
+                       "post_trial_daily_free_count": g.post_trial_daily_free_count,
                        "tagged_families": tag_counts.get(g.tag, 0) if g.tag else 0}
                       for g in groups]
     return {"active": active if principal.role != "support" else None, "items": items}
@@ -541,19 +650,46 @@ def list_groups(principal: AdminPrincipal = Depends(require_admin),db: Session =
 def create_group(body: GroupIn, principal: AdminPrincipal = Depends(require_admin),
                  db: Session = Depends(get_db)):
     require_manage(principal)
-    if db.query(LLMGroup).filter_by(name=body.name).first():
+    name = body.name.strip()
+    if not name:
+        raise HTTPException(422, "分组名称不能为空")
+    if db.query(LLMGroup).filter_by(name=name).first():
         raise HTTPException(400, "分组名已存在")
-    if body.tag and db.query(LLMGroup).filter_by(tag=body.tag).first():
-        raise HTTPException(400, f"标签 {body.tag} 已绑定其他分组")
-    values = body.model_dump()
+    tag = body.tag.strip() if body.tag else None
+    if tag and db.query(LLMGroup).filter_by(tag=tag).first():
+        raise HTTPException(400, f"标签 {tag} 已绑定其他分组")
+    values = body.model_dump(exclude={"model_id"})
+    values["name"] = name
+    values["tag"] = tag
+    if body.base_url:
+        if not body.model_id.strip() or not body.api_key.strip() or not body.fence_config_id:
+            raise HTTPException(422, "baseUrl、apiKey、模型 ID 和围栏配置均须填写")
+        if not db.get(FenceConfig, body.fence_config_id):
+            raise HTTPException(422, "所选围栏配置不存在")
+        values["base_url"] = _base_url(body.base_url)
+        values["provider"] = "custom"
+        values["chat_model"] = body.model_id.strip()
+        values["fence_model"] = ""
+    elif not body.chat_model.strip() or not body.fence_model.strip():
+        raise HTTPException(422, "请填写 baseUrl 和模型 ID")
+    else:
+        from ..services.llm import PROVIDERS
+        if body.provider not in PROVIDERS:
+            raise HTTPException(422, "请填写有效的 baseUrl")
     values["teacher_avatar_url"] = _validate_teacher_avatar(values["teacher_avatar_url"])
     values["teacher_name"] = values["teacher_name"].strip()
     if not values["teacher_name"]:
         raise HTTPException(422, "teacher_name 不能为空")
-    values["api_key"] = encrypt_api_key(values["api_key"])   # 落库即密文
+    values["post_trial_daily_free_count"] = max(0, values["post_trial_daily_free_count"])
+    values["post_trial_free_enabled"] = values["post_trial_daily_free_count"] > 0
+    values["api_key"] = encrypt_api_key(values["api_key"].strip())   # 落库即密文
     grp = LLMGroup(**values)
     db.add(grp)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "分组名称或家庭标签已存在")
     log(db, principal, "llm_group.create", f"id={grp.id} name={grp.name}")
     return {"ok": True, "id": grp.id}
 
@@ -563,7 +699,7 @@ class TeacherProfileIn(BaseModel):
     teacher_avatar_url: str | None = Field(default=None, max_length=500)
     teacher_enabled: bool | None = None
     teacher_sort_order: int | None = None
-    post_trial_free_enabled: bool | None = None
+    post_trial_daily_free_count: int | None = Field(default=None, le=10000)
 
 
 @router.patch("/llm-groups/{group_id}/teacher-profile")
@@ -583,6 +719,9 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
         changes["teacher_name"] = changes["teacher_name"].strip()
         if not changes["teacher_name"]:
             raise HTTPException(422, "teacher_name 不能为空")
+    if "post_trial_daily_free_count" in changes:
+        changes["post_trial_daily_free_count"] = max(0, changes["post_trial_daily_free_count"])
+        changes["post_trial_free_enabled"] = changes["post_trial_daily_free_count"] > 0
     for field, value in changes.items():
         setattr(grp, field, value)
     log(db, principal, "teacher_profile.update",
@@ -591,7 +730,7 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
             "teacher_avatar_url": grp.teacher_avatar_url,
             "teacher_enabled": grp.teacher_enabled,
             "teacher_sort_order": grp.teacher_sort_order,
-            "post_trial_free_enabled": grp.post_trial_free_enabled}
+            "post_trial_daily_free_count": grp.post_trial_daily_free_count}
 
 
 @router.put("/llm-groups/{group_id}/activate")
@@ -650,7 +789,10 @@ def family_routing(family_id: int, principal: AdminPrincipal = Depends(require_a
     if not db.get(Family, family_id):
         raise HTTPException(404, "family not found")
     from ..services.llm import resolve_active_group
-    return {"family_id": family_id, **resolve_active_group(family_id)}
+    route = resolve_active_group(family_id)
+    route.pop("api_key", None)
+    route.pop("fence_config", None)
+    return {"family_id": family_id, **route}
 
 
 # ---------- 会员赠送/扣除（super 专属，全程留痕） ----------

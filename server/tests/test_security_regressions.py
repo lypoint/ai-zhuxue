@@ -10,7 +10,7 @@ from app.config import settings
 from app.db import SessionLocal
 from app.main import app
 from app.models import AdminUser, LLMGroup
-from tests.conftest import h, make_family
+from tests.conftest import h, make_admin, make_family
 
 
 def test_production_registration_fails_closed_without_sms(client, monkeypatch):
@@ -44,17 +44,23 @@ def test_auth_limit_cannot_be_reset_with_arbitrary_authorization(client, monkeyp
 
 
 def test_admin_login_is_limited(client, monkeypatch):
-    from app.models import RateLimitWindow
+    from app.models import AdminLog, RateLimitWindow
     with SessionLocal.begin() as db:
         db.query(RateLimitWindow).delete()
     monkeypatch.setattr(settings, "env", "prod")
-    responses = [client.post("/admin/login", json={"username": "missing", "password": "wrong"})
-                 for _ in range(11)]
-    assert all(r.status_code == 401 for r in responses[:10])
+    username = "missing-" + uuid.uuid4().hex[:8]
+    responses = [client.post("/admin/login", json={"username": username, "password": "wrong"})
+                 for _ in range(6)]
+    assert all(r.status_code == 401 for r in responses[:5])
     assert responses[-1].status_code == 429
+    with SessionLocal() as db:
+        logs = db.query(AdminLog).filter_by(admin=username).all()
+        assert [entry.action for entry in logs] == ["admin.login.failed"] * 5 + ["admin.login.blocked"]
+        assert all("password" not in entry.detail and "ip=" in entry.detail for entry in logs)
 
 
 def test_legacy_admin_password_upgrades_after_login(client):
+    from app.models import AdminLog
     username = "legacy-" + uuid.uuid4().hex[:8]
     with SessionLocal.begin() as db:
         db.add(AdminUser(username=username,
@@ -63,6 +69,8 @@ def test_legacy_admin_password_upgrades_after_login(client):
     with SessionLocal() as db:
         assert db.query(AdminUser).filter_by(username=username).one().password_hash.startswith("pbkdf2_sha256$")
     assert client.post("/admin/login", json={"username": username, "password": "password123"}).status_code == 200
+    with SessionLocal() as db:
+        assert db.query(AdminLog).filter_by(admin=username, action="admin.login.success").count() == 2
 
 
 def test_teacher_daily_cap_is_enforced(client):
@@ -81,13 +89,19 @@ def test_teacher_daily_cap_is_enforced(client):
 
 def test_admin_session_token_expires(client, monkeypatch):
     import datetime as dt
-    from app.models import AdminUser
+    from app.models import AdminLog, AdminUser
+    super_admin = make_admin(client)
     monkeypatch.setenv("ADMIN_TOKENS", "test-admin-token")
     username = "exp-" + uuid.uuid4().hex[:8]
     r = client.post("/admin/users", json={"username": username, "password": "password123",
                                           "role": "support", "note": ""},
-                    headers={"Authorization": "Bearer test-admin-token"})
+                    headers=super_admin)
     assert r.status_code == 200
+    assert client.get("/admin/overview", headers=super_admin).status_code == 200
+    assert client.get("/admin/overview", headers={"Authorization": "Bearer test-admin-token"}).status_code == 403
+    assert client.get("/admin/overview", headers={"Authorization": "Bearer wrong-token"}).status_code == 403
+    with SessionLocal() as db:
+        assert db.query(AdminLog).filter_by(action="admin.session.invalid").count() >= 2
     tok = client.post("/admin/login", json={"username": username, "password": "password123"}).json()["token"]
     assert client.get("/admin/overview", headers={"Authorization": "Bearer " + tok}).status_code == 200
     # 把过期时间拨到过去 → 鉴权应失败且 token 被清除
@@ -99,10 +113,9 @@ def test_admin_session_token_expires(client, monkeypatch):
         assert db.query(AdminUser).filter_by(username=username).one().session_token is None
 
 
-def test_llm_group_api_key_is_encrypted_at_rest(client, monkeypatch):
+def test_llm_group_api_key_is_encrypted_at_rest(client):
     from app.models import LLMGroup
-    monkeypatch.setenv("ADMIN_TOKENS", "test-admin-token")
-    admin = {"Authorization": "Bearer test-admin-token"}
+    admin = make_admin(client)
     name = "kv-" + uuid.uuid4().hex[:8]
     r = client.post("/admin/llm-groups", headers=admin, json={
         "name": name, "provider": "glm", "chat_model": "glm-4-flash",

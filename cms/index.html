@@ -47,9 +47,6 @@
   <input id="user" placeholder="用户名">
   <input id="pass" type="password" placeholder="密码">
   <button style="width:100%" onclick="loginDb()">登录</button>
-  <div class="hint" style="margin:8px 0">或使用环境变量 Token：</div>
-  <input id="tok" type="password" placeholder="管理员 Token（env 后门）">
-  <button class="ghost" style="width:100%" onclick="loginTok()">Token 登录</button>
   <div id="lerr" class="err"></div>
 </div>
 
@@ -94,21 +91,32 @@
   </section>
 
   <section data-admin-only>
+    <h2>围栏模型</h2>
+    <div id="fences"></div>
+    <div data-super-only>
+      <div class="row">
+        <input id="f_name" placeholder="围栏名称（不可重复）" style="width:160px">
+        <input id="f_base" placeholder="baseUrl（HTTPS）" style="width:260px">
+        <input id="f_key" placeholder="apiKey" type="password" style="width:180px">
+        <input id="f_model" placeholder="模型 ID" style="width:180px">
+        <button onclick="addFence()">新建围栏</button>
+      </div>
+      <div id="ferr" class="err"></div>
+    </div>
     <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（激活后新对话立即生效）</span></h2>
     <div id="groups"></div>
     <div data-super-only>
       <h2 style="margin-top:14px">新建分组</h2>
       <div class="row">
         <input id="g_name" placeholder="名称" style="width:110px">
-        <select id="g_provider"><option value="openrouter">openrouter</option><option value="glm">glm</option><option value="deepseek">deepseek</option><option value="kimi">kimi</option></select>
-        <input id="g_chat" placeholder="chat 模型" style="width:230px">
-        <input id="g_fence" placeholder="fence 模型" style="width:230px">
-        <input id="g_key" placeholder="API Key（可空=沿用环境）" style="width:220px" type="password">
-        <input id="g_cap" placeholder="日上限(0=默认)" style="width:110px" type="number">
+        <input id="g_base" placeholder="baseUrl（HTTPS）" style="width:250px">
+        <input id="g_key" placeholder="apiKey" style="width:190px" type="password">
+        <input id="g_model" placeholder="模型 ID" style="width:180px">
+        <select id="g_fence"><option value="">选择围栏配置</option></select>
         <input id="g_tag" placeholder="家庭标签" style="width:110px">
-        <input id="g_teacher" placeholder="老师名称" style="width:110px">
-        <input id="g_avatar" placeholder="头像 URL" style="width:180px">
-        <label style="font-size:12px"><input id="g_trial_free" type="checkbox"> 试用到期后免费</label>
+        <input id="g_teacher" placeholder="老师名字" style="width:110px">
+        <label style="font-size:12px">老师头像 <input id="g_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
+        <input id="g_free" placeholder="到期后每个学生每日免费回复次数（≤0不免费）" style="width:310px" type="number">
         <button onclick="addGroup()">创建</button>
       </div>
       <div style="font-size:12px;color:#8C8A84">路由优先级：家庭标签 &gt; 全局生效分组 &gt; 环境变量。给分组填标签后，在下方家族列表为家庭打上同名标签即可让该家庭使用本分组的 provider/model。</div>
@@ -122,7 +130,6 @@
       <input id="p_base" type="number" step="0.01" placeholder="基础月费">
       <input id="p_seat" type="number" step="0.01" placeholder="增加名额价格">
       <input id="p_trial" type="number" placeholder="试用天数">
-      <input id="p_free" type="number" placeholder="到期后每日免费次数">
       <input id="p_reason" placeholder="修改原因" style="width:220px">
       <button onclick="savePricing()">保存策略</button>
       <button class="ghost" onclick="resetPricing()">恢复默认</button>
@@ -183,8 +190,6 @@ async function loginDb() {
     boot();
   } catch (e) { $('lerr').textContent = e.message; }
 }
-function loginTok() { TOK = $('tok').value.trim(); ROLE = 'super'; sessionStorage.setItem('cms_tok', TOK); sessionStorage.setItem('cms_role', 'super'); boot(); }
-
 const DEC = {allow:'放行',rewrite:'改写',reject:'拦截'};
 const CAT = {study:'学习',entertainment:'娱乐',sensitive:'敏感',other:'其他',unknown:'未知'};
 const STAGE = {whitelist:'白名单',classifier:'分类',second_pass:'复核',policy:'处置'};
@@ -217,7 +222,7 @@ function boot() {
     }
     if (ROLE === 'support') $('fenceTable').querySelector('tbody').innerHTML = '<tr><td colspan="4">客服角色不显示围栏详情</td></tr>';
     else loadFence();
-    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadGroups(); loadFeedback(); loadAssessmentAudits(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
+    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadFeedback(); loadAssessmentAudits(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
   }).catch(e => { if (e.message !== 'reauth') $('lerr').textContent = e.message; });
 }
 
@@ -298,15 +303,55 @@ async function createUser() {
   } catch(e) { alert(e.message); }
 }
 
+async function loadFences() {
+  const fences = await api('/admin/fence-configs');
+  $('fences').innerHTML = fences.map(f => `
+    <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
+      <b>${esc(f.name)}</b><span style="font-size:12px;color:#8C8A84">${esc(f.base_url)} · ${esc(f.model_id)} · key:已配</span>
+      ${ROLE==='super'?'<button class="ghost" onclick="delFence('+f.id+')">删除</button>':''}
+    </div>`).join('') || '<div style="color:#8C8A84;font-size:13px">暂无围栏配置</div>';
+  const current = $('g_fence').value;
+  $('g_fence').innerHTML = '<option value="">选择围栏配置</option>' +
+    fences.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+  $('g_fence').value = current;
+}
+
+async function addFence() {
+  $('ferr').textContent = '';
+  try {
+    await api('/admin/fence-configs', {method:'POST', body: JSON.stringify({
+      name:$('f_name').value.trim(), base_url:$('f_base').value.trim(),
+      api_key:$('f_key').value.trim(), model_id:$('f_model').value.trim()
+    })});
+    ['f_name','f_base','f_key','f_model'].forEach(id => $(id).value='');
+    loadFences();
+  } catch(e) { $('ferr').textContent = e.message; }
+}
+
+async function delFence(id) {
+  if (!confirm('确认删除围栏配置？已被 LLM 使用的配置无法删除。')) return;
+  try { await api('/admin/fence-configs/'+id, {method:'DELETE'}); loadFences(); }
+  catch(e) { alert(e.message); }
+}
+
+async function uploadAvatar(file) {
+  if (!file || !['image/png','image/jpeg','image/webp'].includes(file.type) || file.size > 2000000)
+    throw new Error('请选择 2 MB 以内的 PNG、JPEG 或 WebP 图片');
+  return (await api('/admin/teacher-avatar', {method:'POST', headers:{'Content-Type':file.type}, body:file})).url;
+}
+
 async function loadGroups() {
   const d = await api('/admin/llm-groups');
   $('groups').innerHTML = d.items.map(g => `
     <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
+      ${g.teacher_avatar_url?`<img src="${esc(g.teacher_avatar_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:''}
       <b>${esc(g.name)}</b> ${g.is_active?'<span class="tag active">生效中</span>':''}
       ${g.tag?`<span class="tag beta-tag">标签:${esc(g.tag)} (${g.tagged_families}家庭)</span>`:''}
-      <span style="font-size:12px;color:#8C8A84">${esc(g.provider)} · chat:${esc(g.chat_model)} · fence:${esc(g.fence_model)} · key:${g.has_key?'已配':'沿用环境'} · 日上限:${g.daily_message_cap||'默认'} · 老师:${esc(g.teacher_name||'AI 老师')} · 试用到期后免费:${g.post_trial_free_enabled?'是':'否'}</span>
+      <span style="font-size:12px;color:#8C8A84">${esc(g.base_url||g.provider)} · 模型:${esc(g.chat_model)} · 围栏:${esc(g.fence_name||g.fence_model||'未配置')} · key:${g.has_key?'已配':'沿用环境'} · 老师:${esc(g.teacher_name||'AI 老师')} · 到期后每学生每日免费回复:${g.post_trial_daily_free_count||0} 次</span>
       ${g.is_active||ROLE!=='super'?'':'<button class="ghost" onclick="activate('+g.id+')">激活</button>'}
-      <button class="ghost" onclick="editTeacher(${g.id},decodeURIComponent('${attr(g.teacher_name||'AI 老师')}'),decodeURIComponent('${attr(g.teacher_avatar_url||'')}'),${g.post_trial_free_enabled},${g.teacher_enabled},${g.teacher_sort_order||0})">老师配置</button>
+      <button class="ghost" onclick="editTeacher(${g.id},decodeURIComponent('${attr(g.teacher_name||'AI 老师')}'),${g.post_trial_daily_free_count||0},${g.teacher_enabled},${g.teacher_sort_order||0})">老师配置</button>
+      <input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp" style="width:160px;font-size:11px">
+      <button class="ghost" onclick="changeAvatar(${g.id})">上传头像</button>
       ${ROLE==='super'?'<button class="ghost" onclick="delGroup('+g.id+')">删除</button>':''}
     </div>`).join('') || '<div style="color:#8C8A84;font-size:13px">暂无分组（使用环境变量配置）</div>';
 }
@@ -317,37 +362,51 @@ async function delGroup(id) { if(!confirm('确认删除该分组？')) return; a
 async function addGroup() {
   $('gerr').textContent='';
   try {
+    const name = $('g_name').value.trim(), base = $('g_base').value.trim();
+    const key = $('g_key').value.trim(), model = $('g_model').value.trim();
+    const teacher = $('g_teacher').value.trim(), fence = Number($('g_fence').value);
+    if (!name || !base || !key || !model || !teacher || !fence) throw new Error('请填写名称、baseUrl、apiKey、模型 ID、围栏和老师名字');
+    const avatar = await uploadAvatar($('g_avatar').files[0]);
     await api('/admin/llm-groups', {method:'POST', body: JSON.stringify({
-      name: $('g_name').value.trim(), provider: $('g_provider').value,
-      chat_model: $('g_chat').value.trim(), fence_model: $('g_fence').value.trim(),
-      api_key: $('g_key').value.trim(), daily_message_cap: parseInt($('g_cap').value||'0'),
-      tag: $('g_tag').value.trim() || null, teacher_name: $('g_teacher').value.trim() || 'AI 老师',
-      teacher_avatar_url: $('g_avatar').value.trim(), post_trial_free_enabled: $('g_trial_free').checked,
+      name, base_url:base, api_key:key, model_id:model, fence_config_id:fence,
+      tag:$('g_tag').value.trim() || null, teacher_name:teacher,
+      teacher_avatar_url:avatar, post_trial_daily_free_count:Number($('g_free').value||0),
     })});
-    ['g_name','g_chat','g_fence','g_key','g_cap','g_tag','g_teacher','g_avatar'].forEach(i=>$(i).value=''); $('g_trial_free').checked=false;
+    ['g_name','g_base','g_key','g_model','g_fence','g_tag','g_teacher','g_avatar','g_free'].forEach(i=>$(i).value='');
     loadGroups();
   } catch(e) { $('gerr').textContent = e.message; }
 }
 
 
-async function editTeacher(id, currentName, currentAvatar, currentFree, currentEnabled, currentSort) {
+async function changeAvatar(id) {
+  try {
+    const url = await uploadAvatar($('avatar_'+id).files[0]);
+    await api('/admin/llm-groups/' + id + '/teacher-profile',
+      {method:'PATCH', body:JSON.stringify({teacher_avatar_url:url})});
+    loadGroups();
+  } catch(e) { alert(e.message); }
+}
+
+async function editTeacher(id, currentName, currentFree, currentEnabled, currentSort) {
   const name = prompt('老师名称：', currentName); if (name === null) return;
-  const avatar = prompt('头像 URL：', currentAvatar) || '';
   const enabled = confirm(`允许新会话选择此老师？\n当前设置：${currentEnabled ? '启用' : '停用'}（确定=启用，取消=停用）`);
   const sortText = prompt('展示排序（数字越小越靠前）：', String(currentSort ?? 0));
   if (sortText === null) return;
   const sort = Number.parseInt(sortText, 10);
   if (!Number.isInteger(sort)) { alert('排序必须是整数'); return; }
-  const free = confirm(`试用期过期后允许此老师免费使用？\n当前设置：${currentFree ? '开启' : '关闭'}（确定=开启，取消=关闭）`);
-  try { await api('/admin/llm-groups/' + id + '/teacher-profile', {method:'PATCH', body: JSON.stringify({teacher_name:name.trim(), teacher_avatar_url:avatar, teacher_enabled:enabled, teacher_sort_order:sort, post_trial_free_enabled:free})}); loadGroups(); }
+  const freeText = prompt('试用到期后每个学生每日免费回复次数（≤0 为不免费）：', String(currentFree));
+  if (freeText === null) return;
+  const free = Number(freeText);
+  if (!Number.isInteger(free)) { alert('免费次数必须是整数'); return; }
+  try { await api('/admin/llm-groups/' + id + '/teacher-profile', {method:'PATCH', body: JSON.stringify({teacher_name:name.trim(), teacher_enabled:enabled, teacher_sort_order:sort, post_trial_daily_free_count:free})}); loadGroups(); }
   catch(e) { alert(e.message); }
 }
 
 async function loadPricing() {
-  try { const d=await api('/admin/pricing-config'); $('p_base').value=d.base_monthly_price; $('p_seat').value=d.additional_seat_price; $('p_trial').value=d.trial_days; $('p_free').value=d.post_trial_daily_free_count; $('pmeta').textContent=(d.last_modified_by ? `最近修改：${d.last_modified_by} · ${(d.last_modified_at||'').replace('T',' ').slice(0,16)} · ${d.last_reason||''}` : '当前为默认配置') + ` · ${d.effective_scope||''}`; } catch(e) { $('perr').textContent=e.message; }
+  try { const d=await api('/admin/pricing-config'); $('p_base').value=d.base_monthly_price; $('p_seat').value=d.additional_seat_price; $('p_trial').value=d.trial_days; $('pmeta').textContent=(d.last_modified_by ? `最近修改：${d.last_modified_by} · ${(d.last_modified_at||'').replace('T',' ').slice(0,16)} · ${d.last_reason||''}` : '当前为默认配置') + ` · ${d.effective_scope||''}`; } catch(e) { $('perr').textContent=e.message; }
 }
 async function savePricing() {
-  try { await api('/admin/pricing-config', {method:'POST', body: JSON.stringify({base_monthly_price:parseFloat($('p_base').value), additional_seat_price:parseFloat($('p_seat').value), trial_days:parseInt($('p_trial').value), post_trial_daily_free_count:parseInt($('p_free').value), reason:$('p_reason').value})}); $('perr').textContent='已保存'; } catch(e) { $('perr').textContent=e.message; }
+  try { await api('/admin/pricing-config', {method:'POST', body: JSON.stringify({base_monthly_price:parseFloat($('p_base').value), additional_seat_price:parseFloat($('p_seat').value), trial_days:parseInt($('p_trial').value), post_trial_daily_free_count:0, reason:$('p_reason').value})}); $('perr').textContent='已保存'; } catch(e) { $('perr').textContent=e.message; }
 }
 async function resetPricing() {
   if (!confirm('恢复默认订阅策略？此操作会写入操作日志。')) return;

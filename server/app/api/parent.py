@@ -882,7 +882,11 @@ def ack_wellbeing_assessment(assessment_id: int, body: dict,
 @router.get("/subscription")
 def subscription_status(guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     from ..services import subscription
-    return subscription.get_status(guardian.family_id, db)
+    status = subscription.get_status(guardian.family_id, db)
+    status["free_teacher_count"] = db.query(LLMGroup).filter(
+        LLMGroup.teacher_enabled.is_(True), LLMGroup.post_trial_daily_free_count > 0
+    ).count()
+    return status
 
 
 @router.post("/subscription/pay")

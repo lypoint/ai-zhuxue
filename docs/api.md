@@ -192,9 +192,8 @@ assistant 生成完成后全文再过一次分类器（stage=`output_check`）�
 
 鉴权（2026-09-19 RBAC 改造）：
 1. **库内管理员**：`POST /admin/login {username, password}` → `{token, role, name}`（session_token 存库比对）；角色 `super`（全部权限）/ `admin`（普通管理员）/ `support`（客服最小权限）；迁移期 `ops` 按 `admin` 兼容。
-2. **环境变量后门**：Header `Authorization: Bearer <ADMIN_TOKENS 之一>` = super（部署引导期）。
 
-管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，账号密码登录或 Token 登录，admin 和 support 角色按权限隐藏操作入口；跨端口调用本组 `/admin` API。页面后端地址由 `CMS_API_BASE` 环境变量注入，未配置时同源兜底。敏感操作留痕 `GET /admin/logs`（super 可查看全部，admin/support 仅查看本人记录）。
+管理后台前端已拆分为独立服务（`../cms`，默认端口 8101）：单页托管于 `GET /`，仅支持账号密码登录；登录后使用限时会话凭证调用 `/admin` API。admin 和 support 角色按权限隐藏操作入口。页面后端地址由 `CMS_API_BASE` 环境变量注入，未配置时同源兜底。敏感操作留痕 `GET /admin/logs`（super 可查看全部，admin/support 仅查看本人记录）。
 
 ### GET /admin/overview — 核心运营面板
 ```json
@@ -220,8 +219,14 @@ admin/super/support 均可作废该家庭尚未使用的绑定码，并写入操
 ### GET/PATCH /admin/fence-feedback — 误判反馈与失效样本
 `GET` 返回待复核反馈；客服角色的消息内容脱敏。`PATCH /admin/fence-feedback/{id}` 使用 `status=open|reviewed|dismissed`，仅 super/admin 可修改并写入日志。
 
+### GET/POST /admin/fence-configs — 独立围栏配置
+`POST`（super）：`{name, base_url, api_key, model_id}`；名称唯一，Key 加密存储且列表只返回 `has_key`。被 LLM 分组引用时不可删除。
+
+### POST /admin/teacher-avatar — 上传老师头像
+super/admin 发送原始 PNG、JPEG 或 WebP 文件（≤2 MB）；返回可供 App 与 Web 直接显示的 HTTPS URL。
+
 ### GET /admin/llm-groups — 分组列表（含当前生效分组）
-### POST /admin/llm-groups — 创建分组 `{name, provider, chat_model, fence_model, api_key?, daily_message_cap?, note?, teacher_name?, teacher_avatar_url?, teacher_enabled?, teacher_sort_order?, post_trial_free_enabled?}`（super）
+### POST /admin/llm-groups — 创建分组 `{name, base_url, api_key, model_id, fence_config_id, teacher_name, teacher_avatar_url, post_trial_daily_free_count, tag?}`（super）
 ### PUT /admin/llm-groups/{id}/activate — 激活（全局唯一生效；**新对话立即生效，无需重启**）（super）
 
 ### 会员赠送/扣除（2026-09-19，super/admin）
@@ -258,7 +263,7 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 
 ## 订阅 `/parent/subscription`（P0 商业闭环）
 
-注册即开 30 天免费试用；到期后仅 CMS 开启“试用到期后免费”的老师可消耗全局每日免费次数，其他老师返回 **402**，次数耗尽返回 **429**。
+注册即开 30 天免费试用；到期后 `post_trial_daily_free_count` 是每位老师**每天回复每个学生**的次数上限（≤0 不免费）。只统计已生成并保存的老师回复；未收到回复的提问和围栏拒绝话术不占次数。同家庭的学生各有额度。未开放免费次数的老师返回 **402**，该学生在该老师的次数耗尽返回 **429**。
 
 ### GET /parent/subscription — 订阅状态
 ```json
@@ -317,14 +322,14 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 - `GET /chat/teachers`：返回当前家庭可选老师的 `teacher_id`、`name`、`avatar_url`、`sort_order`、`access`；`access` 为 `available|subscription_required|daily_free_exhausted`，不返回 provider、模型或 Key。
 - `POST /chat`、`POST /chat/stream`：新会话可传 `teacher_id`；已有会话固定原老师。
 - `GET /chat/sessions`：返回 `teacher_id`、`teacher_name`、`teacher_avatar_url` 快照。
-- `PATCH /admin/llm-groups/{id}/teacher-profile`：super/admin 按权限修改老师姓名、头像、启用状态、排序和 `post_trial_free_enabled`；修改只影响新会话，写入 AdminLog。
+- `PATCH /admin/llm-groups/{id}/teacher-profile`：super/admin 按权限修改老师姓名、头像、启用状态、排序和 `post_trial_daily_free_count`；修改只影响新会话，写入 AdminLog。
 - 家长会话列表、消息详情、导出和评估证据返回同一老师快照，保证历史同步。
 
 ### 订阅与 CMS
 
-- `GET /parent/subscription`：返回 `seat_count`、`used_seats`、基础价、增量价、免费期和到期后每日免费次数。
+- `GET /parent/subscription`：返回 `seat_count`、`used_seats`、基础价、增量价、免费期和 `free_teacher_count`；各老师的免费次数由 LLM 分组决定。
 - `POST /parent/subscription/seats`：按当前周期剩余天数折算并立即增加孩子名额，必须携带幂等键。
-- `GET/POST /admin/pricing-config`：super 读取/修改基础价、增量价、试用天数、到期后每日免费次数。
+- `GET/POST /admin/pricing-config`：super 读取/修改基础价、增量价、试用天数；旧的到期免费次数字段保留兼容，实际额度在 LLM 分组中配置。
 - `POST /admin/users`、`PATCH /admin/users/{id}`：super 创建和调整 `super/admin/support` 账号。
 
 ### 成绩与趋势

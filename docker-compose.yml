@@ -22,6 +22,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET before starting}
       LLM_KEY_SECRET: ${LLM_KEY_SECRET:-}   # api_key 落库加密密钥；空则回落 JWT_SECRET
       CORS_ORIGINS: ${CORS_ORIGINS:-}
+      UPLOAD_DIR: /data/teacher-avatars
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       LLM_PROVIDER: ${LLM_PROVIDER:-glm}
       GLM_API_KEY: ${GLM_API_KEY:-}
@@ -30,6 +31,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - teacher_avatars:/data/teacher-avatars
     ports:
       - "127.0.0.1:8000:8000"   # 仅本机可达；对外走 caddy TLS 或自行前置反代
 
@@ -69,3 +72,4 @@ volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  teacher_avatars:

@@ -63,7 +63,7 @@ flutter run
 JWT_SECRET=$(openssl rand -hex 32) CORS_ORIGINS=http://localhost:8101 FENCE_MODE=llm docker compose up -d --build
 ```
 
-**CMS**（独立服务，与 API server 分离部署、互不影响起停）：`http://localhost:8101/`（管理员账号或 `ADMIN_TOKENS` 环境变量）。
+**CMS**（独立服务，与 API server 分离部署、互不影响起停）：`http://localhost:8101/`（管理员账号密码登录）。
 
 ```bash
 # 本地开发（页面服务，API 默认指向 http://localhost:8100）
@@ -73,10 +73,11 @@ CMS_API_BASE=http://<api-host>:<port> server/.venv/bin/uvicorn cms.main:app --po
 ```
 
 CMS 页面仅使用服务端注入的 `CMS_API_BASE`，未配置时使用同源地址；跨域部署需设置 API 的 `CORS_ORIGINS`。
+全新数据库完成迁移后，运行 `cd server && .venv/bin/python -m tools.create_admin`，按提示创建首个超级管理员；密码由终端安全输入。
 
 ## 质量保障
 
-- `server/tests/`：**109 例 pytest**（围栏规则/处置策略/审计流水、API 端到端、RBAC 角色隔离、绑定码防重放、每日上限强制、用量成本、家长审查、赠送扣除、家庭设备、老师角色、成绩评估）；
+- `server/tests/`：pytest 覆盖围栏规则、审计、RBAC、绑定、每日上限、用量成本、家长审查、老师角色和成绩评估；
 - `app/test/`：widget 测试；`flutter analyze` 零告警；
 - `tools/eval_fence.py`：围栏题库指标评测 + `--check` 阈值断言（CI 中 key 缺失自动跳过）；
 - CI：`.github/workflows/ci.yml`（pytest + flutter analyze/test + 围栏指标回归）。

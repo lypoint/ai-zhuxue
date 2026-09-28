@@ -3,13 +3,12 @@ import uuid
 
 import pytest
 
-from tests.conftest import h, make_family
+from tests.conftest import h, make_admin, make_family
 
 
 @pytest.fixture()
-def super_admin(client, monkeypatch):
-    monkeypatch.setenv("ADMIN_TOKENS", "super-tok")
-    return {"Authorization": "Bearer super-tok", "Content-Type": "application/json"}
+def super_admin(client):
+    return make_admin(client)
 
 
 import pytest  # noqa: E402
@@ -69,9 +68,9 @@ def test_support_scope_redacts_operations_and_model_details(client, super_admin)
     assert client.get("/admin/pricing-config", headers=support).status_code == 403
 
 
-def test_env_token_is_super(client, super_admin):
+def test_super_admin_can_manage_groups(client, super_admin):
     r = client.post("/admin/llm-groups", headers=super_admin, json={
-        "name": "env-super", "provider": "glm", "chat_model": "m", "fence_model": "m"})
+        "name": "account-super", "provider": "glm", "chat_model": "m", "fence_model": "m"})
     assert r.status_code == 200
 
 

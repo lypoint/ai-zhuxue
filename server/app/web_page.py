@@ -20,7 +20,7 @@ _WEB_PAGE = """<!DOCTYPE html>
   :root { --primary:#2F8B7D; --primary-dark:#21665C; --ink:#1E2A35; --muted:#71808E; --line:#E4EAEF; --surface:#fff; }
   * { box-sizing:border-box; margin:0; }
   body { font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#EDF9F5 0,#F7FAFC 34%,#F7FAFC 100%); color:var(--ink); height:100vh; display:flex; flex-direction:column; }
-  header { background:rgba(255,255,255,.86); color:var(--ink); padding:16px 20px; font-size:18px; font-weight:750; border-bottom:1px solid rgba(228,234,239,.8); backdrop-filter:blur(12px); }
+  header { background:rgba(255,255,255,.86); color:var(--ink); padding:16px 20px; font-size:18px; font-weight:750; border-bottom:1px solid rgba(228,234,239,.8); backdrop-filter:blur(12px); display:flex;align-items:center;gap:8px; }
   header span { color:var(--primary); margin-right:8px; }
   header .brand-mark { width:26px; height:26px; vertical-align:-6px; margin-right:6px; }
   main { flex:1; overflow-y:auto; padding:24px 16px; max-width:760px; width:100%; margin:0 auto; }
@@ -43,6 +43,11 @@ _WEB_PAGE = """<!DOCTYPE html>
   #drawer .item.active { background:#DFF3EE; color:var(--primary-dark); font-weight:700; }
   #drawer .item small { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
   #drawer .new { width:100%; margin-bottom:10px; }
+  #teacherBtn { display:none; margin-left:auto; padding:5px 9px; background:#EDF8F5; color:var(--ink); font-size:13px; align-items:center;gap:6px; }
+  #teacherAvatar { width:28px;height:28px;border-radius:50%;object-fit:cover;display:none; }
+  #teacherModal { display:none;position:fixed;inset:0;background:#0006;z-index:80;align-items:center;justify-content:center;padding:20px; }
+  #teacherPanel { background:#fff;border-radius:18px;padding:20px;width:min(420px,100%);max-height:70vh;overflow:auto; }
+  #teacherList button { width:100%;margin:5px 0;text-align:left;background:#EDF8F5;color:var(--ink); }
   #gate input { width:100%; text-align:center; letter-spacing:4px; font-size:21px; margin:14px 0; }
   #gate button { width:100%; }
   .hint { color:var(--muted); font-size:13px; margin-top:10px; }
@@ -61,7 +66,11 @@ _WEB_PAGE = """<!DOCTYPE html>
   <span style="cursor:pointer" id="menuBtn" onclick="toggleDrawer()">☰</span>
   <img class="brand-mark" src="/logo.svg" alt="">
   AI 助学 · Web 学习助手
+  <button id="teacherBtn" onclick="chooseTeacher()"><img id="teacherAvatar" alt=""><span id="teacherName">AI 老师</span> ▾</button>
 </header>
+<div id="teacherModal" onclick="if(event.target===this)this.style.display='none'">
+  <div id="teacherPanel"><h3>选择老师</h3><div id="teacherList"></div><button onclick="$('teacherModal').style.display='none'">关闭</button></div>
+</div>
 <div id="drawer">
   <button class="new" onclick="newChat()">＋ 新对话</button>
   <div class="item" onclick="showFavorites()">⭐ 我的收藏</div>
@@ -87,7 +96,44 @@ _WEB_PAGE = """<!DOCTYPE html>
 <script>
 const API = location.port === '8100' ? location.origin : (window.API_BASE || location.origin);
 const $ = id => document.getElementById(id);
-let conversationId = null, busy = false;
+let conversationId = null, busy = false, teacherId = null, teachers = [];
+
+function showTeacher(name, avatar) {
+  $('teacherName').textContent = name || 'AI 老师';
+  $('teacherAvatar').style.display = avatar ? 'inline' : 'none';
+  if (avatar) $('teacherAvatar').src = avatar;
+  $('teacherBtn').style.display = 'inline-flex';
+}
+
+async function loadTeachers() {
+  try {
+    teachers = await api('/chat/teachers');
+    if (!conversationId && teachers.length) {
+      const first = teachers.find(t => t.access === 'available') || teachers[0];
+      teacherId = first.teacher_id;
+      showTeacher(first.name, first.avatar_url);
+    }
+  } catch (_) {}
+}
+
+function chooseTeacher() {
+  if (conversationId) { alert('请先新建对话，再选择老师'); return; }
+  const list = $('teacherList');
+  list.replaceChildren();
+  for (const teacher of teachers) {
+    const button = document.createElement('button');
+    button.disabled = teacher.access !== 'available';
+    button.textContent = teacher.name + (button.disabled ? ' · ' +
+      (teacher.access === 'daily_free_exhausted' ? '今日次数已用完' : '需订阅') : '');
+    button.onclick = () => {
+      teacherId = teacher.teacher_id;
+      showTeacher(teacher.name, teacher.avatar_url);
+      $('teacherModal').style.display = 'none';
+    };
+    list.appendChild(button);
+  }
+  $('teacherModal').style.display = 'flex';
+}
 
 function token() { return localStorage.getItem('az_student_token'); }
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -153,7 +199,8 @@ async function send() {
   $('msg').value = ''; busy = true; $('sendBtn').disabled = true;
   bubble('user', content);
   try {
-    const reply = await api('/chat', { conversation_id: conversationId, content });
+    const reply = await api('/chat', { conversation_id: conversationId, content,
+      ...(conversationId === null && teacherId !== null ? {teacher_id: teacherId} : {}) });
     conversationId = reply.conversation_id ?? conversationId;
     bubble('assistant', reply.content, reply.id);
   } catch (e) { bubble('assistant', '⚠️ ' + e.message); }
@@ -169,7 +216,7 @@ async function loadSessions() {
     list.innerHTML = sessions.map(s => `
       <div class="item ${s.conversation_id === conversationId ? 'active' : ''}" onclick="openSession(${s.conversation_id})">
         ${esc(s.title)}
-        <small>${esc(s.message_count)} 条 · ${esc((s.last_time || '').replace('T', ' ').slice(0, 16))}</small>
+        <small>${esc(s.teacher_name || 'AI 老师')} · ${esc(s.message_count)} 条 · ${esc((s.last_time || '').replace('T', ' ').slice(0, 16))}</small>
       </div>`).join('');
   } catch (_) {}
 }
@@ -222,6 +269,9 @@ async function openSession(cid) {
     const msgs = await api('/chat/conversations?conversation_id=' + cid);
     $('chat').innerHTML = '';
     conversationId = cid;
+    const session = sessions.find(s => s.conversation_id === cid);
+    teacherId = session?.teacher_id ?? null;
+    if (session) showTeacher(session.teacher_name, session.teacher_avatar_url);
     for (const m of msgs) bubble(m.role, m.content, m.id);
   } catch (e) { bubble('assistant', '⚠️ ' + e.message); }
 }
@@ -230,6 +280,7 @@ function newChat() {
   $('drawer').style.display = 'none';
   $('chat').innerHTML = '';
   conversationId = null;
+  loadTeachers();
   bubble('assistant', '你好！今天想学什么？可以问我作业和知识点。');
 }
 
@@ -240,10 +291,15 @@ async function enterChat() {
   try {
     const latest = await api('/chat/latest');
     conversationId = latest.conversation_id;
+    if (conversationId) {
+      teacherId = latest.teacher_id ?? null;
+      showTeacher(latest.teacher_name, latest.teacher_avatar_url);
+    }
     for (const m of latest.messages) bubble(m.role, m.content, m.id);
   } catch (_) { /* 恢复失败按新对话处理 */ }
   if (!$('chat').children.length) bubble('assistant', '你好！今天想学什么？可以问我作业和知识点。');
   loadSessions();
+  loadTeachers();
 }
 
 // 活跃心跳：每 60s 上报（与 App 端时长统计口径一致）

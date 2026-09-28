@@ -29,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<dynamic>? _teachers;
   int? _teacherId;
   String _teacherName = 'AI 学习助手';
+  String _teacherAvatarUrl = '';
   String _search = '';
   Timer? _hbTimer;
 
@@ -101,6 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ));
             _teacherId = teacher['teacher_id'] as int?;
             _teacherName = teacher['name'] as String? ?? 'AI 学习助手';
+            _teacherAvatarUrl = teacher['avatar_url'] as String? ?? '';
           }
         });
       }
@@ -160,6 +162,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _teacherId = selected['teacher_id'] as int?;
       _teacherName = selected['name'] as String? ?? 'AI 学习助手';
+      _teacherAvatarUrl = selected['avatar_url'] as String? ?? '';
     });
   }
 
@@ -187,6 +190,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _conversationId = convId;
           _teacherId = data['teacher_id'] as int?;
           _teacherName = data['teacher_name'] as String? ?? _teacherName;
+          _teacherAvatarUrl = data['teacher_avatar_url'] as String? ?? '';
           for (final m in msgs) {
             _bubbles.add(Bubble(m['role'] as String, m['content'] as String));
           }
@@ -235,6 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _conversationId = conversationId;
         _teacherId = session?['teacher_id'] as int?;
         _teacherName = session?['teacher_name'] as String? ?? _teacherName;
+        _teacherAvatarUrl = session?['teacher_avatar_url'] as String? ?? '';
         _bubbles.clear();
         for (final m in msgs) {
           _bubbles.add(
@@ -578,13 +583,17 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text(_teacherName),
-            Text(
-              '受保护学习空间',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            _teacherAvatar(_teacherAvatarUrl),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_teacherName),
+                const Text('受保护学习空间',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
+              ],
             ),
           ],
         ),

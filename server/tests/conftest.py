@@ -55,6 +55,20 @@ def h(token):
 import uuid  # noqa: E402
 
 
+def make_admin(client, role="super"):
+    from app.api.admin import _hash_password
+    from app.db import SessionLocal
+    from app.models import AdminUser
+
+    name = "test-admin-" + uuid.uuid4().hex[:12]
+    password = "test-password-" + uuid.uuid4().hex
+    with SessionLocal.begin() as db:
+        db.add(AdminUser(username=name, password_hash=_hash_password(password), role=role))
+    response = client.post("/admin/login", json={"username": name, "password": password})
+    assert response.status_code == 200
+    return h(response.json()["token"])
+
+
 def make_family(client, phone=None):
     """创建独立家庭（监护人+已绑定学生），避免用例间每日上限/状态互相污染。"""
     phone = phone or f"139{uuid.uuid4().int % 10**8:08d}"[:11]

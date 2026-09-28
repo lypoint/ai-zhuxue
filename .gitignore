@@ -10,6 +10,7 @@ __pycache__/
 *.sqlite3
 *.sql.gz
 backups/
+server/uploads/
 
 # 环境与密钥：真实 Key 经密管/编排注入，勿提交
 .env

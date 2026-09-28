@@ -223,7 +223,7 @@ class Favorite(TimestampMixin, Base):
 class AdminUser(TimestampMixin, Base):
     """CMS 管理员（P2 RBAC）：super=全部权限；admin=运营管理；support=客服只读。
 
-    登录后发 session_token（存库比对）；ADMIN_TOKENS 环境变量仍作为 super 后门。
+    登录后发 session_token，并与库中记录比对。
     """
     __tablename__ = "admin_users"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -305,6 +305,15 @@ class Notification(TimestampMixin, Base):
     is_read: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class FenceConfig(TimestampMixin, Base):
+    __tablename__ = "fence_configs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True)
+    base_url: Mapped[str] = mapped_column(String(500))
+    api_key: Mapped[str] = mapped_column(String(500))
+    model_id: Mapped[str] = mapped_column(String(120))
+
+
 class LLMGroup(TimestampMixin, Base):
     """LLM 分组：CMS 可配置的模型分组（provider+模型+Key 引用），支持灰度/切换/降级。
 
@@ -315,9 +324,12 @@ class LLMGroup(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True)
     provider: Mapped[str] = mapped_column(String(20))          # glm|deepseek|kimi|openrouter
-    chat_model: Mapped[str] = mapped_column(String(80))
+    chat_model: Mapped[str] = mapped_column(String(120))
     fence_model: Mapped[str] = mapped_column(String(80))
-    api_key: Mapped[str] = mapped_column(String(200), default="")
+    api_key: Mapped[str] = mapped_column(String(500), default="")
+    base_url: Mapped[str] = mapped_column(String(500), default="")
+    fence_config_id: Mapped[int | None] = mapped_column(ForeignKey("fence_configs.id"), nullable=True)
+    fence_config: Mapped["FenceConfig | None"] = relationship()
     daily_message_cap: Mapped[int] = mapped_column(Integer, default=0)  # 0=用全局
     note: Mapped[str] = mapped_column(String(200), default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -328,6 +340,7 @@ class LLMGroup(TimestampMixin, Base):
     teacher_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     teacher_sort_order: Mapped[int] = mapped_column(Integer, default=0)
     post_trial_free_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    post_trial_daily_free_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class UsageLog(TimestampMixin, Base):
@@ -337,7 +350,7 @@ class UsageLog(TimestampMixin, Base):
     student_id: Mapped[int | None] = mapped_column(ForeignKey("students.id"), nullable=True)
     purpose: Mapped[str] = mapped_column(String(20))   # chat | fence_classify | fence_second
     provider: Mapped[str] = mapped_column(String(20))
-    model: Mapped[str] = mapped_column(String(50))
+    model: Mapped[str] = mapped_column(String(120))
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
     cost: Mapped[float] = mapped_column(default=0.0)

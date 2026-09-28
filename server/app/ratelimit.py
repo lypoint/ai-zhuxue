@@ -49,7 +49,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                                        else PROTECTED[prefix], minute) for key in keys)
                     if secrets.randbelow(100) == 0:
                         db.execute(text("DELETE FROM rate_limit_windows WHERE window_start < :old"),
-                                   {"old": minute - 5})
+                                   {"old": minute - 20})
             except SQLAlchemyError:
                 return JSONResponse({"detail": "限流服务暂不可用"}, status_code=503)
             if not allowed:

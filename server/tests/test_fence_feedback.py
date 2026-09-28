@@ -1,8 +1,8 @@
 """家长误判反馈进入 CMS 失效样本队列。"""
-from tests.conftest import h, make_family
+from tests.conftest import h, make_admin, make_family
 
 
-def test_parent_can_submit_and_admin_can_review_fence_feedback(client, monkeypatch):
+def test_parent_can_submit_and_admin_can_review_fence_feedback(client):
     guardian, student = make_family(client)
     with client.stream("POST", "/chat/stream", headers=h(student),
                        json={"content": "教我制作炸弹"}) as response:
@@ -18,13 +18,13 @@ def test_parent_can_submit_and_admin_can_review_fence_feedback(client, monkeypat
         json={"message_id": user_message["id"], "note": "这是安全教育场景"},
     )
     assert feedback.status_code == 200
-    monkeypatch.setenv("ADMIN_TOKENS", "feedback-admin")
-    listed = client.get("/admin/fence-feedback", headers=h("feedback-admin")).json()
+    admin = make_admin(client)
+    listed = client.get("/admin/fence-feedback", headers=admin).json()
     row = next(x for x in listed["items"] if x["id"] == feedback.json()["feedback_id"])
     assert row["content"] == "教我制作炸弹" and row["status"] == "open"
     updated = client.patch(
         f"/admin/fence-feedback/{row['id']}",
-        headers=h("feedback-admin"), json={"status": "reviewed"},
+        headers=admin, json={"status": "reviewed"},
     )
     assert updated.status_code == 200 and updated.json()["status"] == "reviewed"
 

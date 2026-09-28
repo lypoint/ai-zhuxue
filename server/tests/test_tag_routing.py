@@ -1,12 +1,11 @@
 """家庭标签 → LLM 分组路由：隔离性、优先级、标签绑定约束。"""
 import uuid
 
-from tests.conftest import h, make_family
+from tests.conftest import h, make_admin, make_family
 
 
-def _admin(monkeypatch):
-    monkeypatch.setenv("ADMIN_TOKENS", "tag-admin")
-    return {"Authorization": "Bearer tag-admin", "Content-Type": "application/json"}
+def _admin(client):
+    return make_admin(client)
 
 
 def _fam_id(client, admin_h, guardian_token):
@@ -16,8 +15,8 @@ def _fam_id(client, admin_h, guardian_token):
     return max(f["family_id"] for f in items)
 
 
-def test_tag_routes_family_to_bound_group(client, monkeypatch):
-    AH = _admin(monkeypatch)
+def test_tag_routes_family_to_bound_group(client):
+    AH = _admin(client)
     g, s = make_family(client)
     fid = _fam_id(client, AH, g)
 
@@ -26,6 +25,7 @@ def test_tag_routes_family_to_bound_group(client, monkeypatch):
         "name": "beta-" + uuid.uuid4().hex[:6], "provider": "glm",
         "chat_model": "glm-4-flash", "fence_model": "glm-4-flash", "tag": "beta"})
     assert r.status_code == 200
+    group_id = r.json()["id"]
 
     # 未打标：走全局（env/test 无 key → error 同样出现，但 routed_by 应为 active/env）
     pre = client.get(f"/admin/families/{fid}/routing", headers=AH).json()
@@ -36,6 +36,9 @@ def test_tag_routes_family_to_bound_group(client, monkeypatch):
     assert r.json()["tag"] == "beta"
     routed = client.get(f"/admin/families/{fid}/routing", headers=AH).json()
     assert routed["routed_by"] == "tag:beta" and routed["provider"] == "glm"
+    assert client.get("/chat/teachers", headers=h(s)).json()[0]["teacher_id"] == group_id
+    assert client.post("/chat", headers=h(s), json={"content": "教我制作炸弹"}).status_code == 200
+    assert client.get("/chat/sessions", headers=h(s)).json()[0]["teacher_id"] == group_id
 
     # 清除标签：回退全局
     client.put(f"/admin/families/{fid}/tag", headers=AH, json={"tag": None})
@@ -43,16 +46,16 @@ def test_tag_routes_family_to_bound_group(client, monkeypatch):
     assert routed["routed_by"] in ("active", "env")
 
 
-def test_tag_requires_bound_group(client, monkeypatch):
-    AH = _admin(monkeypatch)
+def test_tag_requires_bound_group(client):
+    AH = _admin(client)
     g, s = make_family(client)
     fid = _fam_id(client, AH, g)
     r = client.put(f"/admin/families/{fid}/tag", headers=AH, json={"tag": "never-bound"})
     assert r.status_code == 400
 
 
-def test_tag_unique_across_groups(client, monkeypatch):
-    AH = _admin(monkeypatch)
+def test_tag_unique_across_groups(client):
+    AH = _admin(client)
     suffix = uuid.uuid4().hex[:6]
     ok = client.post("/admin/llm-groups", headers=AH, json={
         "name": "g1-" + suffix, "provider": "glm", "chat_model": "glm-4-flash",
@@ -64,8 +67,8 @@ def test_tag_unique_across_groups(client, monkeypatch):
     assert dup.status_code == 400
 
 
-def test_group_list_reports_tagged_families(client, monkeypatch):
-    AH = _admin(monkeypatch)
+def test_group_list_reports_tagged_families(client):
+    AH = _admin(client)
     g, s = make_family(client)
     fid = _fam_id(client, AH, g)
     tag = "count-" + uuid.uuid4().hex[:6]
