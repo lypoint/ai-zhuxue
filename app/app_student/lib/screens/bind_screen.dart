@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'chat_screen.dart';
 
-/// 学生端首屏：输入家长端生成的绑定码，激活并进入学习聊天。
+String? normalizeBindCode(String? value) {
+  final code = value?.trim().toUpperCase();
+  return code != null && RegExp(r'^[0-9A-F]{8}$').hasMatch(code) ? code : null;
+}
+
+/// 学生端首屏：输入或扫描家长端绑定码，激活并进入学习聊天。
 class BindScreen extends StatefulWidget {
   const BindScreen({super.key});
   @override
@@ -14,24 +20,41 @@ class _BindScreenState extends State<BindScreen> {
   String? _error;
   bool _loading = false;
 
+  Future<void> _scan() async {
+    final code = await Navigator.of(
+      context,
+    ).push<String>(MaterialPageRoute(builder: (_) => const _BindQrScanner()));
+    if (!mounted || code == null) return;
+    _codeCtrl.text = code;
+    await _bind();
+  }
+
   Future<void> _bind() async {
+    final code = normalizeBindCode(_codeCtrl.text);
+    if (code == null) {
+      setState(() => _error = '请输入家长端提供的 8 位绑定码');
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final installationId = await Api.I.installationId();
-      await Api.I.studentLogin(
-        _codeCtrl.text.trim().toUpperCase(),
-        installationId,
-        '我的孩子',
-      );
+      await Api.I.studentLogin(code, installationId, '我的孩子');
       if (!mounted) return;
       Navigator.of(
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => const ChatScreen()));
     } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      final message = switch (e.message) {
+        'bind code invalid or expired' => '绑定码无效或已过期，请家长重新生成',
+        'bind code already used' => '绑定码已使用，请家长重新生成',
+        _ => e.message,
+      };
+      if (mounted) setState(() => _error = message);
+    } catch (_) {
+      if (mounted) setState(() => _error = '连接失败，请检查网络后重试');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -118,6 +141,12 @@ class _BindScreenState extends State<BindScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: _loading ? null : _scan,
+                      icon: const Icon(Icons.qr_code_scanner),
+                      label: const Text('扫描家长端二维码'),
+                    ),
+                    const SizedBox(height: 8),
                     FilledButton.icon(
                       onPressed: _loading ? null : _bind,
                       icon: const Icon(Icons.school_outlined),
@@ -129,6 +158,82 @@ class _BindScreenState extends State<BindScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BindQrScanner extends StatefulWidget {
+  const _BindQrScanner();
+
+  @override
+  State<_BindQrScanner> createState() => _BindQrScannerState();
+}
+
+class _BindQrScannerState extends State<_BindQrScanner> {
+  bool _handled = false;
+  bool _invalid = false;
+
+  void _onDetect(BarcodeCapture capture) {
+    if (!mounted || _handled || capture.barcodes.isEmpty) return;
+    for (final barcode in capture.barcodes) {
+      final code = normalizeBindCode(barcode.rawValue);
+      if (code != null) {
+        _handled = true;
+        Navigator.of(context).pop(code);
+        return;
+      }
+    }
+    if (!_invalid) setState(() => _invalid = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('扫描绑定二维码')),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: MobileScanner(
+              onDetect: _onDetect,
+              errorBuilder: (context, error) => const ColoredBox(
+                color: Colors.black,
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      '无法使用相机，请检查相机权限，或返回手动输入绑定码',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 3),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  _invalid ? '这不是家长端的绑定二维码，请重新扫描' : '将家长端二维码放入框内',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

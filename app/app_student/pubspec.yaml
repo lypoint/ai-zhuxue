@@ -13,6 +13,7 @@ dependencies:
     path: ../app_core
   gpt_markdown: 1.0.19
   cupertino_icons: ^1.0.8
+  mobile_scanner: 7.1.4
 
 dev_dependencies:
   flutter_test:

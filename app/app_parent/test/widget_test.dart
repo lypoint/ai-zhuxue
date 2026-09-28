@@ -15,4 +15,12 @@ void main() {
     expect(find.text('身份证号'), findsOneWidget);
     expect(find.text('核验并注册'), findsOneWidget);
   });
+
+  testWidgets('监护人信息为空时给出注册错误提示', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+    await tester.ensureVisible(find.text('核验并注册'));
+    await tester.tap(find.text('核验并注册'));
+    await tester.pump();
+    expect(find.textContaining('请填写监护人姓名'), findsWidgets);
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:app_student/student_app.dart';
 import 'package:app_student/screens/chat_screen.dart';
+import 'package:app_student/screens/bind_screen.dart';
 import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,13 @@ void main() {
     await tester.pumpWidget(const StudentApp());
     expect(find.text('输入家长端绑定码'), findsOneWidget);
     expect(find.text('绑定并开始学习'), findsOneWidget);
+    expect(find.text('扫描家长端二维码'), findsOneWidget);
+  });
+
+  test('扫码内容只接受家长端的 8 位绑定码', () {
+    expect(normalizeBindCode(' a3f9c2b1 '), 'A3F9C2B1');
+    expect(normalizeBindCode('https://example.com'), isNull);
+    expect(normalizeBindCode('1234567'), isNull);
   });
 
   testWidgets('聊天页空态展示欢迎语与输入框', (tester) async {

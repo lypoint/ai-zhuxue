@@ -17,7 +17,34 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
   bool _loading = false;
 
+  String? _validate() {
+    if (_name.text.trim().length < 2) return '请填写监护人姓名（至少 2 个字符）';
+    if (!RegExp(r'^\d{15}$|^\d{17}[\dXx]$').hasMatch(_id.text.trim())) {
+      return '身份证号格式不正确';
+    }
+    if (!RegExp(r'^1\d{10}$').hasMatch(_phone.text.trim())) {
+      return '手机号格式不正确';
+    }
+    if (!RegExp(r'^\d{4,6}$').hasMatch(_sms.text.trim())) {
+      return '请输入 4 至 6 位短信验证码';
+    }
+    return null;
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    setState(() => _error = message);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _register() async {
+    final validationError = _validate();
+    if (validationError != null) {
+      _showError(validationError);
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -35,7 +62,16 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      final message = switch (e.message) {
+        'invalid sms code' => '短信验证码错误，请检查后重试',
+        _ when e.message.startsWith('guardian verify failed:') =>
+          '监护人信息核验未通过，请检查姓名、身份证号和手机号',
+        _ when e.status == 422 => '提交的信息格式不正确，请检查后重试',
+        _ => e.message,
+      };
+      _showError(message);
+    } catch (_) {
+      _showError('连接失败，请检查网络或稍后重试');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
