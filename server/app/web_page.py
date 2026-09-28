@@ -10,6 +10,7 @@ _WEB_PAGE = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI 助学 · Web 学习助手</title>
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -21,6 +22,7 @@ _WEB_PAGE = """<!DOCTYPE html>
   body { font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#EDF9F5 0,#F7FAFC 34%,#F7FAFC 100%); color:var(--ink); height:100vh; display:flex; flex-direction:column; }
   header { background:rgba(255,255,255,.86); color:var(--ink); padding:16px 20px; font-size:18px; font-weight:750; border-bottom:1px solid rgba(228,234,239,.8); backdrop-filter:blur(12px); }
   header span { color:var(--primary); margin-right:8px; }
+  header .brand-mark { width:26px; height:26px; vertical-align:-6px; margin-right:6px; }
   main { flex:1; overflow-y:auto; padding:24px 16px; max-width:760px; width:100%; margin:0 auto; }
   .bubble { max-width:82%; padding:12px 15px; border-radius:18px; margin:8px 0; line-height:1.58; white-space:pre-wrap; word-break:break-word; box-shadow:0 5px 16px rgba(40,70,80,.06); }
   .user { background:var(--primary); color:#fff; margin-left:auto; border-bottom-right-radius:6px; }
@@ -57,6 +59,7 @@ _WEB_PAGE = """<!DOCTYPE html>
 <body>
 <header>
   <span style="cursor:pointer" id="menuBtn" onclick="toggleDrawer()">☰</span>
+  <img class="brand-mark" src="/logo.svg" alt="">
   AI 助学 · Web 学习助手
 </header>
 <div id="drawer">

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
+  <title id="title">AI 助学统一标志方案</title>
+  <desc id="description">同一书本与启发之星图形在学生 App、家长 App、Web 和 CMS 的使用示意。</desc>
+  <defs>
+    <g id="mark" fill="currentColor">
+      <path d="M18 39c11-4 21-3 30 3v32c-9-6-19-7-30-3V39Z"/>
+      <path d="M78 39c-11-4-21-3-30 3v32c9-6 19-7 30-3V39Z"/>
+      <path d="m48 13 3.7 10.3L62 27l-10.3 3.7L48 41l-3.7-10.3L34 27l10.3-3.7L48 13Z"/>
+    </g>
+  </defs>
+  <rect width="1200" height="760" fill="#F6F8FB"/>
+  <text x="70" y="88" fill="#1E2A35" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="34" font-weight="700">AI 助学 · 统一标志提案</text>
+  <text x="70" y="125" fill="#71808E" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="17">一本打开的书 + 一颗启发之星。共享图形，按使用场景区分底色与名称。</text>
+
+  <rect x="70" y="165" width="505" height="230" rx="28" fill="#FFFFFF" stroke="#E4EAEF"/>
+  <rect x="95" y="190" width="180" height="180" rx="42" fill="#2F8B7D"/>
+  <g transform="translate(126 221) scale(1.23)" style="color:#FFFFFF"><use href="#mark"/></g>
+  <text x="305" y="266" fill="#1E2A35" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="34" font-weight="700">AI 助学</text>
+  <text x="305" y="308" fill="#2F8B7D" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="22" font-weight="600">学生版</text>
+  <text x="305" y="347" fill="#71808E" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="16">青绿底 · 白色标志</text>
+
+  <rect x="625" y="165" width="505" height="230" rx="28" fill="#FFFFFF" stroke="#E4EAEF"/>
+  <rect x="650" y="190" width="180" height="180" rx="42" fill="#253A68"/>
+  <g transform="translate(681 221) scale(1.23)" style="color:#FFFFFF"><use href="#mark"/></g>
+  <text x="860" y="266" fill="#1E2A35" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="34" font-weight="700">AI 助学</text>
+  <text x="860" y="308" fill="#253A68" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="22" font-weight="600">家长版</text>
+  <text x="860" y="347" fill="#71808E" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="16">深蓝底 · 白色标志</text>
+
+  <rect x="70" y="430" width="505" height="230" rx="28" fill="#FFFFFF" stroke="#E4EAEF"/>
+  <rect x="95" y="478" width="80" height="80" rx="20" fill="#E8F5F1"/>
+  <g transform="translate(101 484) scale(.71)" style="color:#2F8B7D"><use href="#mark"/></g>
+  <text x="200" y="514" fill="#1E2A35" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="31" font-weight="700">AI 助学</text>
+  <text x="200" y="551" fill="#71808E" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="18">Web 学习助手</text>
+  <text x="95" y="616" fill="#71808E" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="16">导航栏使用「标志 + 品牌名」，标签页只用标志。</text>
+
+  <rect x="625" y="430" width="505" height="230" rx="28" fill="#253A68"/>
+  <rect x="650" y="478" width="80" height="80" rx="20" fill="#FFFFFF" fill-opacity=".12"/>
+  <g transform="translate(656 484) scale(.71)" style="color:#FFFFFF"><use href="#mark"/></g>
+  <text x="755" y="514" fill="#FFFFFF" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="31" font-weight="700">AI 助学</text>
+  <text x="755" y="551" fill="#D8E4F2" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="18">运营管理 CMS</text>
+  <text x="650" y="616" fill="#D8E4F2" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="16">管理端共用图形，靠页面名称区分身份。</text>
+
+  <text x="70" y="713" fill="#71808E" font-family="PingFang SC,Noto Sans CJK SC,Microsoft YaHei,sans-serif" font-size="15">统一标志系统 · App 安装图标、启动页、Web 与 CMS 均使用同一图形。</text>
+</svg>

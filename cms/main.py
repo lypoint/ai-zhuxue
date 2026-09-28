@@ -10,7 +10,7 @@ import os
 import json
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 API_BASE_FALLBACK = os.environ.get("CMS_API_BASE", "http://localhost:8100")
 
@@ -27,6 +27,11 @@ def cms_index():
     safe_base = json.dumps(API_BASE_FALLBACK).replace("<", "\\u003c")
     inject = f"<script>window.CMS_API_BASE={safe_base};</script>"
     return HTMLResponse(html.replace("<head>", "<head>" + inject, 1))
+
+
+@app.get("/logo.svg", include_in_schema=False)
+def cms_logo():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "logo.svg"), media_type="image/svg+xml")
 
 
 @app.get("/health")

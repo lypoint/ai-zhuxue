@@ -68,10 +68,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _header(BuildContext context) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          child: const Icon(Icons.family_restroom, color: Colors.white, size: 28),
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFF253A68),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Image.asset(
+            'assets/logo-mark.png',
+            package: 'app_core',
+            color: Colors.white,
+            semanticLabel: 'AI 助学',
+          ),
         ),
         const SizedBox(width: 14),
         const Expanded(

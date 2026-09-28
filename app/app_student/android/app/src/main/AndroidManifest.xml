@@ -2,7 +2,7 @@
     <!-- release 构建只合并 main manifest，联网权限必须声明在这里（debug 模板仅覆盖 debug 变体） -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="AI助学·学生端"
+        android:label="AI助学·学生版"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -25,6 +25,7 @@
 | [docs/compliance-design.md](docs/compliance-design.md) | 法规要求 → 产品机制 → 待法务界定点 对照 |
 | [docs/roadmap.md](docs/roadmap.md) | M0–M3 路线图与依赖关系 |
 | [docs/feature-spec-family-growth-and-learning.md](docs/feature-spec-family-growth-and-learning.md) | 家庭扩展、订阅名额、设备重绑、审查留存、成绩与评估功能规格 |
+| [docs/branding/logo-plan.md](docs/branding/logo-plan.md) | App、Web 与 CMS 的统一标志及使用规范 |
 
 ## 快速开始
 

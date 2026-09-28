@@ -4,7 +4,7 @@ import pathlib
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from .api import admin, auth, bind, chat, parent
 from .db import Base, engine
@@ -48,6 +48,11 @@ app.include_router(admin.router)
 def web_chat():
     """Web 端：仅提供聊天功能（2026-09-14 提案第四轮澄清的范围冻结）。审查/管理功能不进 web 端。"""
     return WEB_PAGE_HTML
+
+
+@app.get("/logo.svg", include_in_schema=False)
+def logo():
+    return FileResponse(pathlib.Path(__file__).with_name("logo.svg"), media_type="image/svg+xml")
 
 
 @app.get("/health")

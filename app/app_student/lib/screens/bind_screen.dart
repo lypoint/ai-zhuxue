@@ -52,13 +52,20 @@ class _BindScreenState extends State<BindScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
           children: [
-            CircleAvatar(
-              radius: 34,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: const Icon(
-                Icons.auto_awesome,
-                color: Colors.white,
-                size: 32,
+            Center(
+              child: Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2F8B7D),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Image.asset(
+                  'assets/logo-mark.png',
+                  package: 'app_core',
+                  color: Colors.white,
+                  semanticLabel: 'AI 助学',
+                ),
               ),
             ),
             const SizedBox(height: 18),

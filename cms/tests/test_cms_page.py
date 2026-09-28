@@ -23,6 +23,8 @@ def test_index_served(client):
     assert "text/html" in resp.headers["content-type"]
     assert "LLM 分组管理" in resp.text          # 看板内容在
     assert "/admin/overview" in resp.text       # 调用后端 API 的路径在
+    assert 'href="/logo.svg"' in resp.text
+    assert client.get("/logo.svg").headers["content-type"].startswith("image/svg+xml")
 
 
 def test_api_base_injected(client):

@@ -37,7 +37,7 @@ class _ParentAppState extends State<ParentApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: _navigatorKey,
-      title: 'AI 助学 - 家长端',
+      title: 'AI 助学·家长版',
       theme: appTheme(const Color(0xFF5367A8)),
       home: Api.I.hasToken ? const HomeScreen() : const LoginScreen(),
     );

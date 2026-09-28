@@ -21,6 +21,8 @@ def test_web_page_served(client):
     assert "绑定码" in resp.text
     assert "/chat" in resp.text  # 复用 chat API
     assert "/parent" not in resp.text  # 范围冻结：审查/管理不进 web 端
+    assert 'href="/logo.svg"' in resp.text
+    assert client.get("/logo.svg").headers["content-type"].startswith("image/svg+xml")
 
 
 def test_rate_limit_blocks_burst(client):

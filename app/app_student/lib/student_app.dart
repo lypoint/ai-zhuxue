@@ -10,7 +10,7 @@ class StudentApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AI 助学 - 学生端',
+      title: 'AI 助学·学生版',
       theme: appTheme(const Color(0xFF3D8B7A)),
       home: Api.I.hasToken ? const ChatScreen() : const BindScreen(),
     );

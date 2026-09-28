@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 6 80 80" role="img" aria-labelledby="title">
+  <title id="title">AI 助学：展开的书本与启发之星</title>
+  <g fill="#2F8B7D">
+    <path d="M18 39c11-4 21-3 30 3v32c-9-6-19-7-30-3V39Z"/>
+    <path d="M78 39c-11-4-21-3-30 3v32c9-6 19-7 30-3V39Z"/>
+    <path d="m48 13 3.7 10.3L62 27l-10.3 3.7L48 41l-3.7-10.3L34 27l10.3-3.7L48 13Z"/>
+  </g>
+</svg>
