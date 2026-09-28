@@ -24,6 +24,21 @@ class Api {
   Api._();
   String? _token;
 
+  /// 任意请求收到 401（token 失效或设备被重新绑定）时触发；
+  /// 由界面层注册，统一跳转登录/重新绑定页（规格 4.3）。回调内部再次
+  /// 收到 401 仍会触发本回调，回调方需自行防重入。
+  static void Function()? onUnauthorized;
+
+  void _fireUnauthorized() {
+    final cb = onUnauthorized;
+    if (cb == null) return;
+    try {
+      cb();
+    } catch (_) {
+      // 回调异常不影响请求方收到的 ApiException
+    }
+  }
+
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
@@ -75,6 +90,10 @@ class Api {
     };
     final data = jsonDecode(utf8.decode(resp.bodyBytes));
     if (resp.statusCode >= 400) {
+      if (resp.statusCode == 401) {
+        _token = null; // 会话已失效，立即清除避免界面误判已登录
+        _fireUnauthorized();
+      }
       throw ApiException(
         resp.statusCode,
         (data['detail'] ?? '请求失败').toString(),
@@ -455,10 +474,14 @@ class Api {
     return _send('GET', '/parent/students/$studentId/grade-trend$suffix');
   }
 
-  Future<Map<String, dynamic>> parentAcademicAssessment(int studentId) => _send(
+  Future<Map<String, dynamic>> parentAcademicAssessment(
+    int studentId, {
+    String? from,
+    String? to,
+  }) => _send(
     'POST',
     '/parent/students/$studentId/academic-assessments',
-    body: {},
+    body: {if (from != null) 'from': from, if (to != null) 'to': to},
   );
   Future<List<dynamic>> parentAcademicAssessments(int studentId) async =>
       (await _sendRaw(
@@ -466,12 +489,15 @@ class Api {
             '/parent/students/$studentId/academic-assessments',
           ))
           as List<dynamic>;
-  Future<Map<String, dynamic>> parentWellbeingAssessment(int studentId) =>
-      _send(
-        'POST',
-        '/parent/students/$studentId/wellbeing-assessments',
-        body: {},
-      );
+  Future<Map<String, dynamic>> parentWellbeingAssessment(
+    int studentId, {
+    String? from,
+    String? to,
+  }) => _send(
+    'POST',
+    '/parent/students/$studentId/wellbeing-assessments',
+    body: {if (from != null) 'from': from, if (to != null) 'to': to},
+  );
   Future<List<dynamic>> parentWellbeingAssessments(int studentId) async =>
       (await _sendRaw(
             'GET',
@@ -532,6 +558,10 @@ class Api {
       if (resp.statusCode >= 400) {
         final body = await resp.stream.bytesToString();
         final data = jsonDecode(body);
+        if (resp.statusCode == 401) {
+          _token = null;
+          _fireUnauthorized();
+        }
         throw ApiException(
           resp.statusCode,
           (data['detail'] ?? '请求失败').toString(),

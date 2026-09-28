@@ -21,6 +21,8 @@ class _GradesScreenState extends State<GradesScreen> {
   List<dynamic>? _academicRows;
   List<dynamic>? _wellbeingRows;
   bool _includeDeleted = false;
+  String? _subject;
+  int? _rangeDays;
 
   @override
   void initState() {
@@ -28,11 +30,22 @@ class _GradesScreenState extends State<GradesScreen> {
     _load();
   }
 
+  List<String> get _subjects => (_grades ?? const [])
+      .map((g) => (g as Map<String, dynamic>)['subject'] as String?)
+      .whereType<String>()
+      .toSet()
+      .toList()
+    ..sort();
+
   Future<void> _load() async {
     try {
       final values = await Future.wait([
         Api.I.parentGrades(widget.studentId, includeDeleted: _includeDeleted),
-        Api.I.parentGradeTrend(widget.studentId),
+        Api.I.parentGradeTrend(
+          widget.studentId,
+          subject: _subject,
+          from: trendFromDate(_rangeDays),
+        ),
         Api.I.parentAcademicAssessments(widget.studentId),
         Api.I.parentWellbeingAssessments(widget.studentId),
       ]);
@@ -43,6 +56,24 @@ class _GradesScreenState extends State<GradesScreen> {
         _academicRows = values[2] as List<dynamic>;
         _wellbeingRows = values[3] as List<dynamic>;
       });
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+  }
+
+  /// 筛选变化只重取趋势，不刷新成绩与评估列表。
+  Future<void> _loadTrend() async {
+    try {
+      final t = await Api.I.parentGradeTrend(
+        widget.studentId,
+        subject: _subject,
+        from: trendFromDate(_rangeDays),
+      );
+      if (mounted) setState(() => _trend = t);
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -259,8 +290,15 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   Future<void> _assess() async {
+    // 规格 7.3：按时间范围触发学业评估
+    final range = await chooseAssessmentRange(context);
+    if (range == null || !mounted) return;
     try {
-      final result = await Api.I.parentAcademicAssessment(widget.studentId);
+      final result = await Api.I.parentAcademicAssessment(
+        widget.studentId,
+        from: range.from,
+        to: range.to,
+      );
       if (mounted) {
         setState(() {
           _assessment = result;
@@ -282,8 +320,15 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   Future<void> _runWellbeing() async {
+    // 规格 8.3：提示基于明确时间范围内的对话证据，触发前先选范围
+    final range = await chooseAssessmentRange(context);
+    if (range == null || !mounted) return;
     try {
-      final result = await Api.I.parentWellbeingAssessment(widget.studentId);
+      final result = await Api.I.parentWellbeingAssessment(
+        widget.studentId,
+        from: range.from,
+        to: range.to,
+      );
       if (mounted) {
         setState(() => _wellbeingRows = [result, ...?_wellbeingRows]);
       }
@@ -324,7 +369,19 @@ class _GradesScreenState extends State<GradesScreen> {
             child: ListView(
               padding: const EdgeInsets.all(12),
               children: [
-                _trendCard(),
+                GradeTrendCard(
+                  trend: _trend,
+                  subjects: _subjects,
+                  subject: _subject,
+                  rangeDays: _rangeDays,
+                  onChanged: (subject, rangeDays) {
+                    setState(() {
+                      _subject = subject;
+                      _rangeDays = rangeDays;
+                    });
+                    _loadTrend();
+                  },
+                ),
                 if (_assessment != null) _assessmentCard(),
                 if (_academicRows != null) _academicHistoryCard(),
                 if (_wellbeingRows != null)
@@ -359,19 +416,6 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
           ),
   );
-
-  Widget _trendCard() {
-    final t = _trend ?? {};
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.show_chart),
-        title: Text('趋势：${t['direction'] ?? 'insufficient'}'),
-        subtitle: Text(
-          '最近 ${t['latest'] ?? '-'}% · 变化 ${t['delta'] ?? '-'} · 近三次平均 ${t['average_last_3'] ?? '-'}%',
-        ),
-      ),
-    );
-  }
 
   Widget _assessmentCard() {
     final subjects = (_assessment?['subjects'] as List?) ?? const [];
@@ -427,6 +471,7 @@ class _GradesScreenState extends State<GradesScreen> {
   Widget _wellbeingCard(dynamic value) {
     final item = value as Map<String, dynamic>;
     final signals = (item['signals'] as List?) ?? const [];
+    final period = item['period'] as Map<String, dynamic>?;
     return Card(
       child: ExpansionTile(
         leading: const Icon(Icons.favorite, color: Colors.orange),
@@ -451,23 +496,40 @@ class _GradesScreenState extends State<GradesScreen> {
                 ],
               )
             : const Icon(Icons.check),
-        children: signals.expand((raw) {
-          final signal = raw as Map<String, dynamic>;
-          final evidence = (signal['evidence'] as List?) ?? const [];
-          return [
-            ListTile(
-              dense: true,
-              title: Text('${signal['type']} · ${signal['level']}'),
-              subtitle: Text(
-                evidence.isEmpty
-                    ? '暂无原文证据'
-                    : evidence
-                          .map((e) => (e as Map)['excerpt'] ?? '')
-                          .join('\n'),
-              ),
+        children: [
+          ListTile(
+            dense: true,
+            title: Text(
+              '时间范围：${period?['from'] ?? '-'} 至 ${period?['to'] ?? '-'} · 模型 ${item['model'] ?? '-'}',
             ),
-          ];
-        }).toList(),
+          ),
+          ...signals.expand((raw) {
+            final signal = raw as Map<String, dynamic>;
+            final evidence = (signal['evidence'] as List?) ?? const [];
+            return [
+              ListTile(
+                dense: true,
+                title: Text('${signal['type']} · ${signal['level']}'),
+                subtitle: Text(
+                  evidence.isEmpty
+                      ? '暂无原文证据'
+                      : evidence
+                            .map((e) => (e as Map)['excerpt'] ?? '')
+                            .join('\n'),
+                ),
+              ),
+            ];
+          }),
+          // 规格 8.2/8.3：家长看到的是信号而非事实认定，必须展示免责声明
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Text(
+              item['disclaimer'] as String? ??
+                  '这不是医疗诊断，请结合实际沟通判断。',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ),
+        ],
       ),
     );
   }

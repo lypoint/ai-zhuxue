@@ -24,6 +24,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Bubble> _bubbles = [];
   int? _conversationId;
   bool _sending = false;
+  bool _handling401 = false;
   List<dynamic>? _sessions;
   List<dynamic>? _teachers;
   int? _teacherId;
@@ -42,6 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    if (Api.onUnauthorized == _onSessionExpired) Api.onUnauthorized = null;
     _hbTimer?.cancel();
     super.dispose();
   }
@@ -49,9 +51,40 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // 全局 401 兜底：token 失效或孩子设备被重新绑定（规格 4.3），
+    // 任何请求（会话列表/收藏/成绩等）收到 401 都回到重新绑定页。
+    Api.onUnauthorized = _onSessionExpired;
     _restore();
     _loadTeachers();
     _startHeartbeat();
+  }
+
+  /// 统一 401 处理：清会话、说明原因并回绑定页；防重入避免多处请求并发 401 时重复跳转。
+  Future<void> _onSessionExpired() async {
+    if (_handling401) return;
+    _handling401 = true;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    await Api.I.logout();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('设备已重新绑定'),
+        content: const Text(
+          '此孩子账号已在另一台设备重新绑定，历史记录已保留，请输入新的绑定码继续。',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('重新绑定'),
+          ),
+        ],
+      ),
+    );
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const BindScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> _loadTeachers() async {
@@ -484,28 +517,9 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       _loadSessions();
     } on ApiException catch (e) {
+      // 401 已由全局 _onSessionExpired 统一处理（清会话回绑定页）
       updateLast('⚠️ ${e.message}');
-      if (e.status == 401 && mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('设备已重新绑定'),
-            content: Text(e.message),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('重新绑定'),
-              ),
-            ],
-          ),
-        );
-        await Api.I.logout();
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const BindScreen()),
-          );
-        }
-      } else if (mounted) {
+      if (e.status != 401 && mounted) {
         await _policyDialog(e);
       }
     } finally {

@@ -13,6 +13,8 @@ class _GradesScreenState extends State<GradesScreen> {
   Map<String, dynamic>? _assessment;
   List<dynamic>? _assessmentRows;
   bool _includeDeleted = false;
+  String? _subject;
+  int? _rangeDays;
 
   @override
   void initState() {
@@ -20,11 +22,21 @@ class _GradesScreenState extends State<GradesScreen> {
     _load();
   }
 
+  List<String> get _subjects => (_grades ?? const [])
+      .map((g) => (g as Map<String, dynamic>)['subject'] as String?)
+      .whereType<String>()
+      .toSet()
+      .toList()
+    ..sort();
+
   Future<void> _load() async {
     try {
       final values = await Future.wait([
         Api.I.studentGrades(includeDeleted: _includeDeleted),
-        Api.I.studentGradeTrend(),
+        Api.I.studentGradeTrend(
+          subject: _subject,
+          from: trendFromDate(_rangeDays),
+        ),
         Api.I.studentAcademicAssessments(),
       ]);
       if (mounted) {
@@ -34,6 +46,23 @@ class _GradesScreenState extends State<GradesScreen> {
           _assessmentRows = values[2] as List<dynamic>;
         });
       }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+  }
+
+  /// 筛选变化只重取趋势，不刷新成绩与评估列表。
+  Future<void> _loadTrend() async {
+    try {
+      final t = await Api.I.studentGradeTrend(
+        subject: _subject,
+        from: trendFromDate(_rangeDays),
+      );
+      if (mounted) setState(() => _trend = t);
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -226,8 +255,14 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   Future<void> _assess() async {
+    // 规格 7.3：按时间范围触发学业评估
+    final range = await chooseAssessmentRange(context);
+    if (range == null || !mounted) return;
     try {
-      final r = await Api.I.studentAcademicAssessment();
+      final r = await Api.I.studentAcademicAssessment(
+        from: range.from,
+        to: range.to,
+      );
       if (mounted) {
         setState(() {
           _assessment = r;
@@ -250,7 +285,6 @@ class _GradesScreenState extends State<GradesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final trend = _trend ?? const <String, dynamic>{};
     return Scaffold(
       appBar: AppBar(
         title: const Text('成绩与学习评估'),
@@ -269,44 +303,20 @@ class _GradesScreenState extends State<GradesScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(12),
                 children: [
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.show_chart),
-                      title: Text('趋势：${trend['direction'] ?? 'insufficient'}'),
-                      subtitle: Text(
-                        '最近 ${trend['latest'] ?? '-'}% · 变化 ${trend['delta'] ?? '-'} · 近三次平均 ${trend['average_last_3'] ?? '-'}%',
-                      ),
-                    ),
+                  GradeTrendCard(
+                    trend: _trend,
+                    subjects: _subjects,
+                    subject: _subject,
+                    rangeDays: _rangeDays,
+                    onChanged: (subject, rangeDays) {
+                      setState(() {
+                        _subject = subject;
+                        _rangeDays = rangeDays;
+                      });
+                      _loadTrend();
+                    },
                   ),
-                  if (_assessment != null)
-                    Card(
-                      color: const Color(0xFFE8F5F1),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '学业评估',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              (_assessment?['recommendations'] as List?)?.join(
-                                    '、',
-                                  ) ??
-                                  '暂无建议',
-                            ),
-                            const Text(
-                              'AI 辅助估计，不是学校成绩或诊断。',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  if (_assessment != null) _assessmentCard(),
                   if (_assessmentRows != null) _assessmentHistoryCard(),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -342,6 +352,53 @@ class _GradesScreenState extends State<GradesScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  /// 当次学业评估结果：建议 + 证据会话 + 时间范围/模型 + 免责声明（规格 7.3）
+  Widget _assessmentCard() {
+    final period = _assessment?['period'] as Map<String, dynamic>?;
+    final subjects = (_assessment?['subjects'] as List?) ?? const [];
+    final evidence = subjects
+        .map((s) {
+          final item = s as Map;
+          final ids = (item['evidence_conversation_ids'] as List?) ?? const [];
+          return '${item['subject']}（会话 ${ids.join('、')}）';
+        })
+        .join('、');
+    return Card(
+      color: const Color(0xFFE8F5F1),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '学业评估',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              (_assessment?['recommendations'] as List?)?.join('、') ?? '暂无建议',
+            ),
+            if (evidence.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text('证据会话：$evidence', style: const TextStyle(fontSize: 12)),
+              ),
+            const SizedBox(height: 4),
+            Text(
+              '时间范围：${period?['from'] ?? '-'} 至 ${period?['to'] ?? '-'} · 模型 ${_assessment?['model'] ?? '-'}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            Text(
+              _assessment?['disclaimer'] as String? ??
+                  'AI 辅助估计，不是学校成绩或诊断。',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

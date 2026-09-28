@@ -106,11 +106,16 @@ class _HomeScreenState extends State<HomeScreen> {
     } on ApiException catch (e) {
       if (!mounted) return;
       if (e.status == 409) {
+        // 规格要求确认页展示「增加名额」价格（来自订阅配置，人民币元）
+        final seatPrice = _subscription?['additional_seat_price'];
+        final priceText = seatPrice == null ? '' : ' ¥$seatPrice/月';
         final add = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('需要增加孩子名额'),
-            content: const Text('当前订阅没有可用名额，是否增加 1 个名额？'),
+            content: Text(
+              '当前订阅没有可用名额。增加 1 个名额$priceText（按剩余天数折算，立即生效），是否继续？',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -176,14 +181,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       data = await Api.I.familyOverview();
     } on ApiException catch (e) {
-      // token 失效（登出吊销/过期）：清本地会话并回登录页，避免白屏死路
-      if (e.status == 401 && mounted) {
-        await Api.I.logout();
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      }
+      // token 失效（401）已由根级全局兜底（ParentApp._onSessionExpired）处理；
+      // 其他失败保持当前页，下次刷新重试。
+      if (e.status != 401) debugPrint('familyOverview failed: ${e.message}');
       return;
     }
     Map<String, dynamic>? sub;
