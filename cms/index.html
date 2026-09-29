@@ -102,6 +102,18 @@
         <button onclick="addFence()">新建围栏</button>
       </div>
       <div id="ferr" class="err"></div>
+      <div id="f_edit" style="display:none;border-top:1px solid var(--line);padding-top:12px">
+        <h2>编辑围栏：<span id="fe_title"></span></h2>
+        <div class="row">
+          <input id="fe_name" placeholder="围栏名称" style="width:160px">
+          <input id="fe_base" placeholder="完整接口地址（HTTPS）" style="width:300px">
+          <input id="fe_key" placeholder="新 apiKey（留空则不修改）" type="password" style="width:220px">
+          <input id="fe_model" placeholder="模型 ID" style="width:180px">
+          <button onclick="saveFenceEdit()">保存修改</button>
+          <button class="ghost" onclick="cancelFenceEdit()">取消</button>
+        </div>
+        <div id="fe_err" class="err"></div>
+      </div>
     </div>
     <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（激活后新对话立即生效）</span></h2>
     <div id="groups"></div>
@@ -121,6 +133,28 @@
       </div>
       <div style="font-size:12px;color:#8C8A84">路由优先级：家庭标签 &gt; 全局生效分组 &gt; 环境变量。给分组填标签后，在下方家族列表为家庭打上同名标签即可让该家庭使用本分组的 provider/model。</div>
       <div id="gerr" class="err"></div>
+      <div id="g_edit" style="display:none;border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
+        <h2>编辑分组：<span id="ge_title"></span></h2>
+        <div class="row">
+          <input id="ge_name" placeholder="名称" style="width:110px">
+          <input id="ge_base" placeholder="baseUrl（HTTPS）" style="width:250px">
+          <input id="ge_key" placeholder="新 apiKey（留空则不修改）" type="password" style="width:220px">
+          <input id="ge_model" placeholder="模型 ID" style="width:180px">
+          <select id="ge_fence"><option value="">选择围栏配置</option></select>
+          <input id="ge_tag" placeholder="家庭标签（留空清除）" style="width:150px">
+        </div>
+        <div class="row">
+          <input id="ge_teacher" placeholder="老师名字" style="width:130px">
+          <img id="ge_avatar_preview" alt="当前老师头像" style="display:none;width:36px;height:36px;border-radius:50%;object-fit:cover">
+          <label style="font-size:12px">更换头像 <input id="ge_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
+          <input id="ge_free" type="number" placeholder="每日免费回复次数" style="width:160px">
+          <input id="ge_sort" type="number" placeholder="展示排序" style="width:110px">
+          <label style="font-size:12px"><input id="ge_enabled" type="checkbox"> 允许学生选择</label>
+          <button onclick="saveGroupEdit()">保存修改</button>
+          <button class="ghost" onclick="cancelGroupEdit()">取消</button>
+        </div>
+        <div id="ge_err" class="err"></div>
+      </div>
     </div>
   </section>
 
@@ -166,6 +200,7 @@ const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
 let TOK = sessionStorage.getItem('cms_tok') || '';
 let ROLE = sessionStorage.getItem('cms_role') || 'ops';
+let FENCES = [], GROUPS = [], editingFenceId = null, editingGroupId = null;
 
 function H() { return {'Content-Type':'application/json','Authorization':'Bearer '+TOK}; }
 function attr(value) { return esc(encodeURIComponent(String(value ?? '')).replace(/'/g, '%27')); }
@@ -304,16 +339,41 @@ async function createUser() {
 }
 
 async function loadFences() {
-  const fences = await api('/admin/fence-configs');
-  $('fences').innerHTML = fences.map(f => `
+  FENCES = await api('/admin/fence-configs');
+  $('fences').innerHTML = FENCES.map(f => `
     <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
       <b>${esc(f.name)}</b><span style="font-size:12px;color:#8C8A84">${esc(f.base_url)} · ${esc(f.model_id)} · key:已配</span>
-      ${ROLE==='super'?'<button class="ghost" onclick="delFence('+f.id+')">删除</button>':''}
+      ${ROLE==='super'?'<button class="ghost" onclick="editFence('+f.id+')">编辑</button> <button class="ghost" onclick="delFence('+f.id+')">删除</button>':''}
     </div>`).join('') || '<div style="color:#8C8A84;font-size:13px">暂无围栏配置</div>';
   const current = $('g_fence').value;
   $('g_fence').innerHTML = '<option value="">选择围栏配置</option>' +
-    fences.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+    FENCES.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
   $('g_fence').value = current;
+  const editing = $('ge_fence').value;
+  $('ge_fence').innerHTML = '<option value="">选择围栏配置</option>' +
+    FENCES.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+  $('ge_fence').value = editing;
+}
+
+function editFence(id) {
+  const f = FENCES.find(item => item.id === id);
+  if (!f) return;
+  editingFenceId = id;
+  $('fe_title').textContent = f.name;
+  $('fe_name').value = f.name; $('fe_base').value = f.base_url;
+  $('fe_model').value = f.model_id; $('fe_key').value = '';
+  $('fe_err').textContent = '';
+  $('f_edit').style.display = '';
+}
+function cancelFenceEdit() { editingFenceId = null; $('f_edit').style.display = 'none'; }
+async function saveFenceEdit() {
+  $('fe_err').textContent = '';
+  try {
+    const body = {name:$('fe_name').value.trim(), base_url:$('fe_base').value.trim(), model_id:$('fe_model').value.trim()};
+    if ($('fe_key').value.trim()) body.api_key = $('fe_key').value.trim();
+    await api('/admin/fence-configs/' + editingFenceId, {method:'PATCH', body:JSON.stringify(body)});
+    cancelFenceEdit(); await loadFences(); await loadLogs();
+  } catch(e) { $('fe_err').textContent = e.message; }
 }
 
 async function addFence() {
@@ -342,18 +402,66 @@ async function uploadAvatar(file) {
 
 async function loadGroups() {
   const d = await api('/admin/llm-groups');
-  $('groups').innerHTML = d.items.map(g => `
+  GROUPS = d.items;
+  $('groups').innerHTML = GROUPS.map(g => `
     <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
       ${g.teacher_avatar_url?`<img src="${esc(g.teacher_avatar_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:''}
       <b>${esc(g.name)}</b> ${g.is_active?'<span class="tag active">生效中</span>':''}
       ${g.tag?`<span class="tag beta-tag">标签:${esc(g.tag)} (${g.tagged_families}家庭)</span>`:''}
       <span style="font-size:12px;color:#8C8A84">${esc(g.base_url||g.provider)} · 模型:${esc(g.chat_model)} · 围栏:${esc(g.fence_name||g.fence_model||'未配置')} · key:${g.has_key?'已配':'沿用环境'} · 老师:${esc(g.teacher_name||'AI 老师')} · 到期后每学生每日免费回复:${g.post_trial_daily_free_count||0} 次</span>
       ${g.is_active||ROLE!=='super'?'':'<button class="ghost" onclick="activate('+g.id+')">激活</button>'}
+      ${ROLE==='super'?'<button class="ghost" onclick="editGroup('+g.id+')">编辑分组</button>':''}
       <button class="ghost" onclick="editTeacher(${g.id},decodeURIComponent('${attr(g.teacher_name||'AI 老师')}'),${g.post_trial_daily_free_count||0},${g.teacher_enabled},${g.teacher_sort_order||0})">老师配置</button>
       <input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp" style="width:160px;font-size:11px">
       <button class="ghost" onclick="changeAvatar(${g.id})">上传头像</button>
       ${ROLE==='super'?'<button class="ghost" onclick="delGroup('+g.id+')">删除</button>':''}
     </div>`).join('') || '<div style="color:#8C8A84;font-size:13px">暂无分组（使用环境变量配置）</div>';
+}
+
+async function editGroup(id) {
+  const g = GROUPS.find(item => item.id === id);
+  if (!g) return;
+  if (!FENCES.length) await loadFences();
+  editingGroupId = id;
+  $('ge_title').textContent = g.name;
+  $('ge_name').value = g.name; $('ge_base').value = g.base_url || '';
+  $('ge_model').value = g.chat_model || ''; $('ge_key').value = '';
+  $('ge_fence').value = g.fence_config_id || '';
+  $('ge_tag').value = g.tag || ''; $('ge_teacher').value = g.teacher_name || '';
+  $('ge_free').value = g.post_trial_daily_free_count || 0;
+  $('ge_sort').value = g.teacher_sort_order || 0;
+  $('ge_enabled').checked = g.teacher_enabled;
+  $('ge_avatar').value = '';
+  $('ge_avatar_preview').style.display = g.teacher_avatar_url ? '' : 'none';
+  if (g.teacher_avatar_url) $('ge_avatar_preview').src = g.teacher_avatar_url;
+  $('ge_err').textContent = '';
+  $('g_edit').style.display = '';
+  $('g_edit').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function cancelGroupEdit() {
+  editingGroupId = null; $('ge_key').value = ''; $('ge_avatar').value = '';
+  $('g_edit').style.display = 'none';
+}
+async function saveGroupEdit() {
+  $('ge_err').textContent = '';
+  try {
+    const body = {
+      name:$('ge_name').value.trim(), base_url:$('ge_base').value.trim(),
+      model_id:$('ge_model').value.trim(), fence_config_id:Number($('ge_fence').value),
+      tag:$('ge_tag').value.trim() || null, teacher_name:$('ge_teacher').value.trim(),
+      teacher_enabled:$('ge_enabled').checked,
+      teacher_sort_order:Number($('ge_sort').value),
+      post_trial_daily_free_count:Number($('ge_free').value)
+    };
+    if (!body.name || !body.base_url || !body.model_id || !body.fence_config_id || !body.teacher_name)
+      throw new Error('请填写名称、baseUrl、模型 ID、围栏和老师名字');
+    if (!Number.isInteger(body.teacher_sort_order) || !Number.isInteger(body.post_trial_daily_free_count))
+      throw new Error('展示排序和免费次数必须是整数');
+    if ($('ge_key').value.trim()) body.api_key = $('ge_key').value.trim();
+    if ($('ge_avatar').files[0]) body.teacher_avatar_url = await uploadAvatar($('ge_avatar').files[0]);
+    await api('/admin/llm-groups/' + editingGroupId, {method:'PATCH', body:JSON.stringify(body)});
+    cancelGroupEdit(); await loadGroups(); await loadFamilies(); await loadLogs();
+  } catch(e) { $('ge_err').textContent = e.message; }
 }
 
 async function activate(id) { await api('/admin/llm-groups/'+id+'/activate', {method:'PUT'}); loadGroups(); }
@@ -447,12 +555,23 @@ async function setTag(familyId, tag) {
   } catch(e) { alert(e.message); loadFamilies(); }
 }
 
+const LOG_FIELDS = {name:'名称',base_url:'baseUrl',model_id:'模型 ID',fence_config_id:'围栏',tag:'家庭标签',
+  teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'可选状态',teacher_sort_order:'展示排序',
+  post_trial_daily_free_count:'每日免费回复次数',post_trial_free_enabled:'到期后免费',api_key:'apiKey',provider:'服务类型'};
+function logDetail(detail) {
+  try {
+    const data = JSON.parse(detail);
+    if (data.changes) return `#${data.id} · ` + Object.entries(data.changes).map(([field, value]) =>
+      `${LOG_FIELDS[field] || field}: ${value.from ?? '无'} → ${value.to ?? '无'}`).join('；');
+  } catch (_) {}
+  return detail;
+}
 async function loadLogs() {
   try {
     const d = await api('/admin/logs?size=15');
     document.querySelector('#logTable tbody').innerHTML = d.items.map(l =>
-      `<tr><td>${esc((l.created_at||'').slice(5,16).replace('T',' '))}</td><td>${esc(l.admin)}</td>
-       <td>${esc(l.action)}</td><td style="font-size:12px;color:#666">${esc(l.detail)}</td></tr>`).join('');
+      `<tr><td>${esc(l.created_at ? new Date(l.created_at).toLocaleString('zh-CN',{hour12:false}) : '')}</td><td>${esc(l.admin)}</td>
+       <td>${esc(l.action)}</td><td style="font-size:12px;color:#666;overflow-wrap:anywhere">${esc(logDetail(l.detail))}</td></tr>`).join('');
   } catch (_) {}
 }
 async function loadAssessmentAudits() {

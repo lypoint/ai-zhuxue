@@ -8,7 +8,7 @@ import httpx
 
 from app.config import settings
 from app.db import SessionLocal
-from app.models import FenceConfig, LLMGroup
+from app.models import AdminUser, FenceConfig, LLMGroup
 from app.security import parse_token
 from app.services import fence, llm
 from tests.conftest import make_admin, make_family
@@ -99,3 +99,58 @@ def test_system_one_fence_uses_native_endpoint(monkeypatch):
     low_confidence = asyncio.run(fence.evaluate("给我讲个笑话", group_id=2))
     assert low_confidence["decision"] == "rewrite"
     assert low_confidence["category"] == "other"
+
+
+def test_config_edits_are_audited_without_keys(client):
+    admin = make_admin(client)
+    with SessionLocal() as db:
+        actor = db.query(AdminUser).filter_by(session_token=admin["Authorization"].removeprefix("Bearer ")).one().username
+    fence_id = client.post("/admin/fence-configs", headers=admin, json={
+        "name": "edit-fence", "base_url": "https://fence.example/v1",
+        "api_key": "old-fence-key", "model_id": "old-fence-model"}).json()["id"]
+    group_id = client.post("/admin/llm-groups", headers=admin, json={
+        "name": "edit-group", "base_url": "https://chat.example/v1",
+        "api_key": "old-chat-key", "model_id": "old-chat-model",
+        "fence_config_id": fence_id, "teacher_name": "旧老师"}).json()["id"]
+
+    fence_edit = client.patch(f"/admin/fence-configs/{fence_id}", headers=admin, json={
+        "base_url": "https://fence.example/compatible-mode/v1/systemone",
+        "model_id": "decision-model-preview", "api_key": "new-fence-key"})
+    assert fence_edit.status_code == 200
+    group_edit = client.patch(f"/admin/llm-groups/{group_id}", headers=admin, json={
+        "name": "edited-group", "base_url": "https://chat.example/v2",
+        "model_id": "new-chat-model", "api_key": "new-chat-key",
+        "teacher_name": "新老师", "post_trial_daily_free_count": 3})
+    assert group_edit.status_code == 200
+    assert llm._provider("chat", group_id=group_id) == (
+        "custom", {"base_url": "https://chat.example/v2"}, "new-chat-key", "new-chat-model")
+    assert llm._provider("fence_classify", group_id=group_id)[2:] == (
+        "new-fence-key", "decision-model-preview")
+    listed = client.get("/admin/llm-groups", headers=admin).json()["items"]
+    assert next(g for g in listed if g["id"] == group_id)["teacher_name"] == "新老师"
+    assert next(f for f in client.get("/admin/fence-configs", headers=admin).json()
+                if f["id"] == fence_id)["model_id"] == "decision-model-preview"
+    assert client.patch(f"/admin/llm-groups/{group_id}", headers=admin,
+                        json={"api_key": "", "tag": "edited-tag"}).status_code == 200
+    assert llm._provider("chat", group_id=group_id)[2] == "new-chat-key"
+    assert client.patch(f"/admin/llm-groups/{group_id}/teacher-profile", headers=admin,
+                        json={"teacher_sort_order": 8}).status_code == 200
+    operator = make_admin(client, role="admin")
+    assert client.patch(f"/admin/llm-groups/{group_id}", headers=operator,
+                        json={"model_id": "forbidden"}).status_code == 403
+
+    logs = client.get("/admin/logs?size=10", headers=admin).json()["items"]
+    for action in ("fence_config.update", "llm_group.update", "teacher_profile.update"):
+        row = next(item for item in logs if item["action"] == action)
+        assert row["admin"] == actor and row["created_at"]
+        detail = json.loads(row["detail"])
+        assert detail["id"] in (fence_id, group_id) and detail["changes"]
+    group_changes = json.loads(next(item["detail"] for item in logs
+                                    if item["action"] == "llm_group.update" and
+                                    '"model_id"' in item["detail"]))["changes"]
+    assert group_changes["model_id"] == {
+        "from": "old-chat-model", "to": "new-chat-model"}
+    assert group_changes["api_key"] == {"from": "已配置", "to": "已更新"}
+    assert all("old-chat-key" not in item["detail"] and "new-chat-key" not in item["detail"]
+               and "old-fence-key" not in item["detail"] and "new-fence-key" not in item["detail"]
+               for item in logs)

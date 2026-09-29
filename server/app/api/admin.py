@@ -1,6 +1,7 @@
 """CMS API：管理员鉴权 + 运营数据 + LLM 分组管理。"""
 import datetime as dt
 import hashlib
+import json
 import pathlib
 import secrets
 import time
@@ -19,7 +20,7 @@ from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode
                       PricingConfig, RateLimitWindow, Subscription, SubscriptionOrder, UsageLog)
 from ..ratelimit import _hit
 from ..services.llm import PRICE_PER_MTOK
-from ..services.keyvault import encrypt_api_key
+from ..services.keyvault import decrypt_api_key, encrypt_api_key
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -62,8 +63,14 @@ def _verify_password(password: str, stored: str) -> bool:
 
 def log(db: Session, principal: AdminPrincipal, action: str, detail: str = ""):
     """敏感操作留痕（赠送/扣除/分组变更等）。"""
-    db.add(AdminLog(admin=principal.name, action=action, detail=detail[:500]))
+    db.add(AdminLog(admin=principal.name, action=action, detail=detail))
     db.commit()
+
+
+def log_changes(db: Session, principal: AdminPrincipal, action: str, item_id: int,
+                changes: dict):
+    if changes:
+        log(db, principal, action, json.dumps({"id": item_id, "changes": changes}, ensure_ascii=False))
 
 
 ADMIN_SESSION_HOURS = 12  # CMS session token 有效期；过期后重新登录
@@ -440,6 +447,13 @@ class FenceConfigIn(BaseModel):
     model_id: str = Field(min_length=1, max_length=120)
 
 
+class FenceConfigUpdateIn(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    base_url: str | None = Field(default=None, min_length=1, max_length=500)
+    api_key: str | None = Field(default=None, max_length=200)
+    model_id: str | None = Field(default=None, min_length=1, max_length=120)
+
+
 @router.get("/fence-configs")
 def list_fence_configs(principal: AdminPrincipal = Depends(require_admin),
                        db: Session = Depends(get_db)):
@@ -472,6 +486,43 @@ def create_fence_config(body: FenceConfigIn, principal: AdminPrincipal = Depends
         raise HTTPException(409, "围栏名称已存在")
     log(db, principal, "fence_config.create", f"id={config.id} name={name}")
     return {"ok": True, "id": config.id, "name": name}
+
+
+@router.patch("/fence-configs/{config_id}")
+def update_fence_config(config_id: int, body: FenceConfigUpdateIn,
+                        principal: AdminPrincipal = Depends(require_admin),
+                        db: Session = Depends(get_db)):
+    require_manage(principal)
+    config = db.get(FenceConfig, config_id)
+    if not config:
+        raise HTTPException(404, "围栏配置不存在")
+    values = body.model_dump(exclude_unset=True)
+    if any(value is None for value in values.values()):
+        raise HTTPException(422, "围栏配置字段不能为 null")
+    changes = {}
+    for field in ("name", "base_url", "model_id"):
+        if field not in values:
+            continue
+        value = _base_url(values[field]) if field == "base_url" else values[field].strip()
+        if not value:
+            raise HTTPException(422, f"{field} 不能为空")
+        if field == "name" and value != config.name and db.query(FenceConfig.id).filter_by(name=value).first():
+            raise HTTPException(409, "围栏名称已存在")
+        old = getattr(config, field)
+        if value != old:
+            changes[field] = {"from": old, "to": value}
+            setattr(config, field, value)
+    key = values.get("api_key", "").strip()
+    if key and key != decrypt_api_key(config.api_key):
+        had_key = bool(config.api_key)
+        config.api_key = encrypt_api_key(key)
+        changes["api_key"] = {"from": "已配置" if had_key else "未配置", "to": "已更新"}
+    try:
+        log_changes(db, principal, "fence_config.update", config_id, changes)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "围栏名称已存在")
+    return {"ok": True, "id": config_id, "changed": list(changes)}
 
 
 @router.delete("/fence-configs/{config_id}")
@@ -702,6 +753,81 @@ class TeacherProfileIn(BaseModel):
     post_trial_daily_free_count: int | None = Field(default=None, le=10000)
 
 
+class GroupUpdateIn(TeacherProfileIn):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    base_url: str | None = Field(default=None, min_length=1, max_length=500)
+    api_key: str | None = Field(default=None, max_length=200)
+    model_id: str | None = Field(default=None, min_length=1, max_length=120)
+    fence_config_id: int | None = None
+    tag: str | None = Field(default=None, max_length=50)
+
+
+@router.patch("/llm-groups/{group_id}")
+def update_group(group_id: int, body: GroupUpdateIn,
+                 principal: AdminPrincipal = Depends(require_admin),
+                 db: Session = Depends(get_db)):
+    require_manage(principal)
+    grp = db.get(LLMGroup, group_id)
+    if not grp:
+        raise HTTPException(404, "group not found")
+    values = body.model_dump(exclude_unset=True)
+    if any(value is None for field, value in values.items() if field != "tag"):
+        raise HTTPException(422, "分组配置字段不能为 null")
+    changes = {}
+
+    def set_field(field: str, value, label: str | None = None):
+        old = getattr(grp, field)
+        if old != value:
+            changes[label or field] = {"from": old, "to": value}
+            setattr(grp, field, value)
+
+    for field in ("name", "base_url", "model_id", "teacher_name", "teacher_avatar_url", "tag"):
+        if field not in values:
+            continue
+        value = values[field]
+        if field == "base_url":
+            value = _base_url(value)
+        elif field == "teacher_avatar_url":
+            value = _validate_teacher_avatar(value)
+        elif isinstance(value, str):
+            value = value.strip()
+        if field == "tag":
+            value = value or None
+        elif not value and field != "teacher_avatar_url":
+            raise HTTPException(422, f"{field} 不能为空")
+        if field == "name" and value != grp.name and db.query(LLMGroup.id).filter_by(name=value).first():
+            raise HTTPException(409, "分组名称已存在")
+        if field == "tag" and value != grp.tag and value and db.query(LLMGroup.id).filter_by(tag=value).first():
+            raise HTTPException(409, "家庭标签已绑定其他分组")
+        set_field("chat_model" if field == "model_id" else field, value, field)
+    if "fence_config_id" in values:
+        fence_id = values["fence_config_id"]
+        if not db.get(FenceConfig, fence_id):
+            raise HTTPException(422, "所选围栏配置不存在")
+        set_field("fence_config_id", fence_id)
+    for field in ("teacher_enabled", "teacher_sort_order", "post_trial_daily_free_count"):
+        if field in values:
+            value = max(0, values[field]) if field == "post_trial_daily_free_count" else values[field]
+            set_field(field, value)
+            if field == "post_trial_daily_free_count":
+                grp.post_trial_free_enabled = value > 0
+    key = values.get("api_key", "").strip()
+    if key and key != decrypt_api_key(grp.api_key or ""):
+        had_key = bool(grp.api_key)
+        grp.api_key = encrypt_api_key(key)
+        changes["api_key"] = {"from": "已配置" if had_key else "未配置", "to": "已更新"}
+    if "base_url" in values and grp.provider != "custom":
+        if not grp.chat_model or not grp.fence_config_id or not grp.api_key:
+            raise HTTPException(422, "切换自定义模型须填写模型 ID、围栏和 apiKey")
+        set_field("provider", "custom")
+    try:
+        log_changes(db, principal, "llm_group.update", group_id, changes)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "分组名称或家庭标签已存在")
+    return {"ok": True, "id": group_id, "changed": list(changes)}
+
+
 @router.patch("/llm-groups/{group_id}/teacher-profile")
 def update_teacher_profile(group_id: int, body: TeacherProfileIn,
                            principal: AdminPrincipal = Depends(require_admin),
@@ -722,10 +848,13 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
     if "post_trial_daily_free_count" in changes:
         changes["post_trial_daily_free_count"] = max(0, changes["post_trial_daily_free_count"])
         changes["post_trial_free_enabled"] = changes["post_trial_daily_free_count"] > 0
+    audit = {}
     for field, value in changes.items():
-        setattr(grp, field, value)
-    log(db, principal, "teacher_profile.update",
-        f"group={group_id} fields={','.join(changes)}")
+        old = getattr(grp, field)
+        if old != value:
+            audit[field] = {"from": old, "to": value}
+            setattr(grp, field, value)
+    log_changes(db, principal, "teacher_profile.update", group_id, audit)
     return {"ok": True, "teacher_id": grp.id, "teacher_name": grp.teacher_name,
             "teacher_avatar_url": grp.teacher_avatar_url,
             "teacher_enabled": grp.teacher_enabled,
