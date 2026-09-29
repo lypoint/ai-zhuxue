@@ -96,7 +96,7 @@ _WEB_PAGE = """<!DOCTYPE html>
 <script>
 const API = location.port === '8100' ? location.origin : (window.API_BASE || location.origin);
 const $ = id => document.getElementById(id);
-let conversationId = null, busy = false, teacherId = null, teachers = [];
+let conversationId = null, busy = false, teachers = [];
 
 function showTeacher(name, avatar) {
   $('teacherName').textContent = name || 'AI 老师';
@@ -109,26 +109,41 @@ async function loadTeachers() {
   try {
     teachers = await api('/chat/teachers');
     if (!conversationId && teachers.length) {
-      const first = teachers.find(t => t.access === 'available') || teachers[0];
-      teacherId = first.teacher_id;
+      const first = teachers.find(t => t.selected) || teachers[0];
       showTeacher(first.name, first.avatar_url);
     }
   } catch (_) {}
 }
 
 function chooseTeacher() {
-  if (conversationId) { alert('请先新建对话，再选择老师'); return; }
   const list = $('teacherList');
   list.replaceChildren();
   for (const teacher of teachers) {
     const button = document.createElement('button');
-    button.disabled = teacher.access !== 'available';
-    button.textContent = teacher.name + (button.disabled ? ' · ' +
+    button.textContent = teacher.name + (teacher.is_default ? ' · 默认老师' : '') + (teacher.access !== 'available' ? ' · ' +
       (teacher.access === 'daily_free_exhausted' ? '今日次数已用完' : '需订阅') : '');
-    button.onclick = () => {
-      teacherId = teacher.teacher_id;
-      showTeacher(teacher.name, teacher.avatar_url);
-      $('teacherModal').style.display = 'none';
+    button.onclick = async () => {
+      if (teacher.access !== 'available') {
+        alert(teacher.access === 'daily_free_exhausted'
+          ? '这位老师今日免费次数已用完，请通知家长购买会员后继续学习'
+          : '这位老师需要会员，请通知家长在家长端购买会员后继续学习');
+        return;
+      }
+      if (conversationId && !confirm('切换老师会开启新对话，当前聊天记录仍可在历史记录查看。继续吗？')) return;
+      try {
+        if (teacher.teacher_id !== null) {
+          await api('/chat/teachers/selection', {teacher_id: teacher.teacher_id}, 'PUT');
+        }
+        if (conversationId) {
+          conversationId = null;
+          $('chat').innerHTML = '';
+          bubble('assistant', '你好！今天想学什么？可以问我作业和知识点。');
+        }
+        showTeacher(teacher.name, teacher.avatar_url);
+        $('teacherModal').style.display = 'none';
+        loadTeachers();
+        loadSessions();
+      } catch (e) { alert(e.message); }
     };
     list.appendChild(button);
   }
@@ -143,9 +158,9 @@ function deviceId() {
   return d;
 }
 
-async function api(path, body) {
+async function api(path, body, method) {
   const resp = await fetch(API + path, {
-    method: body ? 'POST' : 'GET',
+    method: method || (body ? 'POST' : 'GET'),
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (token() || '') },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -199,8 +214,7 @@ async function send() {
   $('msg').value = ''; busy = true; $('sendBtn').disabled = true;
   bubble('user', content);
   try {
-    const reply = await api('/chat', { conversation_id: conversationId, content,
-      ...(conversationId === null && teacherId !== null ? {teacher_id: teacherId} : {}) });
+    const reply = await api('/chat', { conversation_id: conversationId, content });
     conversationId = reply.conversation_id ?? conversationId;
     bubble('assistant', reply.content, reply.id);
   } catch (e) { bubble('assistant', '⚠️ ' + e.message); }
@@ -270,7 +284,6 @@ async function openSession(cid) {
     $('chat').innerHTML = '';
     conversationId = cid;
     const session = sessions.find(s => s.conversation_id === cid);
-    teacherId = session?.teacher_id ?? null;
     if (session) showTeacher(session.teacher_name, session.teacher_avatar_url);
     for (const m of msgs) bubble(m.role, m.content, m.id);
   } catch (e) { bubble('assistant', '⚠️ ' + e.message); }
@@ -292,7 +305,6 @@ async function enterChat() {
     const latest = await api('/chat/latest');
     conversationId = latest.conversation_id;
     if (conversationId) {
-      teacherId = latest.teacher_id ?? null;
       showTeacher(latest.teacher_name, latest.teacher_avatar_url);
     }
     for (const m of latest.messages) bubble(m.role, m.content, m.id);

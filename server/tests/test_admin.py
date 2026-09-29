@@ -66,8 +66,8 @@ def test_llm_group_crud_and_hot_switch(client, admin, student_token):
     assert r.status_code == 200
     gid = r.json()["id"]
 
-    r = client.put(f"/admin/llm-groups/{gid}/activate", headers=admin)
-    assert r.json()["active"] == "backup-glm"
+    r = client.put(f"/admin/llm-groups/{gid}/default", headers=admin)
+    assert r.json()["default"] == "backup-glm"
 
     # 激活后新对话走新分组：glm 无 Key → 流内 error（证明热切换生效）
     import json as _json

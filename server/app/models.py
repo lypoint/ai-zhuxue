@@ -55,6 +55,7 @@ class Student(TimestampMixin, Base):
     installation_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     token_version: Mapped[int] = mapped_column(Integer, default=1)  # 登出即 +1
+    last_teacher_group_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     family: Mapped["Family"] = relationship(back_populates="students")
     conversations: Mapped[list["Conversation"]] = relationship(
@@ -332,12 +333,12 @@ class LLMGroup(TimestampMixin, Base):
     fence_config: Mapped["FenceConfig | None"] = relationship()
     daily_message_cap: Mapped[int] = mapped_column(Integer, default=0)  # 0=用全局
     note: Mapped[str] = mapped_column(String(200), default="")
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)  # 唯一默认老师
     # 标签绑定（唯一）：设置后，持此标签的家庭路由到本分组（优先级高于全局 is_active）
     tag: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
     teacher_name: Mapped[str] = mapped_column(String(50), default="AI 老师")
     teacher_avatar_url: Mapped[str] = mapped_column(String(500), default="")
-    teacher_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    teacher_enabled: Mapped[bool] = mapped_column(Boolean, default=True)  # 可同时激活多位老师
     teacher_sort_order: Mapped[int] = mapped_column(Integer, default=0)
     post_trial_free_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     post_trial_daily_free_count: Mapped[int] = mapped_column(Integer, default=0)

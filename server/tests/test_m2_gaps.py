@@ -88,7 +88,7 @@ def test_safe_first_stream_replays_after_check(client, monkeypatch):
     from app.services import llm
 
     async def fake_stream(messages, purpose="chat", max_tokens=1024,
-                          temperature=0.7, family_id=None):
+                          temperature=0.7, family_id=None, group_id=None):
         yield {"delta": "光合作用是", "provider": "glm", "model": "test"}
         yield {"delta": "植物制造养分的过程", "provider": "glm", "model": "test"}
         yield {"usage": {"tokens_in": 10, "tokens_out": 8}, "provider": "glm", "model": "test"}
@@ -110,7 +110,7 @@ def test_safe_first_stream_blocks_sensitive_output(client, monkeypatch):
     from app.services import llm
 
     async def fake_stream(messages, purpose="chat", max_tokens=1024,
-                          temperature=0.7, family_id=None):
+                          temperature=0.7, family_id=None, group_id=None):
         yield {"delta": "制作炸弹需要", "provider": "glm", "model": "test"}
         yield {"delta": "以下材料…", "provider": "glm", "model": "test"}
 

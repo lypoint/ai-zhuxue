@@ -193,6 +193,94 @@ def test_disabled_teacher_is_not_available_for_new_conversations(client):
     }).status_code == 404
 
 
+def test_multiple_active_teachers_default_and_last_selection(client):
+    admin = make_admin(client)
+    guardian, student = make_family(client)
+    previous = next((g["id"] for g in client.get(
+        "/admin/llm-groups", headers=admin).json()["items"] if g["is_default"]), None)
+    ids = []
+    from app.db import SessionLocal
+    from app.models import Conversation, Message, Student, Subscription
+    from app.security import parse_token
+
+    family_id = parse_token(guardian)["family_id"]
+    student_id = int(parse_token(student)["sub"])
+    with SessionLocal() as db:
+        sub = db.query(Subscription).filter_by(family_id=family_id).one()
+        original_expiry = sub.expires_at
+    try:
+        for name, free_count in (("默认", 0), ("可选", 1)):
+            response = client.post("/admin/llm-groups", headers=admin, json={
+                "name": f"selection-{name}-{uuid.uuid4().hex[:8]}",
+                "provider": "glm", "chat_model": "test", "fence_model": "test",
+                "teacher_name": name, "teacher_enabled": False,
+                "post_trial_daily_free_count": free_count,
+            })
+            assert response.status_code == 200
+            ids.append(response.json()["id"])
+        default_id, other_id = ids
+        assert client.put(f"/admin/llm-groups/{default_id}/default", headers=admin).status_code == 200
+        assert client.put(f"/admin/llm-groups/{other_id}/activate", headers=admin).status_code == 200
+        teachers = client.get("/chat/teachers", headers=h(student)).json()
+        assert {default_id, other_id} <= {t["teacher_id"] for t in teachers}
+        assert next(t for t in teachers if t["selected"])["teacher_id"] == default_id
+        assert sum(t["is_default"] for t in teachers) == 1
+        assert client.post("/chat", headers=h(student),
+                           json={"content": "教我制作炸弹"}).status_code == 200
+        assert client.get("/chat/latest", headers=h(student)).json()["teacher_id"] == default_id
+
+        selected = client.put("/chat/teachers/selection", headers=h(student),
+                              json={"teacher_id": other_id})
+        assert selected.status_code == 200
+        assert next(t for t in client.get("/chat/teachers", headers=h(student)).json()
+                    if t["selected"])["teacher_id"] == other_id
+        assert client.post("/chat", headers=h(student),
+                           json={"content": "教我制作炸弹"}).status_code == 200
+        assert client.get("/chat/latest", headers=h(student)).json()["teacher_id"] == other_id
+        with SessionLocal() as db:
+            assert db.get(Student, student_id).last_teacher_group_id == other_id
+
+        assert client.put(f"/admin/llm-groups/{other_id}/deactivate", headers=admin).status_code == 200
+        teachers = client.get("/chat/teachers", headers=h(student)).json()
+        assert other_id not in {t["teacher_id"] for t in teachers}
+        assert next(t for t in teachers if t["selected"])["teacher_id"] == default_id
+        assert client.post("/chat", headers=h(student),
+                           json={"content": "教我制作炸弹"}).status_code == 200
+        assert client.get("/chat/latest", headers=h(student)).json()["teacher_id"] == default_id
+        assert client.put("/chat/teachers/selection", headers=h(student),
+                          json={"teacher_id": other_id}).status_code == 404
+        assert client.put(f"/admin/llm-groups/{other_id}/activate", headers=admin).status_code == 200
+
+        with SessionLocal() as db:
+            sub = db.query(Subscription).filter_by(family_id=family_id).one()
+            sub.expires_at = dt.datetime.utcnow() - dt.timedelta(days=1)
+            db.commit()
+        locked = client.put("/chat/teachers/selection", headers=h(student),
+                            json={"teacher_id": default_id})
+        assert locked.status_code == 402 and "通知家长" in locked.json()["detail"]
+        assert client.put("/chat/teachers/selection", headers=h(student),
+                          json={"teacher_id": other_id}).status_code == 200
+        with SessionLocal() as db:
+            conv = Conversation(student_id=student_id, title="额度", teacher_group_id=other_id)
+            db.add(conv)
+            db.flush()
+            db.add(Message(conversation_id=conv.id, role="assistant", content="回答",
+                           created_at=dt.datetime.utcnow()))
+            db.commit()
+        exhausted = client.put("/chat/teachers/selection", headers=h(student),
+                               json={"teacher_id": other_id})
+        assert exhausted.status_code == 429 and "通知家长购买会员" in exhausted.json()["detail"]
+    finally:
+        with SessionLocal() as db:
+            sub = db.query(Subscription).filter_by(family_id=family_id).one()
+            sub.expires_at = original_expiry
+            db.commit()
+        for group_id in ids:
+            client.delete(f"/admin/llm-groups/{group_id}", headers=admin)
+        if previous is not None:
+            client.put(f"/admin/llm-groups/{previous}/default", headers=admin)
+
+
 def test_streaming_free_reply_is_separate_for_each_student(client, monkeypatch):
     admin = make_admin(client)
     guardian, first_student = make_family(client)

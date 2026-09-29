@@ -5,6 +5,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -37,18 +38,21 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
     groups = db.query(LLMGroup).filter_by(teacher_enabled=True).order_by(
         LLMGroup.teacher_sort_order, LLMGroup.id).all()
     if not groups:
+        if db.query(LLMGroup.id).first():
+            return []
         # Keep the environment-backed provider usable before CMS creates its
         # first persisted group; the client still receives only role metadata.
         env_teacher = llm.resolve_active_group(student.family_id)
         return [{"teacher_id": None, "name": env_teacher.get("teacher_name", "AI 老师"),
                  "avatar_url": env_teacher.get("teacher_avatar_url", ""),
-                 "sort_order": 0,
+                 "sort_order": 0, "selected": True, "is_default": True,
                  "access": "available" if active else "subscription_required"}]
-    tag = db.query(Family.tag).filter_by(id=student.family_id).scalar()
-    groups.sort(key=lambda g: (0 if tag and g.tag == tag else 1 if g.is_active else 2,
+    selected = _teacher(db, student)
+    groups.sort(key=lambda g: (0 if g.id == selected.id else 1 if g.is_active else 2,
                                g.teacher_sort_order, g.id))
     return [{"teacher_id": g.id, "name": g.teacher_name,
              "avatar_url": g.teacher_avatar_url, "sort_order": g.teacher_sort_order,
+             "selected": g.id == selected.id, "is_default": g.is_active,
              "access": ("available" if active or g.post_trial_daily_free_count > 0 and
                         subscription.post_trial_free_remaining(
                             student.id, db, g.id, g.post_trial_daily_free_count) > 0
@@ -56,20 +60,48 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
                         else "subscription_required")} for g in groups]
 
 
-def _teacher(db: Session, family_id: int, teacher_id: int | None = None):
+def _teacher(db: Session, student: Student, teacher_id: int | None = None):
     """Resolve a selectable teacher without exposing provider credentials."""
     if teacher_id is not None:
         group = db.get(LLMGroup, teacher_id)
         if not group or not group.teacher_enabled:
             raise HTTPException(404, "teacher not found")
         return group
-    tag = db.query(Family.tag).filter_by(id=family_id).scalar()
+    if student.last_teacher_group_id is not None:
+        group = db.get(LLMGroup, student.last_teacher_group_id)
+        if group and group.teacher_enabled:
+            return group
+    group = db.query(LLMGroup).filter_by(is_active=True, teacher_enabled=True).order_by(
+        LLMGroup.teacher_sort_order, LLMGroup.id).first()
+    if group:
+        return group
+    tag = db.query(Family.tag).filter_by(id=student.family_id).scalar()
     if tag:
         group = db.query(LLMGroup).filter_by(tag=tag, teacher_enabled=True).first()
         if group:
             return group
-    return db.query(LLMGroup).filter_by(is_active=True, teacher_enabled=True).order_by(
+    group = db.query(LLMGroup).filter_by(teacher_enabled=True).order_by(
         LLMGroup.teacher_sort_order, LLMGroup.id).first()
+    if group:
+        return group
+    if db.query(LLMGroup.id).first():
+        raise HTTPException(503, "暂无已激活老师，请稍后再试")
+    return None
+
+
+class TeacherSelectionIn(BaseModel):
+    teacher_id: int
+
+
+@router.put("/teachers/selection")
+def select_teacher(body: TeacherSelectionIn, student: Student = Depends(current_student),
+                   db: Session = Depends(get_db)):
+    teacher = _teacher(db, student, body.teacher_id)
+    _check_subscription(student, db, teacher.id)
+    student.last_teacher_group_id = teacher.id
+    db.commit()
+    return {"teacher_id": teacher.id, "name": teacher.teacher_name,
+            "avatar_url": teacher.teacher_avatar_url}
 
 
 def _student_conversation(db: Session, conversation_id: int, student: Student) -> Conversation:
@@ -89,13 +121,13 @@ def _check_subscription(student: Student, db: Session, teacher_id: int | None = 
     # Keep their entitlement tied to the saved teacher; _teacher still rejects
     # disabled roles when creating a new session.
     teacher = (db.get(LLMGroup, teacher_id) if teacher_id is not None
-               else _teacher(db, student.family_id, None))
+               else _teacher(db, student))
     if teacher and teacher.post_trial_daily_free_count > 0:
         if subscription.post_trial_free_remaining(
                 student.id, db, teacher.id, teacher.post_trial_daily_free_count) > 0:
             return True
-        raise HTTPException(429, "今日免费次数已用完，请家长订阅后继续学习")
-    raise HTTPException(402, "免费使用期已结束，请家长在家长端续费后继续学习哦")
+        raise HTTPException(429, "这位老师今日免费次数已用完，请通知家长购买会员后继续学习")
+    raise HTTPException(402, "这位老师需要会员，请通知家长在家长端购买会员后继续学习")
 
 
 def _notify(family_id: int, type_: str, title: str, body: str,
@@ -174,7 +206,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
                 f"{student.nickname}今天的对话次数已用完，明天再来吧。（每日上限可在家长端调整）",
                 once_per_day=True, db=db)
         raise HTTPException(429, "今天的对话次数用完了，明天再来吧")
-    group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student.family_id)
+    group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student)
     if group and group.daily_message_cap:
         group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
                        .filter(Conversation.student_id == student.id,
@@ -257,7 +289,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
             raise HTTPException(409, "existing conversation teacher cannot change")
     else:
-        teacher = _teacher(db, student.family_id, body.teacher_id)
+        teacher = _teacher(db, student, body.teacher_id)
         conv = Conversation(student_id=student.id, title=body.content[:20],
                             teacher_group_id=teacher.id if teacher else None,
                             teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
@@ -374,7 +406,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
         if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
             raise HTTPException(409, "existing conversation teacher cannot change")
     else:
-        teacher = _teacher(db, student.family_id, body.teacher_id)
+        teacher = _teacher(db, student, body.teacher_id)
         conv = Conversation(student_id=student.id, title=body.content[:20],
                             teacher_group_id=teacher.id if teacher else None,
                             teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",

@@ -115,7 +115,7 @@
         <div id="fe_err" class="err"></div>
       </div>
     </div>
-    <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（激活后新对话立即生效）</span></h2>
+    <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（可激活多位老师；仅一位默认）</span></h2>
     <div id="groups"></div>
     <div data-super-only>
       <h2 style="margin-top:14px">新建分组</h2>
@@ -129,9 +129,10 @@
         <input id="g_teacher" placeholder="老师名字" style="width:110px">
         <label style="font-size:12px">老师头像 <input id="g_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
         <input id="g_free" placeholder="到期后每个学生每日免费回复次数（≤0不免费）" style="width:310px" type="number">
+        <label style="font-size:12px"><input id="g_enabled" type="checkbox" checked> 创建后激活</label>
         <button onclick="addGroup()">创建</button>
       </div>
-      <div style="font-size:12px;color:#8C8A84">路由优先级：家庭标签 &gt; 全局生效分组 &gt; 环境变量。给分组填标签后，在下方家族列表为家庭打上同名标签即可让该家庭使用本分组的 provider/model。</div>
+      <div style="font-size:12px;color:#8C8A84">学生未选过老师时使用默认老师，选过后沿用上次选择；没有默认老师时才按家庭标签匹配。家庭标签可在下方家庭列表配置。</div>
       <div id="gerr" class="err"></div>
       <div id="g_edit" style="display:none;border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
         <h2>编辑分组：<span id="ge_title"></span></h2>
@@ -149,7 +150,7 @@
           <label style="font-size:12px">更换头像 <input id="ge_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
           <input id="ge_free" type="number" placeholder="每日免费回复次数" style="width:160px">
           <input id="ge_sort" type="number" placeholder="展示排序" style="width:110px">
-          <label style="font-size:12px"><input id="ge_enabled" type="checkbox"> 允许学生选择</label>
+          <label style="font-size:12px"><input id="ge_enabled" type="checkbox"> 已激活</label>
           <button onclick="saveGroupEdit()">保存修改</button>
           <button class="ghost" onclick="cancelGroupEdit()">取消</button>
         </div>
@@ -406,10 +407,12 @@ async function loadGroups() {
   $('groups').innerHTML = GROUPS.map(g => `
     <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
       ${g.teacher_avatar_url?`<img src="${esc(g.teacher_avatar_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:''}
-      <b>${esc(g.name)}</b> ${g.is_active?'<span class="tag active">生效中</span>':''}
+      <b>${esc(g.name)}</b> ${g.teacher_enabled?'<span class="tag active">已激活</span>':'<span class="tag reject">已停用</span>'}
+      ${g.is_active?'<span class="tag beta-tag">默认老师</span>':''}
       ${g.tag?`<span class="tag beta-tag">标签:${esc(g.tag)} (${g.tagged_families}家庭)</span>`:''}
       <span style="font-size:12px;color:#8C8A84">${esc(g.base_url||g.provider)} · 模型:${esc(g.chat_model)} · 围栏:${esc(g.fence_name||g.fence_model||'未配置')} · key:${g.has_key?'已配':'沿用环境'} · 老师:${esc(g.teacher_name||'AI 老师')} · 到期后每学生每日免费回复:${g.post_trial_daily_free_count||0} 次</span>
-      ${g.is_active||ROLE!=='super'?'':'<button class="ghost" onclick="activate('+g.id+')">激活</button>'}
+      ${ROLE==='super'?(g.teacher_enabled?'<button class="ghost" onclick="deactivate('+g.id+')">停用</button>':'<button class="ghost" onclick="activate('+g.id+')">激活</button>'):''}
+      ${ROLE==='super'&&g.teacher_enabled&&!g.is_active?'<button class="ghost" onclick="setDefaultTeacher('+g.id+')">设为默认</button>':''}
       ${ROLE==='super'?'<button class="ghost" onclick="editGroup('+g.id+')">编辑分组</button>':''}
       <button class="ghost" onclick="editTeacher(${g.id},decodeURIComponent('${attr(g.teacher_name||'AI 老师')}'),${g.post_trial_daily_free_count||0},${g.teacher_enabled},${g.teacher_sort_order||0})">老师配置</button>
       <input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp" style="width:160px;font-size:11px">
@@ -464,7 +467,9 @@ async function saveGroupEdit() {
   } catch(e) { $('ge_err').textContent = e.message; }
 }
 
-async function activate(id) { await api('/admin/llm-groups/'+id+'/activate', {method:'PUT'}); loadGroups(); }
+async function activate(id) { await api('/admin/llm-groups/'+id+'/activate', {method:'PUT'}); loadGroups(); loadLogs(); }
+async function deactivate(id) { await api('/admin/llm-groups/'+id+'/deactivate', {method:'PUT'}); loadGroups(); loadLogs(); }
+async function setDefaultTeacher(id) { await api('/admin/llm-groups/'+id+'/default', {method:'PUT'}); loadGroups(); loadLogs(); }
 async function delGroup(id) { if(!confirm('确认删除该分组？')) return; await api('/admin/llm-groups/'+id, {method:'DELETE'}); loadGroups(); }
 
 async function addGroup() {
@@ -479,8 +484,10 @@ async function addGroup() {
       name, base_url:base, api_key:key, model_id:model, fence_config_id:fence,
       tag:$('g_tag').value.trim() || null, teacher_name:teacher,
       teacher_avatar_url:avatar, post_trial_daily_free_count:Number($('g_free').value||0),
+      teacher_enabled:$('g_enabled').checked,
     })});
     ['g_name','g_base','g_key','g_model','g_fence','g_tag','g_teacher','g_avatar','g_free'].forEach(i=>$(i).value='');
+    $('g_enabled').checked = true;
     loadGroups();
   } catch(e) { $('gerr').textContent = e.message; }
 }
@@ -497,7 +504,7 @@ async function changeAvatar(id) {
 
 async function editTeacher(id, currentName, currentFree, currentEnabled, currentSort) {
   const name = prompt('老师名称：', currentName); if (name === null) return;
-  const enabled = confirm(`允许新会话选择此老师？\n当前设置：${currentEnabled ? '启用' : '停用'}（确定=启用，取消=停用）`);
+  const enabled = confirm(`激活此老师？\n当前设置：${currentEnabled ? '已激活' : '已停用'}（确定=激活，取消=停用）`);
   const sortText = prompt('展示排序（数字越小越靠前）：', String(currentSort ?? 0));
   if (sortText === null) return;
   const sort = Number.parseInt(sortText, 10);
@@ -556,8 +563,9 @@ async function setTag(familyId, tag) {
 }
 
 const LOG_FIELDS = {name:'名称',base_url:'baseUrl',model_id:'模型 ID',fence_config_id:'围栏',tag:'家庭标签',
-  teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'可选状态',teacher_sort_order:'展示排序',
-  post_trial_daily_free_count:'每日免费回复次数',post_trial_free_enabled:'到期后免费',api_key:'apiKey',provider:'服务类型'};
+  teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'激活状态',teacher_sort_order:'展示排序',
+  post_trial_daily_free_count:'每日免费回复次数',post_trial_free_enabled:'到期后免费',api_key:'apiKey',provider:'服务类型',
+  is_default:'默认老师',default:'默认老师'};
 function logDetail(detail) {
   try {
     const data = JSON.parse(detail);

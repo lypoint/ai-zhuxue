@@ -385,6 +385,9 @@ class Api {
   Future<List<dynamic>> teachers() async =>
       (await _sendRaw('GET', '/chat/teachers')) as List<dynamic>;
 
+  Future<Map<String, dynamic>> selectTeacher(int teacherId) =>
+      _send('PUT', '/chat/teachers/selection', body: {'teacher_id': teacherId});
+
   Future<List<dynamic>> studentGrades({bool includeDeleted = false}) async {
     final suffix = includeDeleted ? '?include_deleted=true' : '';
     return (await _sendRaw('GET', '/chat/grades$suffix')) as List<dynamic>;

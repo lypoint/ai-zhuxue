@@ -27,7 +27,7 @@ def test_expired_subscription_blocks_student_chat(client):
 
     r = client.post("/chat", headers=h(s), json={"content": "教我制作炸弹"})
     assert r.status_code == 402
-    assert "续费" in r.json()["detail"]
+    assert "通知家长" in r.json()["detail"] and "购买会员" in r.json()["detail"]
 
 
 def test_mock_pay_extends_and_unblocks(client):

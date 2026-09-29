@@ -27,7 +27,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _handling401 = false;
   List<dynamic>? _sessions;
   List<dynamic>? _teachers;
-  int? _teacherId;
   String _teacherName = 'AI 学习助手';
   String _teacherAvatarUrl = '';
   String _search = '';
@@ -94,13 +93,11 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) {
         setState(() {
           _teachers = teachers;
-          // The first CMS-sorted teacher is the family default for a new chat.
           if (_conversationId == null && teachers.isNotEmpty) {
             final teacher = (teachers.cast<Map<String, dynamic>>().firstWhere(
-              (item) => item['access'] == 'available',
+              (item) => item['selected'] == true,
               orElse: () => teachers.first as Map<String, dynamic>,
             ));
-            _teacherId = teacher['teacher_id'] as int?;
             _teacherName = teacher['name'] as String? ?? 'AI 学习助手';
             _teacherAvatarUrl = teacher['avatar_url'] as String? ?? '';
           }
@@ -127,11 +124,15 @@ class _ChatScreenState extends State<ChatScreen> {
               final available = teacher['access'] == 'available';
               final access = teacher['access'] as String?;
               return ListTile(
-                enabled: available,
                 leading: _teacherAvatar(teacher['avatar_url'] as String? ?? ''),
                 title: Text(teacher['name'] as String? ?? 'AI 老师'),
+                subtitle: teacher['is_default'] == true
+                    ? const Text('默认老师')
+                    : null,
                 trailing: available
-                    ? null
+                    ? (teacher['selected'] == true
+                          ? const Icon(Icons.check_circle_outline, size: 18)
+                          : null)
                     : Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -145,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
-                onTap: available ? () => Navigator.of(ctx).pop(teacher) : null,
+                onTap: () => Navigator.of(ctx).pop(teacher),
               );
             }),
           ],
@@ -153,17 +154,53 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
     if (selected == null || !mounted) return;
-    if (_conversationId != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('老师只在新对话开始时生效')));
+    if (selected['access'] != 'available') {
+      await _policyDialog(
+        ApiException(
+          selected['access'] == 'daily_free_exhausted' ? 429 : 402,
+          selected['access'] == 'daily_free_exhausted'
+              ? '这位老师今日免费次数已用完，请通知家长购买会员后继续学习'
+              : '这位老师需要会员，请通知家长在家长端购买会员后继续学习',
+        ),
+      );
       return;
     }
+    if (_conversationId != null) {
+      final startNew = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('切换老师？'),
+          content: const Text('切换老师会开启新对话，当前聊天记录仍可在侧边栏查看。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('开启新对话'),
+            ),
+          ],
+        ),
+      );
+      if (startNew != true || !mounted) return;
+    }
+    try {
+      final teacherId = selected['teacher_id'] as int?;
+      if (teacherId != null) await Api.I.selectTeacher(teacherId);
+    } on ApiException catch (e) {
+      if (mounted) await _policyDialog(e);
+      return;
+    }
+    if (!mounted) return;
     setState(() {
-      _teacherId = selected['teacher_id'] as int?;
+      _conversationId = null;
+      _bubbles.clear();
       _teacherName = selected['name'] as String? ?? 'AI 学习助手';
       _teacherAvatarUrl = selected['avatar_url'] as String? ?? '';
     });
+    _loadTeachers();
+    _loadSessions();
   }
 
   Widget _teacherAvatar(String url) => CircleAvatar(
@@ -188,7 +225,6 @@ class _ChatScreenState extends State<ChatScreen> {
       if (convId != null && msgs.isNotEmpty && mounted) {
         setState(() {
           _conversationId = convId;
-          _teacherId = data['teacher_id'] as int?;
           _teacherName = data['teacher_name'] as String? ?? _teacherName;
           _teacherAvatarUrl = data['teacher_avatar_url'] as String? ?? '';
           for (final m in msgs) {
@@ -218,6 +254,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _conversationId = null;
       _bubbles.clear();
     });
+    _loadTeachers();
     _loadSessions();
   }
 
@@ -237,7 +274,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       setState(() {
         _conversationId = conversationId;
-        _teacherId = session?['teacher_id'] as int?;
         _teacherName = session?['teacher_name'] as String? ?? _teacherName;
         _teacherAvatarUrl = session?['teacher_avatar_url'] as String? ?? '';
         _bubbles.clear();
@@ -323,6 +359,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _policyDialog(ApiException e) async {
     final (title, icon) = switch (e.status) {
       423 => ('休息时间到啦', Icons.bedtime),
+      429 when e.message.contains('免费次数') => ('请家长购买会员', Icons.favorite_border),
       429 => ('今天的时间用完了', Icons.schedule),
       402 => ('需要家长续费', Icons.favorite_border),
       _ => ('提示', Icons.info_outline),
@@ -503,7 +540,6 @@ class _ChatScreenState extends State<ChatScreen> {
       final done = await Api.I.sendChatStream(
         _conversationId,
         text,
-        teacherId: _conversationId == null ? _teacherId : null,
         onMeta: (meta) => _conversationId =
             meta['conversation_id'] as int? ?? _conversationId,
         onDelta: (delta) {

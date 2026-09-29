@@ -688,7 +688,8 @@ def list_groups(principal: AdminPrincipal = Depends(require_admin),db: Session =
                        "fence_name": g.fence_config.name if g.fence_config else None,
                        "has_key": bool(g.api_key) if principal.role != "support" else None,
                        "daily_message_cap": g.daily_message_cap if principal.role != "support" else None,
-                       "note": g.note, "is_active": g.is_active, "tag": g.tag,
+                       "note": g.note, "is_active": g.is_active, "is_default": g.is_active,
+                       "tag": g.tag,
                        "teacher_name": g.teacher_name, "teacher_avatar_url": g.teacher_avatar_url,
                        "teacher_enabled": g.teacher_enabled, "teacher_sort_order": g.teacher_sort_order,
                        "post_trial_daily_free_count": g.post_trial_daily_free_count,
@@ -811,6 +812,8 @@ def update_group(group_id: int, body: GroupUpdateIn,
             set_field(field, value)
             if field == "post_trial_daily_free_count":
                 grp.post_trial_free_enabled = value > 0
+    if not grp.teacher_enabled and grp.is_active:
+        set_field("is_active", False, "is_default")
     key = values.get("api_key", "").strip()
     if key and key != decrypt_api_key(grp.api_key or ""):
         had_key = bool(grp.api_key)
@@ -854,6 +857,9 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
         if old != value:
             audit[field] = {"from": old, "to": value}
             setattr(grp, field, value)
+    if not grp.teacher_enabled and grp.is_active:
+        audit["is_default"] = {"from": True, "to": False}
+        grp.is_active = False
     log_changes(db, principal, "teacher_profile.update", group_id, audit)
     return {"ok": True, "teacher_id": grp.id, "teacher_name": grp.teacher_name,
             "teacher_avatar_url": grp.teacher_avatar_url,
@@ -869,18 +875,57 @@ def activate_group(group_id: int, principal: AdminPrincipal = Depends(require_ad
     grp = db.get(LLMGroup, group_id)
     if not grp:
         raise HTTPException(404, "group not found")
-    db.query(LLMGroup).update({LLMGroup.is_active: False})
-    grp.is_active = True
-    db.commit()
-    log(db, principal, "llm_group.activate", f"id={group_id}")
+    if not grp.teacher_enabled:
+        grp.teacher_enabled = True
+        log_changes(db, principal, "llm_group.activate", group_id,
+                    {"teacher_enabled": {"from": False, "to": True}})
     return {"ok": True, "active": grp.name}
+
+
+@router.put("/llm-groups/{group_id}/deactivate")
+def deactivate_group(group_id: int, principal: AdminPrincipal = Depends(require_admin),
+                     db: Session = Depends(get_db)):
+    require_manage(principal)
+    grp = db.get(LLMGroup, group_id)
+    if not grp:
+        raise HTTPException(404, "group not found")
+    changes = {}
+    if grp.teacher_enabled:
+        changes["teacher_enabled"] = {"from": True, "to": False}
+        grp.teacher_enabled = False
+    if grp.is_active:
+        changes["is_default"] = {"from": True, "to": False}
+        grp.is_active = False
+    log_changes(db, principal, "llm_group.deactivate", group_id, changes)
+    return {"ok": True, "active": False}
+
+
+@router.put("/llm-groups/{group_id}/default")
+def default_group(group_id: int, principal: AdminPrincipal = Depends(require_admin),
+                  db: Session = Depends(get_db)):
+    require_manage(principal)
+    grp = db.get(LLMGroup, group_id)
+    if not grp:
+        raise HTTPException(404, "group not found")
+    old = db.query(LLMGroup).filter(LLMGroup.is_active.is_(True),
+                                   LLMGroup.id != group_id).all()
+    changes = {}
+    if old or not grp.is_active:
+        changes["default"] = {"from": [item.name for item in old], "to": grp.name}
+        for item in old:
+            item.is_active = False
+        grp.is_active = True
+    if not grp.teacher_enabled:
+        changes["teacher_enabled"] = {"from": False, "to": True}
+        grp.teacher_enabled = True
+    log_changes(db, principal, "llm_group.default", group_id, changes)
+    return {"ok": True, "default": grp.name}
 
 
 @router.delete("/llm-groups/{group_id}")
 def delete_group(group_id: int, principal: AdminPrincipal = Depends(require_admin),
                  db: Session = Depends(get_db)):
     require_manage(principal)
-    log(db, principal, "llm_group.delete", f"id={group_id}")
     grp = db.get(LLMGroup, group_id)
     if not grp:
         raise HTTPException(404, "group not found")
@@ -888,8 +933,10 @@ def delete_group(group_id: int, principal: AdminPrincipal = Depends(require_admi
     # deleting a provider remains valid on PostgreSQL as well as SQLite.
     db.query(Conversation).filter(Conversation.teacher_group_id == group_id).update(
         {Conversation.teacher_group_id: None}, synchronize_session=False)
+    db.query(Student).filter(Student.last_teacher_group_id == group_id).update(
+        {Student.last_teacher_group_id: None}, synchronize_session=False)
     db.delete(grp)
-    db.commit()
+    log(db, principal, "llm_group.delete", f"id={group_id} name={grp.name}")
     return {"ok": True}
 
 
