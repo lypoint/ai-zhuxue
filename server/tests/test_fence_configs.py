@@ -1,12 +1,16 @@
 """CMS fence configuration, model routing, and teacher avatar checks."""
 import base64
+import asyncio
+import json
 import uuid
+
+import httpx
 
 from app.config import settings
 from app.db import SessionLocal
 from app.models import FenceConfig, LLMGroup
 from app.security import parse_token
-from app.services import llm
+from app.services import fence, llm
 from tests.conftest import make_admin, make_family
 
 
@@ -67,3 +71,27 @@ def test_separate_fence_model_and_teacher_avatar(client, monkeypatch, tmp_path):
     assert "api_key" not in routing and "fence_config" not in routing
     assert "chat-secret" not in str(routing) and "fence-secret" not in str(routing)
     assert client.delete(f"/admin/fence-configs/{fence_id}", headers=admin).status_code == 409
+
+
+def test_system_one_fence_uses_native_endpoint(monkeypatch):
+    url = "https://example.maas.aliyuncs.com/compatible-mode/v1/systemone"
+    monkeypatch.setattr(settings, "fence_mode", "llm")
+    monkeypatch.setattr(llm, "resolve_active_group", lambda *args: {
+        "fence_config": {"base_url": url, "api_key": "test-key", "model_id": "decision-model-preview"}})
+    original_client = httpx.AsyncClient
+
+    def respond(request):
+        body = json.loads(request.content)
+        assert str(request.url) == url
+        assert body["state"] == "请讲解一元一次方程"
+        assert body["questions"]["category"]["type"] == "choice"
+        assert request.headers["authorization"] == "Bearer test-key"
+        return httpx.Response(200, json={"answers": {"category": {
+            "choice": "study", "confidence": 0.94}}, "usage": {"input_tokens": 65}})
+
+    monkeypatch.setattr(httpx, "AsyncClient", lambda **kwargs: original_client(
+        transport=httpx.MockTransport(respond), **kwargs))
+    verdict = asyncio.run(fence.evaluate("请讲解一元一次方程", group_id=2))
+    assert verdict["decision"] == "allow"
+    assert verdict["category"] == "study"
+    assert verdict["confidence"] == 0.94

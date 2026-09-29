@@ -9,6 +9,8 @@
 import json
 import re
 
+import httpx
+
 from ..config import settings
 from . import llm
 
@@ -82,6 +84,26 @@ def _heuristic_classify(content: str) -> tuple[str, float]:
 
 async def _llm_classify(content: str, system: str, family_id: int | None = None,
                        group_id: int | None = None) -> tuple[str, float, dict]:
+    fence_config = llm.resolve_active_group(family_id, group_id).get("fence_config") or {}
+    if fence_config.get("base_url", "").endswith("/systemone"):
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.post(fence_config["base_url"],
+                headers={"Authorization": f"Bearer {fence_config['api_key']}"},
+                json={"model": fence_config["model_id"], "state": content,
+                      "questions": {"category": {"type": "choice", "instructions": system,
+                          "criteria": {"study": "学科答疑、学习方法或教育性讨论",
+                                       "entertainment": "纯娱乐或流行文化",
+                                       "sensitive": "暴力、色情、自伤或违法内容",
+                                       "other": "其他非学习内容"}}}})
+            response.raise_for_status()
+            data = response.json()
+        answer = data["answers"]["category"]
+        category, confidence = answer["choice"], float(answer["confidence"])
+        if category not in {"study", "entertainment", "sensitive", "other"} or not 0 <= confidence <= 1:
+            raise llm.LLMUnavailable("invalid System One classification")
+        return category, confidence, {"tokens_in": data.get("usage", {}).get("input_tokens", 0),
+                                      "tokens_out": 0, "provider": "custom",
+                                      "model": fence_config["model_id"]}
     result = await llm.chat(
         [{"role": "system", "content": system}, {"role": "user", "content": content}],
         purpose="fence_classify", max_tokens=64, temperature=0.0,
