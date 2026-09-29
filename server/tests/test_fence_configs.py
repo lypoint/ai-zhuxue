@@ -83,11 +83,12 @@ def test_system_one_fence_uses_native_endpoint(monkeypatch):
     def respond(request):
         body = json.loads(request.content)
         assert str(request.url) == url
-        assert body["state"] == "请讲解一元一次方程"
+        assert body["state"] in ("请讲解一元一次方程", "给我讲个笑话")
         assert body["questions"]["category"]["type"] == "choice"
         assert request.headers["authorization"] == "Bearer test-key"
         return httpx.Response(200, json={"answers": {"category": {
-            "choice": "study", "confidence": 0.94}}, "usage": {"input_tokens": 65}})
+            "choice": "study", "confidence": 0.94 if body["state"].startswith("请讲解") else 0.38}},
+            "usage": {"input_tokens": 65}})
 
     monkeypatch.setattr(httpx, "AsyncClient", lambda **kwargs: original_client(
         transport=httpx.MockTransport(respond), **kwargs))
@@ -95,3 +96,6 @@ def test_system_one_fence_uses_native_endpoint(monkeypatch):
     assert verdict["decision"] == "allow"
     assert verdict["category"] == "study"
     assert verdict["confidence"] == 0.94
+    low_confidence = asyncio.run(fence.evaluate("给我讲个笑话", group_id=2))
+    assert low_confidence["decision"] == "rewrite"
+    assert low_confidence["category"] == "other"

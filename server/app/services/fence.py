@@ -201,7 +201,9 @@ async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None
         except llm.LLMUnavailable:
             record("second_pass", "allow", category, confidence, "llm unavailable, keep first pass", category, False)
 
-    # 4) 分级处置
+    # 4) 分级处置：两次判定仍低置信度时，不放行学习话题。
+    if settings.fence_mode == "llm" and category == "study" and confidence < 0.6:
+        category = "other"
     if category == "study":
         decision = "allow"
     elif category == "sensitive":
