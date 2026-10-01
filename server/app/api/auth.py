@@ -1,35 +1,67 @@
-"""认证：监护人手机号+短信码（dev 固定码）+三要素核验注册；学生端凭绑定码+设备号登录。"""
+"""认证：监护人本机号码或短信验证码登录；学生端凭绑定码+设备号登录。"""
+import time
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from ..config import settings
-from ..db import get_db
+from ..db import SessionLocal, get_db
 from ..models import BindCode, Family, FamilySettings, Guardian, Student, StudentDevice
-from ..schemas import GuardianRegisterIn, StudentLoginIn, TokenOut
+from ..ratelimit import _hit
+from ..schemas import GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, StudentLoginIn, TokenOut
 from ..security import make_token
-from ..services import guardian_verify
-from ..services.guardian_verify import verify as verify_guardian
+from ..services import aliyun_phone
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# dev 模式固定短信码；生产接短信服务商并加频控
+# 本地和测试环境保留固定码；生产必须由阿里云核验。
 DEV_SMS_CODE = "123456"
+
+
+@router.post("/guardian/sms/send")
+async def guardian_sms_send(body: GuardianSmsSendIn):
+    if settings.env == "prod":
+        minute = int(time.time() // 60)
+        with SessionLocal.begin() as db:
+            allowed = _hit(db, f"sms:minute:{body.phone}", 1, minute)
+            daily_allowed = _hit(db, f"sms:day:{body.phone}", 10, minute // 1440)
+        if not allowed or not daily_allowed:
+            raise HTTPException(429, "验证码发送太频繁，请稍后再试")
+    try:
+        await run_in_threadpool(aliyun_phone.send_sms, body.phone)
+    except aliyun_phone.PhoneServiceUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return {"ok": True}
 
 
 @router.post("/guardian/register", response_model=TokenOut)
 async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_db)):
-    # 短信服务尚未接入，生产环境不能把任意短信码当作登录凭证。
     if settings.env == "prod":
-        raise HTTPException(503, "监护人短信验证尚未接入，暂不可注册或登录")
-    if body.sms_code != DEV_SMS_CODE:
+        try:
+            passed = await run_in_threadpool(aliyun_phone.check_sms, body.phone, body.sms_code)
+        except aliyun_phone.PhoneServiceUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+    else:
+        passed = body.sms_code == DEV_SMS_CODE
+    if not passed:
         raise HTTPException(400, "invalid sms code")
+    return _guardian_token(body.phone, body.nickname, db)
 
-    result = await verify_guardian(body.real_name, body.id_number, body.phone)
-    if not result.passed:
-        raise HTTPException(400, f"guardian verify failed: {result.detail}")
 
-    guardian = db.query(Guardian).filter_by(phone=body.phone).first()
+@router.post("/guardian/one-tap", response_model=TokenOut)
+async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db)):
+    try:
+        phone = await run_in_threadpool(aliyun_phone.get_mobile, body.access_token)
+    except aliyun_phone.PhoneServiceUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return _guardian_token(phone, body.nickname, db)
+
+
+def _guardian_token(phone: str, nickname: str, db: Session) -> TokenOut:
+
+    guardian = db.query(Guardian).filter_by(phone=phone).first()
     if not guardian:
         # Initialize pricing before opening the family transaction.  If two
         # first registrations race, a config-row conflict cannot roll back a
@@ -39,8 +71,7 @@ async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_
         family = Family()
         db.add(family)
         db.flush()
-        guardian = Guardian(family_id=family.id, phone=body.phone, nickname=body.nickname,
-                            verified_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc))
+        guardian = Guardian(family_id=family.id, phone=phone, nickname=nickname)
         # 家庭设置从全局策略继承，家长后续仍可在端内覆盖。
         db.add(FamilySettings(
             family_id=family.id,

@@ -113,22 +113,26 @@ class Api {
     String phone,
     String smsCode,
     String nickname,
-    String realName,
-    String idNumber,
   ) async {
     final data = await _send(
       'POST',
       '/auth/guardian/register',
-      body: {
-        'phone': phone,
-        'sms_code': smsCode,
-        'nickname': nickname,
-        'real_name': realName,
-        'id_number': idNumber,
-      },
+      body: {'phone': phone, 'sms_code': smsCode, 'nickname': nickname},
     );
     await _saveToken(data['token'] as String);
     return data['role'] as String;
+  }
+
+  Future<void> sendGuardianSms(String phone) async {
+    await _send('POST', '/auth/guardian/sms/send', body: {'phone': phone});
+  }
+
+  Future<void> guardianOneTap(String accessToken, {String nickname = '家长'}) async {
+    final data = await _send(
+      'POST', '/auth/guardian/one-tap',
+      body: {'access_token': accessToken, 'nickname': nickname},
+    );
+    await _saveToken(data['token'] as String);
   }
 
   Future<String> studentLogin(
@@ -152,6 +156,14 @@ class Api {
 
   Future<Map<String, dynamic>> familyOverview() =>
       _send('GET', '/parent/family');
+  Future<Map<String, dynamic>> verifyGuardianIdentity(
+    String realName,
+    String idNumber,
+  ) => _send(
+    'POST',
+    '/parent/identity/verify',
+    body: {'real_name': realName, 'id_number': idNumber},
+  );
   Future<Map<String, dynamic>> students() => _send('GET', '/parent/students');
 
   Future<Map<String, dynamic>> createStudent(

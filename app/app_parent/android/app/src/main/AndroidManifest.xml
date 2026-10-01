@@ -1,9 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <application
         android:label="AI助学·家长版"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <activity android:name="com.mobile.auth.gatewayauth.LoginAuthActivity"
+            android:exported="false" android:launchMode="singleTop"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="behind" android:theme="@style/authsdk_activity_dialog"/>
+        <activity android:name="com.mobile.auth.gatewayauth.PrivacyDialogActivity"
+            android:exported="false" android:launchMode="singleTop"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="behind" android:theme="@style/authsdk_activity_dialog"/>
+        <activity android:name="com.mobile.auth.gatewayauth.activity.AuthWebVeiwActivity"
+            android:exported="false" android:configChanges="orientation|keyboardHidden|screenSize"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

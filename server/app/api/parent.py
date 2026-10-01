@@ -1,4 +1,6 @@
 """家长端：全量审查（对话列表/消息/围栏流水）、管控设置、家庭成员。"""
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -12,9 +14,26 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       Student, StudentDevice, StudentGrade, StudentGradeVersion,
                       Subscription, SubscriptionOrder, WellbeingAssessment, Notification,
                       FenceFeedback)
-from ..schemas import ConversationOut, FamilySettingsIn, FenceEventOut, MessageOut
+from ..schemas import ConversationOut, FamilySettingsIn, FenceEventOut, GuardianIdentityIn, MessageOut
+from ..services.guardian_verify import verify as verify_guardian
 
 router = APIRouter(prefix="/parent", tags=["parent"])
+
+
+@router.post("/identity/verify")
+async def verify_identity(body: GuardianIdentityIn, guardian: Guardian = Depends(current_guardian),
+                          db: Session = Depends(get_db)):
+    if settings.env == "prod" and settings.guardian_verify_provider == "mock":
+        raise HTTPException(503, "实名认证服务尚未接入")
+    try:
+        result = await verify_guardian(body.real_name, body.id_number, guardian.phone)
+    except NotImplementedError:
+        raise HTTPException(503, "实名认证服务尚未接入")
+    if not result.passed:
+        raise HTTPException(400, "实名认证未通过，请检查姓名和身份证号")
+    guardian.verified_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"verified": True, "verified_at": guardian.verified_at.isoformat()}
 
 
 def _own_student(guardian: Guardian, student_id: int, db: Session) -> Student:
@@ -32,7 +51,8 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
         StudentDevice.student_id.in_([s.id for s in students]), StudentDevice.is_current.is_(True)
     ).all()} if students else {}
     return {
-        "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname},
+        "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname,
+                     "identity_verified": guardian.verified_at is not None},
         "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band,
                       "active": s.active, "seat_status": s.seat_status,
                       "current_device": ({"name": devices[s.id].device_name,

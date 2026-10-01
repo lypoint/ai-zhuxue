@@ -18,18 +18,16 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 
 ## 认证 `/auth`
 
-### POST /auth/guardian/register — 监护人注册（含三要素核验）
+### POST /auth/guardian/register — 监护人注册或登录
 ```json
 {
   "phone": "13800001111",        // 11 位大陆手机号
   "sms_code": "123456",          // dev 固定码；生产接短信服务商
-  "nickname": "爸爸",
-  "real_name": "张三",            // 三要素之一
-  "id_number": "11010120100307857X"  // 15/18 位
+  "nickname": "爸爸"
 }
 ```
 → `200 {"token": "<jwt>", "role": "guardian"}`
-错误：`400 guardian verify failed: <detail>`（三要素格式/一致性不通过）。
+注册和登录不要求实名认证；号码认证服务未配置或不可用时返回 503。
 副作用：新监护人自动创建 Family + FamilySettings（审查 default-on，每日上限 200）。
 
 ### POST /auth/student/login — 学生端登录（凭绑定码）
@@ -88,10 +86,14 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 
 ### GET /parent/family — 家庭总览
 ```json
-{"guardian": {"id","phone","nickname"},
+{"guardian": {"id","phone","nickname","identity_verified"},
  "students": [{"id","nickname","grade_band"}],
  "settings": {"daily_message_cap": 200, "review_enabled": true}}
 ```
+
+### POST /parent/identity/verify — 可选实名认证
+`{"real_name":"张三","id_number":"11010120100307857X"}` → `200 {"verified":true,"verified_at":"..."}`。
+服务端使用当前登录家长的手机号进行三要素核验，只保存核验时间，不保存姓名或身份证号。核验失败或服务不可用不会限制家庭和学生功能。
 
 ### GET /parent/students/{student_id}/conversations — 该学生全部对话
 → `200 [ConversationOut...]`（按 id 倒序，含老师姓名/头像快照和 `student_deleted` 标记）。

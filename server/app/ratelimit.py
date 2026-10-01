@@ -12,7 +12,8 @@ from .config import settings
 from .db import SessionLocal
 from .security import parse_token
 
-PROTECTED = {"/auth/": 20, "/chat": 30, "/admin/login": 10, "/admin/": 120}
+PROTECTED = {"/auth/": 20, "/chat": 30, "/parent/identity/verify": 5,
+             "/admin/login": 10, "/admin/": 120}
 
 
 def _hit(db, key: str, limit: int, minute: int) -> bool:
@@ -35,11 +36,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if prefix and settings.env != "test":
             ip = request.client.host if request.client else "unknown"
             keys = [f"{prefix}:ip:{ip}"]
-            if prefix == "/chat":
+            if prefix in ("/chat", "/parent/identity/verify"):
                 try:
                     payload = parse_token(request.headers.get("Authorization", "").removeprefix("Bearer "))
                     if payload.get("role") == "student":
                         keys.append(f"{prefix}:student:{payload['sub']}")
+                    elif prefix == "/parent/identity/verify" and payload.get("role") == "guardian":
+                        keys.append(f"{prefix}:guardian:{payload['sub']}")
                 except Exception:
                     pass  # 无效令牌仍占 IP 配额，鉴权随后拒绝。
             try:

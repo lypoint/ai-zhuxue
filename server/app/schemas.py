@@ -4,10 +4,21 @@ from pydantic import BaseModel, Field
 
 
 class GuardianRegisterIn(BaseModel):
-    phone: str = Field(min_length=11, max_length=11)
-    sms_code: str = Field(min_length=4, max_length=6)
+    phone: str = Field(pattern=r"^1\d{10}$")
+    sms_code: str = Field(pattern=r"^\d{4,6}$")
     nickname: str = ""
-    # 三要素核验（监护人实名信息，权威数据源比对；不采集人脸）
+
+
+class GuardianSmsSendIn(BaseModel):
+    phone: str = Field(pattern=r"^1\d{10}$")
+
+
+class GuardianOneTapIn(BaseModel):
+    access_token: str = Field(min_length=10, max_length=4096)
+    nickname: str = ""
+
+
+class GuardianIdentityIn(BaseModel):
     real_name: str = Field(min_length=2, max_length=30)
     id_number: str = Field(min_length=15, max_length=18)
 

@@ -33,8 +33,7 @@ def client():
 @pytest.fixture(scope="session")
 def guardian_token(client):
     resp = client.post("/auth/guardian/register", json={
-        "phone": "13900000001", "sms_code": "123456", "nickname": "测试家长",
-        "real_name": "张三", "id_number": "11010120100307857X"})
+        "phone": "13900000001", "sms_code": "123456", "nickname": "测试家长"})
     assert resp.status_code == 200
     return resp.json()["token"]
 
@@ -73,8 +72,7 @@ def make_family(client, phone=None):
     """创建独立家庭（监护人+已绑定学生），避免用例间每日上限/状态互相污染。"""
     phone = phone or f"139{uuid.uuid4().int % 10**8:08d}"[:11]
     token = client.post("/auth/guardian/register", json={
-        "phone": phone, "sms_code": "123456", "nickname": "",
-        "real_name": "测试", "id_number": "11010120100307857X"}).json()["token"]
+        "phone": phone, "sms_code": "123456", "nickname": "测试"}).json()["token"]
     code = client.post("/bind/code", headers={"Authorization": f"Bearer {token}"}).json()["code"]
     s = client.post("/auth/student/login", json={
         "bind_code": code, "device_id": f"pytest-{uuid.uuid4().hex[:10]}", "nickname": "孩子"}).json()["token"]
