@@ -1,6 +1,8 @@
 import 'package:app_student/student_app.dart';
 import 'package:app_student/screens/chat_screen.dart';
 import 'package:app_student/screens/bind_screen.dart';
+import 'package:app_student/models/bubble.dart';
+import 'package:app_student/widgets/message_bubble.dart';
 import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,5 +32,47 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
     expect(find.text('你好！今天想学什么？'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
+  });
+
+  testWidgets('发送和接收消息都可以点击复制按钮', (tester) async {
+    final copied = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              for (final role in ['user', 'assistant'])
+                MessageBubble(
+                  bubble: Bubble(role, '消息-$role'),
+                  onLongPress: () {},
+                  onCopy: () => copied.add(role),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('复制'), findsNWidgets(2));
+    await tester.tap(find.text('复制').first);
+    await tester.tap(find.text('复制').last);
+    expect(copied, ['user', 'assistant']);
+  });
+
+  testWidgets('等待 AI 回复时显示进度提示', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MessageBubble(
+            bubble: Bubble('assistant', ''),
+            onLongPress: () {},
+            onCopy: () {},
+            isLoading: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('正在回答…'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

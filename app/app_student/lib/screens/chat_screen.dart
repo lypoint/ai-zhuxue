@@ -295,6 +295,26 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _copyMessage(Bubble b) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: b.text));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('已复制到剪贴板'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('复制失败，请重试')),
+        );
+      }
+    }
+  }
+
   /// 消息长按菜单：复制 / 收藏（P2 学习沉淀）
   Future<void> _messageMenu(Bubble b) async {
     final action = await showModalBottomSheet<String>(
@@ -319,15 +339,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     if (!mounted || action == null) return;
     if (action == 'copy') {
-      await Clipboard.setData(ClipboardData(text: b.text));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('已复制到剪贴板'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
+      await _copyMessage(b);
     } else if (action == 'favorite') {
       if (b.messageId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -712,6 +724,8 @@ class _ChatScreenState extends State<ChatScreen> {
       itemBuilder: (_, i) => MessageBubble(
         bubble: _bubbles[i],
         onLongPress: () => _messageMenu(_bubbles[i]),
+        onCopy: () => _copyMessage(_bubbles[i]),
+        isLoading: _sending && i == _bubbles.length - 1 && _bubbles[i].text.isEmpty,
       ),
     );
   }
