@@ -54,7 +54,7 @@ flutter run   # 需要真机/模拟器；家长端同理在 app/app_parent
 cd app/app_parent
 flutter pub get
 flutter run
-# API 地址：--dart-define=API_BASE=http://<host>:8100（模拟器默认 10.0.2.2:8100）
+# 默认连接 https://api.gker.net；本地调试：--dart-define=API_BASE=http://<host>:8100
 ```
 
 **Docker 部署**：

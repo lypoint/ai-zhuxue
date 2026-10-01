@@ -4,11 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// 后端地址：Android 模拟器用 10.0.2.2 访问宿主机。
-/// 覆盖方式：flutter run --dart-define=API_BASE=http://192.168.x.x:8100
+/// 默认连接线上 API；本地调试可用 --dart-define=API_BASE 覆盖。
 const apiBase = String.fromEnvironment(
   'API_BASE',
-  defaultValue: 'http://10.0.2.2:8100',
+  defaultValue: 'https://api.gker.net',
 );
 
 class ApiException implements Exception {
