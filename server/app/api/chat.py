@@ -345,6 +345,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     history.reverse()
     messages = [{"role": "system", "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(student.grade_band, "8-12岁"))}]
     for m in history[:-1]:
+        if m.role == "assistant" and not m.content.strip():
+            continue
         messages.append({"role": m.role, "content": m.content})
     if verdict["decision"] == "rewrite":
         messages.append({"role": "system",
@@ -364,6 +366,11 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         user_msg.fence_action = verdict["decision"]
         db.commit()
         raise
+
+    if not (result["content"] or "").strip():
+        user_msg.fence_action = verdict["decision"]
+        db.commit()
+        raise HTTPException(503, "模型没有返回正文，请重试或切换老师")
 
     reply = Message(conversation_id=conv.id, role="assistant", content=result["content"],
                     fence_action=verdict["decision"], tokens_in=result["tokens_in"],
@@ -482,6 +489,8 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
             messages = [{"role": "system",
                          "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(grade_band, "8-12岁"))}]
             for m in history[:-1]:
+                if m.role == "assistant" and not m.content.strip():
+                    continue
                 messages.append({"role": m.role, "content": m.content})
             if fence_action == "rewrite":
                 messages.append({"role": "system",
@@ -505,6 +514,8 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                     elif "usage" in chunk:
                         usage = chunk["usage"]
                 content = "".join(collected)
+                if not content.strip():
+                    raise llm.LLMUnavailable("模型没有返回正文，请重试或切换老师")
                 # 生成侧复核：sensitive → 落库替换为拒绝话术。
                 # 安全优先模式（默认）下复核发生在任何 delta 发出之前，敏感内容不会到达终端；
                 # 实时模式（stream_recheck_first=false）已送达部分无法撤回，见 api.md 诚实声明。

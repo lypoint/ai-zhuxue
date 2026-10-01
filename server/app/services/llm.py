@@ -150,12 +150,17 @@ async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 10
     }
 
 
-async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: int = 1024,
+async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: int | None = None,
                       temperature: float = 0.7, family_id: int | None = None,
                       group_id: int | None = None):
     """流式对话（OpenAI 兼容 SSE）。逐段 yield 文本增量；结束时 yield
     {"usage": {...}, "provider": ..., "model": ...} 汇总。无 Key 抛 LLMUnavailable。"""
     name, p, key, model = _provider(purpose, family_id, group_id)
+    # 推理模型的思考 token 也占 max_tokens；1024 可能在正文开始前耗尽。
+    if max_tokens is None:
+        max_tokens = 40960 if model == "deepseek-reasoner" else 1024
+    has_content = False
+    finish_reason = None
     async with httpx.AsyncClient(timeout=120) as client:
         async with client.stream(
             "POST", f"{p['base_url']}/chat/completions",
@@ -182,7 +187,9 @@ async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: i
                 choice = (data.get("choices") or [{}])[0]
                 delta = (choice.get("delta") or {}).get("content")
                 if delta:
+                    has_content = True
                     yield {"delta": delta, "provider": name, "model": model}
+                finish_reason = choice.get("finish_reason") or finish_reason
                 err = data.get("error")
                 if err:
                     raise LLMUnavailable(f"{name} stream error: {str(err)[:160]}")
@@ -192,3 +199,6 @@ async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: i
                                      "tokens_out": u.get("completion_tokens", 0),
                                      "cost": u.get("cost")},
                            "provider": name, "model": model}
+    if not has_content:
+        reason = "（输出长度已用尽）" if finish_reason == "length" else ""
+        raise LLMUnavailable(f"{name} 模型没有返回正文{reason}，请重试或切换老师")
