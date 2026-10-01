@@ -528,10 +528,11 @@ class Api {
   Future<void> logout() async {
     try {
       await _send('POST', '/auth/logout');
-    } on ApiException {
-      // token 已失效等场景不阻塞本地登出
+    } catch (_) {
+      // 服务端不可达或 token 已失效时，仍清除本机凭证。
+    } finally {
+      await _saveToken(null);
     }
-    await _saveToken(null);
   }
 
   /// 发消息（非流式）：返回 assistant 消息。fence 429/423 等业务码由 ApiException 抛出。
