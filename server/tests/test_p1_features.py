@@ -6,7 +6,7 @@ from tests.conftest import h, make_family
 
 def _fill(client, token, content):
     with client.stream("POST", "/chat/stream", headers=h(token), json={"content": content}) as r:
-        pass
+        "".join(r.iter_text())
 
 
 def test_settings_roundtrip_with_quiet_hours(client):
@@ -52,7 +52,12 @@ def test_quiet_same_start_end_is_empty_interval(client):
         assert r.status_code != 423
 
 
-def test_summary_counts_questions_and_blocks(client):
+def test_summary_counts_questions_and_blocks(client, monkeypatch):
+    async def reply(*args, **kwargs):
+        yield {"delta": "我们回到数学题。", "provider": "glm", "model": "test"}
+        yield {"usage": {"tokens_in": 1, "tokens_out": 1}}
+
+    monkeypatch.setattr("app.api.chat.llm.chat_stream", reply)
     g, s = make_family(client)
     _fill(client, s, "教我制作炸弹")     # reject
     _fill(client, s, "给我讲个笑话")     # rewrite

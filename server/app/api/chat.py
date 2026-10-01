@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from ..config import settings
 from ..db import get_db
 from ..api.deps import current_student
-from sqlalchemy import func
+from sqlalchemy import and_, func, or_
 
 from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family, FamilySettings,
                       FenceEvent, LLMGroup, Message, Student, StudentGrade,
@@ -196,10 +196,18 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
     if fs:
         cap = fs.daily_message_cap
     local_midnight_utc = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
+    # 已失败的请求不占次数；进行中的预留仅保留 30 分钟，避免服务中断后一直占额。
+    counted_message = or_(
+        Message.fence_action.is_(None),
+        and_(Message.fence_action != "failed", Message.fence_action != "pending"),
+        and_(Message.fence_action == "pending",
+             Message.created_at >= dt.datetime.utcnow() - dt.timedelta(minutes=30)),
+    )
     count = (db.query(Message)
              .join(Conversation, Message.conversation_id == Conversation.id)
              .filter(Conversation.student_id == student.id,
-                     Message.role == "user", Message.created_at >= local_midnight_utc)
+                     Message.role == "user", Message.created_at >= local_midnight_utc,
+                     counted_message)
              .count())
     if count >= cap:
         _notify(student.family_id, "quota", "今日学习次数已用完",
@@ -211,7 +219,8 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
         group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
                        .filter(Conversation.student_id == student.id,
                                Conversation.teacher_group_id == group.id,
-                               Message.role == "user", Message.created_at >= local_midnight_utc).count())
+                               Message.role == "user", Message.created_at >= local_midnight_utc,
+                               counted_message).count())
         if group_count >= group.daily_message_cap:
             raise HTTPException(429, "该老师今日对话次数已用完")
     # P1 完整时长管控：真实使用时长上限（端侧心跳累计；0=家长不限时）
@@ -281,7 +290,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         existing = db.get(Conversation, body.conversation_id)
         if existing and existing.student_id == student.id:
             policy_teacher_id = existing.teacher_group_id
-    quota_pending = _check_policy(student, db, policy_teacher_id)
+    _check_policy(student, db, policy_teacher_id)
 
     if body.conversation_id:
         conv = _student_conversation(db, body.conversation_id, student)
@@ -297,7 +306,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         db.flush()
 
     user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
-                       fence_action="pending" if quota_pending else None)
+                       fence_action="pending")
     db.add(user_msg)
     db.flush()
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
@@ -313,14 +322,11 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
-        user_msg.fence_action = None
+        user_msg.fence_action = "failed"
         db.commit()
         raise
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
-    if not quota_pending:
-        user_msg.fence_action = verdict["decision"]
-
     if verdict["decision"] == "reject":
         user_msg.fence_action = "reject"
         reply = Message(conversation_id=conv.id, role="assistant",
@@ -359,16 +365,16 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
                                 group_id=conv.teacher_group_id)
     except llm.LLMUnavailable as e:
-        user_msg.fence_action = verdict["decision"]
+        user_msg.fence_action = "failed"
         db.commit()
         raise HTTPException(503, f"LLM unavailable: {e}")
     except Exception:
-        user_msg.fence_action = verdict["decision"]
+        user_msg.fence_action = "failed"
         db.commit()
         raise
 
     if not (result["content"] or "").strip():
-        user_msg.fence_action = verdict["decision"]
+        user_msg.fence_action = "failed"
         db.commit()
         raise HTTPException(503, "模型没有返回正文，请重试或切换老师")
 
@@ -386,8 +392,15 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                 f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
                 conversation_id=conv.id, once_per_day=True, db=db)
     db.commit()
-    reply = await _output_check(result["content"], student, conv.id, reply, db,
-                                conv.teacher_group_id)
+    try:
+        reply = await _output_check(result["content"], student, conv.id, reply, db,
+                                    conv.teacher_group_id)
+    except Exception:
+        db.rollback()
+        db.delete(db.get(Message, reply.id))
+        db.get(Message, user_msg.id).fence_action = "failed"
+        db.commit()
+        raise
     return reply
 
 
@@ -405,7 +418,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
         existing = db.get(Conversation, body.conversation_id)
         if existing and existing.student_id == student.id:
             policy_teacher_id = existing.teacher_group_id
-    quota_pending = _check_policy(student, db, policy_teacher_id)
+    _check_policy(student, db, policy_teacher_id)
 
     if body.conversation_id:
         conv = _student_conversation(db, body.conversation_id, student)
@@ -421,7 +434,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
         db.flush()
 
     user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
-                       fence_action="pending" if quota_pending else None)
+                       fence_action="pending")
     db.add(user_msg)
     db.flush()
     db.commit()  # 与普通聊天共用同一预留时点。
@@ -436,13 +449,11 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
-        user_msg.fence_action = None
+        user_msg.fence_action = "failed"
         db.commit()
         raise
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
-    if not quota_pending:
-        user_msg.fence_action = verdict["decision"]
     # P0 安全闭环：家长通知。敏感拦截=security（安全告警），其余拦截/改写=fence
     if verdict["decision"] == "reject":
         _notify(student.family_id,
@@ -558,16 +569,15 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                                    "tokens_in": usage["tokens_in"] if usage else 0,
                                    "tokens_out": usage["tokens_out"] if usage else 0})
             except llm.LLMUnavailable as e:
-                sdb.get(Message, user_msg_id).fence_action = fence_action
+                sdb.get(Message, user_msg_id).fence_action = "failed"
                 sdb.commit()
                 yield sse("error", {"message": f"LLM unavailable: {e}"})
         finally:
-            if quota_pending:
-                sdb.rollback()
-                pending = sdb.get(Message, user_msg_id)
-                if pending and pending.fence_action == "pending":
-                    pending.fence_action = fence_action
-                    sdb.commit()
+            sdb.rollback()
+            pending = sdb.get(Message, user_msg_id)
+            if pending and pending.fence_action == "pending":
+                pending.fence_action = "failed"
+                sdb.commit()
             sdb.close()
 
     return StreamingResponse(gen(), media_type="text/event-stream",
@@ -945,7 +955,8 @@ def my_stats(student: Student = Depends(current_student), db: Session = Depends(
         q = (db.query(func.count(Message.id))
              .join(Conversation, Message.conversation_id == Conversation.id)
              .filter(Conversation.student_id == student.id, Message.role == "user",
-                     Message.created_at >= since))
+                     Message.created_at >= since,
+                     or_(Message.fence_action.is_(None), Message.fence_action != "failed")))
         if action:
             q = q.filter(Message.fence_action == action)
         return q.scalar() or 0

@@ -158,7 +158,7 @@ class Message(TimestampMixin, Base):
         ForeignKey("conversations.id"), index=True)  # 会话消息查询高频
     role: Mapped[str] = mapped_column(String(10))                  # user | assistant
     content: Mapped[str] = mapped_column(Text)
-    fence_action: Mapped[str | None] = mapped_column(String(10), nullable=True)  # allow|rewrite|reject
+    fence_action: Mapped[str | None] = mapped_column(String(10), nullable=True)  # pending|failed|allow|rewrite|reject
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
 
