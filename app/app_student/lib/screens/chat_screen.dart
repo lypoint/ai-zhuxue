@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
@@ -37,7 +38,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String _teacherAvatarUrl = '';
   String _search = '';
   late final _heartbeat = ForegroundHeartbeat((seconds) {
-    Api.I.heartbeat(seconds).catchError((_) {});
+    unawaited(Api.I.heartbeat(seconds).then<void>((_) {}, onError: (_) {}));
   });
 
   @override
