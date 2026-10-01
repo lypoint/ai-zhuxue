@@ -3,6 +3,7 @@ import 'package:app_student/screens/chat_screen.dart';
 import 'package:app_student/screens/bind_screen.dart';
 import 'package:app_student/models/bubble.dart';
 import 'package:app_student/widgets/message_bubble.dart';
+import 'package:app_student/widgets/chat_drawer.dart';
 import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,5 +75,39 @@ void main() {
     );
     expect(find.text('正在回答…'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('会话记录加载失败后可以重试', (tester) async {
+    var retried = false;
+    final scaffoldKey = GlobalKey<ScaffoldState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          key: scaffoldKey,
+          drawer: ChatDrawer(
+            sessions: null,
+            sessionsError: '会话记录加载失败，请重试',
+            filteredSessions: const [],
+            search: '',
+            currentConversationId: null,
+            onNewChat: () {},
+            onSearchChanged: (_) {},
+            onOpenStats: () {},
+            onOpenFavorites: () {},
+            onOpenGrades: () {},
+            onLogout: () {},
+            onOpenSession: (_) {},
+            onSessionMenu: (_) {},
+            onRetrySessions: () => retried = true,
+          ),
+          body: const SizedBox(),
+        ),
+      ),
+    );
+    scaffoldKey.currentState!.openDrawer();
+    await tester.pumpAndSettle();
+    expect(find.text('会话记录加载失败，请重试'), findsOneWidget);
+    await tester.tap(find.text('重试'));
+    expect(retried, isTrue);
   });
 }
