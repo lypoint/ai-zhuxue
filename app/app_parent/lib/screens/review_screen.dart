@@ -22,6 +22,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
   List<dynamic>? _searchHits;
   final _searchCtrl = TextEditingController();
   String _status = 'all';
+  String? _loadError;
+  bool _searching = false;
 
   @override
   void initState() {
@@ -29,9 +31,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _doSearch() async {
     final q = _searchCtrl.text.trim();
-    if (q.length < 2) return;
+    if (q.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入至少 2 个字再搜索')),
+      );
+      return;
+    }
+    if (_searching) return;
+    setState(() { _searching = true; _searchHits = null; });
     try {
       final hits = await Api.I.searchConversations(widget.studentId, q);
       if (!mounted) return;
@@ -41,29 +56,45 @@ class _ReviewScreenState extends State<ReviewScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('搜索失败，请检查网络后重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _searching = false);
     }
   }
 
   Future<void> _load() async {
-    final list = await Api.I.conversations(widget.studentId, status: _status);
-    Map<String, dynamic>? usage;
-    Map<String, dynamic>? summary;
+    final status = _status;
     try {
-      usage = await Api.I.studentUsage(widget.studentId);
+      final list = await Api.I.conversations(widget.studentId, status: status);
+      Map<String, dynamic>? usage;
+      Map<String, dynamic>? summary;
+      try {
+        usage = await Api.I.studentUsage(widget.studentId);
+      } catch (_) {
+        usage = null;
+      }
+      try {
+        summary = await Api.I.studentSummary(widget.studentId);
+      } catch (_) {
+        summary = null;
+      }
+      if (!mounted || status != _status) return;
+      setState(() {
+        _conversations = list;
+        _usage = usage;
+        _summary = summary;
+        _loadError = null;
+      });
     } on ApiException {
-      usage = null;
+      if (mounted && status == _status) setState(() => _loadError = '对话记录加载失败，请重试');
+    } catch (_) {
+      if (mounted && status == _status) setState(() => _loadError = '对话记录加载失败，请检查网络后重试');
     }
-    try {
-      summary = await Api.I.studentSummary(widget.studentId);
-    } on ApiException {
-      summary = null;
-    }
-    if (!mounted) return;
-    setState(() {
-      _conversations = list;
-      _usage = usage;
-      _summary = summary;
-    });
   }
 
   void _openConversation(
@@ -91,7 +122,23 @@ class _ReviewScreenState extends State<ReviewScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${widget.studentName} 的全部对话')),
       body: _conversations == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: _loadError == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_loadError!),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _loadError = null);
+                            _load();
+                          },
+                          child: const Text('重试'),
+                        ),
+                      ],
+                    ),
+            )
           : ListView(
               padding: const EdgeInsets.all(12),
               children: [
@@ -167,7 +214,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
         ],
         onChanged: (value) {
           if (value == null || value == _status) return;
-          setState(() => _status = value);
+          setState(() {
+            _status = value;
+            _conversations = null;
+            _loadError = null;
+            _searchHits = null;
+          });
           _load();
         },
       ),
@@ -185,8 +237,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
           hintText: '搜索消息内容（至少 2 字）',
           border: const OutlineInputBorder(),
           suffixIcon: IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _doSearch,
+            icon: _searching
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.search),
+            onPressed: _searching ? null : _doSearch,
           ),
         ),
         onSubmitted: (_) => _doSearch(),
