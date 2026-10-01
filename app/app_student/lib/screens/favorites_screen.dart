@@ -12,6 +12,7 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   List<dynamic>? _favs;
   String? _error;
+  bool _loading = false;
   int? _removingId;
 
   @override
@@ -21,14 +22,36 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Future<void> _load() async {
-    if (_favs == null && _error != null && mounted) setState(() => _error = null);
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      if (_favs == null) _error = null;
+    });
     try {
       final list = await Api.I.myFavorites();
       if (mounted) setState(() { _favs = list; _error = null; });
     } on ApiException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) {
+        if (_favs == null) {
+          setState(() => _error = e.message);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('刷新收藏失败：${e.message}')),
+          );
+        }
+      }
     } catch (_) {
-      if (mounted) setState(() => _error = '收藏加载失败，请检查网络后重试');
+      if (mounted) {
+        if (_favs == null) {
+          setState(() => _error = '收藏加载失败，请检查网络后重试');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('刷新收藏失败，请检查网络后重试')),
+          );
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -62,7 +85,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的收藏 ⭐')),
+      appBar: AppBar(
+        title: const Text('我的收藏 ⭐'),
+        actions: [
+          IconButton(
+            tooltip: '刷新收藏',
+            onPressed: _loading || _removingId != null ? null : _load,
+            icon: _loading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       body: _favs == null
           ? Center(
               child: _error == null
@@ -107,7 +145,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 )
                               : const Icon(Icons.close, size: 18),
                           tooltip: '取消收藏',
-                          onPressed: _removingId == null
+                          onPressed: _removingId == null && !_loading
                               ? () => _remove(f['id'] as int)
                               : null,
                         ),
