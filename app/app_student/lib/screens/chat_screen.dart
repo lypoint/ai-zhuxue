@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
+import '../foreground_heartbeat.dart';
 import '../models/bubble.dart';
 import '../widgets/chat_drawer.dart';
 import '../widgets/message_bubble.dart';
@@ -18,7 +17,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final List<Bubble> _bubbles = [];
@@ -30,33 +29,40 @@ class _ChatScreenState extends State<ChatScreen> {
   String _teacherName = 'AI 学习助手';
   String _teacherAvatarUrl = '';
   String _search = '';
-  Timer? _hbTimer;
+  late final _heartbeat = ForegroundHeartbeat((seconds) {
+    Api.I.heartbeat(seconds).catchError((_) {});
+  });
 
-  /// 真实使用时长：聊天页每 60 秒上报一次心跳（P1 时长管控数据源）
-  void _startHeartbeat() {
-    _hbTimer?.cancel();
-    _hbTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      if (_sending) return;
-      Api.I.heartbeat(60).catchError((_) {}); // 失败静默，下个周期再报
-    });
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _heartbeat.start();
+    } else {
+      _heartbeat.stop();
+    }
   }
 
   @override
   void dispose() {
     if (Api.onUnauthorized == _onSessionExpired) Api.onUnauthorized = null;
-    _hbTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _heartbeat.stop();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // 全局 401 兜底：token 失效或孩子设备被重新绑定（规格 4.3），
     // 任何请求（会话列表/收藏/成绩等）收到 401 都回到重新绑定页。
     Api.onUnauthorized = _onSessionExpired;
     _restore();
     _loadTeachers();
-    _startHeartbeat();
+    if (WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      _heartbeat.start();
+    }
   }
 
   /// 统一 401 处理：清会话、说明原因并回绑定页；防重入避免多处请求并发 401 时重复跳转。

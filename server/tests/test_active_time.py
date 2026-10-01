@@ -12,6 +12,25 @@ def test_heartbeat_accumulates_and_validates(client):
     assert client.post("/chat/heartbeat", headers=h(s), json={"seconds": "abc"}).status_code == 422
 
 
+def test_heartbeat_reaches_480_minute_cap(client):
+    from app.db import SessionLocal
+    from app.models import ActiveTime
+
+    g, s = make_family(client)
+    student_id = client.get("/parent/family", headers=h(g)).json()["students"][0]["id"]
+    first = client.post("/chat/heartbeat", headers=h(s), json={"seconds": 60}).json()
+    with SessionLocal.begin() as db:
+        row = db.query(ActiveTime).filter_by(student_id=student_id, day=first["day"]).one()
+        row.seconds = 360 * 60
+    assert client.post("/chat/heartbeat", headers=h(s), json={"seconds": 60}).json()["total_seconds"] == 361 * 60
+
+    with SessionLocal.begin() as db:
+        row = db.query(ActiveTime).filter_by(student_id=student_id, day=first["day"]).one()
+        row.seconds = 479 * 60 + 30
+    assert client.post("/chat/heartbeat", headers=h(s), json={"seconds": 60}).json()["total_seconds"] == 480 * 60
+    assert client.post("/chat/heartbeat", headers=h(s), json={"seconds": 60}).json()["total_seconds"] == 480 * 60
+
+
 def test_daily_minutes_cap_blocks_and_notifies(client):
     g, s = make_family(client)
     client.put("/parent/settings", headers=h(g),

@@ -229,7 +229,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
 def heartbeat(body: dict, student: Student = Depends(current_student), db: Session = Depends(get_db)):
     """端侧活跃心跳：学生端在聊天页每 60 秒上报一次（seconds=距上次心跳的活跃秒数）。
 
-    防刷约束：单次上报 ≤120 秒；当日累计 ≤ 6 小时（超出静默丢弃）。
+    防刷约束：单次上报 ≤120 秒；当日累计最多 480 分钟。
     """
     from ..models import ActiveTime
     try:
@@ -243,8 +243,7 @@ def heartbeat(body: dict, student: Student = Depends(current_student), db: Sessi
     if not row:
         row = ActiveTime(student_id=student.id, day=day, seconds=0)
         db.add(row)
-    if row.seconds + seconds <= 6 * 3600:
-        row.seconds += seconds
+    row.seconds = min(row.seconds + seconds, 480 * 60)
     db.commit()
     return {"ok": True, "day": day, "total_seconds": row.seconds}
 

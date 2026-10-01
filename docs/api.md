@@ -124,8 +124,8 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 → `200 {total:{tokens_in,tokens_out,cost}, today:{…}, unit:"CNY, 按厂商现价估算"}`（价格见 `llm.py PRICE_PER_MTOK`）。
 
 ### POST /chat/heartbeat — 活跃心跳（student，P1 时长管控数据源）
-`{"seconds": 60}`（1–120，学生端聊天页每 60s 上报）→ `{"ok": true, "day", "total_seconds"}`。
-防刷：单次 ≤120；当日累计 ≤6 小时（超出静默丢弃）。服务端按时长上限（FamilySettings.daily_minutes_cap，0=不限）在 `/chat` 返回 429 文案「今天的学习时间用完了」。
+`{"seconds": 60}`（1–120，学生端聊天页前台每 60s 上报，进入后台时上报剩余秒数）→ `{"ok": true, "day", "total_seconds"}`。
+防刷：单次 ≤120 秒；当日累计最多 480 分钟，超出部分截断。服务端按时长上限（FamilySettings.daily_minutes_cap，0=不限）在 `/chat` 返回 429 文案「今天的学习时间用完了」。
 
 ### GET /chat/sessions — 学生端会话列表（student，Codex 风格抽屉数据源）
 → `200 [{conversation_id, title, message_count, pinned, last_time}]`（置顶优先，其余按最近更新倒序，最多 100 条）。
