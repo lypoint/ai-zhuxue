@@ -23,6 +23,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   late int _quietStart;
   late int _quietEnd;
   late bool _notifyFence;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -48,21 +49,60 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   }
 
   Future<void> _save() async {
-    await Api.I.updateSettings(
-      int.tryParse(_capCtrl.text) ?? 200,
-      widget.settings['review_enabled'] as bool? ?? true,
-      quietEnabled: _quietEnabled,
-      quietStart: _quietStart,
-      quietEnd: _quietEnd,
-      dailyMinutesCap: int.tryParse(_minutesCtrl.text) ?? 60,
-      notifyFence: _notifyFence,
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('已保存')));
-    widget.onSaved();
+    if (_saving) return;
+    final cap = int.tryParse(_capCtrl.text.trim());
+    final minutes = int.tryParse(_minutesCtrl.text.trim());
+    if (cap == null ||
+        cap < 10 ||
+        cap > 1000 ||
+        minutes == null ||
+        minutes < 0 ||
+        minutes > 480) {
+      final message = cap == null || cap < 10 || cap > 1000
+          ? '每日对话消息上限需为 10–1000 条'
+          : '每日使用时长上限需为 0–480 分钟';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      await Api.I.updateSettings(
+        cap,
+        widget.settings['review_enabled'] as bool? ?? true,
+        quietEnabled: _quietEnabled,
+        quietStart: _quietStart,
+        quietEnd: _quietEnd,
+        dailyMinutesCap: minutes,
+        notifyFence: _notifyFence,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('已保存')));
+      widget.onSaved();
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.status == 422 ? '保存失败，请检查输入的设置' : '保存失败：${e.message}',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('保存失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -80,7 +120,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
               controller: _capCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: '每日对话消息上限',
+                labelText: '每日对话消息上限（10–1000 条）',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -89,7 +129,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
               controller: _minutesCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: '每日使用时长上限（分钟，0=不限）',
+                labelText: '每日使用时长上限（0–480 分钟，0=不限）',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -148,7 +188,10 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                 ],
               ),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: _save, child: const Text('保存设置')),
+            OutlinedButton(
+              onPressed: _saving ? null : _save,
+              child: Text(_saving ? '保存中…' : '保存设置'),
+            ),
           ],
         ),
       ),
