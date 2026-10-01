@@ -20,6 +20,8 @@ class VerifyResult:
 
 async def verify(real_name: str, id_number: str, phone: str) -> VerifyResult:
     provider = settings.guardian_verify_provider
+    real_name = real_name.strip()
+    id_number = id_number.strip().upper()
     if not _ID_RE.match(id_number) or not _PHONE_RE.match(phone) or len(real_name) < 2:
         return VerifyResult(False, provider, "format invalid")
     if provider == "mock":

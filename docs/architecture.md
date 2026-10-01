@@ -44,7 +44,7 @@
 
 ### 2.1 激活链路（监护人主导）
 
-1. **监护人注册** `POST /auth/guardian/register`：手机号+短信码 + **三要素核验**（姓名/身份证/手机号，`guardian_verify.py`；不采集人脸）。注册即创建 `Family` + `FamilySettings`（审查 default-on）。
+1. **监护人注册** `POST /auth/guardian/register`：手机号+短信码，注册即创建 `Family` + `FamilySettings`（审查 default-on）。登录后可通过 `POST /parent/identity/verify` 自愿提交姓名和身份证号进行三要素核验（`guardian_verify.py`；不采集人脸），未认证不限制使用。
 2. **生成绑定码** `POST /bind/code`：8 位、10 分钟有效、一次性（`BindCode`）。
 3. **学生绑定** `POST /auth/student/login`：学生端凭绑定码+设备号登录，创建/复用 `Student` 并归属家庭。此后学生端持 student JWT。
 

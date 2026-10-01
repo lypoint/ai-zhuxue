@@ -3,7 +3,7 @@ import 'package:app_core/app_core.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 
-/// 家长端根组件：已登录进入家庭总览，否则进入三要素核验注册页。
+/// 家长端根组件：已登录进入家庭总览，否则进入手机号注册或登录页。
 class ParentApp extends StatefulWidget {
   const ParentApp({super.key});
   @override
