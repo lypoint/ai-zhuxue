@@ -11,6 +11,7 @@ class StudentReviewCard extends StatelessWidget {
   final bool bindingInProgress;
   final VoidCallback onManageDevices;
   final Future<void> Function(String band) onGradeBandChanged;
+  final bool updatesDisabled;
   const StudentReviewCard({
     super.key,
     required this.student,
@@ -19,6 +20,7 @@ class StudentReviewCard extends StatelessWidget {
     this.bindingInProgress = false,
     required this.onManageDevices,
     required this.onGradeBandChanged,
+    this.updatesDisabled = false,
   });
 
   @override
@@ -69,15 +71,17 @@ class StudentReviewCard extends StatelessWidget {
                       child: Text('16-18岁', style: TextStyle(fontSize: 12)),
                     ),
                   ],
-                  onChanged: (v) {
-                    if (v == null || v == student['grade_band']) return;
-                    onGradeBandChanged(v);
-                  },
+                  onChanged: updatesDisabled
+                      ? null
+                      : (v) {
+                          if (v == null || v == student['grade_band']) return;
+                          onGradeBandChanged(v);
+                        },
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit, size: 20),
                   tooltip: '修改昵称',
-                  onPressed: onRename,
+                  onPressed: updatesDisabled ? null : onRename,
                 ),
                 IconButton(
                   icon: const Icon(Icons.star_border, size: 20),

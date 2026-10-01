@@ -162,4 +162,34 @@ void main() {
       isNull,
     );
   });
+
+  testWidgets('更新孩子资料时禁用重复编辑', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StudentReviewCard(
+            student: const {'id': 1, 'nickname': '孩子', 'grade_band': '8-12'},
+            onRename: () {},
+            onRebind: null,
+            onManageDevices: () {},
+            onGradeBandChanged: (_) async {},
+            updatesDisabled: true,
+          ),
+        ),
+      ),
+    );
+    expect(
+      tester
+          .widget<DropdownButton<String>>(find.byType(DropdownButton<String>))
+          .onChanged,
+      isNull,
+    );
+    expect(
+      tester.widget<IconButton>(find.ancestor(
+        of: find.byTooltip('修改昵称'),
+        matching: find.byType(IconButton),
+      )).onPressed,
+      isNull,
+    );
+  });
 }
