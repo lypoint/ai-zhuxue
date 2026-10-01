@@ -28,6 +28,9 @@ class ConversationDetailScreen extends StatefulWidget {
 class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
   List<dynamic>? _messages;
   Map<int, List<dynamic>>? _fenceByMessage;
+  String? _loadError;
+  final Set<int> _feedbackPending = {};
+  final Set<int> _feedbackSubmitted = {};
 
   @override
   void initState() {
@@ -36,17 +39,25 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
   }
 
   Future<void> _load() async {
-    final messages = await Api.I.messages(widget.conversationId);
-    final events = await Api.I.fenceEvents(widget.conversationId);
-    final byMsg = <int, List<dynamic>>{};
-    for (final e in events) {
-      final mid = e['message_id'] as int?;
-      if (mid != null) (byMsg[mid] ??= []).add(e);
+    try {
+      final messages = await Api.I.messages(widget.conversationId);
+      final events = await Api.I.fenceEvents(widget.conversationId);
+      final byMsg = <int, List<dynamic>>{};
+      for (final e in events) {
+        final mid = e['message_id'] as int?;
+        if (mid != null) (byMsg[mid] ??= []).add(e);
+      }
+      if (!mounted) return;
+      setState(() {
+        _messages = messages;
+        _fenceByMessage = byMsg;
+        _loadError = null;
+      });
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _loadError = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _loadError = '对话加载失败，请检查网络后重试');
     }
-    setState(() {
-      _messages = messages;
-      _fenceByMessage = byMsg;
-    });
   }
 
   @override
@@ -76,7 +87,23 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
         ),
       ),
       body: _messages == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: _loadError == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_loadError!),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _loadError = null);
+                            _load();
+                          },
+                          child: const Text('重试'),
+                        ),
+                      ],
+                    ),
+            )
           : ListView(
               padding: const EdgeInsets.all(12),
               children: [
@@ -142,12 +169,22 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                 ),
                 TextButton(
-                  onPressed: () => _reportFalsePositive(m['id'] as int, events),
+                  onPressed: _feedbackPending.contains(m['id']) ||
+                          _feedbackSubmitted.contains(m['id'])
+                      ? null
+                      : () => _reportFalsePositive(m['id'] as int, events),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     minimumSize: const Size(0, 28),
                   ),
-                  child: const Text('反馈误判', style: TextStyle(fontSize: 11)),
+                  child: Text(
+                    _feedbackSubmitted.contains(m['id'])
+                        ? '已反馈'
+                        : _feedbackPending.contains(m['id'])
+                            ? '提交中…'
+                            : '反馈误判',
+                    style: const TextStyle(fontSize: 11),
+                  ),
                 ),
               ],
             ),
@@ -157,6 +194,8 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
   }
 
   Future<void> _reportFalsePositive(int messageId, List<dynamic> events) async {
+    if (_feedbackPending.contains(messageId) || _feedbackSubmitted.contains(messageId)) return;
+    setState(() => _feedbackPending.add(messageId));
     try {
       await Api.I.submitFenceFeedback(
         widget.conversationId,
@@ -164,6 +203,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
         eventId: events.isEmpty ? null : events.first['id'] as int?,
       );
       if (!mounted) return;
+      setState(() => _feedbackSubmitted.add(messageId));
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('已提交误判反馈，感谢帮助我们改进')));
@@ -172,6 +212,14 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('反馈提交失败，请重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _feedbackPending.remove(messageId));
     }
   }
 }

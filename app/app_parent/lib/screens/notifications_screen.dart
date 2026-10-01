@@ -11,6 +11,8 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   Map<String, dynamic>? _data;
+  String? _error;
+  bool _markingRead = false;
 
   @override
   void initState() {
@@ -19,14 +21,50 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _load() async {
-    final d = await Api.I.notifications();
-    if (!mounted) return;
-    setState(() => _data = d);
+    if (_data == null && _error != null && mounted) setState(() => _error = null);
+    try {
+      final d = await Api.I.notifications();
+      if (mounted) setState(() { _data = d; _error = null; });
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = '通知加载失败，请检查网络后重试');
+    }
   }
 
   Future<void> _readAll() async {
-    await Api.I.readAllNotifications();
-    _load();
+    if (_markingRead) return;
+    setState(() => _markingRead = true);
+    try {
+      await Api.I.readAllNotifications();
+      if (!mounted) return;
+      setState(() {
+        _data?['unread'] = 0;
+        for (final item in _data?['items'] as List? ?? []) {
+          item['is_read'] = true;
+        }
+      });
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('已全部标为已读')),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('操作失败，请检查网络后重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _markingRead = false);
+    }
   }
 
   @override
@@ -37,13 +75,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         title: const Text('通知'),
         actions: [
           TextButton(
-            onPressed: d == null || d['unread'] == 0 ? null : _readAll,
-            child: const Text('全部已读'),
+            onPressed: d == null || d['unread'] == 0 || _markingRead ? null : _readAll,
+            child: Text(_markingRead ? '处理中…' : '全部已读'),
           ),
         ],
       ),
       body: d == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: _error == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_error!),
+                        TextButton(onPressed: _load, child: const Text('重试')),
+                      ],
+                    ),
+            )
           : d['total'] == 0
           ? const Center(child: Text('暂无通知'))
           : ListView.builder(
