@@ -12,6 +12,7 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   Map<String, dynamic>? _data;
   String? _error;
+  bool _loading = false;
   bool _markingRead = false;
 
   @override
@@ -21,14 +22,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _load() async {
-    if (_data == null && _error != null && mounted) setState(() => _error = null);
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      if (_data == null) _error = null;
+    });
     try {
       final d = await Api.I.notifications();
       if (mounted) setState(() { _data = d; _error = null; });
     } on ApiException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (mounted) {
+        if (_data == null) {
+          setState(() => _error = e.message);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('刷新通知失败：${e.message}')),
+          );
+        }
+      }
     } catch (_) {
-      if (mounted) setState(() => _error = '通知加载失败，请检查网络后重试');
+      if (mounted) {
+        if (_data == null) {
+          setState(() => _error = '通知加载失败，请检查网络后重试');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('刷新通知失败，请检查网络后重试')),
+          );
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -44,12 +67,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           item['is_read'] = true;
         }
       });
-      await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('已全部标为已读')),
         );
       }
+      await _load();
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -74,6 +97,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         title: const Text('通知'),
         actions: [
+          IconButton(
+            tooltip: '刷新通知',
+            onPressed: _loading || _markingRead ? null : _load,
+            icon: _loading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
           TextButton(
             onPressed: d == null || d['unread'] == 0 || _markingRead ? null : _readAll,
             child: Text(_markingRead ? '处理中…' : '全部已读'),
@@ -105,6 +139,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Widget _tile(Map<String, dynamic> n) {
     final isSec = n['type'] == 'security';
+    final createdAt = (n['created_at'] ?? '').toString().replaceAll('T', ' ');
     return Card(
       color: !n['is_read']
           ? (isSec ? const Color(0xFFFDEDEC) : const Color(0xFFF0F7F5))
@@ -124,7 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
         subtitle: Text(
-          '${n['body'] ?? ''}\n${(n['created_at'] ?? '').toString().replaceAll('T', ' ').substring(0, 16)}',
+          '${n['body'] ?? ''}\n${createdAt.length > 16 ? createdAt.substring(0, 16) : createdAt}',
           style: const TextStyle(fontSize: 12),
         ),
         isThreeLine: true,
