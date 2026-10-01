@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 /// 所有交互通过回调上抛给 ChatScreen 处理（网络/状态副作用留在 State 中）。
 class ChatDrawer extends StatelessWidget {
   final List<dynamic>? sessions;
+  final String? sessionsError;
   final List<dynamic> filteredSessions;
   final String search;
   final int? currentConversationId;
@@ -15,10 +16,12 @@ class ChatDrawer extends StatelessWidget {
   final VoidCallback onLogout;
   final ValueChanged<int> onOpenSession;
   final ValueChanged<Map<String, dynamic>> onSessionMenu;
+  final VoidCallback onRetrySessions;
 
   const ChatDrawer({
     super.key,
     required this.sessions,
+    required this.sessionsError,
     required this.filteredSessions,
     required this.search,
     required this.currentConversationId,
@@ -30,6 +33,7 @@ class ChatDrawer extends StatelessWidget {
     required this.onLogout,
     required this.onOpenSession,
     required this.onSessionMenu,
+    required this.onRetrySessions,
   });
 
   @override
@@ -89,7 +93,20 @@ class ChatDrawer extends StatelessWidget {
 
   Widget _sessionList() {
     if (sessions == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: sessionsError == null
+            ? const CircularProgressIndicator()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(sessionsError!),
+                  TextButton(
+                    onPressed: onRetrySessions,
+                    child: const Text('重试'),
+                  ),
+                ],
+              ),
+      );
     }
     if (filteredSessions.isEmpty) {
       return Center(child: Text(search.isEmpty ? '还没有聊天记录' : '没有匹配的会话'));
