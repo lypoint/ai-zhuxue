@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _family;
   String? _loadError;
   bool _makingCode = false;
+  bool _billingPending = false;
   int? _bindingStudentId;
   bool _showOnboarding = false;
   Map<String, dynamic>? _subscription;
@@ -309,38 +310,71 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    await _runBilling(() => Api.I.paySubscription(), '正在续费…', '续费成功！');
+  }
+
+  Future<void> _runBilling(
+    Future<void> Function() action,
+    String progress,
+    String success,
+  ) async {
+    if (_billingPending) return;
+    setState(() => _billingPending = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(content: Text(progress), duration: const Duration(seconds: 30)),
+    );
     try {
-      await Api.I.paySubscription();
+      await action();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('续费成功！')));
-      _refresh();
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text(success)));
+      await _refresh();
     } on ApiException catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _billingPending = false);
     }
   }
 
   Future<void> _addSeat() async {
-    try {
-      await Api.I.addSubscriptionSeats(
+    final seatPrice = _subscription?['additional_seat_price'];
+    final priceText = seatPrice == null ? '' : ' ¥$seatPrice/月';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认增加名额'),
+        content: Text('增加 1 个孩子名额$priceText，按剩余天数折算后立即生效。是否继续？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('确认增加'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _runBilling(
+      () => Api.I.addSubscriptionSeats(
         1,
         idempotencyKey: 'seat-${DateTime.now().microsecondsSinceEpoch}',
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已增加 1 个孩子名额')));
-      _refresh();
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    }
+      ),
+      '正在增加名额…',
+      '已增加 1 个孩子名额',
+    );
   }
 
   Future<void> _logout() async {
@@ -438,7 +472,12 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           if (sub != null)
-            SubscriptionCard(sub: sub, onPay: _pay, onAddSeat: _addSeat),
+            SubscriptionCard(
+              sub: sub,
+              onPay: _pay,
+              onAddSeat: _addSeat,
+              billingPending: _billingPending,
+            ),
           if (_showOnboarding) _onboardingCard(),
           _guardianCard(family, students.length),
           Card(

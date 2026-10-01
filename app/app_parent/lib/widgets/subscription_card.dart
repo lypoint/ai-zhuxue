@@ -5,11 +5,13 @@ class SubscriptionCard extends StatelessWidget {
   final Map<String, dynamic> sub;
   final VoidCallback onPay;
   final VoidCallback? onAddSeat;
+  final bool billingPending;
   const SubscriptionCard({
     super.key,
     required this.sub,
     required this.onPay,
     this.onAddSeat,
+    this.billingPending = false,
   });
 
   @override
@@ -58,12 +60,21 @@ class SubscriptionCard extends StatelessWidget {
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 140),
                   child: FilledButton(
-                    onPressed: onPay,
-                    child: Text(active ? '续费' : '立即开通'),
+                    onPressed: billingPending ? null : onPay,
+                    child: Text(
+                      billingPending
+                          ? '处理中…'
+                          : active
+                          ? '续费'
+                          : '立即开通',
+                    ),
                   ),
                 ),
                 if (onAddSeat != null)
-                  TextButton(onPressed: onAddSeat, child: const Text('增加名额')),
+                  TextButton(
+                    onPressed: billingPending ? null : onAddSeat,
+                    child: const Text('增加名额'),
+                  ),
               ],
             ),
           ],

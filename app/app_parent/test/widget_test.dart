@@ -7,6 +7,7 @@ import 'package:app_parent/screens/login_screen.dart';
 import 'package:app_parent/screens/home_screen.dart';
 import 'package:app_parent/screens/identity_verification_screen.dart';
 import 'package:app_parent/widgets/student_review_card.dart';
+import 'package:app_parent/widgets/subscription_card.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -132,5 +133,33 @@ void main() {
     );
     await tester.tap(find.text('绑定设备'));
     expect(bindRequested, isTrue);
+  });
+
+  testWidgets('订阅处理中禁用支付和增加名额按钮', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SubscriptionCard(
+            sub: const {'active': true, 'plan': 'monthly'},
+            onPay: () {},
+            onAddSeat: () {},
+            billingPending: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('处理中…'), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '处理中…'))
+          .onPressed,
+      isNull,
+    );
+    expect(
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, '增加名额'))
+          .onPressed,
+      isNull,
+    );
   });
 }
