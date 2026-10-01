@@ -23,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _loadError;
   bool _makingCode = false;
   bool _billingPending = false;
+  bool _addingStudent = false;
+  int? _updatingStudentId;
   int? _bindingStudentId;
   bool _showOnboarding = false;
   Map<String, dynamic>? _subscription;
@@ -66,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _addStudent() async {
+    if (_addingStudent) return;
     final ctrl = TextEditingController(text: '我的孩子');
     var gradeBand = '8-12';
     final form = await showDialog<Map<String, String>>(
@@ -115,13 +118,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final name = form?['name'];
     gradeBand = form?['gradeBand'] ?? gradeBand;
-    if (name == null || name.isEmpty || !mounted) return;
+    if (name == null || !mounted) return;
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请输入孩子昵称')));
+      return;
+    }
+    setState(() => _addingStudent = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('正在添加孩子…'), duration: Duration(seconds: 30)),
+    );
     try {
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
       _showBindCode(data['bind_code'] as String, '$name 的绑定码');
       _refresh();
     } on ApiException catch (e) {
       if (!mounted) return;
+      messenger.hideCurrentSnackBar();
       if (e.status == 409) {
         // 规格要求确认页展示「增加名额」价格（来自订阅配置，人民币元）
         final seatPrice = _subscription?['additional_seat_price'];
@@ -145,30 +163,66 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         );
-        if (add == true) _buySeatAndRetry(name, gradeBand);
+        if (add == true && mounted) await _buySeatAndRetry(name, gradeBand);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          const SnackBar(content: Text('添加孩子失败，请检查网络后重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _addingStudent = false);
     }
   }
 
   Future<void> _buySeatAndRetry(String name, String gradeBand) async {
+    final messenger = ScaffoldMessenger.of(context);
+    var seatAdded = false;
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('正在增加名额并添加孩子…'),
+        duration: Duration(seconds: 30),
+      ),
+    );
     try {
       await Api.I.addSubscriptionSeats(
         1,
         idempotencyKey: 'seat-${DateTime.now().microsecondsSinceEpoch}',
       );
+      seatAdded = true;
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
       if (!mounted) return;
+      messenger.hideCurrentSnackBar();
       _showBindCode(data['bind_code'] as String, '$name 的绑定码');
       _refresh();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              seatAdded ? '名额已增加，但添加孩子失败：${e.message}。请重试添加孩子' : e.message,
+            ),
+          ),
+        );
+        if (seatAdded) _refresh();
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              seatAdded ? '名额已增加，但添加孩子失败。请重试添加孩子' : '操作失败，请检查网络后重试',
+            ),
+          ),
+        );
+        if (seatAdded) _refresh();
       }
     }
   }
@@ -245,6 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _renameStudent(Map<String, dynamic> s) async {
+    if (_updatingStudentId != null) return;
     final ctrl = TextEditingController(text: s['nickname'] as String? ?? '');
     final name = await showDialog<String>(
       context: context,
@@ -263,31 +318,61 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-    if (name == null || name.isEmpty || !mounted) return;
-    try {
-      await Api.I.setStudentNickname(s['id'] as int, name);
-      if (!mounted) return;
+    if (name == null || !mounted) return;
+    if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('已改名为 $name')));
-      _refresh();
-    } on ApiException catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      ).showSnackBar(const SnackBar(content: Text('请输入孩子昵称')));
+      return;
     }
+    await _updateStudent(
+      s['id'] as int,
+      () => Api.I.setStudentNickname(s['id'] as int, name),
+      '正在保存昵称…',
+      '已改名为 $name',
+    );
   }
 
   Future<void> _setGradeBand(Map<String, dynamic> s, String band) async {
+    await _updateStudent(
+      s['id'] as int,
+      () => Api.I.setGradeBand(s['id'] as int, band),
+      '正在更新学段…',
+      '学段已设为 $band，将影响分龄内容与讲解风格',
+    );
+  }
+
+  Future<void> _updateStudent(
+    int studentId,
+    Future<void> Function() action,
+    String progress,
+    String success,
+  ) async {
+    if (_updatingStudentId != null) return;
+    setState(() => _updatingStudentId = studentId);
     final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(content: Text(progress), duration: const Duration(seconds: 30)),
+    );
     try {
-      await Api.I.setGradeBand(s['id'] as int, band);
-      messenger.showSnackBar(
-        SnackBar(content: Text('学段已设为 $band，将影响分龄内容与讲解风格')),
-      );
-      _refresh();
+      await action();
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(content: Text(success)));
+      await _refresh();
     } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _updatingStudentId = null);
     }
   }
 
@@ -508,6 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
               student: s,
               onRename: () => _renameStudent(s),
               onGradeBandChanged: (band) => _setGradeBand(s, band),
+              updatesDisabled: _updatingStudentId != null,
               onRebind: _bindingStudentId == null ? () => _rebindStudent(s) : null,
               bindingInProgress: _bindingStudentId == s['id'],
               onManageDevices: () => Navigator.of(context).push(
@@ -570,9 +656,9 @@ class _HomeScreenState extends State<HomeScreen> {
         trailing: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 140),
           child: FilledButton.icon(
-            onPressed: _addStudent,
+            onPressed: _addingStudent ? null : _addStudent,
             icon: const Icon(Icons.person_add, size: 17),
-            label: const Text('添加孩子'),
+            label: Text(_addingStudent ? '添加中…' : '添加孩子'),
           ),
         ),
       ),
