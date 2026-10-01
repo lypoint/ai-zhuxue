@@ -23,6 +23,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final List<Bubble> _bubbles = [];
   int? _conversationId;
   bool _sending = false;
+  bool _sessionActionPending = false;
   bool _handling401 = false;
   List<dynamic>? _sessions;
   List<dynamic>? _teachers;
@@ -477,11 +478,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
     if (title == null || title.isEmpty || !mounted) return;
-    await _guard(() => Api.I.renameSession(cid, title));
+    await _guard(() => Api.I.renameSession(cid, title), '会话已重命名');
   }
 
-  Future<void> _pinSession(int cid, bool pinned) =>
-      _guard(() => Api.I.pinSession(cid, pinned));
+  Future<void> _pinSession(int cid, bool pinned) async {
+    await _guard(() => Api.I.pinSession(cid, pinned), pinned ? '会话已置顶' : '已取消置顶');
+  }
 
   Future<void> _deleteSession(int cid) async {
     final confirmed = await showDialog<bool>(
@@ -503,27 +505,47 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
     if (confirmed != true || !mounted) return;
-    if (_conversationId == cid) {
+    final deleted = await _guard(() => Api.I.deleteSession(cid), '会话已删除');
+    if (deleted && mounted && _conversationId == cid) {
       setState(() {
         _conversationId = null;
         _bubbles.clear();
       });
     }
-    await _guard(() => Api.I.deleteSession(cid));
   }
 
-  /// 会话管理请求统一包裹：成功刷新列表，失败弹提示。
-  Future<void> _guard(Future<void> Function() action) async {
+  /// 会话管理请求统一包裹：显示进度、结果，并在成功后刷新列表。
+  Future<bool> _guard(Future<void> Function() action, String success) async {
+    if (_sessionActionPending) return false;
+    _sessionActionPending = true;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(const SnackBar(
+      content: Text('正在处理…'),
+      duration: Duration(seconds: 30),
+    ));
     try {
       await action();
       await _loadSessions();
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(success)));
+      }
+      return true;
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+      }
+    } finally {
+      _sessionActionPending = false;
     }
+    return false;
   }
 
   void _scrollToBottom() {
