@@ -127,6 +127,9 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('我的孩子'), findsOneWidget);
     expect(find.text('绑定设备'), findsOneWidget);
+    for (final label in ['对话', '改名', '收藏', '成绩', '设备']) {
+      expect(find.text(label), findsOneWidget);
+    }
     expect(
       tester.getSize(find.byType(StudentReviewCard)).height,
       lessThan(230),
@@ -185,11 +188,35 @@ void main() {
       isNull,
     );
     expect(
-      tester.widget<IconButton>(find.ancestor(
-        of: find.byTooltip('修改昵称'),
-        matching: find.byType(IconButton),
+      tester.widget<TextButton>(find.ancestor(
+        of: find.text('改名'),
+        matching: find.byWidgetPredicate((widget) => widget is TextButton),
       )).onPressed,
       isNull,
     );
+  });
+
+  testWidgets('窄屏放大文字时孩子操作仍可阅读', (tester) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.4)),
+          child: StudentReviewCard(
+            student: const {'id': 1, 'nickname': '孩子', 'grade_band': '8-12'},
+            onRename: () {},
+            onRebind: () {},
+            onManageDevices: () {},
+            onGradeBandChanged: (_) async {},
+          ),
+        ),
+      ),
+    ));
+    expect(tester.takeException(), isNull);
+    expect(find.text('收藏'), findsOneWidget);
+    expect(find.text('设备'), findsOneWidget);
   });
 }

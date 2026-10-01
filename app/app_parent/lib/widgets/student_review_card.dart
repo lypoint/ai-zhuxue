@@ -27,6 +27,10 @@ class StudentReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = student['nickname'] as String? ?? '';
     final device = student['current_device'] as Map<String, dynamic>?;
+    final actionStyle = TextButton.styleFrom(
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+    );
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -37,7 +41,10 @@ class StudentReviewCard extends StatelessWidget {
             subtitle: Text(
               '学段 ${student['grade_band']}${device == null ? '' : ' · 设备 ${device['name'] ?? ''}'}',
             ),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [Text('对话'), Icon(Icons.chevron_right)],
+            ),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ReviewScreen(
@@ -48,75 +55,95 @@ class StudentReviewCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 4,
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+            child: Column(
               children: [
-                DropdownButton<String>(
-                  value: student['grade_band'] as String,
-                  underline: const SizedBox(),
-                  items: const [
-                    DropdownMenuItem(
-                      value: '8-12',
-                      child: Text('8-12岁', style: TextStyle(fontSize: 12)),
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('学段'),
+                        const SizedBox(width: 8),
+                        DropdownButton<String>(
+                          value: student['grade_band'] as String,
+                          underline: const SizedBox(),
+                          items: const [
+                            DropdownMenuItem(
+                              value: '8-12',
+                              child: Text('8-12岁', style: TextStyle(fontSize: 12)),
+                            ),
+                            DropdownMenuItem(
+                              value: '12-16',
+                              child: Text('12-16岁', style: TextStyle(fontSize: 12)),
+                            ),
+                            DropdownMenuItem(
+                              value: '16-18',
+                              child: Text('16-18岁', style: TextStyle(fontSize: 12)),
+                            ),
+                          ],
+                          onChanged: updatesDisabled
+                              ? null
+                              : (v) {
+                                  if (v == null || v == student['grade_band']) return;
+                                  onGradeBandChanged(v);
+                                },
+                        ),
+                      ],
                     ),
-                    DropdownMenuItem(
-                      value: '12-16',
-                      child: Text('12-16岁', style: TextStyle(fontSize: 12)),
-                    ),
-                    DropdownMenuItem(
-                      value: '16-18',
-                      child: Text('16-18岁', style: TextStyle(fontSize: 12)),
+                    TextButton.icon(
+                      icon: const Icon(Icons.edit, size: 20),
+                      label: const Text('改名'),
+                      style: actionStyle,
+                      onPressed: updatesDisabled ? null : onRename,
                     ),
                   ],
-                  onChanged: updatesDisabled
-                      ? null
-                      : (v) {
-                          if (v == null || v == student['grade_band']) return;
-                          onGradeBandChanged(v);
-                        },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  tooltip: '修改昵称',
-                  onPressed: updatesDisabled ? null : onRename,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.star_border, size: 20),
-                  tooltip: '孩子的收藏',
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ParentFavoritesScreen(
-                        studentId: student['id'] as int,
-                        studentName: name,
+                Wrap(
+                  alignment: WrapAlignment.spaceEvenly,
+                  spacing: 4,
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.star_border, size: 20),
+                      label: const Text('收藏'),
+                      style: actionStyle,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ParentFavoritesScreen(
+                            studentId: student['id'] as int,
+                            studentName: name,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.insights, size: 20),
-                  tooltip: '成绩与评估',
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => GradesScreen(
-                        studentId: student['id'] as int,
-                        studentName: name,
+                    TextButton.icon(
+                      icon: const Icon(Icons.insights, size: 20),
+                      label: const Text('成绩'),
+                      style: actionStyle,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => GradesScreen(
+                            studentId: student['id'] as int,
+                            studentName: name,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.devices_other, size: 20),
-                  tooltip: '设备管理',
-                  onPressed: onManageDevices,
+                    TextButton.icon(
+                      icon: const Icon(Icons.devices_other, size: 20),
+                      label: const Text('设备'),
+                      style: actionStyle,
+                      onPressed: onManageDevices,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
             child: Align(
               alignment: Alignment.centerRight,
               child: FilledButton.tonalIcon(
