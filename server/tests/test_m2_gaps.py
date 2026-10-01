@@ -105,6 +105,75 @@ def test_safe_first_stream_replays_after_check(client, monkeypatch):
     assert '"message_id"' in resp.text
 
 
+def test_empty_model_stream_reports_error_without_saving_reply(client, monkeypatch):
+    from app.services import llm
+
+    async def empty_stream(*args, **kwargs):
+        yield {"usage": {"tokens_in": 20, "tokens_out": 1024}}
+
+    monkeypatch.setattr(llm, "chat_stream", empty_stream)
+    _, student = make_family(client)
+    response = client.post("/chat/stream", headers=h(student),
+                           json={"content": "请讲解三年级数学"})
+    assert "event: error" in response.text
+    assert "event: done" not in response.text
+    latest = client.get("/chat/latest", headers=h(student)).json()
+    assert [m["role"] for m in latest["messages"]] == ["user"]
+
+
+def test_empty_model_reply_reports_error_without_saving_reply(client, monkeypatch):
+    from app.services import llm
+
+    async def empty_reply(*args, **kwargs):
+        return {"content": "", "tokens_in": 20, "tokens_out": 1024,
+                "provider": "glm", "model": "test"}
+
+    monkeypatch.setattr(llm, "chat", empty_reply)
+    _, student = make_family(client)
+    response = client.post("/chat", headers=h(student),
+                           json={"content": "请讲解三年级数学"})
+    assert response.status_code == 503
+    assert "模型没有返回正文" in response.json()["detail"]
+    latest = client.get("/chat/latest", headers=h(student)).json()
+    assert [m["role"] for m in latest["messages"]] == ["user"]
+
+
+def test_model_stream_with_reasoning_only_reports_token_exhaustion(monkeypatch):
+    import asyncio
+    import json
+    import httpx
+    import pytest
+    from app.services import llm
+
+    requested = {}
+
+    def respond(request):
+        requested.update(json.loads(request.content))
+        return httpx.Response(200, text=(
+            'data: {"choices":[{"delta":{"reasoning_content":"思考中"}}]}\n\n'
+            'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\n'
+            'data: [DONE]\n\n'))
+
+    transport = httpx.MockTransport(respond)
+    original_client = httpx.AsyncClient
+    active_model = ["deepseek-reasoner"]
+    monkeypatch.setattr(llm, "_provider", lambda *args: (
+        "deepseek", {"base_url": "https://example.com"}, "test-key", active_model[0]))
+    monkeypatch.setattr(llm.httpx, "AsyncClient", lambda **kwargs: original_client(
+        transport=transport, **kwargs))
+
+    async def consume():
+        return [part async for part in llm.chat_stream([{"role": "user", "content": "学习计划"}])]
+
+    with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
+        asyncio.run(consume())
+    assert requested["max_tokens"] == 40960
+    active_model[0] = "moonshot-v1-8k"
+    with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
+        asyncio.run(consume())
+    assert requested["max_tokens"] == 1024
+
+
 def test_safe_first_stream_blocks_sensitive_output(client, monkeypatch):
     """安全优先模式：模型输出敏感内容 → 任何 delta 不到达终端，替换为拒绝话术。"""
     from app.services import llm
