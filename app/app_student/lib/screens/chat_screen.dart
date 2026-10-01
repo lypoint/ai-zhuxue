@@ -25,6 +25,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _sending = false;
   bool _openingSession = false;
   bool _sessionActionPending = false;
+  int? _favoritingMessageId;
   bool _handling401 = false;
   List<dynamic>? _sessions;
   String? _sessionsError;
@@ -457,19 +458,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         );
         return;
       }
+      if (_favoritingMessageId != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('正在收藏上一条消息，请稍候')),
+        );
+        return;
+      }
+      _favoritingMessageId = b.messageId;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(const SnackBar(
+        content: Text('正在收藏…'),
+        duration: Duration(seconds: 30),
+      ));
       try {
         await Api.I.addFavorite(b.messageId!);
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('已收藏 ⭐ 可在抽屉「我的收藏」查看')));
+          messenger.hideCurrentSnackBar();
+          messenger.showSnackBar(
+            const SnackBar(content: Text('已收藏 ⭐ 可在抽屉「我的收藏」查看')),
+          );
         }
       } on ApiException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(e.message)));
+          messenger.hideCurrentSnackBar();
+          messenger.showSnackBar(SnackBar(content: Text(e.message)));
         }
+      } catch (_) {
+        if (mounted) {
+          messenger.hideCurrentSnackBar();
+          messenger.showSnackBar(
+            const SnackBar(content: Text('收藏失败，请检查网络后重试')),
+          );
+        }
+      } finally {
+        _favoritingMessageId = null;
       }
     }
   }
