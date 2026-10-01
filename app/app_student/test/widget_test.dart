@@ -110,4 +110,33 @@ void main() {
     await tester.tap(find.text('重试'));
     expect(retried, isTrue);
   });
+
+  testWidgets('学生退出登录前会确认并说明重新绑定', (tester) async {
+    SharedPreferences.setMockInitialValues({'token': 'fake'});
+    await Api.I.loadToken();
+    await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
+    await tester.tap(find.byTooltip('聊天记录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('退出登录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('退出登录？'), findsOneWidget);
+    expect(find.textContaining('重新生成绑定码'), findsOneWidget);
+    await tester.tap(find.text('取消'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('退出登录？'), findsNothing);
+
+    await tester.tap(find.byTooltip('聊天记录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('退出登录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('退出'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(BindScreen), findsOneWidget);
+  });
 }

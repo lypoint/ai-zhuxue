@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _loadError;
   bool _makingCode = false;
   bool _billingPending = false;
+  bool _loggingOut = false;
   bool _addingStudent = false;
   int? _updatingStudentId;
   int? _bindingStudentId;
@@ -463,11 +464,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout() async {
-    await Api.I.logout();
-    if (!mounted) return;
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+    if (_loggingOut) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('退出登录？'),
+        content: const Text('退出后需要重新登录，孩子的学习记录会保留。'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('退出')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _loggingOut = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(
+      content: Text('正在退出登录…'),
+      duration: Duration(seconds: 30),
+    ));
+    try {
+      await Api.I.logout();
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('退出失败，请重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _loggingOut = false);
+    }
   }
 
   @override
@@ -544,6 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           PopupMenuButton<String>(
+            enabled: !_loggingOut,
             onSelected: (v) {
               if (v == 'logout') _logout();
             },

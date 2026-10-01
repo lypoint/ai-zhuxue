@@ -28,6 +28,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _sessionActionPending = false;
   int? _favoritingMessageId;
   bool _handling401 = false;
+  bool _loggingOut = false;
   List<dynamic>? _sessions;
   String? _sessionsError;
   List<dynamic>? _teachers;
@@ -777,7 +778,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _logout() async {
+    if (_loggingOut) return;
     final navigator = Navigator.of(context);
+    navigator.pop(); // 关闭抽屉，让退出状态在页面上可见。
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -796,10 +799,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
     if (ok != true || !mounted) return;
-    await Api.I.logout();
-    navigator.pushReplacement(
-      MaterialPageRoute(builder: (_) => const BindScreen()),
-    );
+    setState(() => _loggingOut = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(const SnackBar(
+      content: Text('正在退出登录…'),
+      duration: Duration(seconds: 30),
+    ));
+    try {
+      await Api.I.logout();
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (_) => const BindScreen()),
+      );
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('退出失败，请重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _loggingOut = false);
+    }
   }
 
   @override
