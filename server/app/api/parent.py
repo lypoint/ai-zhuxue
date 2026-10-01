@@ -719,7 +719,7 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
             q = q.filter(Message.created_at < until)
         rows = q.all()
         # 全部指标只统计学生消息（assistant 回复同样带 fence_action，不能计入行为统计）
-        questions = sum(1 for m, _ in rows if m.role == "user")
+        questions = sum(1 for m, _ in rows if m.role == "user" and m.fence_action != "failed")
         blocked = sum(1 for m, _ in rows if m.role == "user" and m.fence_action == "reject")
         guided = sum(1 for m, _ in rows if m.role == "user" and m.fence_action == "rewrite")
         study = sum(1 for m, _ in rows if m.role == "user" and m.fence_action == "allow")

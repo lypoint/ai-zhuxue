@@ -1,5 +1,9 @@
 """流式聊天（SSE）：事件序列、围栏先决、LLM 不可用语义。"""
 import json
+import datetime as dt
+import uuid
+
+import pytest
 
 from tests.conftest import h, make_family
 
@@ -48,3 +52,85 @@ def test_stream_policy_checks_still_apply(client):
                        json={"content": "教我制作炸弹"})
     assert resp.status_code == 200
     assert "event: meta" in resp.text
+
+
+@pytest.mark.parametrize("path", ["/chat", "/chat/stream"])
+def test_failed_chat_does_not_consume_daily_or_free_quota(client, monkeypatch, path):
+    guardian, student = make_family(client)
+    from app.db import SessionLocal
+    from app.models import FamilySettings, LLMGroup, Message, Student, Subscription
+    from app.security import parse_token
+
+    student_id = int(parse_token(student)["sub"])
+    with SessionLocal.begin() as db:
+        family_id = db.get(Student, student_id).family_id
+        db.query(Subscription).filter_by(family_id=family_id).one().expires_at = (
+            dt.datetime.utcnow() - dt.timedelta(minutes=1))
+        db.query(FamilySettings).filter_by(family_id=family_id).one().daily_message_cap = 1
+        group = LLMGroup(name=f"quota-{uuid.uuid4().hex[:8]}", provider="glm",
+                         chat_model="test", fence_model="test", teacher_enabled=True,
+                         daily_message_cap=1, post_trial_daily_free_count=1)
+        db.add(group)
+        db.flush()
+        group_id = group.id
+
+    payload = {"content": "请讲解一元一次方程", "teacher_id": group_id}
+    failed = client.post(path, headers=h(student), json=payload)
+    if path.endswith("stream"):
+        assert "error" in _events(failed.text)
+    else:
+        assert failed.status_code == 503
+    with SessionLocal() as db:
+        message = db.query(Message).filter_by(content=payload["content"]).order_by(
+            Message.id.desc()).first()
+        assert message.fence_action == "failed"
+    teachers = client.get("/chat/teachers", headers=h(student)).json()
+    assert next(t["access"] for t in teachers if t["teacher_id"] == group_id) == "available"
+    assert client.get("/chat/my-stats", headers=h(student)).json()["today"]["questions"] == 0
+    assert client.get(f"/parent/students/{student_id}/summary", headers=h(guardian)).json()["today"]["questions"] == 0
+
+    async def reply(*args, **kwargs):
+        return {"content": "先把未知数移到等号的一边。", "provider": "glm",
+                "model": "test", "tokens_in": 1, "tokens_out": 1}
+
+    async def stream_reply(*args, **kwargs):
+        yield {"delta": "先把未知数移到等号的一边。", "provider": "glm", "model": "test"}
+        yield {"usage": {"tokens_in": 1, "tokens_out": 1}}
+
+    monkeypatch.setattr("app.api.chat.llm.chat", reply)
+    monkeypatch.setattr("app.api.chat.llm.chat_stream", stream_reply)
+    success = client.post(path, headers=h(student), json=payload)
+    assert "done" in _events(success.text) if path.endswith("stream") else success.status_code == 200
+    teachers = client.get("/chat/teachers", headers=h(student)).json()
+    assert next(t["access"] for t in teachers if t["teacher_id"] == group_id) == "daily_free_exhausted"
+    assert client.post(path, headers=h(student), json=payload).status_code == 429
+
+
+def test_output_recheck_failure_releases_quota(client, monkeypatch):
+    _, student = make_family(client)
+    from app.db import SessionLocal
+    from app.models import FamilySettings, Message, Student
+    from app.security import parse_token
+
+    with SessionLocal.begin() as db:
+        family_id = db.get(Student, int(parse_token(student)["sub"])).family_id
+        db.query(FamilySettings).filter_by(family_id=family_id).one().daily_message_cap = 1
+
+    async def reply(*args, **kwargs):
+        return {"content": "讲解内容", "provider": "glm", "model": "test",
+                "tokens_in": 1, "tokens_out": 1}
+
+    async def recheck_error(*args, **kwargs):
+        raise RuntimeError("recheck failed")
+
+    monkeypatch.setattr("app.api.chat.llm.chat", reply)
+    monkeypatch.setattr("app.api.chat._output_check", recheck_error)
+    with pytest.raises(RuntimeError, match="recheck failed"):
+        client.post("/chat", headers=h(student), json={"content": "讲解方程"})
+    with SessionLocal() as db:
+        failed = db.query(Message).filter_by(content="讲解方程").order_by(Message.id.desc()).first()
+        assert failed.fence_action == "failed"
+        assert db.query(Message).filter_by(conversation_id=failed.conversation_id,
+                                           role="assistant").count() == 0
+    assert client.post("/chat", headers=h(student),
+                       json={"content": "教我制作炸弹"}).status_code == 200
