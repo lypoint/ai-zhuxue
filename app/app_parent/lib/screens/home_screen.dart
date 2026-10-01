@@ -21,6 +21,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _family;
   String? _loadError;
+  String? _partialLoadError;
+  bool _overviewLoadFailed = false;
+  bool _manualRefreshing = false;
   bool _makingCode = false;
   bool _billingPending = false;
   bool _loggingOut = false;
@@ -259,25 +262,29 @@ class _HomeScreenState extends State<HomeScreen> {
       data = await Api.I.familyOverview();
     } on ApiException catch (e) {
       // token 失效（401）已由根级全局兜底（ParentApp._onSessionExpired）处理；
+      _overviewLoadFailed = true;
       if (e.status != 401) _showLoadError('加载失败：${e.message}');
       return;
     } catch (_) {
+      _overviewLoadFailed = true;
       _showLoadError('加载失败，请检查网络后重试');
       return;
     }
     Map<String, dynamic>? sub;
-    int unread = 0;
+    var unread = _unread;
+    final unavailable = <String>[];
     try {
       sub = await Api.I.subscription();
     } catch (_) {
-      sub = null;
+      unavailable.add('订阅信息');
     }
     try {
       unread = (await Api.I.notifications(unreadOnly: true))['unread'] as int;
     } catch (_) {
-      // 通知不可用不阻塞首页
+      unavailable.add('通知数量');
     }
     if (!mounted) return;
+    _overviewLoadFailed = false;
     // P2 新用户引导：试用期内且还没有孩子绑定时展示
     final showGuide =
         (data['students'] as List).isEmpty && (sub?['plan'] == 'free_trial');
@@ -286,8 +293,37 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadError = null;
       _subscription = sub;
       _unread = unread;
+      _partialLoadError = unavailable.isEmpty
+          ? null
+          : '${unavailable.join('、')}暂不可用，请刷新重试';
       _showOnboarding = showGuide;
     });
+  }
+
+  Future<void> _manualRefresh() async {
+    if (_manualRefreshing) return;
+    setState(() => _manualRefreshing = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(const SnackBar(
+      content: Text('正在刷新…'),
+      duration: Duration(seconds: 30),
+    ));
+    try {
+      await _refresh();
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      if (!_overviewLoadFailed && _partialLoadError == null) {
+        messenger.showSnackBar(const SnackBar(content: Text('已刷新')));
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('刷新失败，请稍后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _manualRefreshing = false);
+    }
   }
 
   void _showLoadError(String message) {
@@ -541,6 +577,17 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: '刷新首页',
+            onPressed: _manualRefreshing ? null : _manualRefresh,
+            icon: _manualRefreshing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
+          IconButton(
             onPressed: _makingCode ? null : _makeCode,
             icon: _makingCode
                 ? const SizedBox(
@@ -587,6 +634,17 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (_partialLoadError != null)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(_partialLoadError!),
+                trailing: TextButton(
+                  onPressed: _manualRefreshing ? null : _manualRefresh,
+                  child: const Text('重试'),
+                ),
+              ),
+            ),
           if (sub != null)
             SubscriptionCard(
               sub: sub,
