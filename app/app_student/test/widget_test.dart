@@ -32,7 +32,19 @@ void main() {
     await Api.I.loadToken();
     await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
     expect(find.text('你好！今天想学什么？'), findsOneWidget);
+    expect(find.text('正在恢复上次对话…'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
+  });
+
+  testWidgets('孩子开始提问后不再显示恢复提示', (tester) async {
+    SharedPreferences.setMockInitialValues({'token': 'fake'});
+    await Api.I.loadToken();
+    await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
+    await tester.enterText(find.byType(TextField), '你好');
+    await tester.tap(find.byIcon(Icons.arrow_upward));
+    await tester.pump();
+    expect(find.text('正在恢复上次对话…'), findsNothing);
+    expect(find.text('你好'), findsOneWidget);
   });
 
   testWidgets('发送和接收消息都可以点击复制按钮', (tester) async {

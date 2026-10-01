@@ -23,6 +23,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _scrollCtrl = ScrollController();
   final List<Bubble> _bubbles = [];
   int? _conversationId;
+  int _chatRevision = 0;
+  bool _restoringLatest = true;
   bool _sending = false;
   bool _openingSession = false;
   bool _sessionActionPending = false;
@@ -259,6 +261,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     messenger.hideCurrentSnackBar();
     setState(() {
+      _chatRevision++;
+      _restoringLatest = false;
       _conversationId = null;
       _bubbles.clear();
       _teacherName = selected['name'] as String? ?? 'AI 学习助手';
@@ -284,11 +288,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   );
 
   Future<void> _restore() async {
+    final revision = _chatRevision;
     try {
-      final data = await Api.I.latestConversation();
+      final data = await Api.I.latestConversation().timeout(
+        const Duration(seconds: 10),
+      );
+      if (!mounted || revision != _chatRevision) return;
       final convId = data['conversation_id'] as int?;
       final msgs = (data['messages'] as List?) ?? const [];
-      if (convId != null && msgs.isNotEmpty && mounted) {
+      if (convId != null && msgs.isNotEmpty) {
         setState(() {
           _conversationId = convId;
           _teacherName = data['teacher_name'] as String? ?? _teacherName;
@@ -299,9 +307,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         });
       }
     } catch (_) {
-      // 恢复失败（网络/服务不可用）不影响新对话
+      if (mounted && revision == _chatRevision) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('未能恢复上次对话，可在聊天记录中重新打开')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _restoringLatest = false);
+        _loadSessions();
+      }
     }
-    _loadSessions();
   }
 
   Future<void> _loadSessions() async {
@@ -338,6 +354,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
     setState(() {
+      _chatRevision++;
+      _restoringLatest = false;
       _conversationId = null;
       _bubbles.clear();
     });
@@ -354,7 +372,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ).showSnackBar(const SnackBar(content: Text('请等待当前回复或会话加载完成')));
       return;
     }
-    setState(() => _openingSession = true);
+    setState(() {
+      _chatRevision++;
+      _restoringLatest = false;
+      _openingSession = true;
+    });
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
@@ -704,6 +726,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     _inputCtrl.clear();
     setState(() {
+      _chatRevision++;
+      _restoringLatest = false;
       _sending = true;
       _bubbles.add(Bubble('user', text));
       _bubbles.add(Bubble('assistant', '')); // 流式占位，逐段填充
@@ -892,6 +916,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
+          if (_restoringLatest) ...[
+            const LinearProgressIndicator(minHeight: 2),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 6),
+              child: Text('正在恢复上次对话…', style: TextStyle(fontSize: 12)),
+            ),
+          ],
           Expanded(child: _bubbles.isEmpty ? _emptyState() : _messageList()),
           _inputBar(),
         ],
