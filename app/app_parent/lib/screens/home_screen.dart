@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _family;
+  String? _loadError;
   String? _bindCode;
   String _bindLabel = '学生端绑定码';
   bool _showOnboarding = false;
@@ -182,20 +183,22 @@ class _HomeScreenState extends State<HomeScreen> {
       data = await Api.I.familyOverview();
     } on ApiException catch (e) {
       // token 失效（401）已由根级全局兜底（ParentApp._onSessionExpired）处理；
-      // 其他失败保持当前页，下次刷新重试。
-      if (e.status != 401) debugPrint('familyOverview failed: ${e.message}');
+      if (e.status != 401) _showLoadError('加载失败：${e.message}');
+      return;
+    } catch (_) {
+      _showLoadError('加载失败，请检查网络后重试');
       return;
     }
     Map<String, dynamic>? sub;
     int unread = 0;
     try {
       sub = await Api.I.subscription();
-    } on ApiException {
+    } catch (_) {
       sub = null;
     }
     try {
       unread = (await Api.I.notifications(unreadOnly: true))['unread'] as int;
-    } on ApiException {
+    } catch (_) {
       // 通知不可用不阻塞首页
     }
     if (!mounted) return;
@@ -204,10 +207,20 @@ class _HomeScreenState extends State<HomeScreen> {
         (data['students'] as List).isEmpty && (sub?['plan'] == 'free_trial');
     setState(() {
       _family = data;
+      _loadError = null;
       _subscription = sub;
       _unread = unread;
       _showOnboarding = showGuide;
     });
+  }
+
+  void _showLoadError(String message) {
+    if (!mounted) return;
+    if (_family == null) {
+      setState(() => _loadError = message);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   Future<void> _renameStudent(Map<String, dynamic> s) async {
@@ -322,7 +335,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final family = _family;
     if (family == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Center(
+          child: _loadError == null
+              ? const CircularProgressIndicator()
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_loadError!),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () {
+                        setState(() => _loadError = null);
+                        _refresh();
+                      },
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+        ),
+      );
     }
     final students = (family['students'] as List).cast<Map<String, dynamic>>();
     final sub = _subscription;
