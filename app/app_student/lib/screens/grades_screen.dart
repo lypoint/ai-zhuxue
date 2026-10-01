@@ -13,6 +13,10 @@ class _GradesScreenState extends State<GradesScreen> {
   Map<String, dynamic>? _assessment;
   List<dynamic>? _assessmentRows;
   bool _includeDeleted = false;
+  bool _changingGrade = false;
+  bool _trendLoading = false;
+  bool _assessing = false;
+  String? _loadError;
   String? _subject;
   int? _rangeDays;
 
@@ -44,19 +48,64 @@ class _GradesScreenState extends State<GradesScreen> {
           _grades = values[0] as List<dynamic>;
           _trend = values[1] as Map<String, dynamic>;
           _assessmentRows = values[2] as List<dynamic>;
+          _loadError = null;
         });
       }
     } on ApiException catch (e) {
-      if (mounted) {
+      if (mounted && _grades == null) {
+        setState(() => _loadError = e.message);
+      } else if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted && _grades == null) {
+        setState(() => _loadError = '成绩加载失败，请检查网络后重试');
+      } else if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('刷新失败，请检查网络后重试')));
+      }
+    }
+  }
+
+  Future<void> _changeGrade(
+    Future<void> Function() action,
+    String success,
+  ) async {
+    if (_changingGrade) return;
+    setState(() => _changingGrade = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('正在处理成绩…'), duration: Duration(seconds: 30)),
+    );
+    try {
+      await action();
+      await _load();
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(success)));
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _changingGrade = false);
     }
   }
 
   /// 筛选变化只重取趋势，不刷新成绩与评估列表。
   Future<void> _loadTrend() async {
+    setState(() => _trendLoading = true);
     try {
       final t = await Api.I.studentGradeTrend(
         subject: _subject,
@@ -69,6 +118,14 @@ class _GradesScreenState extends State<GradesScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('趋势加载失败，请重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _trendLoading = false);
     }
   }
 
@@ -152,20 +209,13 @@ class _GradesScreenState extends State<GradesScreen> {
       'note': note.text,
       'reason': current == null ? 'created' : 'edited',
     };
-    try {
+    await _changeGrade(() async {
       if (current == null) {
         await Api.I.addStudentGrade(body);
       } else {
         await Api.I.editStudentGrade(current['id'] as int, body);
       }
-      _load();
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    }
+    }, current == null ? '成绩已添加' : '成绩已保存');
   }
 
   Future<void> _details(Map<String, dynamic> grade) async {
@@ -209,48 +259,66 @@ class _GradesScreenState extends State<GradesScreen> {
     if (!mounted || action == null) return;
     if (action == 'edit') return _edit(grade);
     if (action == 'delete') {
-      await Api.I.deleteStudentGrade(grade['id'] as int);
-      _load();
+      await _changeGrade(
+        () => Api.I.deleteStudentGrade(grade['id'] as int),
+        '成绩已删除，可在“显示已删除成绩”中恢复',
+      );
       return;
     }
     if (action == 'restore') {
-      await Api.I.restoreStudentGrade(grade['id'] as int);
-      _load();
+      await _changeGrade(
+        () => Api.I.restoreStudentGrade(grade['id'] as int),
+        '成绩已恢复',
+      );
       return;
     }
     if (action == 'history') {
-      final rows = await Api.I.studentGradeHistory(grade['id'] as int);
-      if (!mounted) return;
-      showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('修改历史'),
-          content: SizedBox(
-            width: 340,
-            child: ListView(
-              shrinkWrap: true,
-              children: rows
-                  .map(
-                    (r) => ListTile(
-                      title: Text(
-                        'v${r['version']} · ${r['score']}/${r['max_score']}',
+      try {
+        final rows = await Api.I.studentGradeHistory(grade['id'] as int);
+        if (!mounted) return;
+        showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('修改历史'),
+            content: SizedBox(
+              width: 340,
+              child: ListView(
+                shrinkWrap: true,
+                children: rows
+                    .map(
+                      (r) => ListTile(
+                        title: Text(
+                          'v${r['version']} · ${r['score']}/${r['max_score']}',
+                        ),
+                        subtitle: Text(
+                          '${r['edited_by_role']} · ${r['reason'] ?? ''}',
+                        ),
                       ),
-                      subtitle: Text(
-                        '${r['edited_by_role']} · ${r['reason'] ?? ''}',
-                      ),
-                    ),
-                  )
-                  .toList(),
+                    )
+                    .toList(),
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('关闭'),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('关闭'),
-            ),
-          ],
-        ),
-      );
+        );
+      } on ApiException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.message)));
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('修改历史加载失败，请重试')));
+        }
+      }
     }
   }
 
@@ -258,6 +326,7 @@ class _GradesScreenState extends State<GradesScreen> {
     // 规格 7.3：按时间范围触发学业评估
     final range = await chooseAssessmentRange(context);
     if (range == null || !mounted) return;
+    setState(() => _assessing = true);
     try {
       final r = await Api.I.studentAcademicAssessment(
         from: range.from,
@@ -273,6 +342,9 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
           ];
         });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('学业评估已更新')));
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -280,6 +352,14 @@ class _GradesScreenState extends State<GradesScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('学业评估失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _assessing = false);
     }
   }
 
@@ -289,20 +369,48 @@ class _GradesScreenState extends State<GradesScreen> {
       appBar: AppBar(
         title: const Text('成绩与学习评估'),
         actions: [
-          IconButton(onPressed: _assess, icon: const Icon(Icons.insights)),
+          IconButton(
+            onPressed: _assessing ? null : _assess,
+            icon: _assessing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.insights),
+            tooltip: '学业评估',
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _edit(),
+        onPressed: _changingGrade ? null : () => _edit(),
         child: const Icon(Icons.add),
       ),
       body: _grades == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: _loadError == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_loadError!),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _loadError = null);
+                            _load();
+                          },
+                          child: const Text('重试'),
+                        ),
+                      ],
+                    ),
+            )
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
                 padding: const EdgeInsets.all(12),
                 children: [
+                  if (_trendLoading)
+                    const LinearProgressIndicator(minHeight: 2),
                   GradeTrendCard(
                     trend: _trend,
                     subjects: _subjects,
@@ -323,7 +431,11 @@ class _GradesScreenState extends State<GradesScreen> {
                     title: const Text('显示已删除成绩'),
                     value: _includeDeleted,
                     onChanged: (value) {
-                      setState(() => _includeDeleted = value);
+                      setState(() {
+                        _includeDeleted = value;
+                        _grades = null;
+                        _loadError = null;
+                      });
                       _load();
                     },
                   ),

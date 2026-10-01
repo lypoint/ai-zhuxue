@@ -21,6 +21,10 @@ class _GradesScreenState extends State<GradesScreen> {
   List<dynamic>? _academicRows;
   List<dynamic>? _wellbeingRows;
   bool _includeDeleted = false;
+  bool _changingGrade = false;
+  bool _trendLoading = false;
+  String? _assessmentAction;
+  String? _loadError;
   String? _subject;
   int? _rangeDays;
 
@@ -55,18 +59,63 @@ class _GradesScreenState extends State<GradesScreen> {
         _trend = values[1] as Map<String, dynamic>;
         _academicRows = values[2] as List<dynamic>;
         _wellbeingRows = values[3] as List<dynamic>;
+        _loadError = null;
       });
     } on ApiException catch (e) {
-      if (mounted) {
+      if (mounted && _grades == null) {
+        setState(() => _loadError = e.message);
+      } else if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted && _grades == null) {
+        setState(() => _loadError = '学习记录加载失败，请检查网络后重试');
+      } else if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('刷新失败，请检查网络后重试')));
+      }
+    }
+  }
+
+  Future<void> _changeGrade(
+    Future<void> Function() action,
+    String success,
+  ) async {
+    if (_changingGrade) return;
+    setState(() => _changingGrade = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('正在处理成绩…'), duration: Duration(seconds: 30)),
+    );
+    try {
+      await action();
+      await _load();
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(success)));
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _changingGrade = false);
     }
   }
 
   /// 筛选变化只重取趋势，不刷新成绩与评估列表。
   Future<void> _loadTrend() async {
+    setState(() => _trendLoading = true);
     try {
       final t = await Api.I.parentGradeTrend(
         widget.studentId,
@@ -80,6 +129,14 @@ class _GradesScreenState extends State<GradesScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('趋势加载失败，请重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _trendLoading = false);
     }
   }
 
@@ -161,7 +218,7 @@ class _GradesScreenState extends State<GradesScreen> {
       'note': note.text,
       'reason': current == null ? 'created' : 'edited',
     };
-    try {
+    await _changeGrade(() async {
       if (current == null) {
         await Api.I.addParentGrade(widget.studentId, body);
       } else {
@@ -171,14 +228,7 @@ class _GradesScreenState extends State<GradesScreen> {
           body,
         );
       }
-      _load();
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    }
+    }, current == null ? '成绩已添加' : '成绩已保存');
   }
 
   String _label(String key) =>
@@ -277,15 +327,25 @@ class _GradesScreenState extends State<GradesScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text(e.message)));
         }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('修改历史加载失败，请重试')),
+          );
+        }
       }
     }
     if (action == 'delete') {
-      await Api.I.deleteParentGrade(widget.studentId, grade['id'] as int);
-      _load();
+      await _changeGrade(
+        () => Api.I.deleteParentGrade(widget.studentId, grade['id'] as int),
+        '成绩已删除，可在“显示已删除成绩”中恢复',
+      );
     }
     if (action == 'restore') {
-      await Api.I.restoreParentGrade(widget.studentId, grade['id'] as int);
-      _load();
+      await _changeGrade(
+        () => Api.I.restoreParentGrade(widget.studentId, grade['id'] as int),
+        '成绩已恢复',
+      );
     }
   }
 
@@ -293,6 +353,7 @@ class _GradesScreenState extends State<GradesScreen> {
     // 规格 7.3：按时间范围触发学业评估
     final range = await chooseAssessmentRange(context);
     if (range == null || !mounted) return;
+    setState(() => _assessmentAction = 'academic');
     try {
       final result = await Api.I.parentAcademicAssessment(
         widget.studentId,
@@ -309,6 +370,9 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
           ];
         });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('学业评估已更新')));
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -316,6 +380,14 @@ class _GradesScreenState extends State<GradesScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('学业评估失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _assessmentAction = null);
     }
   }
 
@@ -323,6 +395,7 @@ class _GradesScreenState extends State<GradesScreen> {
     // 规格 8.3：提示基于明确时间范围内的对话证据，触发前先选范围
     final range = await chooseAssessmentRange(context);
     if (range == null || !mounted) return;
+    setState(() => _assessmentAction = 'wellbeing');
     try {
       final result = await Api.I.parentWellbeingAssessment(
         widget.studentId,
@@ -331,6 +404,9 @@ class _GradesScreenState extends State<GradesScreen> {
       );
       if (mounted) {
         setState(() => _wellbeingRows = [result, ...?_wellbeingRows]);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('身心状态关注结果已更新')));
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -338,6 +414,14 @@ class _GradesScreenState extends State<GradesScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('生成失败，请检查网络后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _assessmentAction = null);
     }
   }
 
@@ -347,28 +431,57 @@ class _GradesScreenState extends State<GradesScreen> {
       title: Text('${widget.studentName} · 学习记录'),
       actions: [
         IconButton(
-          onPressed: _assess,
-          icon: const Icon(Icons.insights),
+          onPressed: _assessmentAction == null ? _assess : null,
+          icon: _assessmentAction == 'academic'
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.insights),
           tooltip: '学业评估',
         ),
         IconButton(
-          onPressed: _runWellbeing,
-          icon: const Icon(Icons.favorite_border),
+          onPressed: _assessmentAction == null ? _runWellbeing : null,
+          icon: _assessmentAction == 'wellbeing'
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.favorite_border),
           tooltip: '身心状态关注',
         ),
       ],
     ),
     floatingActionButton: FloatingActionButton(
-      onPressed: () => _addOrEdit(),
+      onPressed: _changingGrade ? null : () => _addOrEdit(),
       child: const Icon(Icons.add),
     ),
     body: _grades == null
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(
+            child: _loadError == null
+                ? const CircularProgressIndicator()
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_loadError!),
+                      TextButton(
+                        onPressed: () {
+                          setState(() => _loadError = null);
+                          _load();
+                        },
+                        child: const Text('重试'),
+                      ),
+                    ],
+                  ),
+          )
         : RefreshIndicator(
             onRefresh: _load,
             child: ListView(
               padding: const EdgeInsets.all(12),
               children: [
+                if (_trendLoading) const LinearProgressIndicator(minHeight: 2),
                 GradeTrendCard(
                   trend: _trend,
                   subjects: _subjects,
@@ -391,7 +504,11 @@ class _GradesScreenState extends State<GradesScreen> {
                   title: const Text('显示已删除成绩'),
                   value: _includeDeleted,
                   onChanged: (value) {
-                    setState(() => _includeDeleted = value);
+                    setState(() {
+                      _includeDeleted = value;
+                      _grades = null;
+                      _loadError = null;
+                    });
                     _load();
                   },
                 ),
