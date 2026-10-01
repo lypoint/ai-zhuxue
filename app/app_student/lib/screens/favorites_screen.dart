@@ -11,6 +11,8 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   List<dynamic>? _favs;
+  String? _error;
+  int? _removingId;
 
   @override
   void initState() {
@@ -19,14 +21,42 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Future<void> _load() async {
-    final list = await Api.I.myFavorites();
-    if (!mounted) return;
-    setState(() => _favs = list);
+    if (_favs == null && _error != null && mounted) setState(() => _error = null);
+    try {
+      final list = await Api.I.myFavorites();
+      if (mounted) setState(() { _favs = list; _error = null; });
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = '收藏加载失败，请检查网络后重试');
+    }
   }
 
   Future<void> _remove(int id) async {
-    await Api.I.deleteFavorite(id);
-    _load();
+    if (_removingId != null) return;
+    setState(() => _removingId = id);
+    try {
+      await Api.I.deleteFavorite(id);
+      if (!mounted) return;
+      setState(() => _favs!.removeWhere((item) => item['id'] == id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已取消收藏')),
+      );
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('取消收藏失败，请重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _removingId = null);
+    }
   }
 
   @override
@@ -34,7 +64,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('我的收藏 ⭐')),
       body: _favs == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: _error == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_error!),
+                        TextButton(onPressed: _load, child: const Text('重试')),
+                      ],
+                    ),
+            )
           : _favs!.isEmpty
           ? const Center(child: Text('长按聊天消息即可收藏'))
           : ListView.builder(
@@ -59,9 +99,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, size: 18),
+                          icon: _removingId == f['id']
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.close, size: 18),
                           tooltip: '取消收藏',
-                          onPressed: () => _remove(f['id'] as int),
+                          onPressed: _removingId == null
+                              ? () => _remove(f['id'] as int)
+                              : null,
                         ),
                       ],
                     ),

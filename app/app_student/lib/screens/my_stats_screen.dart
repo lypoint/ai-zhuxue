@@ -2,16 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 
 /// 我的学习统计（P2）：学生自己可见，增强自我管理。
-class MyStatsScreen extends StatelessWidget {
+class MyStatsScreen extends StatefulWidget {
   const MyStatsScreen({super.key});
+
+  @override
+  State<MyStatsScreen> createState() => _MyStatsScreenState();
+}
+
+class _MyStatsScreenState extends State<MyStatsScreen> {
+  late Future<Map<String, dynamic>> _stats;
+
+  @override
+  void initState() {
+    super.initState();
+    _stats = Api.I.myStats();
+  }
+
+  void _retry() => setState(() {
+    _stats = Api.I.myStats();
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('我的学习统计')),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: Api.I.myStats(),
+        future: _stats,
         builder: (ctx, snap) {
+          if (snap.hasError) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('学习统计加载失败，请检查网络后重试'),
+                  TextButton(onPressed: _retry, child: const Text('重试')),
+                ],
+              ),
+            );
+          }
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
