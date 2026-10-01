@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../widgets/subscription_card.dart';
@@ -20,8 +21,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? _family;
   String? _loadError;
-  String? _bindCode;
-  String _bindLabel = '学生端绑定码';
+  bool _makingCode = false;
+  int? _bindingStudentId;
   bool _showOnboarding = false;
   Map<String, dynamic>? _subscription;
   int _unread = 0;
@@ -33,18 +34,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _makeCode() async {
+    if (_makingCode) return;
+    setState(() => _makingCode = true);
     try {
       final data = await Api.I.createBindCode();
-      if (!mounted) return;
-      setState(() {
-        _bindCode = data['code'] as String;
-        _bindLabel = '学生端绑定码';
-      });
+      _showBindCode(data['code'] as String, '学生端绑定码');
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('网络连接失败，请稍后重试')));
+      }
+    } finally {
+      if (mounted) setState(() => _makingCode = false);
     }
+  }
+
+  void _showBindCode(String code, String label) {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (_) => BindCodeDialog(code: code, label: label),
+    );
   }
 
   Future<void> _addStudent() async {
@@ -100,10 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (name == null || name.isEmpty || !mounted) return;
     try {
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
-      setState(() {
-        _bindCode = data['bind_code'] as String;
-        _bindLabel = '$name 的绑定码';
-      });
+      _showBindCode(data['bind_code'] as String, '$name 的绑定码');
       _refresh();
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -147,10 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
       if (!mounted) return;
-      setState(() {
-        _bindCode = data['bind_code'] as String;
-        _bindLabel = '$name 的绑定码';
-      });
+      _showBindCode(data['bind_code'] as String, '$name 的绑定码');
       _refresh();
     } on ApiException catch (e) {
       if (mounted) {
@@ -162,19 +173,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _rebindStudent(Map<String, dynamic> student) async {
+    if (_bindingStudentId != null) return;
+    final studentId = student['id'] as int;
+    setState(() => _bindingStudentId = studentId);
     try {
-      final data = await Api.I.rebindCode(student['id'] as int);
+      final data = await Api.I.rebindCode(studentId);
       if (!mounted) return;
-      setState(() {
-        _bindCode = data['bind_code'] as String;
-        _bindLabel = '${student['nickname']} 的重新绑定码';
-      });
+      _showBindCode(data['code'] as String, '${student['nickname']} 的绑定码');
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
       }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('生成绑定码失败，请稍后重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _bindingStudentId = null);
     }
   }
 
@@ -373,8 +392,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: _makeCode,
-            icon: const Icon(Icons.qr_code_2),
+            onPressed: _makingCode ? null : _makeCode,
+            icon: _makingCode
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.qr_code_2),
             tooltip: '生成绑定码',
           ),
           Stack(
@@ -444,7 +469,8 @@ class _HomeScreenState extends State<HomeScreen> {
               student: s,
               onRename: () => _renameStudent(s),
               onGradeBandChanged: (band) => _setGradeBand(s, band),
-              onRebind: () => _rebindStudent(s),
+              onRebind: _bindingStudentId == null ? () => _rebindStudent(s) : null,
+              bindingInProgress: _bindingStudentId == s['id'],
               onManageDevices: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => DeviceManageScreen(
@@ -460,7 +486,6 @@ class _HomeScreenState extends State<HomeScreen> {
             settings: family['settings'] as Map<String, dynamic>,
             onSaved: _refresh,
           ),
-          if (_bindCode != null) _bindCodeCard(),
         ],
       ),
     );
@@ -503,41 +528,87 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: const Icon(Icons.family_restroom),
         title: Text(family['guardian']['nickname'] as String? ?? '家长'),
         subtitle: Text('家庭 · $childCount 个孩子'),
-        trailing: FilledButton.icon(
-          onPressed: _addStudent,
-          icon: const Icon(Icons.person_add, size: 17),
-          label: const Text('添加孩子'),
+        trailing: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 140),
+          child: FilledButton.icon(
+            onPressed: _addStudent,
+            icon: const Icon(Icons.person_add, size: 17),
+            label: const Text('添加孩子'),
+          ),
         ),
       ),
     );
+  }
+}
+
+class BindCodeDialog extends StatefulWidget {
+  const BindCodeDialog({super.key, required this.code, required this.label});
+
+  final String code;
+  final String label;
+
+  @override
+  State<BindCodeDialog> createState() => _BindCodeDialogState();
+}
+
+class _BindCodeDialogState extends State<BindCodeDialog> {
+  bool _copying = false;
+  bool _copyFailed = false;
+
+  Future<void> _copy() async {
+    setState(() {
+      _copying = true;
+      _copyFailed = false;
+    });
+    try {
+      await Clipboard.setData(ClipboardData(text: widget.code));
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.pop(context);
+      messenger.showSnackBar(const SnackBar(content: Text('绑定码已复制')));
+    } catch (_) {
+      if (mounted) setState(() => _copyFailed = true);
+    } finally {
+      if (mounted) setState(() => _copying = false);
+    }
   }
 
-  Widget _bindCodeCard() {
-    return Card(
-      color: const Color(0xFFE8F5F1),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text('$_bindLabel（10 分钟内有效）'),
-            const SizedBox(height: 8),
-            Text(
-              _bindCode!,
-              style: const TextStyle(
-                fontSize: 28,
-                letterSpacing: 6,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 140,
-              height: 140,
-              child: QrImageView(data: _bindCode!, size: 140),
-            ),
-          ],
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.label),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text('10 分钟内在学生端扫描，或输入以下绑定码'),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: 180,
+          height: 180,
+          child: QrImageView(data: widget.code, size: 180),
         ),
+        const SizedBox(height: 8),
+        Text(
+          widget.code,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 24, letterSpacing: 4),
+        ),
+        if (_copyFailed)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text('复制失败，请重试', style: TextStyle(color: Colors.red)),
+          ),
+      ],
+    ),
+    actions: [
+      TextButton.icon(
+        onPressed: _copying ? null : _copy,
+        icon: const Icon(Icons.copy),
+        label: Text(_copying ? '复制中…' : '复制绑定码'),
       ),
-    );
-  }
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('完成'),
+      ),
+    ],
+  );
 }

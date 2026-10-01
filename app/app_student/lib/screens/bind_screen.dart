@@ -135,7 +135,13 @@ class _BindScreenState extends State<BindScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'A3F9C2B1',
+                        hintText: '请输入绑定码',
+                        hintStyle: const TextStyle(
+                          color: Colors.black38,
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          letterSpacing: 0,
+                        ),
                         prefixIcon: const Icon(Icons.qr_code_2),
                         errorText: _error,
                       ),
