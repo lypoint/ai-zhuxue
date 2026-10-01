@@ -23,6 +23,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
   final _searchCtrl = TextEditingController();
   String _status = 'all';
   String? _loadError;
+  String? _supplementError;
+  bool _refreshing = false;
+  int _loadGeneration = 0;
   bool _searching = false;
 
   @override
@@ -67,33 +70,62 @@ class _ReviewScreenState extends State<ReviewScreen> {
     }
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool reportRetry = false}) async {
+    final generation = ++_loadGeneration;
     final status = _status;
+    setState(() => _refreshing = true);
     try {
       final list = await Api.I.conversations(widget.studentId, status: status);
       Map<String, dynamic>? usage;
       Map<String, dynamic>? summary;
+      final unavailable = <String>[];
       try {
         usage = await Api.I.studentUsage(widget.studentId);
       } catch (_) {
-        usage = null;
+        unavailable.add('用量');
       }
       try {
         summary = await Api.I.studentSummary(widget.studentId);
       } catch (_) {
-        summary = null;
+        unavailable.add('学习摘要');
       }
-      if (!mounted || status != _status) return;
+      if (!mounted || generation != _loadGeneration || status != _status) return;
       setState(() {
         _conversations = list;
         _usage = usage;
         _summary = summary;
         _loadError = null;
+        _supplementError = unavailable.isEmpty
+            ? null
+            : '${unavailable.join('、')}暂不可用，请重试';
       });
-    } on ApiException {
-      if (mounted && status == _status) setState(() => _loadError = '对话记录加载失败，请重试');
+      if (reportRetry && unavailable.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('部分信息仍未加载成功，请稍后重试')),
+        );
+      }
+    } on ApiException catch (e) {
+      if (!mounted || generation != _loadGeneration || status != _status) return;
+      if (_conversations == null) {
+        setState(() => _loadError = '对话记录加载失败，请重试');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('刷新对话记录失败：${e.message}')),
+        );
+      }
     } catch (_) {
-      if (mounted && status == _status) setState(() => _loadError = '对话记录加载失败，请检查网络后重试');
+      if (!mounted || generation != _loadGeneration || status != _status) return;
+      if (_conversations == null) {
+        setState(() => _loadError = '对话记录加载失败，请检查网络后重试');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('刷新对话记录失败，请检查网络后重试')),
+        );
+      }
+    } finally {
+      if (mounted && generation == _loadGeneration) {
+        setState(() => _refreshing = false);
+      }
     }
   }
 
@@ -120,7 +152,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.studentName} 的全部对话')),
+      appBar: AppBar(
+        title: Text('${widget.studentName} 的全部对话'),
+        actions: [
+          IconButton(
+            tooltip: '刷新对话记录',
+            onPressed: _refreshing ? null : () => _load(reportRetry: true),
+            icon: _refreshing
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       body: _conversations == null
           ? Center(
               child: _loadError == null
@@ -144,6 +191,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
               children: [
                 _statusFilter(),
                 _searchBar(),
+                if (_supplementError != null)
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: Text(_supplementError!),
+                      trailing: TextButton(
+                        onPressed: _refreshing
+                            ? null
+                            : () => _load(reportRetry: true),
+                        child: const Text('重试'),
+                      ),
+                    ),
+                  ),
                 if (_searchHits != null) ..._searchResults(),
                 if (_summary != null) _summaryCard(),
                 if (_usage != null) _usageCard(),
