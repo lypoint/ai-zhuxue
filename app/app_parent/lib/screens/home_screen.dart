@@ -152,9 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('需要增加孩子名额'),
-            content: Text(
-              '当前订阅没有可用名额。增加 1 个名额$priceText（按剩余天数折算，立即生效），是否继续？',
-            ),
+            content: Text('当前订阅没有可用名额。增加 1 个名额$priceText（按剩余天数折算，立即生效），是否继续？'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
