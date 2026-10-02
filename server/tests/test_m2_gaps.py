@@ -87,7 +87,7 @@ def test_safe_first_stream_replays_after_check(client, monkeypatch):
     """安全优先模式：LLM 正常时 delta 在复核后回放（客户端仍收到完整内容）。"""
     from app.services import llm
 
-    async def fake_stream(messages, purpose="chat", max_tokens=1024,
+    async def fake_stream(messages, purpose="chat", max_tokens=40960,
                           temperature=0.7, family_id=None, group_id=None):
         yield {"delta": "光合作用是", "provider": "glm", "model": "test"}
         yield {"delta": "植物制造养分的过程", "provider": "glm", "model": "test"}
@@ -221,18 +221,45 @@ def test_model_stream_with_reasoning_only_reports_token_exhaustion(monkeypatch):
     active_model[0] = "deepseek-v4.1-flash"
     with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
         asyncio.run(consume())
-    assert requested["max_tokens"] == 8192
+    assert requested["max_tokens"] == 40960
     active_model[0] = "moonshot-v1-8k"
     with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
         asyncio.run(consume())
-    assert requested["max_tokens"] == 1024
+    assert requested["max_tokens"] == 40960
+
+
+def test_nonstream_chat_and_fence_use_40960(monkeypatch):
+    import asyncio
+    import json
+    import httpx
+    from app.services import fence, llm
+
+    requested = []
+
+    def respond(request):
+        requested.append(json.loads(request.content))
+        return httpx.Response(200, json={
+            "choices": [{"message": {"content": '{"category":"study","confidence":0.9}'}}],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+        })
+
+    original_client = httpx.AsyncClient
+    monkeypatch.setattr(llm, "_provider", lambda *args: (
+        "test", {"base_url": "https://example.com"}, "test-key", "test-model"))
+    monkeypatch.setattr(llm, "resolve_active_group", lambda *args: {})
+    monkeypatch.setattr(llm.httpx, "AsyncClient", lambda **kwargs: original_client(
+        transport=httpx.MockTransport(respond), **kwargs))
+
+    asyncio.run(llm.chat([{"role": "user", "content": "数学"}]))
+    asyncio.run(fence._llm_classify("数学", fence.CLASSIFY_SYSTEM))
+    assert [item["max_tokens"] for item in requested] == [40960, 40960]
 
 
 def test_safe_first_stream_blocks_sensitive_output(client, monkeypatch):
     """安全优先模式：模型输出敏感内容 → 任何 delta 不到达终端，替换为拒绝话术。"""
     from app.services import llm
 
-    async def fake_stream(messages, purpose="chat", max_tokens=1024,
+    async def fake_stream(messages, purpose="chat", max_tokens=40960,
                           temperature=0.7, family_id=None, group_id=None):
         yield {"delta": "制作炸弹需要", "provider": "glm", "model": "test"}
         yield {"delta": "以下材料…", "provider": "glm", "model": "test"}
