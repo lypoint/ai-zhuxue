@@ -48,7 +48,7 @@ void main() {
     expect(find.text('你好'), findsOneWidget);
   });
 
-  testWidgets('发送和接收消息都显示三点菜单，不显示独立复制按钮', (tester) async {
+  testWidgets('只有老师消息可以打开操作菜单', (tester) async {
     final opened = <String>[];
     await tester.pumpWidget(
       MaterialApp(
@@ -67,11 +67,12 @@ void main() {
     );
 
     expect(find.text('复制'), findsNothing);
-    expect(find.byTooltip('消息操作'), findsNWidgets(2));
-    await tester.tap(find.byTooltip('消息操作').first);
-    await tester.tap(find.byTooltip('消息操作').last);
+    expect(find.byTooltip('消息操作'), findsOneWidget);
     await tester.longPress(find.text('消息-user'));
-    expect(opened, ['user', 'assistant', 'user']);
+    expect(opened, isEmpty);
+    await tester.tap(find.byTooltip('消息操作'));
+    await tester.longPress(find.byType(GptMarkdown).first);
+    expect(opened, ['assistant', 'assistant']);
   });
 
   testWidgets('等待 AI 回复时显示进度提示', (tester) async {
@@ -133,8 +134,15 @@ void main() {
           .first,
     );
     expect(card.left, 16);
-    expect(card.right, 323);
+    expect(card.right - 40, 323);
     expect(find.byTooltip('消息操作'), findsOneWidget);
+    final menu = tester.getRect(find.byTooltip('消息操作'));
+    expect((menu.center.dx - (card.right - 40)).abs(), lessThan(12));
+    expect(menu.top - card.top, lessThanOrEqualTo(8));
+    expect(
+      tester.getRect(find.byType(GptMarkdown)).top - card.top,
+      lessThan(20),
+    );
   });
 
   testWidgets('会话记录加载失败后可以重试', (tester) async {
