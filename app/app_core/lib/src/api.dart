@@ -338,6 +338,11 @@ class Api {
       (await _sendRaw('GET', '/chat/favorites')) as List<dynamic>;
   Future<void> deleteFavorite(int id) => _send('DELETE', '/chat/favorites/$id');
 
+  Future<Map<String, dynamic>> reportMessage(int messageId, String reason) =>
+      _send('POST', '/chat/reports', body: {'message_id': messageId, 'reason': reason});
+  Future<List<dynamic>> myReports() async =>
+      (await _sendRaw('GET', '/chat/reports')) as List<dynamic>;
+
   // ---------- 订阅（P0） ----------
   Future<Map<String, dynamic>> subscription() =>
       _send('GET', '/parent/subscription');

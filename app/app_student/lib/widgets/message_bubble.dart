@@ -6,13 +6,11 @@ import '../models/bubble.dart';
 class MessageBubble extends StatelessWidget {
   final Bubble bubble;
   final VoidCallback onLongPress;
-  final VoidCallback onCopy;
   final bool isLoading;
   const MessageBubble({
     super.key,
     required this.bubble,
     required this.onLongPress,
-    required this.onCopy,
     this.isLoading = false,
   });
 
@@ -31,7 +29,7 @@ class MessageBubble extends StatelessWidget {
               : CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onLongPress: onLongPress,
+              onLongPress: bubble.text.isEmpty ? null : onLongPress,
               child: Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(
@@ -64,46 +62,61 @@ class MessageBubble extends StatelessWidget {
                           ),
                         ],
                 ),
-                child: isUser
-                    ? Text(
-                        bubble.text,
-                        style: const TextStyle(color: Colors.white),
-                      )
-                    : isLoading
-                    ? const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          SizedBox(width: 8),
-                          Text('正在回答…'),
-                        ],
-                      )
-                    : GptMarkdown(
-                        bubble.text,
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          height: 1.4,
-                        ),
-                        useDollarSignsForLatex: true,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 40),
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 44),
+                        child: isUser
+                            ? Text(
+                                bubble.text,
+                                style: const TextStyle(color: Colors.white),
+                              )
+                            : isLoading
+                            ? const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('正在回答…'),
+                                ],
+                              )
+                            : GptMarkdown(
+                                bubble.text,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  height: 1.4,
+                                ),
+                                useDollarSignsForLatex: true,
+                              ),
                       ),
-              ),
-            ),
-            if (bubble.text.isNotEmpty)
-              TextButton.icon(
-                onPressed: onCopy,
-                icon: const Icon(Icons.copy_outlined, size: 16),
-                label: const Text('复制'),
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(0, 28),
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
+                      if (bubble.text.isNotEmpty)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: IconButton(
+                            tooltip: '消息操作',
+                            icon: const Icon(Icons.more_horiz, size: 20),
+                            color: isUser ? Colors.white : Colors.black54,
+                            constraints: const BoxConstraints(
+                              minWidth: 40,
+                              minHeight: 40,
+                            ),
+                            onPressed: onLongPress,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
+            ),
           ],
         ),
       ),

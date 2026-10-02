@@ -77,6 +77,12 @@
     <table id="feedbackTable"><thead><tr><th>时间</th><th>会话</th><th>原处置</th><th>内容</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table>
   </section>
 
+  <section data-admin-only>
+    <h2>学生消息举报</h2>
+    <div class="row"><button class="ghost" onclick="loadReports()">刷新举报</button><span id="reportStatus" aria-live="polite"></span></div>
+    <table id="reportTable"><thead><tr><th>时间</th><th>学生</th><th>消息内容</th><th>举报原因</th><th>状态</th><th>回复</th><th>操作</th></tr></thead><tbody></tbody></table>
+  </section>
+
   <section>
     <h2>家族列表</h2>
     <table id="famTable"><thead><tr><th>ID</th><th>监护人</th><th>学生</th><th>消息数</th><th>标签</th><th>协助/会员操作</th><th>创建</th></tr></thead><tbody></tbody></table>
@@ -258,7 +264,7 @@ function boot() {
     }
     if (ROLE === 'support') $('fenceTable').querySelector('tbody').innerHTML = '<tr><td colspan="4">客服角色不显示围栏详情</td></tr>';
     else loadFence();
-    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadFeedback(); loadAssessmentAudits(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
+    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadFeedback(); loadReports(); loadAssessmentAudits(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
   }).catch(e => { if (e.message !== 'reauth') $('lerr').textContent = e.message; });
 }
 
@@ -307,6 +313,29 @@ async function loadFeedback() {
 async function closeFeedback(id) {
   await api('/admin/fence-feedback/' + id, {method:'PATCH', body: JSON.stringify({status:'reviewed'})});
   loadFeedback();
+}
+
+async function loadReports() {
+  try {
+    const d = await api('/admin/fence-feedback?kind=message_report&size=100');
+    $('reportTable').querySelector('tbody').innerHTML = d.items.map(f => `<tr>
+      <td>${esc((f.created_at||'').slice(0,16).replace('T',' '))}</td><td>${f.student_id}</td>
+      <td style="max-width:280px;white-space:pre-wrap">${esc((f.content||'').slice(0,500))}</td>
+      <td style="max-width:220px;white-space:pre-wrap">${esc(f.note||'')}</td>
+      <td>${esc(f.status)}</td><td>${esc(f.reply||'—')}</td>
+      <td><button class="ghost" onclick="replyReport(${f.id},decodeURIComponent('${attr(f.reply||'')}'))">${f.reply?'修改回复':'回复'}</button></td></tr>`).join('') || '<tr><td colspan="7">暂无举报</td></tr>';
+    $('reportStatus').textContent = `共 ${d.total} 条举报`;
+  } catch(e) { $('reportStatus').textContent = e.message; }
+}
+async function replyReport(id, current) {
+  const reply = prompt('回复学生（最多 1000 字）：', current);
+  if (reply === null) return;
+  if (!reply.trim() || reply.length > 1000) { $('reportStatus').textContent = '请填写 1–1000 字回复'; return; }
+  $('reportStatus').textContent = '正在保存回复…';
+  try {
+    await api('/admin/fence-feedback/' + id, {method:'PATCH', body:JSON.stringify({status:'reviewed',reply:reply.trim()})});
+    await loadReports(); $('reportStatus').textContent = '回复已保存，学生可在「我的举报」查看';
+  } catch(e) { $('reportStatus').textContent = e.message; }
 }
 
 async function loadUsers() {

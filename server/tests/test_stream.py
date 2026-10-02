@@ -28,6 +28,7 @@ def test_stream_reject_path(client):
     assert resp.headers["content-type"].startswith("text/event-stream")
     events = _events(resp.text)
     assert events["meta"][0]["fence_action"] == "reject"
+    assert events["meta"][0]["user_message_id"] > 0
     assert "家长" in events["delta"][0]["text"]
     assert events["done"][0]["message_id"] > 0
 

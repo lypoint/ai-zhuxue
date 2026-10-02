@@ -9,6 +9,7 @@ import '../widgets/chat_drawer.dart';
 import '../widgets/message_bubble.dart';
 import 'bind_screen.dart';
 import 'favorites_screen.dart';
+import 'my_reports_screen.dart';
 import 'my_stats_screen.dart';
 import 'grades_screen.dart';
 
@@ -303,7 +304,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _teacherName = data['teacher_name'] as String? ?? _teacherName;
           _teacherAvatarUrl = data['teacher_avatar_url'] as String? ?? '';
           for (final m in msgs) {
-            _bubbles.add(Bubble(m['role'] as String, m['content'] as String));
+            _bubbles.add(
+              Bubble(
+                m['role'] as String,
+                m['content'] as String,
+                messageId: m['id'] as int?,
+              ),
+            );
           }
         });
       }
@@ -448,7 +455,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// 消息长按菜单：复制 / 收藏（P2 学习沉淀）
+  /// 长按和三点共用消息操作菜单。
   Future<void> _messageMenu(Bubble b) async {
     final action = await showModalBottomSheet<String>(
       context: context,
@@ -466,6 +473,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               title: const Text('收藏'),
               onTap: () => Navigator.of(ctx).pop('favorite'),
             ),
+            ListTile(
+              leading: const Icon(Icons.flag_outlined),
+              title: const Text('举报'),
+              onTap: () => Navigator.of(ctx).pop('report'),
+            ),
           ],
         ),
       ),
@@ -473,6 +485,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (!mounted || action == null) return;
     if (action == 'copy') {
       await _copyMessage(b);
+    } else if (action == 'report') {
+      await _reportMessage(b);
     } else if (action == 'favorite') {
       if (b.messageId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -518,6 +532,61 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       } finally {
         _favoritingMessageId = null;
+      }
+    }
+  }
+
+  Future<void> _reportMessage(Bubble b) async {
+    if (b.messageId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请等待消息发送完成后再举报')));
+      return;
+    }
+    final reason = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(title: Text('选择举报原因')),
+            for (final text in ['内容不准确', '内容不适合学生', '存在不友善内容', '其他问题'])
+              ListTile(
+                title: Text(text),
+                onTap: () => Navigator.of(ctx).pop(text),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (reason == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('正在提交举报…'), duration: Duration(seconds: 30)),
+    );
+    try {
+      final result = await Api.I.reportMessage(b.messageId!, reason);
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            result['already'] == true
+                ? '这条消息已举报，可在「我的举报」查看进度'
+                : '举报已提交，可在「我的举报」查看回复',
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(const SnackBar(content: Text('举报失败，请检查网络后重试')));
       }
     }
   }
@@ -731,6 +800,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
     _inputCtrl.clear();
+    final userIndex = _bubbles.length;
     setState(() {
       _chatRevision++;
       _restoringLatest = false;
@@ -779,6 +849,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           if (mounted) {
             _conversationId =
                 meta['conversation_id'] as int? ?? _conversationId;
+            final id = meta['user_message_id'] as int?;
+            if (id != null) {
+              setState(
+                () => _bubbles[userIndex] = Bubble('user', text, messageId: id),
+              );
+            }
           }
         },
         onDelta: (delta) {
@@ -840,6 +916,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const FavoritesScreen()));
+  }
+
+  Future<void> _openReports() async {
+    Navigator.of(context).pop();
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const MyReportsScreen()));
   }
 
   Future<void> _openGrades() async {
@@ -956,6 +1039,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onSearchChanged: (v) => setState(() => _search = v),
         onOpenStats: _openStats,
         onOpenFavorites: _openFavorites,
+        onOpenReports: _openReports,
         onOpenGrades: _openGrades,
         onLogout: _logout,
         onOpenSession: _openSession,
@@ -1016,7 +1100,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       itemBuilder: (_, i) => MessageBubble(
         bubble: _bubbles[i],
         onLongPress: () => _messageMenu(_bubbles[i]),
-        onCopy: () => _copyMessage(_bubbles[i]),
         isLoading:
             _sending && i == _bubbles.length - 1 && _bubbles[i].text.isEmpty,
       ),

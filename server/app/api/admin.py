@@ -380,14 +380,16 @@ def fence_events(principal: AdminPrincipal = Depends(require_admin),decision: st
 
 
 @router.get("/fence-feedback")
-def fence_feedback(status: str | None = None, page: int = 1, size: int = 30,
+def fence_feedback(status: str | None = None, kind: str = "false_positive", page: int = 1, size: int = 30,
                    principal: AdminPrincipal = Depends(require_admin),
                    db: Session = Depends(get_db)):
     """误判反馈/失效样本队列；客服只能看到脱敏摘要。"""
     if status not in (None, "open", "reviewed", "dismissed"):
         raise HTTPException(422, "status 须为 open、reviewed 或 dismissed")
+    if kind not in ("false_positive", "message_report"):
+        raise HTTPException(422, "kind 无效")
     size = min(max(size, 1), 100)
-    q = db.query(FenceFeedback)
+    q = db.query(FenceFeedback).filter_by(kind=kind)
     if status:
         q = q.filter_by(status=status)
     total = q.count()
@@ -407,6 +409,7 @@ def fence_feedback(status: str | None = None, page: int = 1, size: int = 30,
             "category": event.category if event else None,
             "created_at": row.created_at.isoformat() if row.created_at else None,
             "reviewed_by": row.reviewed_by,
+            "reply": row.reply_text,
             "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
         })
     return {"total": total, "page": page, "items": items}
@@ -415,6 +418,7 @@ def fence_feedback(status: str | None = None, page: int = 1, size: int = 30,
 class FenceFeedbackUpdate(BaseModel):
     status: str
     note: str | None = Field(default=None, max_length=500)
+    reply: str | None = Field(default=None, max_length=1000)
 
 
 @router.patch("/fence-feedback/{feedback_id}")
@@ -427,9 +431,14 @@ def update_fence_feedback(feedback_id: int, body: FenceFeedbackUpdate,
     row = db.get(FenceFeedback, feedback_id)
     if not row:
         raise HTTPException(404, "feedback not found")
+    reply = row.reply_text if body.reply is None else body.reply.strip()
+    if row.kind == "message_report" and body.status == "reviewed" and not reply:
+        raise HTTPException(422, "回复内容不能为空")
     row.status = body.status
     if body.note is not None:
         row.note = body.note.strip()
+    if body.reply is not None:
+        row.reply_text = body.reply.strip()
     row.reviewed_by = principal.name
     row.reviewed_at = dt.datetime.utcnow()
     log(db, principal, "fence_feedback.update",

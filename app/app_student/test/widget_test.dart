@@ -48,8 +48,8 @@ void main() {
     expect(find.text('你好'), findsOneWidget);
   });
 
-  testWidgets('发送和接收消息都可以点击复制按钮', (tester) async {
-    final copied = <String>[];
+  testWidgets('发送和接收消息都显示三点菜单，不显示独立复制按钮', (tester) async {
+    final opened = <String>[];
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -58,8 +58,7 @@ void main() {
               for (final role in ['user', 'assistant'])
                 MessageBubble(
                   bubble: Bubble(role, '消息-$role'),
-                  onLongPress: () {},
-                  onCopy: () => copied.add(role),
+                  onLongPress: () => opened.add(role),
                 ),
             ],
           ),
@@ -67,10 +66,11 @@ void main() {
       ),
     );
 
-    expect(find.text('复制'), findsNWidgets(2));
-    await tester.tap(find.text('复制').first);
-    await tester.tap(find.text('复制').last);
-    expect(copied, ['user', 'assistant']);
+    expect(find.text('复制'), findsNothing);
+    expect(find.byTooltip('消息操作'), findsNWidgets(2));
+    await tester.tap(find.byTooltip('消息操作').first);
+    await tester.tap(find.byTooltip('消息操作').last);
+    expect(opened, ['user', 'assistant']);
   });
 
   testWidgets('等待 AI 回复时显示进度提示', (tester) async {
@@ -80,7 +80,6 @@ void main() {
           body: MessageBubble(
             bubble: Bubble('assistant', ''),
             onLongPress: () {},
-            onCopy: () {},
             isLoading: true,
           ),
         ),
@@ -90,7 +89,7 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('老师卡片与复制按钮贴合参考聊天页间距', (tester) async {
+  testWidgets('老师卡片保持参考聊天页间距', (tester) async {
     tester.view.physicalSize = const Size(1125, 2436);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -101,19 +100,21 @@ void main() {
           body: MessageBubble(
             bubble: Bubble('assistant', '一段讲解'),
             onLongPress: () {},
-            onCopy: () {},
           ),
         ),
       ),
     );
-    final card = tester.getRect(find.ancestor(
-      of: find.byType(GptMarkdown),
-      matching: find.byType(Container),
-    ).first);
-    final copy = tester.getRect(find.byWidgetPredicate((w) => w is TextButton));
+    final card = tester.getRect(
+      find
+          .ancestor(
+            of: find.byType(GptMarkdown),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
     expect(card.left, 16);
     expect(card.right, 323);
-    expect(copy.top - card.bottom, lessThanOrEqualTo(4));
+    expect(find.byTooltip('消息操作'), findsOneWidget);
   });
 
   testWidgets('会话记录加载失败后可以重试', (tester) async {
@@ -133,6 +134,7 @@ void main() {
             onSearchChanged: (_) {},
             onOpenStats: () {},
             onOpenFavorites: () {},
+            onOpenReports: () {},
             onOpenGrades: () {},
             onLogout: () {},
             onOpenSession: (_) {},

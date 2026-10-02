@@ -5,7 +5,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -14,12 +14,52 @@ from ..api.deps import current_student
 from sqlalchemy import and_, func, or_
 
 from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family, FamilySettings,
-                      FenceEvent, LLMGroup, Message, Student, StudentGrade,
+                      FenceEvent, FenceFeedback, LLMGroup, Message, Student, StudentGrade,
                       StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
 from ..services import fence, llm
 
 router = APIRouter(prefix="/chat", tags=["chat"])
+
+
+class MessageReportIn(BaseModel):
+    message_id: int
+    reason: str = Field(min_length=1, max_length=500)
+
+
+@router.post("/reports")
+def report_message(body: MessageReportIn, student: Student = Depends(current_student),
+                   db: Session = Depends(get_db)):
+    message = db.get(Message, body.message_id)
+    conv = db.get(Conversation, message.conversation_id) if message else None
+    if not conv or conv.student_id != student.id or conv.student_deleted_at is not None:
+        raise HTTPException(404, "message not found")
+    reason = body.reason.strip()
+    if not reason:
+        raise HTTPException(422, "请填写举报原因")
+    existing = db.query(FenceFeedback).filter_by(
+        student_id=student.id, message_id=message.id,
+        reporter_role="student", kind="message_report").first()
+    if existing:
+        return {"id": existing.id, "status": existing.status, "already": True}
+    report = FenceFeedback(student_id=student.id, conversation_id=conv.id,
+                           message_id=message.id, reporter_role="student",
+                           reporter_id=student.id, kind="message_report", note=reason)
+    db.add(report)
+    db.commit()
+    return {"id": report.id, "status": report.status, "already": False}
+
+
+@router.get("/reports")
+def my_reports(student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    rows = db.query(FenceFeedback).filter_by(student_id=student.id,
+        reporter_role="student", reporter_id=student.id, kind="message_report").order_by(
+        FenceFeedback.id.desc()).limit(100).all()
+    return [{"id": row.id, "message_id": row.message_id,
+             "content": (db.get(Message, row.message_id).content if row.message_id else ""),
+             "reason": row.note, "status": row.status, "reply": row.reply_text,
+             "created_at": row.created_at.isoformat() if row.created_at else None}
+            for row in rows]
 
 SYSTEM_PROMPT = (
     "你是面向中小学生的AI学习辅导老师。只解答学科问题、学习方法与教育性讨论，"
@@ -484,7 +524,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
         from ..db import SessionLocal
         sdb = SessionLocal()
         try:
-            yield sse("meta", {"conversation_id": conv_id, "fence_action": fence_action,
+            yield sse("meta", {"conversation_id": conv_id, "user_message_id": user_msg_id,
+                               "fence_action": fence_action,
                                "category": verdict["category"]})
             if fence_action == "reject":
                 reply = Message(conversation_id=conv_id, role="assistant",

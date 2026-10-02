@@ -185,7 +185,7 @@ class FenceEvent(TimestampMixin, Base):
 
 
 class FenceFeedback(TimestampMixin, Base):
-    """家长提交的围栏误判反馈，供 CMS 复核失效样本。"""
+    """家长误判反馈和学生消息举报。"""
     __tablename__ = "fence_feedback"
     id: Mapped[int] = mapped_column(primary_key=True)
     student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
@@ -199,6 +199,7 @@ class FenceFeedback(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="open")  # open|reviewed|dismissed
     reviewed_by: Mapped[str | None] = mapped_column(String(50), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reply_text: Mapped[str] = mapped_column(String(1000), default="")
 
 
 class ActiveTime(TimestampMixin, Base):
