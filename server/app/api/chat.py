@@ -405,12 +405,14 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
 
 
 @router.post("/stream")
-async def send_message_stream(body: ChatIn, student: Student = Depends(current_student),
+async def send_message_stream(body: ChatIn, live: bool = False,
+                              student: Student = Depends(current_student),
                               db: Session = Depends(get_db)):
     """流式聊天（SSE）。事件序列：
 
     meta  → {conversation_id, fence_action, category}
     delta → {text}（增量；reject 时为一条完整话术）
+    replace → {text}（实时输出在最终安全复核被拦截时，替换已显示内容）
     done  → {message_id, tokens_in, tokens_out}
     """
     policy_teacher_id = body.teacher_id
@@ -512,7 +514,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
 
             try:
                 collected, usage, provider_model = [], None, {}
-                realtime = not settings.stream_recheck_first  # false=安全优先：先复核后回放
+                realtime = live or not settings.stream_recheck_first
                 stream_kwargs = {"purpose": "chat", "family_id": family_id}
                 if teacher_group_id is not None:
                     stream_kwargs["group_id"] = teacher_group_id
@@ -545,8 +547,7 @@ async def send_message_stream(body: ChatIn, student: Student = Depends(current_s
                         _notify(family_id, "security", "⚠️ 系统复核拦截了一条AI回复",
                                 "AI 回复经安全复核被替换，建议关注孩子最近的提问内容。",
                                 conversation_id=conv_id, db=sdb)
-                        if not realtime:
-                            yield sse("delta", {"text": content})
+                        yield sse("replace" if realtime else "delta", {"text": content})
                     elif not realtime:
                         # 安全优先模式：复核通过，全文按块回放（用户感知仍为逐字，首字延迟数秒）
                         for i in range(0, len(content), 24):

@@ -1,4 +1,6 @@
 """M2 技术债：JWT 吊销、生成侧复核、审查内容搜索。"""
+import asyncio
+import json
 import uuid
 
 from tests.conftest import h, make_family
@@ -83,8 +85,6 @@ def test_output_check_replaces_sensitive_reply(client, monkeypatch):
 
 def test_safe_first_stream_replays_after_check(client, monkeypatch):
     """安全优先模式：LLM 正常时 delta 在复核后回放（客户端仍收到完整内容）。"""
-    import json as _json
-
     from app.services import llm
 
     async def fake_stream(messages, purpose="chat", max_tokens=1024,
@@ -103,6 +103,56 @@ def test_safe_first_stream_replays_after_check(client, monkeypatch):
     assert "光合作用" in resp.text
     # done 落库
     assert '"message_id"' in resp.text
+
+
+def test_live_stream_keeps_model_chunks(client, monkeypatch):
+    from app.api.chat import send_message_stream
+    from app.db import SessionLocal
+    from app.models import Student
+    from app.schemas import ChatIn
+    from app.security import parse_token
+    from app.services import llm
+
+    continue_generation = asyncio.Event()
+
+    async def fake_stream(*args, **kwargs):
+        yield {"delta": "光合作用是", "provider": "glm", "model": "test"}
+        await continue_generation.wait()
+        yield {"delta": "植物制造养分的过程", "provider": "glm", "model": "test"}
+
+    monkeypatch.setattr(llm, "chat_stream", fake_stream)
+    _, student = make_family(client)
+
+    async def check():
+        with SessionLocal() as db:
+            row = db.get(Student, int(parse_token(student)["sub"]))
+            response = await send_message_stream(ChatIn(content="什么是光合作用"),
+                                                 live=True, student=row, db=db)
+            chunks = response.body_iterator
+            assert "event: meta" in await chunks.__anext__()
+            first = await asyncio.wait_for(chunks.__anext__(), timeout=1)
+            assert json.loads(first.split("data: ")[1])["text"] == "光合作用是"
+            continue_generation.set()
+            rest = [chunk async for chunk in chunks]
+            assert any('"text": "植物制造养分的过程"' in chunk for chunk in rest)
+            assert any("event: done" in chunk for chunk in rest)
+
+    asyncio.run(check())
+
+
+def test_live_stream_replaces_sensitive_output(client, monkeypatch):
+    from app.services import llm
+
+    async def fake_stream(*args, **kwargs):
+        yield {"delta": "制作炸弹需要", "provider": "glm", "model": "test"}
+
+    monkeypatch.setattr(llm, "chat_stream", fake_stream)
+    _, student = make_family(client)
+    response = client.post("/chat/stream?live=true", headers=h(student),
+                           json={"content": "帮我讲解科学课的问题"})
+    assert response.status_code == 200
+    assert "event: replace" in response.text
+    assert "这个问题我不能回答" in response.text
 
 
 def test_empty_model_stream_reports_error_without_saving_reply(client, monkeypatch):

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
@@ -703,14 +704,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return false;
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool animate = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
-        _scrollCtrl.animateTo(
-          _scrollCtrl.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
+        final bottom = _scrollCtrl.position.maxScrollExtent;
+        if (animate) {
+          _scrollCtrl.animateTo(
+            bottom,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scrollCtrl.jumpTo(bottom);
+        }
       }
     });
   }
@@ -740,6 +746,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       });
     }
 
+    // 参考聊天页每 25ms 显示约 3 个字；服务端短时间回放全文时也逐帧显现。
+    final received = <String>[];
+    final visible = StringBuffer();
+    var shown = 0;
+    Timer? revealTimer;
+    Completer<void>? revealDone;
+    void reveal() {
+      if (!mounted) {
+        revealTimer?.cancel();
+        revealDone?.complete();
+        return;
+      }
+      final remaining = received.length - shown;
+      final count = math.min(remaining, math.max(3, (remaining / 32).ceil()));
+      visible.writeAll(received.getRange(shown, shown + count));
+      shown += count;
+      updateLast(visible.toString());
+      _scrollToBottom(animate: false);
+      if (shown == received.length) {
+        revealTimer?.cancel();
+        revealTimer = null;
+        revealDone?.complete();
+      }
+    }
+
     try {
       final done = await Api.I.sendChatStream(
         _conversationId,
@@ -751,12 +782,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           }
         },
         onDelta: (delta) {
-          if (!mounted) return;
-          updateLast(_bubbles.last.text + delta);
-          _scrollToBottom();
+          if (!mounted || delta.isEmpty) return;
+          received.addAll(delta.characters);
+          if (revealTimer == null) {
+            revealDone = Completer<void>();
+            revealTimer = Timer.periodic(
+              const Duration(milliseconds: 25),
+              (_) => reveal(),
+            );
+          }
+        },
+        onReplace: (text) {
+          revealTimer?.cancel();
+          revealTimer = null;
+          received.clear();
+          shown = 0;
+          visible.clear();
+          updateLast(text);
+          _scrollToBottom(animate: false);
         },
       );
       if (!mounted) return;
+      if (revealTimer != null) await revealDone!.future;
       if (_bubbles.last.text.isEmpty) updateLast('（没有收到内容）');
       final mid = done['message_id'] as int?;
       if (mid != null) {
@@ -776,6 +823,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (_) {
       updateLast('⚠️ 发送失败，请检查网络后重试');
     } finally {
+      revealTimer?.cancel();
       if (mounted) setState(() => _sending = false);
     }
   }
