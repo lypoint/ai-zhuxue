@@ -134,10 +134,10 @@ void main() {
           .first,
     );
     expect(card.left, 16);
-    expect(card.right - 40, 323);
+    expect(card.right - 28, 335);
     expect(find.byTooltip('消息操作'), findsOneWidget);
     final menu = tester.getRect(find.byTooltip('消息操作'));
-    expect((menu.center.dx - (card.right - 40)).abs(), lessThan(12));
+    expect((menu.center.dx - (card.right - 28)).abs(), lessThan(12));
     expect(menu.top - card.top, lessThanOrEqualTo(8));
     expect(
       tester.getRect(find.byType(GptMarkdown)).top - card.top,
