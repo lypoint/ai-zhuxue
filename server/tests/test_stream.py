@@ -41,7 +41,7 @@ def test_stream_llm_unavailable_is_sse_error(client):
     assert resp.status_code == 200
     events = _events(resp.text)
     assert events["meta"][0]["fence_action"] == "allow"
-    assert "unavailable" in events["error"][0]["message"]
+    assert "api key not configured" in events["error"][0]["message"]
 
 
 def test_retry_failed_reply_reuses_student_message(client, monkeypatch):
