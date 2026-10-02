@@ -106,7 +106,7 @@ async def _llm_classify(content: str, system: str, family_id: int | None = None,
                                       "model": fence_config["model_id"]}
     result = await llm.chat(
         [{"role": "system", "content": system}, {"role": "user", "content": content}],
-        purpose="fence_classify", max_tokens=64, temperature=0.0,
+        purpose="fence_classify", max_tokens=40960, temperature=0.0,
         family_id=family_id, group_id=group_id,
     )
     try:

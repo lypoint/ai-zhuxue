@@ -119,7 +119,7 @@ def _provider(purpose: str = "chat", family_id: int | None = None, group_id: int
     return name, p, key, model
 
 
-async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 1024,
+async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 40960,
                temperature: float = 0.7, family_id: int | None = None,
                group_id: int | None = None) -> dict:
     """返回 {"content", "tokens_in", "tokens_out", "provider", "model"}；无 Key 时抛 LLMUnavailable。"""
@@ -150,16 +150,12 @@ async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 10
     }
 
 
-async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: int | None = None,
+async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: int = 40960,
                       temperature: float = 0.7, family_id: int | None = None,
                       group_id: int | None = None):
     """流式对话（OpenAI 兼容 SSE）。逐段 yield 文本增量；结束时 yield
     {"usage": {...}, "provider": ..., "model": ...} 汇总。无 Key 抛 LLMUnavailable。"""
     name, p, key, model = _provider(purpose, family_id, group_id)
-    # DeepSeek 的思考 token 也占 max_tokens；1024 可能在正文开始前耗尽。
-    if max_tokens is None:
-        max_tokens = (40960 if model == "deepseek-reasoner" else
-                      8192 if model.startswith("deepseek-") else 1024)
     has_content = False
     finish_reason = None
     async with httpx.AsyncClient(timeout=120) as client:
