@@ -5,6 +5,7 @@ import 'package:app_student/models/bubble.dart';
 import 'package:app_student/widgets/message_bubble.dart';
 import 'package:app_student/widgets/chat_drawer.dart';
 import 'package:app_core/app_core.dart';
+import 'package:gpt_markdown/gpt_markdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,6 +88,32 @@ void main() {
     );
     expect(find.text('正在回答…'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('老师卡片与复制按钮贴合参考聊天页间距', (tester) async {
+    tester.view.physicalSize = const Size(1125, 2436);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MessageBubble(
+            bubble: Bubble('assistant', '一段讲解'),
+            onLongPress: () {},
+            onCopy: () {},
+          ),
+        ),
+      ),
+    );
+    final card = tester.getRect(find.ancestor(
+      of: find.byType(GptMarkdown),
+      matching: find.byType(Container),
+    ).first);
+    final copy = tester.getRect(find.byWidgetPredicate((w) => w is TextButton));
+    expect(card.left, 16);
+    expect(card.right, 323);
+    expect(copy.top - card.bottom, lessThanOrEqualTo(4));
   });
 
   testWidgets('会话记录加载失败后可以重试', (tester) async {
