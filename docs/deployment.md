@@ -1,5 +1,7 @@
 # 部署与运维
 
+当前 `api.gker.net` / `admin.gker.net` 的实际发布步骤与历史记录见 [production-deploy-gker.md](production-deploy-gker.md)。
+
 ## 1. 配置项全表（`server/app/config.py`，全部环境变量）
 
 | 变量 | 默认 | 说明 |
