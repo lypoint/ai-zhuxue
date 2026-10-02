@@ -635,7 +635,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
             except llm.LLMUnavailable as e:
                 sdb.get(Message, user_msg_id).fence_action = "failed"
                 sdb.commit()
-                yield sse("error", {"message": f"LLM unavailable: {e}"})
+                yield sse("error", {"message": str(e)})
         finally:
             sdb.rollback()
             pending = sdb.get(Message, user_msg_id)

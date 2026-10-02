@@ -218,6 +218,10 @@ def test_model_stream_with_reasoning_only_reports_token_exhaustion(monkeypatch):
     with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
         asyncio.run(consume())
     assert requested["max_tokens"] == 40960
+    active_model[0] = "deepseek-v4.1-flash"
+    with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
+        asyncio.run(consume())
+    assert requested["max_tokens"] == 8192
     active_model[0] = "moonshot-v1-8k"
     with pytest.raises(llm.LLMUnavailable, match="输出长度已用尽"):
         asyncio.run(consume())
