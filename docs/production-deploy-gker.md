@@ -82,3 +82,9 @@ curl -fsS http://127.0.0.1:8101/ -o /dev/null
 | 验收 | API/CMS 服务 active；公网健康检查正常；OpenAPI 包含 `/chat/reports` 和 `ChatIn.retry_message_id`；CMS 页面包含举报功能；最近服务错误日志为空 |
 
 本次本地后端 135 项测试和学生端测试通过，GitHub CI 全部通过。线上未发送真实学生消息来触发失败重试，避免改动用户对话和配额。
+
+## 2026-10-02 API 热修复
+
+`api.gker.net` 从 `30b63b0` 切到 `d3ca72f`；`admin.gker.net` 未改动，仍运行 `30b63b0`。这次将 DeepSeek 系列聊天模型的默认输出上限从 1024 提高到 8192 tokens，避免推理内容占满额度后没有正文；其他模型与围栏分类的额度未变。发布包 SHA-256 为 `5150a0301645d8980f9f2bd8db93d7c453cbce82a8c8efa8c4aaabdf18a125a4`。
+
+数据库备份为 `/srv/ai-zhuxue/backups/pre-d3ca72f-20261002.dump`；本次没有新迁移，版本仍是 `e7f8a9b0c1d2`。API 回滚配置为 `/etc/systemd/system/aizhuxue-api.service.d/release.conf.bak.20261002-pre-d3ca72f`。服务健康检查与 CI 通过；在 iPhone 16e 模拟器点击原失败消息的“重试回复”后，老师回复正常显示，服务端复用原学生消息且仅新增一条老师回复。
