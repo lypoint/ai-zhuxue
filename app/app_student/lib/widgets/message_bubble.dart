@@ -67,7 +67,10 @@ class MessageBubble extends StatelessWidget {
                   child: Stack(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(right: 44),
+                        padding: EdgeInsets.only(
+                          top: !isUser && bubble.text.isNotEmpty ? 40 : 0,
+                          bottom: isUser && bubble.text.isNotEmpty ? 40 : 0,
+                        ),
                         child: isUser
                             ? Text(
                                 bubble.text,
@@ -99,7 +102,8 @@ class MessageBubble extends StatelessWidget {
                       ),
                       if (bubble.text.isNotEmpty)
                         Positioned(
-                          top: 0,
+                          top: isUser ? null : 0,
+                          bottom: isUser ? 0 : null,
                           right: 0,
                           child: IconButton(
                             tooltip: '消息操作',

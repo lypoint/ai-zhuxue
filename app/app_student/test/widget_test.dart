@@ -70,7 +70,8 @@ void main() {
     expect(find.byTooltip('消息操作'), findsNWidgets(2));
     await tester.tap(find.byTooltip('消息操作').first);
     await tester.tap(find.byTooltip('消息操作').last);
-    expect(opened, ['user', 'assistant']);
+    await tester.longPress(find.text('消息-user'));
+    expect(opened, ['user', 'assistant', 'user']);
   });
 
   testWidgets('等待 AI 回复时显示进度提示', (tester) async {

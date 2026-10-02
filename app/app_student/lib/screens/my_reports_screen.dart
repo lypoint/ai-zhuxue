@@ -32,11 +32,16 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
+          final error = snapshot.error;
+          final unavailable =
+              error is ApiException &&
+              error.status == 404 &&
+              error.message == 'Not Found';
           return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('加载失败，请检查网络后重试'),
+                Text(unavailable ? '举报服务暂未上线，请稍后再试' : '加载失败，请检查网络后重试'),
                 TextButton(onPressed: _reload, child: const Text('重试')),
               ],
             ),

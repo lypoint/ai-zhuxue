@@ -581,7 +581,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } on ApiException catch (e) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+        messenger.showSnackBar(SnackBar(
+          content: Text(e.status == 404 && e.message == 'Not Found'
+              ? '举报服务暂未上线，请稍后再试'
+              : e.message),
+        ));
       }
     } catch (_) {
       if (mounted) {
