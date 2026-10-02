@@ -20,7 +20,7 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUser = bubble.role == 'user';
     return Padding(
-      // 老师卡片右侧留给菜单 40，卡片本身仍保持原有宽度。
+      // 老师卡片右侧留给菜单 28，正文保持完整宽度。
       padding: EdgeInsets.only(left: isUser ? 12 : 16, right: 12),
       child: Align(
         alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -37,7 +37,7 @@ class MessageBubble extends StatelessWidget {
                       ? null
                       : onLongPress,
                   child: Container(
-                    margin: EdgeInsets.only(top: 4, right: isUser ? 0 : 40),
+                    margin: EdgeInsets.only(top: 4, right: isUser ? 0 : 28),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 10,
@@ -105,7 +105,7 @@ class MessageBubble extends StatelessWidget {
                 if (!isUser && bubble.text.isNotEmpty && !bubble.failed)
                   Positioned(
                     top: 4,
-                    right: 8,
+                    right: 0,
                     child: IconButton(
                       tooltip: '消息操作',
                       icon: const Icon(Icons.more_horiz, size: 20),
