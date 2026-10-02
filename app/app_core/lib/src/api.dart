@@ -550,18 +550,20 @@ class Api {
     },
   );
 
-  /// 流式聊天（SSE）。onDelta 逐段回调增量文本；meta 事件先回调 onMeta；
+  /// 流式聊天（SSE）。onDelta 逐段回调，安全复核拦截时 onReplace 替换正文；
+  /// meta 事件先回调 onMeta；
   /// 返回 done 事件数据（message_id/tokens）。流内 error 事件抛 ApiException(503)。
   Future<Map<String, dynamic>> sendChatStream(
     int? conversationId,
     String content, {
     int? teacherId,
     void Function(String text)? onDelta,
+    void Function(String text)? onReplace,
     void Function(Map<String, dynamic> meta)? onMeta,
   }) async {
     final client = http.Client();
     try {
-      final req = http.Request('POST', Uri.parse('$apiBase/chat/stream'))
+      final req = http.Request('POST', Uri.parse('$apiBase/chat/stream?live=true'))
         ..headers['Content-Type'] = 'application/json'
         ..headers['Authorization'] = 'Bearer ${_token ?? ''}'
         ..body = jsonEncode({
@@ -594,6 +596,8 @@ class Api {
             onMeta?.call(data);
           case 'delta':
             onDelta?.call(data['text'] as String);
+          case 'replace':
+            onReplace?.call(data['text'] as String);
           case 'done':
             done = data;
           case 'error':

@@ -166,6 +166,8 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 ### 生成侧内容安全复核（服务端行为，非端点）
 assistant 生成完成后全文再过一次分类器（stage=`output_check`）：sensitive → 落库替换为拒绝话术 + security 告警。诚实声明：**流式已送达终端的部分无法撤回**，复核保障的是家长端审查视图与存储的一致性，并为评测统计（生成合格率）提供数据。
 
+`POST /chat/stream?live=true` 会在模型生成时实时发送 `delta`。最终复核若拦截，服务端发送 `replace: {"text": "..."}`，客户端须替换已显示的回复。未传 `live` 时保持先全文复核再回放，供旧客户端使用。
+
 ### GET /parent/students/{id}/summary — 学习摘要（P1，家长首页）
 → `200 {"today": {questions, blocked, guided, study, minutes}, "week": {…, active_days}}`
 全部指标只统计学生消息；`minutes` 优先取端侧心跳累计的**真实使用时长**，无心跳数据时回退为消息跨度估算。
