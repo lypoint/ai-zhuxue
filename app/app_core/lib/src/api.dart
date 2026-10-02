@@ -562,6 +562,7 @@ class Api {
     int? conversationId,
     String content, {
     int? teacherId,
+    int? retryMessageId,
     void Function(String text)? onDelta,
     void Function(String text)? onReplace,
     void Function(Map<String, dynamic> meta)? onMeta,
@@ -575,6 +576,7 @@ class Api {
           'conversation_id': conversationId,
           'content': content,
           if (teacherId != null) 'teacher_id': teacherId,
+          if (retryMessageId != null) 'retry_message_id': retryMessageId,
         });
       final resp = await client.send(req);
       if (resp.statusCode >= 400) {

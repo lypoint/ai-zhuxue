@@ -303,15 +303,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _conversationId = convId;
           _teacherName = data['teacher_name'] as String? ?? _teacherName;
           _teacherAvatarUrl = data['teacher_avatar_url'] as String? ?? '';
-          for (final m in msgs) {
-            _bubbles.add(
-              Bubble(
-                m['role'] as String,
-                m['content'] as String,
-                messageId: m['id'] as int?,
-              ),
-            );
-          }
+          _replaceBubbles(msgs);
         });
       }
     } catch (_) {
@@ -405,16 +397,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _conversationId = conversationId;
         _teacherName = session?['teacher_name'] as String? ?? _teacherName;
         _teacherAvatarUrl = session?['teacher_avatar_url'] as String? ?? '';
-        _bubbles.clear();
-        for (final m in msgs) {
-          _bubbles.add(
-            Bubble(
-              m['role'] as String,
-              m['content'] as String,
-              messageId: m['id'] as int?,
-            ),
-          );
-        }
+        _replaceBubbles(msgs);
       });
       messenger.hideCurrentSnackBar();
       _scrollToBottom();
@@ -433,6 +416,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } finally {
       if (mounted) setState(() => _openingSession = false);
     }
+  }
+
+  void _replaceBubbles(List<dynamic> messages) {
+    _bubbles.clear();
+    for (final m in messages) {
+      _bubbles.add(
+        Bubble(
+          m['role'] as String,
+          m['content'] as String,
+          messageId: m['id'] as int?,
+        ),
+      );
+    }
+    if (messages.isNotEmpty &&
+        messages.last['role'] == 'user' &&
+        messages.last['fence_action'] == 'failed') {
+      _bubbles.add(Bubble('assistant', '⚠️ 老师回复失败，请重试', failed: true));
+    }
+  }
+
+  Future<void> _refreshCurrentConversation() async {
+    final id = _conversationId;
+    if (id == null) return;
+    final messages = await Api.I.conversationMessages(id);
+    if (mounted) setState(() => _replaceBubbles(messages));
   }
 
   Future<void> _copyMessage(Bubble b) async {
@@ -794,8 +802,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _send() async {
-    final text = _inputCtrl.text.trim();
+  Future<void> _send({int? retryUserIndex}) async {
+    final retrying = retryUserIndex != null;
+    final text = retrying
+        ? _bubbles[retryUserIndex].text
+        : _inputCtrl.text.trim();
     if (text.isEmpty ||
         _sending ||
         _openingSession ||
@@ -803,21 +814,42 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _sessionActionPending) {
       return;
     }
-    _inputCtrl.clear();
-    final userIndex = _bubbles.length;
+    if (retrying &&
+        (retryUserIndex != _bubbles.length - 2 || !_bubbles.last.failed)) {
+      return;
+    }
+    final retryMessageId = retrying ? _bubbles[retryUserIndex].messageId : null;
+    if (retrying && retryMessageId == null) return;
+    if (!retrying) _inputCtrl.clear();
+    final userIndex = retryUserIndex ?? _bubbles.length;
     setState(() {
       _chatRevision++;
       _restoringLatest = false;
       _sending = true;
-      _bubbles.add(Bubble('user', text));
-      _bubbles.add(Bubble('assistant', '')); // 流式占位，逐段填充
+      if (retrying) {
+        _bubbles[_bubbles.length - 1] = Bubble('assistant', '');
+      } else {
+        _bubbles.add(Bubble('user', text));
+        _bubbles.add(Bubble('assistant', '')); // 流式占位，逐段填充
+      }
     });
     _scrollToBottom();
-    void updateLast(String text) {
+    void updateLast(String text, {bool failed = false}) {
       if (!mounted) return;
       setState(() {
-        _bubbles[_bubbles.length - 1] = Bubble('assistant', text);
+        _bubbles[_bubbles.length - 1] = Bubble('assistant', text, failed: failed);
       });
+    }
+    void showFailure(String message, {required bool retryable}) {
+      if (!retrying && _bubbles[userIndex].messageId == null) {
+        setState(() => _bubbles.removeRange(userIndex, _bubbles.length));
+        _inputCtrl.text = text;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('发送失败，问题已保留在输入框，请重试')),
+        );
+      } else {
+        updateLast(message, failed: retryable);
+      }
     }
 
     // 参考聊天页每 25ms 显示约 3 个字；服务端短时间回放全文时也逐帧显现。
@@ -849,6 +881,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final done = await Api.I.sendChatStream(
         _conversationId,
         text,
+        retryMessageId: retryMessageId,
         onMeta: (meta) {
           if (mounted) {
             _conversationId =
@@ -884,24 +917,37 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
       if (!mounted) return;
       if (revealTimer != null) await revealDone!.future;
-      if (_bubbles.last.text.isEmpty) updateLast('（没有收到内容）');
       final mid = done['message_id'] as int?;
-      if (mid != null) {
-        _bubbles[_bubbles.length - 1] = Bubble(
-          'assistant',
-          _bubbles.last.text,
-          messageId: mid,
-        );
-      }
+      if (mid == null) throw ApiException(503, '老师回复中断，请重试');
+      _bubbles[_bubbles.length - 1] = Bubble(
+        'assistant',
+        _bubbles.last.text.isEmpty ? '（没有收到内容）' : _bubbles.last.text,
+        messageId: mid,
+      );
       _loadSessions();
     } on ApiException catch (e) {
       // 401 已由全局 _onSessionExpired 统一处理（清会话回绑定页）
-      updateLast('⚠️ ${e.message}');
-      if (e.status != 401 && mounted) {
+      if (retrying && e.status == 409) {
+        try {
+          await _refreshCurrentConversation();
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('会话已更新，请查看老师回复')));
+          }
+        } catch (_) {
+          updateLast('⚠️ 会话状态已变化，请重新打开聊天记录', failed: true);
+        }
+      } else {
+        final canRetry = _bubbles[userIndex].messageId != null;
+        showFailure('⚠️ ${e.message}', retryable: e.status == 503 && canRetry);
+      }
+      if (e.status != 401 && e.status != 503 && e.status != 409 && mounted) {
         await _policyDialog(e);
       }
     } catch (_) {
-      updateLast('⚠️ 发送失败，请检查网络后重试');
+      final canRetry = _bubbles[userIndex].messageId != null;
+      showFailure('⚠️ 老师回复失败，请检查网络后重试', retryable: canRetry);
     } finally {
       revealTimer?.cancel();
       if (mounted) setState(() => _sending = false);
@@ -1104,6 +1150,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       itemBuilder: (_, i) => MessageBubble(
         bubble: _bubbles[i],
         onLongPress: () => _messageMenu(_bubbles[i]),
+        onRetry:
+            _bubbles[i].failed && i == _bubbles.length - 1 && i > 0 && !_sending
+            ? () => _send(retryUserIndex: i - 1)
+            : null,
         isLoading:
             _sending && i == _bubbles.length - 1 && _bubbles[i].text.isEmpty,
       ),

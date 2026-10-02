@@ -3,5 +3,6 @@ class Bubble {
   final String role;
   final String text;
   final int? messageId;
-  Bubble(this.role, this.text, {this.messageId});
+  final bool failed;
+  Bubble(this.role, this.text, {this.messageId, this.failed = false});
 }

@@ -50,6 +50,7 @@ class ChatIn(BaseModel):
     conversation_id: int | None = None
     content: str = Field(min_length=1, max_length=4000)
     teacher_id: int | None = None
+    retry_message_id: int | None = None
 
 
 class MessageOut(BaseModel):

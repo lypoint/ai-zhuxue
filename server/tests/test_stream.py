@@ -44,6 +44,47 @@ def test_stream_llm_unavailable_is_sse_error(client):
     assert "unavailable" in events["error"][0]["message"]
 
 
+def test_retry_failed_reply_reuses_student_message(client, monkeypatch):
+    from app.db import SessionLocal
+    from app.models import FamilySettings, Message, Student
+    from app.security import parse_token
+
+    _, student = make_family(client)
+    _, other_student = make_family(client)
+    with SessionLocal.begin() as db:
+        family_id = db.get(Student, int(parse_token(student)["sub"])).family_id
+        db.query(FamilySettings).filter_by(family_id=family_id).one().daily_message_cap = 1
+    first = _events(client.post("/chat/stream", headers=h(student),
+        json={"content": "帮我讲解一元一次方程"}).text)
+    meta = first["meta"][0]
+    assert "error" in first
+    payload = {"conversation_id": meta["conversation_id"],
+               "content": "帮我讲解一元一次方程",
+               "retry_message_id": meta["user_message_id"]}
+    assert client.post("/chat/stream", headers=h(other_student), json=payload).status_code == 404
+
+    async def answer(*args, **kwargs):
+        yield {"delta": "先想想等号两边。", "provider": "test", "model": "test"}
+        yield {"usage": {"tokens_in": 1, "tokens_out": 1}}
+
+    monkeypatch.setattr("app.api.chat.llm.chat_stream", answer)
+    retried = client.post("/chat/stream", headers=h(student), json=payload)
+    assert retried.status_code == 200
+    events = _events(retried.text)
+    assert events["meta"][0]["user_message_id"] == payload["retry_message_id"]
+    assert "done" in events
+    with SessionLocal() as db:
+        assert db.query(Message).filter_by(conversation_id=payload["conversation_id"],
+                                           role="user").count() == 1
+        assert db.query(Message).filter_by(conversation_id=payload["conversation_id"],
+                                           role="assistant").count() == 1
+    assert client.post("/chat/stream", headers=h(student),
+                       json={"content": "再问一道题"}).status_code == 429
+    with SessionLocal.begin() as db:
+        db.query(FamilySettings).filter_by(family_id=family_id).one().daily_message_cap = 2
+    assert client.post("/chat/stream", headers=h(student), json=payload).status_code == 409
+
+
 def test_stream_policy_checks_still_apply(client):
     guardian_token, student_token = make_family(client)
     """时段/上限等政策错误在流开始前返回 HTTP 状态码（423/429）。"""
