@@ -88,3 +88,9 @@ curl -fsS http://127.0.0.1:8101/ -o /dev/null
 `api.gker.net` 从 `30b63b0` 切到 `d3ca72f`；`admin.gker.net` 未改动，仍运行 `30b63b0`。这次将 DeepSeek 系列聊天模型的默认输出上限从 1024 提高到 8192 tokens，避免推理内容占满额度后没有正文；其他模型与围栏分类的额度未变。发布包 SHA-256 为 `5150a0301645d8980f9f2bd8db93d7c453cbce82a8c8efa8c4aaabdf18a125a4`。
 
 数据库备份为 `/srv/ai-zhuxue/backups/pre-d3ca72f-20261002.dump`；本次没有新迁移，版本仍是 `e7f8a9b0c1d2`。API 回滚配置为 `/etc/systemd/system/aizhuxue-api.service.d/release.conf.bak.20261002-pre-d3ca72f`。服务健康检查与 CI 通过；在 iPhone 16e 模拟器点击原失败消息的“重试回复”后，老师回复正常显示，服务端复用原学生消息且仅新增一条老师回复。
+
+## 2026-10-02 输出额度调整
+
+`api.gker.net` 从 `d3ca72f` 切到 `b890cf9`；CMS 仍运行 `30b63b0`。流式和非流式聊天补全请求、聊天补全式围栏分类请求的 `max_tokens` 均为 40960。线上老师实际使用的阿里云 System One 结构化围栏接口使用 `state/questions` 请求格式，没有 `max_tokens` 字段，此次未更换分类接口，也没有给它添加未经确认支持的字段。第三个老师分组的 `gpt-6-luna` 在原额度和 40960 下均被上游报告为已下架，与本次额度调整无关。
+
+发布包 SHA-256 为 `f7529960acef34a85a36ff73ad37c5d531171437ff586b6284b54116d49e78a9`。数据库备份为 `/srv/ai-zhuxue/backups/pre-b890cf9-20261002.dump`；没有新迁移。API 回滚配置为 `/etc/systemd/system/aizhuxue-api.service.d/release.conf.bak.20261002-pre-b890cf9`。本地后端 136 项测试与 GitHub CI 通过，公网健康检查正常，服务错误日志为空。
