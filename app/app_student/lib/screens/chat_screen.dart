@@ -1035,15 +1035,57 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           children: [
             _teacherAvatar(_teacherAvatarUrl),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_teacherName),
-                const Text(
-                  '受保护学习空间',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            Flexible(
+              child: Tooltip(
+                message: _teacherLoadFailed ? '重试加载老师' : '选择老师',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _loadingTeachers || _selectingTeacher
+                      ? null
+                      : _teacherLoadFailed
+                      ? _loadTeachers
+                      : _teachers == null
+                      ? null
+                      : _chooseTeacher,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              _teacherName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          if (_loadingTeachers || _selectingTeacher)
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            Icon(
+                              _teacherLoadFailed
+                                  ? Icons.refresh
+                                  : Icons.keyboard_arrow_down,
+                            ),
+                        ],
+                      ),
+                      const Text(
+                        '受保护学习空间',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -1057,27 +1099,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             },
           ),
         ),
-        actions: [
-          IconButton(
-            tooltip: _teacherLoadFailed ? '重试加载老师' : '选择老师',
-            onPressed: _loadingTeachers || _selectingTeacher
-                ? null
-                : _teacherLoadFailed
-                ? _loadTeachers
-                : _teachers == null
-                ? null
-                : _chooseTeacher,
-            icon: _loadingTeachers || _selectingTeacher
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(
-                    _teacherLoadFailed ? Icons.refresh : Icons.school_outlined,
-                  ),
-          ),
-        ],
       ),
       drawer: ChatDrawer(
         sessions: _sessions,
