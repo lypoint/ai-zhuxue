@@ -1031,22 +1031,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            _teacherAvatar(_teacherAvatarUrl),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Tooltip(
-                message: _teacherLoadFailed ? '重试加载老师' : '选择老师',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: _loadingTeachers || _selectingTeacher
-                      ? null
-                      : _teacherLoadFailed
-                      ? _loadTeachers
-                      : _teachers == null
-                      ? null
-                      : _chooseTeacher,
+        title: Tooltip(
+          message: _teacherLoadFailed ? '重试加载老师' : '选择老师',
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: _loadingTeachers || _selectingTeacher
+                ? null
+                : _teacherLoadFailed
+                ? _loadTeachers
+                : _teachers == null
+                ? null
+                : _chooseTeacher,
+            child: Row(
+              children: [
+                _teacherAvatar(_teacherAvatarUrl),
+                const SizedBox(width: 10),
+                Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1085,9 +1085,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
         leading: Builder(
           builder: (ctx) => IconButton(

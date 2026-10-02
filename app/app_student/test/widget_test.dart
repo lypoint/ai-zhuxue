@@ -41,6 +41,13 @@ void main() {
       find.ancestor(of: find.text('AI 学习助手'), matching: find.byType(InkWell)),
       findsOneWidget,
     );
+    expect(
+      find.ancestor(
+        of: find.byType(CircleAvatar).first,
+        matching: find.byType(InkWell),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('孩子开始提问后不再显示恢复提示', (tester) async {
@@ -140,10 +147,13 @@ void main() {
           .first,
     );
     expect(card.left, 16);
-    expect(card.right - 28, 335);
+    expect(card.right - 12, 351);
     expect(find.byTooltip('消息操作'), findsOneWidget);
     final menu = tester.getRect(find.byTooltip('消息操作'));
-    expect((menu.center.dx - (card.right - 28)).abs(), lessThan(12));
+    final icon = tester.getRect(find.byIcon(Icons.more_horiz));
+    expect(icon.left, greaterThan(card.left));
+    expect(icon.right, lessThanOrEqualTo(card.right - 12));
+    expect(menu.right, lessThanOrEqualTo(card.right - 12));
     expect(menu.top - card.top, lessThanOrEqualTo(8));
     expect(
       tester.getRect(find.byType(GptMarkdown)).top - card.top,
