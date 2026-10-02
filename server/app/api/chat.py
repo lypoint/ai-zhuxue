@@ -455,30 +455,52 @@ async def send_message_stream(body: ChatIn, live: bool = False,
     replace → {text}（实时输出在最终安全复核被拦截时，替换已显示内容）
     done  → {message_id, tokens_in, tokens_out}
     """
-    policy_teacher_id = body.teacher_id
-    if body.conversation_id is not None and policy_teacher_id is None:
-        existing = db.get(Conversation, body.conversation_id)
-        if existing and existing.student_id == student.id:
-            policy_teacher_id = existing.teacher_group_id
-    _check_policy(student, db, policy_teacher_id)
-
-    if body.conversation_id:
-        conv = _student_conversation(db, body.conversation_id, student)
+    retry = None
+    if body.retry_message_id is not None:
+        retry = db.get(Message, body.retry_message_id)
+        if not retry:
+            raise HTTPException(404, "message not found")
+        conv = _student_conversation(db, retry.conversation_id, student)
+        if (body.conversation_id != conv.id or retry.role != "user" or
+                retry.content != body.content):
+            raise HTTPException(409, "retry message does not match")
+        if db.query(func.max(Message.id)).filter_by(conversation_id=conv.id).scalar() != retry.id:
+            raise HTTPException(409, "conversation has newer messages")
         if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
             raise HTTPException(409, "existing conversation teacher cannot change")
+        policy_teacher_id = conv.teacher_group_id
     else:
-        teacher = _teacher(db, student, body.teacher_id)
-        conv = Conversation(student_id=student.id, title=body.content[:20],
-                            teacher_group_id=teacher.id if teacher else None,
-                            teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
-                            teacher_avatar_snapshot=teacher.teacher_avatar_url if teacher else "")
-        db.add(conv)
-        db.flush()
+        policy_teacher_id = body.teacher_id
+        if body.conversation_id is not None and policy_teacher_id is None:
+            existing = db.get(Conversation, body.conversation_id)
+            if existing and existing.student_id == student.id:
+                policy_teacher_id = existing.teacher_group_id
+    _check_policy(student, db, policy_teacher_id)
 
-    user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
-                       fence_action="pending")
-    db.add(user_msg)
-    db.flush()
+    if retry is not None:
+        db.refresh(retry)  # 配额锁之后重新确认，避免两个重试同时生成回复。
+        if (retry.fence_action != "failed" or
+                db.query(func.max(Message.id)).filter_by(conversation_id=conv.id).scalar() != retry.id):
+            raise HTTPException(409, "message is not retryable")
+        user_msg = retry
+        user_msg.fence_action = "pending"
+    else:
+        if body.conversation_id:
+            conv = _student_conversation(db, body.conversation_id, student)
+            if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
+                raise HTTPException(409, "existing conversation teacher cannot change")
+        else:
+            teacher = _teacher(db, student, body.teacher_id)
+            conv = Conversation(student_id=student.id, title=body.content[:20],
+                                teacher_group_id=teacher.id if teacher else None,
+                                teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
+                                teacher_avatar_snapshot=teacher.teacher_avatar_url if teacher else "")
+            db.add(conv)
+            db.flush()
+        user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
+                           fence_action="pending")
+        db.add(user_msg)
+        db.flush()
     db.commit()  # 与普通聊天共用同一预留时点。
 
     recent = [m.content for m in (db.query(Message)

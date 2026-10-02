@@ -6,11 +6,13 @@ import '../models/bubble.dart';
 class MessageBubble extends StatelessWidget {
   final Bubble bubble;
   final VoidCallback onLongPress;
+  final VoidCallback? onRetry;
   final bool isLoading;
   const MessageBubble({
     super.key,
     required this.bubble,
     required this.onLongPress,
+    this.onRetry,
     this.isLoading = false,
   });
 
@@ -29,7 +31,9 @@ class MessageBubble extends StatelessWidget {
               : CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onLongPress: bubble.text.isEmpty ? null : onLongPress,
+              onLongPress: bubble.text.isEmpty || bubble.failed
+                  ? null
+                  : onLongPress,
               child: Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(
@@ -68,8 +72,16 @@ class MessageBubble extends StatelessWidget {
                     children: [
                       Padding(
                         padding: EdgeInsets.only(
-                          top: !isUser && bubble.text.isNotEmpty ? 40 : 0,
-                          bottom: isUser && bubble.text.isNotEmpty ? 40 : 0,
+                          top:
+                              !isUser &&
+                                  bubble.text.isNotEmpty &&
+                                  !bubble.failed
+                              ? 40
+                              : 0,
+                          bottom:
+                              isUser && bubble.text.isNotEmpty && !bubble.failed
+                              ? 40
+                              : 0,
                         ),
                         child: isUser
                             ? Text(
@@ -100,7 +112,7 @@ class MessageBubble extends StatelessWidget {
                                 useDollarSignsForLatex: true,
                               ),
                       ),
-                      if (bubble.text.isNotEmpty)
+                      if (bubble.text.isNotEmpty && !bubble.failed)
                         Positioned(
                           top: isUser ? null : 0,
                           bottom: isUser ? 0 : null,
@@ -121,6 +133,12 @@ class MessageBubble extends StatelessWidget {
                 ),
               ),
             ),
+            if (onRetry != null)
+              TextButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('重试回复'),
+              ),
           ],
         ),
       ),

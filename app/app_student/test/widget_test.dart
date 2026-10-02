@@ -90,6 +90,25 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
+  testWidgets('老师回复失败时显示可点击的重试入口', (tester) async {
+    var retries = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MessageBubble(
+            bubble: Bubble('assistant', '⚠️ 老师回复失败，请重试', failed: true),
+            onLongPress: () {},
+            onRetry: () => retries++,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('重试回复'), findsOneWidget);
+    expect(find.byTooltip('消息操作'), findsNothing);
+    await tester.tap(find.text('重试回复'));
+    expect(retries, 1);
+  });
+
   testWidgets('老师卡片保持参考聊天页间距', (tester) async {
     tester.view.physicalSize = const Size(1125, 2436);
     tester.view.devicePixelRatio = 3;
