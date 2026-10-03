@@ -164,9 +164,9 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 `[{conversation_id, title, message_id, role, snippet, fence_action, created_at}]`。跨家庭 404。
 
 ### 生成侧内容安全复核（服务端行为，非端点）
-assistant 生成完成后全文再过一次分类器（stage=`output_check`）：sensitive → 落库替换为拒绝话术 + security 告警。诚实声明：**流式已送达终端的部分无法撤回**，复核保障的是家长端审查视图与存储的一致性，并为评测统计（生成合格率）提供数据。
+assistant 生成完成后全文再过一次分类器（stage=`output_check`）：sensitive → 落库替换为拒绝话术 + security 告警。默认先全文复核再回放；实时模式（`live=true` 或 `STREAM_RECHECK_FIRST=false`）已送达终端的部分无法撤回，最终通过 `replace` 替换显示内容并保留安全的存储结果。
 
-`POST /chat/stream?live=true` 会在模型生成时实时发送 `delta`。最终复核若拦截，服务端发送 `replace: {"text": "..."}`，客户端须替换已显示的回复。未传 `live` 时保持先全文复核再回放，供旧客户端使用。
+`POST /chat/stream?live=true` 会在模型生成时实时发送 `delta`。最终复核若拦截，服务端发送 `replace: {"text": "..."}`，客户端须替换已显示的回复。未传 `live` 且 `STREAM_RECHECK_FIRST=true`（默认）时先全文复核再回放。
 
 ### GET /parent/students/{id}/summary — 学习摘要（P1，家长首页）
 → `200 {"today": {questions, blocked, guided, study, minutes}, "week": {…, active_days}}`
@@ -267,7 +267,7 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 
 ## 订阅 `/parent/subscription`（P0 商业闭环）
 
-注册即开 30 天免费试用；到期后 `post_trial_daily_free_count` 是每位老师**每天回复每个学生**的次数上限（≤0 不免费）。只统计已生成并保存的老师回复；未收到回复的提问和围栏拒绝话术不占次数。同家庭的学生各有额度。未开放免费次数的老师返回 **402**，该学生在该老师的次数耗尽返回 **429**。
+注册按 CMS 配置开免费试用（默认 30 天）；到期后 `post_trial_daily_free_count` 是每位老师**每天回复每个学生**的次数上限（≤0 不免费）。只统计已生成并保存的老师回复；未收到回复的提问和围栏拒绝话术不占次数。同家庭的学生各有额度。未开放免费次数的老师返回 **402**，该学生在该老师的次数耗尽返回 **429**。
 
 ### GET /parent/subscription — 订阅状态
 ```json
@@ -277,6 +277,8 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 ```
 
 ### POST /parent/subscription/pay — 续费（骨架期 mock）
+
+仅开发/测试环境支持模拟支付。生产环境在真实支付通道接入前返回 `503`，不生成订单、不变更订阅；`POST /parent/subscription/seats` 购买孩子名额同样返回 `503`。真实支付接入后应由经过验签的支付回调确认订单并发放权益。
 从当前到期时间（或现在，取较晚者）顺延 30 天，累计实付。生产替换为微信/支付宝支付回调（需商户资质，外部依赖）。
 
 ## 通知 `/parent/notifications`（P0 安全闭环）
@@ -345,6 +347,13 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 
 ### 评估
 
-- `POST/GET /chat/academic-assessments`、`POST/GET /parent/students/{id}/academic-assessments`：生成或读取带证据、输入时间范围、数据版本、模型版本和免责声明的学业评估；生成按主体每日限额。
+- `POST/GET /chat/academic-assessments`、`POST/GET /parent/students/{id}/academic-assessments`：生成或读取带证据、输入时间范围、数据版本、模型版本和免责声明的学业评估；生成按家庭、评估类型计每日限额。
 - `POST/GET /parent/students/{id}/wellbeing-assessments`：家长专属的“身心状态关注提示”；不输出诊断结论。
 - `POST /parent/wellbeing-assessments/{id}/ack`：记录家长已关注/无需跟进。查看、生成、导出均写审计日志。
+
+## 日期与评估口径（2026-10-03）
+
+- 业务日期使用 `TZ_OFFSET_HOURS`（默认 8），与服务器系统时区无关。评估 `from/to` 为本地日期，包含起止日；数据库检索换算为 UTC 的左闭右开区间。默认结束日期为本地今天。
+- 今日用量、摘要与心跳按同一本地日界，周统计从本地周一开始。评估每种类型按家庭每天最多生成 10 次，本地午夜重置，命中缓存不占生成次数。
+- 新生成学业与身心评估标记 `model=rules-v2`，缓存版本包含规则修订和时区；历史快照保留原版本。成绩按考试日期落在所选范围内才参与学业判断。
+- 身心提示先区分一般教育/翻译/文学讨论、否定表达和个人求助；混合内容保留个人风险线索，仅命中的消息作为证据。规则仍可能误判，须结合沟通核实，不是医疗诊断。
