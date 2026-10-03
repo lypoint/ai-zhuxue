@@ -1021,7 +1021,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       } else {
         final canRetry = _bubbles[userIndex].messageId != null;
-        showFailure('⚠️ ${e.message}', retryable: e.status == 503 && canRetry);
+        showFailure('⚠️ ${e.message}',
+            retryable: e.status == 503 && canRetry && !e.message.contains('请新开会话'));
       }
       if (e.status != 401 && e.status != 503 && e.status != 409 && mounted) {
         await _policyDialog(e);

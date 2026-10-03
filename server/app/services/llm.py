@@ -45,6 +45,19 @@ class LLMUnavailable(Exception):
     pass
 
 
+def _check_context_limit(detail: str):
+    """兼容不同模型服务的上下文超限错误。"""
+    try:
+        detail = str(json.loads(detail))
+    except ValueError:
+        pass
+    text = detail.lower()
+    if (any(code in text for code in ("context_length_exceeded", "context_window_exceeded"))
+            or (any(word in text for word in ("token", "context length", "context window"))
+                and any(word in text for word in ("exceed", "too long", "maximum context", "超限", "超过")))):
+        raise LLMUnavailable("当前会话已超过最大聊天数量限制，请新开会话后继续提问")
+
+
 def resolve_active_group(family_id: int | None = None, group_id: int | None = None) -> dict:
     """返回生效分组 {"name","provider","chat_model","fence_model","api_key","daily_cap","routed_by"}。
 
@@ -131,6 +144,8 @@ async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 40
             json={"model": model, "messages": messages, "max_tokens": max_tokens,
                   "temperature": temperature},
         )
+        if resp.status_code >= 400:
+            _check_context_limit(resp.text)
         if resp.status_code == 429:
             detail = ""
             try:
@@ -170,10 +185,11 @@ async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: i
             if resp.status_code >= 400:
                 detail = ""
                 try:
-                    detail = (await resp.aread()).decode()[:160]
+                    detail = (await resp.aread()).decode()
                 except Exception:
                     pass
-                raise LLMUnavailable(f"{name} stream http {resp.status_code}: {detail}")
+                _check_context_limit(detail)
+                raise LLMUnavailable(f"{name} stream http {resp.status_code}: {detail[:160]}")
             async for line in resp.aiter_lines():
                 if not line.startswith("data:"):
                     continue
@@ -189,6 +205,7 @@ async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: i
                 finish_reason = choice.get("finish_reason") or finish_reason
                 err = data.get("error")
                 if err:
+                    _check_context_limit(str(err))
                     raise LLMUnavailable(f"{name} stream error: {str(err)[:160]}")
                 if data.get("usage"):
                     u = data["usage"]
