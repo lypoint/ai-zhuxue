@@ -1,6 +1,6 @@
 # api.gker.net / admin.gker.net 发布记录
 
-更新于 2026-10-02。此文件记录实际使用的 AI 助学发布方式；`gker/gker/docs/deployment.md` 中旧的 `api.gker.net → 8080` 说明不适用于当前服务。
+更新于 2026-10-03。此文件记录实际使用的 AI 助学发布方式；`gker/gker/docs/deployment.md` 中旧的 `api.gker.net → 8080` 说明不适用于当前服务。
 
 ## 当前环境
 
@@ -94,3 +94,19 @@ curl -fsS http://127.0.0.1:8101/ -o /dev/null
 `api.gker.net` 从 `d3ca72f` 切到 `b890cf9`；CMS 仍运行 `30b63b0`。流式和非流式聊天补全请求、聊天补全式围栏分类请求的 `max_tokens` 均为 40960。线上老师实际使用的阿里云 System One 结构化围栏接口使用 `state/questions` 请求格式，没有 `max_tokens` 字段，此次未更换分类接口，也没有给它添加未经确认支持的字段。第三个老师分组的 `gpt-6-luna` 在原额度和 40960 下均被上游报告为已下架，与本次额度调整无关。
 
 发布包 SHA-256 为 `f7529960acef34a85a36ff73ad37c5d531171437ff586b6284b54116d49e78a9`。数据库备份为 `/srv/ai-zhuxue/backups/pre-b890cf9-20261002.dump`；没有新迁移。API 回滚配置为 `/etc/systemd/system/aizhuxue-api.service.d/release.conf.bak.20261002-pre-b890cf9`。本地后端 136 项测试与 GitHub CI 通过，公网健康检查正常，服务错误日志为空。
+
+## 2026-10-03 准确性与生产支付保护
+
+API 从 `b890cf9`、CMS 从 `30b63b0` 统一切到 `7ffc592`。本次统一评估、摘要、心跳和用量的本地日期口径，修复跨周统计；身心提示区分常见教育讨论、否定表达和个人求助，评估缓存区分规则版本与时区。生产续费和购买孩子名额接口在真实支付接入前返回 503，不生成模拟已支付订单或发放权益。没有客户端代码变更，无需更新 App。
+
+| 项目 | 结果 |
+|---|---|
+| 发布包 SHA-256 | `68ad3a127e23e0d86c0588d8db08425bd1813d86b28e2b8e5d13d9af1f587b38`，服务器核对通过 |
+| 数据库备份 | `/srv/ai-zhuxue/backups/pre-7ffc592-20261003.dump`，`pg_restore --list` 检查通过 |
+| 迁移与依赖 | 均无变更；执行 `alembic upgrade head` 后仍为 `e7f8a9b0c1d2`，复用现有 venv |
+| 回滚配置 | API/CMS 各自 drop-in 目录中的 `release.conf.bak.20261003-pre-7ffc592` |
+| 本地与 CI | 后端 162 项测试通过；目标提交 GitHub CI 全部通过 |
+| 服务器验证 | 日期边界与教育/个人求助规则检查通过；两项服务 active/running，自动重启次数为 0 |
+| 公网验收 | `/health`、`/openapi.json` 和 CMS 首页均返回 200；最近 5 分钟服务错误日志为空 |
+
+未使用真实家庭令牌执行评估或支付请求，避免写入用户评估、告警、订单和配额。支付保护由回归测试验证，线上验证发布目录及已加载版本。后续发布记录提交仅更新文档，不改变线上运行版本。
