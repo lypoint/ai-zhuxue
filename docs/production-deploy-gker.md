@@ -110,3 +110,19 @@ API 从 `b890cf9`、CMS 从 `30b63b0` 统一切到 `7ffc592`。本次统一评�
 | 公网验收 | `/health`、`/openapi.json` 和 CMS 首页均返回 200；最近 5 分钟服务错误日志为空 |
 
 未使用真实家庭令牌执行评估或支付请求，避免写入用户评估、告警、订单和配额。支付保护由回归测试验证，线上验证发布目录及已加载版本。后续发布记录提交仅更新文档，不改变线上运行版本。
+
+## 2026-10-03 家长自定义违禁词
+
+API 从 `7ffc592` 切到 `54b9c71`，CMS 继续运行 `7ffc592`。家长端可设置按家庭生效的违禁词列表；学生输入包含任一指定词时，普通与流式聊天均直接拒答并提示重新输入学习方面的问题，不调用模型。匹配忽略英文大小写，清空列表可取消自定义限制。
+
+| 项目 | 结果 |
+|---|---|
+| 发布包 SHA-256 | `cab5ecac2cc4533485a1b2352fb22dd2d672378f8c38a712d39a2c93dda20005`，服务器核对通过 |
+| 数据库备份 | `/srv/ai-zhuxue/backups/pre-54b9c71-20261003.dump`，已用 `pg_restore --list` 检查 |
+| 迁移 | `e7f8a9b0c1d2` → `a8b9c0d1e2f3`，增加 `family_settings.forbidden_words_json`，已有家庭默认空列表 |
+| 回滚配置 | `/etc/systemd/system/aizhuxue-api.service.d/release.conf.bak.20261003-pre-54b9c71` |
+| 本地与 CI | 从暂存内容导出的干净副本通过 165 项后端测试；目标提交 GitHub CI 全部通过 |
+| iPhone 验收 | iPhone 16e / iOS 18.4，独立本地测试家庭保存 `Game` 后，学生发送 `game` 显示拒答提示；两条消息记录为 reject，模型调用记录为 0 |
+| 生产验收 | 迁移及指定词规则断言通过；API/CMS active/running；公网健康检查、OpenAPI 和 CMS 首页均返回 200；OpenAPI 包含 `FamilySettingsIn.forbidden_words`；API 自动重启次数为 0，最近 5 分钟服务错误日志为空 |
+
+生产验证未写入真实家庭的设置或对话。家长端界面修改已随功能提交，已安装 App 仍需单独更新客户端才能使用列表编辑入口；本次发布未上传 App Store/TestFlight 或分发签名安装包。发布包仅包含已提交代码，其他会话的学习奖励改动未打包。
