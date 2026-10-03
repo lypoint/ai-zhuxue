@@ -28,6 +28,10 @@ def test_feedback_rewards_and_redemption(client):
         resp = client.post(f'/chat/messages/{mid}/learning-feedback', headers=h(student), json={'action': 'not_understood' if i < 4 else 'continue'})
         assert resp.status_code == 200 and resp.json()['balance'] == 1
         assert resp.json()['awarded'] == (i == 0)
+        assert resp.json()['today']['stars'] == 1
+        assert resp.json()['today']['date'] == local_now().date().isoformat()
+        assert resp.json()['today']['expires_at'].endswith('+00:00')
+        assert 0 < resp.json()['today']['refresh_after_seconds'] <= 86400
     url_feedback = f'/chat/messages/{ids[0]}/learning-feedback'
     changed = client.post(url_feedback, headers=h(student), json={'action': 'understood'}).json()
     assert changed['changed'] and changed['action'] == 'understood'
@@ -73,5 +77,6 @@ def test_old_answer_updates_cannot_farm_daily_rewards(client):
     url = f'/chat/messages/{mid}/learning-feedback'
     response = client.post(url, headers=h(student), json={'action': 'not_understood'})
     assert response.status_code == 200 and response.json()['balance'] == 0
+    assert response.json()['today']['stars'] == 0
     response = client.post(url, headers=h(student), json={'action': 'understood'})
     assert response.json()['balance'] == 0 and len(response.json()['history']) == 2
