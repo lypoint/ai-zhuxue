@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..config import settings
+from ..local_time import local_now, utc_bounds
 from ..db import get_db
 from ..api.deps import current_student
 from sqlalchemy import and_, func, or_
@@ -183,7 +184,7 @@ def _notify(family_id: int, type_: str, title: str, body: str,
         if fs and not fs.notify_fence:
             return
     if once_per_day:
-        today_start = dt.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = utc_bounds(local_now().date().isoformat())[0]
         exists = (db.query(Notification)
                   .filter_by(family_id=family_id, type=type_,
                              is_read=False)
@@ -197,9 +198,7 @@ def _notify(family_id: int, type_: str, title: str, body: str,
 
 def _local_day(student_id: int, db: Session) -> str:
     """学生本地日（YYYY-MM-DD，按 TZ_OFFSET_HOURS 换算）——时长累计的键。"""
-    import datetime as _dt
-    offset = _dt.timedelta(hours=settings.tz_offset_hours)
-    return (_dt.datetime.utcnow() + offset).strftime("%Y-%m-%d")
+    return local_now().date().isoformat()
 
 
 def _today_seconds(student_id: int, db: Session) -> int:
@@ -220,7 +219,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
         {Family.id: Family.id}, synchronize_session=False)
     quota_pending = _check_subscription(student, db, teacher_id)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
-    now_local = dt.datetime.utcnow() + offset
+    now_local = local_now()
     # P1：家长自定义禁用时段（覆盖全局 22-6；家长可整体关闭）
     fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
     quiet_on = fs.quiet_enabled if fs else settings.fence_quiet_enabled
@@ -907,7 +906,7 @@ def student_academic_assessment(body: dict | None = None, student: Student = Dep
     from ..services.assessments import academic, dumps, generation_count, input_version
     body = body or {}
     try:
-        end = str(body.get("to") or dt.date.today().isoformat())
+        end = str(body.get("to") or local_now().date().isoformat())
         end_date = dt.date.fromisoformat(end)
         start = str(body.get("from") or (end_date - dt.timedelta(days=30)).isoformat())
         if dt.date.fromisoformat(start) >= end_date:
@@ -924,13 +923,13 @@ def student_academic_assessment(body: dict | None = None, student: Student = Dep
         return {"assessment_id": cached.id, "status": cached.status,
                 "period": {"from": start, "to": end}, "model": cached.model,
                 "input_data_version": cached.input_data_version, **json.loads(cached.result_json)}
-    since = dt.datetime.utcnow() - dt.timedelta(days=1)
+    since = utc_bounds(local_now().date().isoformat())[0]
     generated = generation_count(db, student.family_id, "academic", since)
     if generated >= 10:
         raise HTTPException(429, "学业评估生成次数已达今日上限，请明天再试")
     result = academic(db, student.id, start, end)
     row = AcademicAssessment(student_id=student.id, period_from=start, period_to=end,
-                             input_data_version=version, model="rules-v1", result_json=dumps(result))
+                             input_data_version=version, model="rules-v2", result_json=dumps(result))
     db.add(row)
     db.flush()
     db.add(AssessmentAudit(assessment_type="academic", assessment_id=row.id,
@@ -1011,7 +1010,7 @@ def my_stats(student: Student = Depends(current_student), db: Session = Depends(
 
     from ..models import ActiveTime, Favorite
     offset = dt.timedelta(hours=settings.tz_offset_hours)
-    now_local = dt.datetime.utcnow() + offset
+    now_local = local_now()
     today0 = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
     week0 = today0 - dt.timedelta(days=now_local.weekday())
 
@@ -1029,7 +1028,7 @@ def my_stats(student: Student = Depends(current_student), db: Session = Depends(
                                                day=now_local.strftime("%Y-%m-%d")).first()
     week_rows = db.query(ActiveTime).filter(
         ActiveTime.student_id == student.id,
-        ActiveTime.day >= week0.date().isoformat()).all()
+        ActiveTime.day >= (week0 + offset).date().isoformat()).all()
     fav_count = db.query(Favorite).filter_by(student_id=student.id).count()
     return {
         "today": {"questions": q_count(today0), "blocked": q_count(today0, action="reject"),

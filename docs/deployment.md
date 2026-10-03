@@ -25,14 +25,14 @@
 | `PRICING_ADDITIONAL_SEAT_PRICE` | `33` | 首次初始化时的增量孩子名额价格（元）；运行中以 CMS 配置为准 |
 | `PRICING_TRIAL_DAYS` | `30` | 首次初始化时的新用户试用天数 |
 | `PRICING_POST_TRIAL_DAILY_FREE_COUNT` | `0` | 旧配置兼容字段；实际免费次数按 CMS 中各老师分组配置 |
-| `GUARDIAN_VERIFY_PROVIDER` | `mock` | 核验服务尚未接入；生产注册/登录接口暂返回 503 |
+| `GUARDIAN_VERIFY_PROVIDER` | `mock` | 三要素核验尚未接入；生产可选实名认证接口返回 503，短信/本机号码登录由阿里云号码认证服务独立提供 |
 
 ## 2. 本地开发
 
 ```bash
 cd server
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/alembic upgrade head                       # 从零建库（全部 25 表）
+.venv/bin/alembic upgrade head                       # 从零建库（完整表结构）
 .venv/bin/uvicorn app.main:app --port 8100          # SQLite + mock 核验
 FENCE_QUIET_ENABLED=false .venv/bin/uvicorn app.main:app --port 8100   # 测试时段放开
 ```
@@ -91,7 +91,7 @@ flutter build ipa   # iOS：需开发者账号签名
 ## 5. 生产 Checklist（骨架 → 上线）
 
 **工程**
-- [x] Alembic 迁移链可用（`alembic upgrade head` 从零建出全部 25 表；表结构变更走新迁移文件）
+- [x] Alembic 迁移链可用（`alembic upgrade head` 从零建出完整表结构；表结构变更走新迁移文件）
 - [ ] JWT_SECRET/LLM_KEY_SECRET/DB 密码/LLM Key 走密管，禁入 git
 - [x] API 限流（/auth、/chat、/admin/login 共库分钟窗口；多进程生效）
 - [ ] 请求日志 + 错误告警
