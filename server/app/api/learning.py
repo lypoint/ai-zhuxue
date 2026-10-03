@@ -1,5 +1,5 @@
 """Honest feedback, daily participation rewards, and family reward agreements."""
-from datetime import timedelta
+from datetime import timedelta, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..models import (Student, Guardian, Message, Conversation, LearningFeedback,
                       LearningFeedbackEvent, LearningDayReward, RewardAgreement, RewardRedemption, utcnow)
-from ..local_time import local_now
+from ..local_time import local_now, utc_bounds
 from ..config import settings
 from .deps import current_student, current_guardian
 from .parent import _own_student
@@ -60,7 +60,12 @@ def summary(db, student_id):
     redemptions = db.query(RewardRedemption).filter_by(student_id=student_id).order_by(RewardRedemption.id.desc()).all()
     agreements = db.query(RewardAgreement).filter_by(student_id=student_id).order_by(RewardAgreement.id.desc()).all()
     spent = sum(row.stars for row in redemptions)
-    return dict(days=daily, earned=len(rewards), spent=spent, balance=len(rewards)-spent,
+    today = local_now().date().isoformat()
+    expires_at = utc_bounds(today)[1].replace(tzinfo=timezone.utc)
+    return dict(today=dict(date=today, stars=int(today in rewards),
+                           expires_at=expires_at.isoformat(),
+                           refresh_after_seconds=max(1, int((expires_at - utcnow()).total_seconds()))),
+                days=daily, earned=len(rewards), spent=spent, balance=len(rewards)-spent,
                 rule="每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖",
                 agreements=[dict(id=r.id, reward=r.reward, stars=r.stars, fulfillment=r.fulfillment,
                                  accepted=r.accepted_at is not None) for r in agreements],

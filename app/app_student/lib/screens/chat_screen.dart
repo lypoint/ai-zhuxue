@@ -7,6 +7,7 @@ import '../foreground_heartbeat.dart';
 import '../models/bubble.dart';
 import '../widgets/chat_drawer.dart';
 import '../widgets/message_bubble.dart';
+import '../widgets/daily_incentive_card.dart';
 import 'bind_screen.dart';
 import 'favorites_screen.dart';
 import 'my_reports_screen.dart';
@@ -30,6 +31,36 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _sending = false;
   final Map<String, dynamic> _learningSelections = {};
   final Set<int> _feedbackPending = {};
+  Map<String, dynamic>? _dailyLearning;
+  String? _dailyLearningError;
+  int _dailyLearningRevision = 0;
+  Timer? _dailyLearningTimer;
+
+  void _applyDailyLearning(Map<String, dynamic> data) {
+    _dailyLearningTimer?.cancel();
+    setState(() { _dailyLearning = data; _dailyLearningError = null; });
+    final delay = Duration(seconds: (data['today']['refresh_after_seconds'] as int) + 1);
+    _dailyLearningTimer = Timer(delay, _loadDailyLearning);
+  }
+
+  Future<void> _loadDailyLearning() async {
+    final revision = ++_dailyLearningRevision;
+    _dailyLearningTimer?.cancel();
+    setState(() { _dailyLearning = null; _dailyLearningError = null; });
+    try {
+      final data = await Api.I.learningSummary();
+      if (mounted && revision == _dailyLearningRevision) _applyDailyLearning(data);
+    } catch (e) {
+      if (mounted && revision == _dailyLearningRevision) {
+        setState(() => _dailyLearningError = '今日奖励加载失败，请重试');
+      }
+    }
+  }
+
+  Future<void> _openLearning() async {
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LearningScreen()));
+    if (mounted) _loadDailyLearning();
+  }
 
   Future<void> _feedback(Bubble bubble, String action) async {
     final id = bubble.messageId!;
@@ -39,6 +70,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     try {
       final result = await Api.I.learningFeedback(id, action);
       if (!mounted) return;
+      ++_dailyLearningRevision;
+      _applyDailyLearning(result);
       setState(() => _learningSelections['$id'] = result['action']);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${result['awarded'] == true ? '今天参与学习，获得1颗小行星' : '反馈已记录'} · 余额 ${result['balance']} 颗')),
@@ -94,6 +127,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _heartbeat.start();
+      _loadDailyLearning();
     } else {
       _heartbeat.stop();
     }
@@ -104,6 +138,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (Api.onUnauthorized == _onSessionExpired) Api.onUnauthorized = null;
     WidgetsBinding.instance.removeObserver(this);
     _heartbeat.stop();
+    _dailyLearningTimer?.cancel();
     super.dispose();
   }
 
@@ -116,6 +151,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Api.onUnauthorized = _onSessionExpired;
     _restore();
     _loadTeachers();
+    _loadDailyLearning();
     if (WidgetsBinding.instance.lifecycleState == null ||
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       _heartbeat.start();
@@ -1080,9 +1116,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           IconButton(
             tooltip: '学习反馈与小行星',
             icon: const Icon(Icons.auto_awesome),
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const LearningScreen())),
+            onPressed: _openLearning,
           ),
         ],
         title: Tooltip(
@@ -1173,6 +1207,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
+          DailyIncentiveCard(summary: _dailyLearning, error: _dailyLearningError,
+            onOpen: _openLearning, onRetry: _loadDailyLearning),
           if (_restoringLatest) ...[
             const LinearProgressIndicator(minHeight: 2),
             const Padding(
