@@ -65,6 +65,8 @@ SECOND_PASS_SYSTEM = (
     "{\"category\":\"study|entertainment|sensitive|other\",\"confidence\":0到1}。"
 )
 
+FORBIDDEN_WORD_REPLY = "这个问题我不能回答，请重新输入学习方面的问题，例如作业、学科知识或学习方法。"
+
 REJECT_REPLY = "这个问题我不能回答。如果你遇到了让你难受的事情，请告诉家长或老师。我们回到学习上来吧——有什么作业或知识点需要讲解吗？"
 
 
@@ -118,7 +120,8 @@ async def _llm_classify(content: str, system: str, family_id: int | None = None,
 
 async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None = None,
                    recent_user_texts: list[str] | None = None,
-                   group_id: int | None = None) -> dict:
+                   group_id: int | None = None,
+                   forbidden_words: list[str] | None = None) -> dict:
     """返回 {decision: allow|rewrite|reject, category, confidence, stages: [FenceEvent dict...]}。
 
     recent_user_texts：当前消息之前的最近用户输入（最多取 2 条）。仅 llm 模式启用
@@ -133,6 +136,12 @@ async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None
                        "confidence": confidence, "detail": detail,
                        "intent": intent, "safety_education": safety_education})
         return decision
+
+    # 家长指定词优先于分类和白名单，只用于学生输入。
+    if any(word.casefold() in content.casefold() for word in forbidden_words or [] if word):
+        record("parent_keywords", "reject", "other", 1.0, "family forbidden word matched")
+        return {"decision": "reject", "category": "other", "confidence": 1.0,
+                "stages": stages, "reply": FORBIDDEN_WORD_REPLY}
 
     # 1) 安全教育白名单优先于词语命中，允许求助和预防类回答。
     if any(re.search(pattern, content) for pattern in SAFETY_EDUCATION_PATTERNS):

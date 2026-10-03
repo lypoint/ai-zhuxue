@@ -236,6 +236,7 @@ class Api {
     int quietEnd = 6,
     int dailyMinutesCap = 60,
     bool notifyFence = true,
+    List<String>? forbiddenWords,
   }) => _send(
     'PUT',
     '/parent/settings',
@@ -247,6 +248,7 @@ class Api {
       'quiet_end': quietEnd,
       'daily_minutes_cap': dailyMinutesCap,
       'notify_fence': notifyFence,
+      if (forbiddenWords != null) 'forbidden_words': forbiddenWords,
     },
   );
 
