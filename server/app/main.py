@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .api import admin, auth, bind, chat, parent
+from .api import admin, auth, bind, chat, parent, learning
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
@@ -39,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(bind.router)
 app.include_router(chat.router)
 app.include_router(parent.router)
+app.include_router(learning.router)
 app.include_router(admin.router)
 
 

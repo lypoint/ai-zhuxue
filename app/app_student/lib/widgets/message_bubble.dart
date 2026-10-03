@@ -8,12 +8,16 @@ class MessageBubble extends StatelessWidget {
   final VoidCallback onLongPress;
   final VoidCallback? onRetry;
   final bool isLoading;
+  final void Function(String)? onFeedback;
+  final String? feedback;
   const MessageBubble({
     super.key,
     required this.bubble,
     required this.onLongPress,
     this.onRetry,
     this.isLoading = false,
+    this.onFeedback,
+    this.feedback,
   });
 
   @override
@@ -91,13 +95,39 @@ class MessageBubble extends StatelessWidget {
                                 Text('正在回答…'),
                               ],
                             )
-                          : GptMarkdown(
-                              bubble.text,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                height: 1.4,
-                              ),
-                              useDollarSignsForLatex: true,
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GptMarkdown(
+                                  bubble.text,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    height: 1.4,
+                                  ),
+                                  useDollarSignsForLatex: true,
+                                ),
+                                if (!bubble.failed && bubble.messageId != null)
+                                  Wrap(
+                                    spacing: 8,
+                                    children: [
+                                      for (final entry in const {
+                                        'understood': '懂了',
+                                        'not_understood': '不懂',
+                                        'continue': '继续讲解',
+                                      }.entries)
+                                        TextButton(
+                                          onPressed:
+                                              onFeedback == null ||
+                                                  feedback == entry.key
+                                              ? null
+                                              : () => onFeedback!(entry.key),
+                                          child: Text(
+                                            '${feedback == entry.key ? '✓ ' : ''}${entry.value}',
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                              ],
                             ),
                     ),
                   ),
