@@ -19,6 +19,7 @@ class ManagementSettingsCard extends StatefulWidget {
 class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   late final TextEditingController _capCtrl;
   late final TextEditingController _minutesCtrl;
+  late final TextEditingController _forbiddenWordsCtrl;
   late bool _quietEnabled;
   late int _quietStart;
   late int _quietEnd;
@@ -35,6 +36,9 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
     _minutesCtrl = TextEditingController(
       text: (s['daily_minutes_cap'] as num).toString(),
     );
+    _forbiddenWordsCtrl = TextEditingController(
+      text: (s['forbidden_words'] as List? ?? []).join('\n'),
+    );
     _quietEnabled = s['quiet_enabled'] as bool? ?? true;
     _quietStart = s['quiet_start'] as int? ?? 22;
     _quietEnd = s['quiet_end'] as int? ?? 6;
@@ -45,6 +49,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   void dispose() {
     _capCtrl.dispose();
     _minutesCtrl.dispose();
+    _forbiddenWordsCtrl.dispose();
     super.dispose();
   }
 
@@ -76,6 +81,12 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
         quietEnd: _quietEnd,
         dailyMinutesCap: minutes,
         notifyFence: _notifyFence,
+        forbiddenWords: _forbiddenWordsCtrl.text
+            .split('\n')
+            .map((word) => word.trim())
+            .where((word) => word.isNotEmpty)
+            .toSet()
+            .toList(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -130,6 +141,18 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: '每日使用时长上限（0–480 分钟，0=不限）',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _forbiddenWordsCtrl,
+              minLines: 3,
+              maxLines: 6,
+              decoration: const InputDecoration(
+                labelText: '违禁词列表（每行一个）',
+                helperText: '包含任一词即拒绝回答，忽略英文大小写；清空后取消自定义限制',
+                helperMaxLines: 2,
                 border: OutlineInputBorder(),
               ),
             ),
