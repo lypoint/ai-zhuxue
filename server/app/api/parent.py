@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import settings
+from ..local_time import local_now, utc_bounds
 from ..db import get_db
 from ..api.deps import current_guardian
 from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family, FamilySettings,
@@ -380,18 +381,12 @@ def delete_student(student_id: int, purge: bool = False,
 def student_usage(student_id: int, guardian: Guardian = Depends(current_guardian),
                   db: Session = Depends(get_db)):
     """模型用量与估算成本（实价表 S50-S52）——对接 cost-model.xlsx 的人均 token 假设验证。"""
-    import datetime as dt
-
     from ..models import UsageLog
     from ..services.llm import PRICE_PER_MTOK
 
-    # openrouter 计费价随所选底层模型浮动：流式 usage 自带 cost 时以实测为准（UsageLog 暂存的是 tokens），
-    # 此处按 deepseek 现价近似（M2 改为把 cost 直接落 UsageLog）
-
     _own_student(guardian, student_id, db)
     logs = db.query(UsageLog).filter_by(student_id=student_id).all()
-    today_start_utc = (dt.datetime.utcnow() + dt.timedelta(hours=8)).replace(
-        hour=0, minute=0, second=0, microsecond=0) - dt.timedelta(hours=8)
+    today_start_utc = utc_bounds(local_now().date().isoformat())[0]
     total = {"tokens_in": 0, "tokens_out": 0, "cost": 0.0}
     today = {"tokens_in": 0, "tokens_out": 0, "cost": 0.0}
     for log in logs:
@@ -688,8 +683,8 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
     """家长首页摘要：今日与本周的学习活动一屏掌握（不用翻对话）。"""
     import datetime as dt
 
-    offset = dt.timedelta(hours=8)
-    now_local = dt.datetime.utcnow() + offset
+    offset = dt.timedelta(hours=settings.tz_offset_hours)
+    now_local = local_now()
     today0 = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
     week0 = today0 - dt.timedelta(days=now_local.weekday())  # 周一
 
@@ -700,8 +695,7 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
     if not conv_ids:
         # 无对话也可能有时长（心跳已上报）——时长仍要真实返回
         from ..models import ActiveTime
-        offset8 = dt.timedelta(hours=8)
-        nl = dt.datetime.utcnow() + offset8
+        nl = now_local
         t_row = db.query(ActiveTime).filter_by(student_id=student_id,
                                                day=nl.strftime("%Y-%m-%d")).first()
         w_rows = db.query(ActiveTime).filter(
@@ -726,7 +720,7 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
         # 活跃时长近似：同一天内消息时间跨度（首条到末条），上限 60 分钟/日 防极端值
         by_day = {}
         for m, _ in rows:
-            day = m.created_at.date()
+            day = (m.created_at + offset).date()
             by_day.setdefault(day, []).append(m.created_at)
         minutes = 0
         for day, times in by_day.items():
@@ -748,10 +742,10 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
         today["minutes"] = today_row.seconds // 60
     week_rows = db.query(ActiveTime).filter(
         ActiveTime.student_id == student_id,
-        ActiveTime.day >= week0.date().isoformat()).all()
+        ActiveTime.day >= (week0 + offset).date().isoformat()).all()
     if week_rows:
         week["minutes"] = sum(r.seconds for r in week_rows) // 60
-    active_days = len({m.created_at.date()
+    active_days = len({(m.created_at + offset).date()
                        for m, _ in (db.query(Message, Conversation)
                                     .join(Conversation, Message.conversation_id == Conversation.id)
                                     .filter(Conversation.student_id == student_id,
@@ -764,7 +758,7 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
 def _period(body: dict):
     import datetime as dt
     try:
-        end = str(body.get("to") or dt.date.today().isoformat())
+        end = str(body.get("to") or local_now().date().isoformat())
         end_date = dt.date.fromisoformat(end)
         start = str(body.get("from") or (end_date - dt.timedelta(days=30)).isoformat())
         start_date = dt.date.fromisoformat(start)
@@ -777,9 +771,8 @@ def _period(body: dict):
 
 def _assessment_rate_check(db: Session, student_id: int, assessment_type: str,
                            actor_id: int):
-    import datetime as dt
     from ..services.assessments import generation_count
-    since = dt.datetime.utcnow() - dt.timedelta(days=1)
+    since = utc_bounds(local_now().date().isoformat())[0]
     family_id = db.query(Student.family_id).filter_by(id=student_id).scalar()
     generated = generation_count(db, family_id, assessment_type, since)
     if generated >= 10:
@@ -806,7 +799,7 @@ def create_academic_assessment(student_id: int, body: dict | None = None,
     _assessment_rate_check(db, student_id, "academic", guardian.id)
     result = academic(db, student_id, start, end)
     row = AcademicAssessment(student_id=student_id, period_from=start, period_to=end,
-                             input_data_version=version, model="rules-v1", result_json=dumps(result))
+                             input_data_version=version, model="rules-v2", result_json=dumps(result))
     db.add(row)
     db.flush()
     db.add(AssessmentAudit(assessment_type="academic", assessment_id=row.id,
@@ -852,7 +845,7 @@ def create_wellbeing_assessment(student_id: int, body: dict | None = None,
     _assessment_rate_check(db, student_id, "wellbeing", guardian.id)
     result = wellbeing(db, student_id, start, end)
     row = WellbeingAssessment(student_id=student_id, period_from=start, period_to=end,
-                              input_data_version=version, model="rules-v1", result_json=dumps(result))
+                              input_data_version=version, model="rules-v2", result_json=dumps(result))
     db.add(row)
     db.flush()
     if any(signal.get("type") == "self_harm" for signal in result.get("signals", [])):
@@ -913,6 +906,8 @@ def subscription_status(guardian: Guardian = Depends(current_guardian), db: Sess
 def subscription_pay(body: dict | None = None,
                      guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     """模拟支付成功（生产替换为微信/支付宝回调）。续费 30 天。"""
+    if settings.env == "prod":
+        raise HTTPException(503, "支付服务尚未接入，暂不支持在线续费")
     from ..services import subscription
     body = body or {}
     key = body.get("idempotency_key")
@@ -928,6 +923,8 @@ def subscription_pay(body: dict | None = None,
 @router.post("/subscription/seats")
 def add_subscription_seat(body: dict, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     """增加孩子名额；按当前周期剩余天数折算，幂等键避免重复扣款。"""
+    if settings.env == "prod":
+        raise HTTPException(503, "支付服务尚未接入，暂不支持购买孩子名额")
     import json
     from ..services.subscription import _config_cents, get_pricing_config, get_status, to_cents, yuan
     try:

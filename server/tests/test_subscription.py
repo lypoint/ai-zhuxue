@@ -4,6 +4,26 @@ import datetime as dt
 from tests.conftest import h, make_family
 
 
+def test_production_cannot_create_mock_paid_orders(client, monkeypatch):
+    from app.config import settings
+    from app.db import SessionLocal
+    from app.models import SubscriptionOrder
+    guardian, _ = make_family(client)
+    with SessionLocal() as db:
+        order_count = db.query(SubscriptionOrder).count()
+    before = client.get('/parent/subscription', headers=h(guardian)).json()
+    monkeypatch.setattr(settings, 'env', 'prod')
+    for path, body in [('/parent/subscription/pay', {}),
+                       ('/parent/subscription/seats', {'count': 1, 'idempotency_key': 'prod-seat'})]:
+        assert client.post(path, headers=h(guardian), json=body).status_code == 503
+    after = client.get('/parent/subscription', headers=h(guardian)).json()
+    assert after['expires_at'] == before['expires_at']
+    assert after['seat_count'] == before['seat_count']
+    assert after['paid_amount'] == before['paid_amount']
+    with SessionLocal() as db:
+        assert db.query(SubscriptionOrder).count() == order_count
+
+
 def test_trial_created_on_register(client):
     g, s = make_family(client)
     d = client.get("/parent/subscription", headers=h(g)).json()

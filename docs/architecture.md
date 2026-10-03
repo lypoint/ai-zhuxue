@@ -1,6 +1,6 @@
 # 架构与数据流
 
-**版本**：2026-09-17（对应生产骨架 M0）｜评审依据：20260914 标准评审 + 20260916/17 关口核验
+**版本**：2026-10-03（按当前实现校准；架构图保留 M0 背景）｜评审依据：20260914 标准评审 + 20260916/17 关口核验
 
 ## 1. 系统组成
 
@@ -29,7 +29,7 @@
 └─────────┼────────────────────┼───────────────────────┘
           ▼                    ▼
    阿里云/腾讯云          open.bigmodel.cn 等
-   信息核验 API           (已备案大模型)
+   信息核验 API（待接入）           (模型备案需核实)
 ```
 
 ## 1.5 CMS 独立服务
@@ -44,7 +44,7 @@
 
 ### 2.1 激活链路（监护人主导）
 
-1. **监护人注册** `POST /auth/guardian/register`：手机号+短信码，注册即创建 `Family` + `FamilySettings`（审查 default-on）。登录后可通过 `POST /parent/identity/verify` 自愿提交姓名和身份证号进行三要素核验（`guardian_verify.py`；不采集人脸），未认证不限制使用。
+1. **监护人注册** `POST /auth/guardian/register`：手机号+短信码，注册即创建 `Family` + `FamilySettings`（审查 default-on）。登录后可通过 `POST /parent/identity/verify` 自愿提交姓名和身份证号进行三要素核验（`guardian_verify.py`；不采集人脸），未认证不限制使用。生产短信/号码认证独立接入阿里云；真实三要素核验尚未接入。
 2. **生成绑定码** `POST /bind/code`：8 位、10 分钟有效、一次性（`BindCode`）。
 3. **学生绑定** `POST /auth/student/login`：学生端凭绑定码+设备号登录，创建/复用 `Student` 并归属家庭。此后学生端持 student JWT。
 

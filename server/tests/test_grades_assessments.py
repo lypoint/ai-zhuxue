@@ -56,3 +56,23 @@ def test_assessment_input_version_changes_when_an_older_grade_is_edited(client):
     client.patch(f"/parent/students/{sid}/grades/{first['id']}", headers=h(guardian), json={'score': 75})
     second_assessment = client.post(f'/parent/students/{sid}/academic-assessments', headers=h(guardian), json={}).json()
     assert second_assessment['assessment_id'] != first_assessment['assessment_id']
+
+
+def test_academic_assessment_only_uses_grades_in_selected_period(client):
+    guardian, student = make_family(client)
+    sid = client.get('/parent/family', headers=h(guardian)).json()['students'][0]['id']
+    for subject, date, score in [('数学', '2026-08-31', 10),
+                                  ('英语', '2026-09-01', 90),
+                                  ('语文', '2026-09-30', 50),
+                                  ('科学', '2026-10-01', 90)]:
+        response = client.post('/chat/grades', headers=h(student), json={
+            'subject': subject, 'exam_date': date, 'score': score, 'max_score': 100,
+        })
+        assert response.status_code == 200
+    period = {'from': '2026-09-01', 'to': '2026-09-30'}
+    for path, token in [(f'/parent/students/{sid}/academic-assessments', guardian),
+                        ('/chat/academic-assessments', student)]:
+        response = client.post(path, headers=h(token), json=period)
+        assert response.status_code == 200
+        assert response.json()['mastery_signals'] == ['英语']
+        assert response.json()['needs_practice'] == ['语文']
