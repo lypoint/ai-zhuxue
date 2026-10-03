@@ -23,6 +23,11 @@ from ..services import fence, llm
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
+def _forbidden_words(db: Session, family_id: int) -> list[str]:
+    fs = db.query(FamilySettings).filter_by(family_id=family_id).first()
+    return json.loads(fs.forbidden_words_json) if fs else []
+
+
 class MessageReportIn(BaseModel):
     message_id: int
     reason: str = Field(min_length=1, max_length=500)
@@ -358,6 +363,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
         verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
+                                       forbidden_words=_forbidden_words(db, student.family_id),
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
@@ -369,7 +375,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     if verdict["decision"] == "reject":
         user_msg.fence_action = "reject"
         reply = Message(conversation_id=conv.id, role="assistant",
-                        content=fence.REJECT_REPLY, fence_action="reject")
+                        content=verdict.get("reply", fence.REJECT_REPLY), fence_action="reject")
         db.add(reply)
         # 与 /chat/stream 对齐：拒绝时发家长通知（敏感=security，其余=fence）。
         _notify(student.family_id,
@@ -509,6 +515,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
         verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
+                                       forbidden_words=_forbidden_words(db, student.family_id),
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
@@ -550,11 +557,11 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                "category": verdict["category"]})
             if fence_action == "reject":
                 reply = Message(conversation_id=conv_id, role="assistant",
-                                content=fence.REJECT_REPLY, fence_action="reject")
+                                content=verdict.get("reply", fence.REJECT_REPLY), fence_action="reject")
                 sdb.add(reply)
                 sdb.get(Message, user_msg_id).fence_action = fence_action
                 sdb.commit()
-                yield sse("delta", {"text": fence.REJECT_REPLY})
+                yield sse("delta", {"text": reply.content})
                 yield sse("done", {"message_id": reply.id, "tokens_in": 0, "tokens_out": 0})
                 return
 

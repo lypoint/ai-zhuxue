@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class GuardianRegisterIn(BaseModel):
@@ -104,3 +104,21 @@ class FamilySettingsIn(BaseModel):
     quiet_end: int | None = Field(default=None, ge=0, le=23)
     daily_minutes_cap: int | None = Field(default=None, ge=0, le=480)  # 0=不限
     notify_fence: bool | None = None  # security 告警不可关闭
+    forbidden_words: list[str] | None = Field(default=None, max_length=500)
+
+    @field_validator("forbidden_words")
+    @classmethod
+    def normalize_forbidden_words(cls, words):
+        if words is None:
+            return None
+        result, seen = [], set()
+        for word in words:
+            word = word.strip()
+            if not word:
+                continue
+            if len(word) > 100:
+                raise ValueError("每个违禁词最多 100 个字符")
+            if word.casefold() not in seen:
+                result.append(word)
+                seen.add(word.casefold())
+        return result

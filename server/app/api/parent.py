@@ -1,4 +1,5 @@
 """家长端：全量审查（对话列表/消息/围栏流水）、管控设置、家庭成员。"""
+import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -67,7 +68,8 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
                      "quiet_start": settings_row.quiet_start if settings_row else settings.fence_quiet_start,
                      "quiet_end": settings_row.quiet_end if settings_row else settings.fence_quiet_end,
                      "daily_minutes_cap": settings_row.daily_minutes_cap if settings_row else 60,
-                     "notify_fence": settings_row.notify_fence if settings_row else True},
+                     "notify_fence": settings_row.notify_fence if settings_row else True,
+                     "forbidden_words": json.loads(settings_row.forbidden_words_json) if settings_row else []},
     }
 
 
@@ -424,6 +426,8 @@ def update_settings(body: FamilySettingsIn, guardian: Guardian = Depends(current
         value = getattr(body, field)
         if value is not None:
             setattr(fs, field, value)
+    if body.forbidden_words is not None:
+        fs.forbidden_words_json = json.dumps(body.forbidden_words, ensure_ascii=False)
     db.commit()
     return {"ok": True}
 

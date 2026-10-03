@@ -112,6 +112,7 @@ class FamilySettings(TimestampMixin, Base):
     quiet_start: Mapped[int] = mapped_column(Integer, default=22)
     quiet_end: Mapped[int] = mapped_column(Integer, default=6)
     daily_minutes_cap: Mapped[int] = mapped_column(Integer, default=60)  # 每日使用时长上限（分钟），0=不限
+    forbidden_words_json: Mapped[str] = mapped_column(Text, default="[]", server_default="[]")
     notify_fence: Mapped[bool] = mapped_column(Boolean, default=True)  # P2：学习引导通知开关（security 告警不可关）
 
     family: Mapped["Family"] = relationship(back_populates="settings")
