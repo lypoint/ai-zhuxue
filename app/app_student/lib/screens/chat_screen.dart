@@ -28,6 +28,50 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   int _chatRevision = 0;
   bool _restoringLatest = true;
   bool _sending = false;
+  final Map<String, dynamic> _learningSelections = {};
+  final Set<int> _feedbackPending = {};
+
+  Future<void> _feedback(Bubble bubble, String action) async {
+    final id = bubble.messageId!;
+    final revision = _chatRevision;
+    if (_feedbackPending.contains(id)) return;
+    setState(() => _feedbackPending.add(id));
+    try {
+      final result = await Api.I.learningFeedback(id, action);
+      if (!mounted) return;
+      setState(() => _learningSelections['$id'] = result['action']);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${result['awarded'] == true ? '今天参与学习，获得1颗小行星' : '反馈已记录'} · 余额 ${result['balance']} 颗')),
+      );
+      if (action != 'understood' &&
+          result['action'] == action &&
+          result['changed'] == true &&
+          revision == _chatRevision) {
+        await _send(
+          followUp:
+              '${action == 'not_understood' ? '我还不懂，请降低难度，用更简单的例子换一种方式讲解' : '请沿用当前方式继续讲解，补充步骤和例子'}这条回答：\n${bubble.text.length > 3500 ? bubble.text.substring(0, 3500) : bubble.text}',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e is ApiException ? e.message : '反馈失败，请重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _feedbackPending.remove(id));
+    }
+  }
+
+  Future<void> _loadLearningSelections() async {
+    try {
+      final data = await Api.I.learningSelections();
+      if (mounted) setState(() => _learningSelections.addAll(data));
+    } catch (_) {
+      /* Submission remains idempotent if history cannot load. */
+    }
+  }
+
   bool _openingSession = false;
   bool _sessionActionPending = false;
   int? _favoritingMessageId;
@@ -419,6 +463,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   void _replaceBubbles(List<dynamic> messages) {
+    _loadLearningSelections();
     _bubbles.clear();
     for (final m in messages) {
       _bubbles.add(
@@ -802,11 +847,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _send({int? retryUserIndex}) async {
+  Future<void> _send({int? retryUserIndex, String? followUp}) async {
     final retrying = retryUserIndex != null;
     final text = retrying
         ? _bubbles[retryUserIndex].text
-        : _inputCtrl.text.trim();
+        : followUp ?? _inputCtrl.text.trim();
     if (text.isEmpty ||
         _sending ||
         _openingSession ||
@@ -820,7 +865,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     final retryMessageId = retrying ? _bubbles[retryUserIndex].messageId : null;
     if (retrying && retryMessageId == null) return;
-    if (!retrying) _inputCtrl.clear();
+    if (!retrying && followUp == null) _inputCtrl.clear();
     final userIndex = retryUserIndex ?? _bubbles.length;
     setState(() {
       _chatRevision++;
@@ -1031,6 +1076,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            tooltip: '学习反馈与小行星',
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const LearningScreen())),
+          ),
+        ],
         title: Tooltip(
           message: _teacherLoadFailed ? '重试加载老师' : '选择老师',
           child: InkWell(
@@ -1170,6 +1224,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       itemCount: _bubbles.length,
       itemBuilder: (_, i) => MessageBubble(
         bubble: _bubbles[i],
+        feedback: _learningSelections['${_bubbles[i].messageId}'] as String?,
+        onFeedback:
+            _sending ||
+                _openingSession ||
+                _selectingTeacher ||
+                _sessionActionPending ||
+                _feedbackPending.contains(_bubbles[i].messageId)
+            ? null
+            : (action) => _feedback(_bubbles[i], action),
         onLongPress: () => _messageMenu(_bubbles[i]),
         onRetry:
             _bubbles[i].failed && i == _bubbles.length - 1 && i > 0 && !_sending
