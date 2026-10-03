@@ -6,3 +6,5 @@ export 'src/assessment_range.dart';
 export 'src/grade_trend_card.dart';
 export 'src/theme.dart';
 export 'src/trend_chart.dart';
+
+export 'src/learning_screen.dart';

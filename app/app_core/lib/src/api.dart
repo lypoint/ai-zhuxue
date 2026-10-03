@@ -108,6 +108,22 @@ class Api {
   }) async =>
       (await _sendRaw(method, path, body: body)) as Map<String, dynamic>;
 
+  Future<Map<String, dynamic>> learningFeedback(int messageId, String action) =>
+      _send('POST', '/chat/messages/$messageId/learning-feedback', body: {'action': action});
+  Future<Map<String, dynamic>> learningSelections() => _send('GET', '/chat/learning-feedback');
+  Future<Map<String, dynamic>> learningSummary({int? studentId}) =>
+      _send('GET', studentId == null ? '/chat/learning' : '/parent/students/$studentId/learning');
+  Future<Map<String, dynamic>> proposeReward(int studentId, String reward, int stars, String fulfillment, String requestId) =>
+      _send('POST', '/parent/students/$studentId/reward-agreements',
+        body: {'reward': reward, 'stars': stars, 'fulfillment': fulfillment, 'request_id': requestId});
+  Future<Map<String, dynamic>> acceptReward(int agreementId) =>
+      _send('POST', '/chat/reward-agreements/$agreementId/accept');
+  Future<Map<String, dynamic>> redeemStars(int? studentId, int agreementId, String requestId) =>
+      _send('POST', studentId == null ? '/chat/redemptions' : '/parent/students/$studentId/redemptions',
+        body: {'agreement_id': agreementId, 'request_id': requestId});
+  Future<Map<String, dynamic>> fulfillReward(int studentId, int redemptionId) =>
+      _send('POST', '/parent/students/$studentId/redemptions/$redemptionId/fulfill');
+
   Future<String> registerGuardian(
     String phone,
     String smsCode,

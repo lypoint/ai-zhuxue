@@ -427,3 +427,54 @@ class AssessmentAudit(TimestampMixin, Base):
     actor_role: Mapped[str] = mapped_column(String(20))
     actor_id: Mapped[int] = mapped_column(Integer)
     action: Mapped[str] = mapped_column(String(30))
+
+
+class LearningFeedback(TimestampMixin, Base):
+    __tablename__ = "learning_feedback"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"), unique=True)
+    action: Mapped[str] = mapped_column(String(20))
+
+
+class RewardRedemption(TimestampMixin, Base):
+    __tablename__ = "reward_redemptions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    guardian_id: Mapped[int] = mapped_column(ForeignKey("guardians.id"))
+    reward: Mapped[str] = mapped_column(String(200))
+    stars: Mapped[int] = mapped_column(Integer)
+    request_id: Mapped[str] = mapped_column(String(64))
+    agreement_id: Mapped[int | None] = mapped_column(ForeignKey("reward_agreements.id"), nullable=True)
+    fulfillment: Mapped[str] = mapped_column(String(100), default="", server_default="")
+    fulfilled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    __table_args__ = (UniqueConstraint("student_id", "request_id"),)
+
+
+class LearningFeedbackEvent(TimestampMixin, Base):
+    __tablename__ = "learning_feedback_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"))
+    action: Mapped[str] = mapped_column(String(20))
+
+
+class LearningDayReward(TimestampMixin, Base):
+    __tablename__ = "learning_day_rewards"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    day: Mapped[str] = mapped_column(String(10))
+    __table_args__ = (UniqueConstraint("student_id", "day"),)
+
+
+class RewardAgreement(TimestampMixin, Base):
+    __tablename__ = "reward_agreements"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    guardian_id: Mapped[int] = mapped_column(ForeignKey("guardians.id"))
+    reward: Mapped[str] = mapped_column(String(200))
+    stars: Mapped[int] = mapped_column(Integer)
+    fulfillment: Mapped[str] = mapped_column(String(100))
+    request_id: Mapped[str] = mapped_column(String(64))
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    __table_args__ = (UniqueConstraint("student_id", "request_id"),)

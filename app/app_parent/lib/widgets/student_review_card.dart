@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_core/app_core.dart';
 import '../screens/review_screen.dart';
 import '../screens/parent_favorites_screen.dart';
 import '../screens/grades_screen.dart';
@@ -115,6 +116,17 @@ class StudentReviewCard extends StatelessWidget {
                             studentId: student['id'] as int,
                             studentName: name,
                           ),
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.auto_awesome, size: 20),
+                      label: const Text('学习奖励'),
+                      style: actionStyle,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              LearningScreen(studentId: student['id'] as int),
                         ),
                       ),
                     ),
