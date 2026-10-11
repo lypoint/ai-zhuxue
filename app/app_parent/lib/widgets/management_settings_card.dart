@@ -118,21 +118,18 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '未成年人模式管控',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+            _section(context, Icons.schedule_rounded, '每日使用', '合理安排对话次数与学习时长'),
+            const SizedBox(height: 20),
             TextField(
               controller: _capCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: '每日对话消息上限（10–1000 条）',
-                border: OutlineInputBorder(),
+                labelText: '每日对话消息上限',
+                helperText: '10–1000 条',
               ),
             ),
             const SizedBox(height: 12),
@@ -140,42 +137,23 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
               controller: _minutesCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: '每日使用时长上限（0–480 分钟，0=不限）',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _forbiddenWordsCtrl,
-              minLines: 3,
-              maxLines: 6,
-              decoration: const InputDecoration(
-                labelText: '违禁词列表（每行一个）',
-                helperText: '包含任一词即拒绝回答，忽略英文大小写；清空后取消自定义限制',
+                labelText: '每日使用时长上限',
+                helperText: '0–480 分钟，0 表示不限',
                 helperMaxLines: 2,
-                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    '学习引导通知\n（拦截/改写类，安全告警不受此开关影响）',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-                Switch(
-                  value: _notifyFence,
-                  onChanged: (v) => setState(() => _notifyFence = v),
-                ),
-              ],
+            const Divider(height: 32),
+            _section(
+              context,
+              Icons.nights_stay_outlined,
+              '休息时段',
+              '为孩子留出充足的休息时间',
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                const Text('休息时段限制'),
-                const Spacer(),
+                const Expanded(child: Text('休息时段限制')),
                 Switch(
                   value: _quietEnabled,
                   onChanged: (v) => setState(() => _quietEnabled = v),
@@ -183,10 +161,11 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
               ],
             ),
             if (_quietEnabled)
-              Row(
+              Wrap(
+                spacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text('禁用时段'),
-                  const SizedBox(width: 8),
                   DropdownButton<int>(
                     value: _quietStart,
                     items: [
@@ -210,14 +189,90 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                   ),
                 ],
               ),
+            const Divider(height: 32),
+            _section(
+              context,
+              Icons.shield_outlined,
+              '内容与通知',
+              '设置家庭规则，及时了解学习动态',
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _forbiddenWordsCtrl,
+              minLines: 3,
+              maxLines: 6,
+              decoration: const InputDecoration(
+                labelText: '违禁词列表（每行一个）',
+                helperText: '包含任一词即拒绝回答，忽略英文大小写；清空后取消自定义限制',
+                helperMaxLines: 4,
+              ),
+            ),
             const SizedBox(height: 12),
-            OutlinedButton(
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    '学习引导通知\n（拦截/改写类，安全告警不受此开关影响）',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+                Switch(
+                  value: _notifyFence,
+                  onChanged: (v) => setState(() => _notifyFence = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
               onPressed: _saving ? null : _save,
               child: Text(_saving ? '保存中…' : '保存设置'),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _section(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: scheme.primaryContainer,
+          child: Icon(icon, color: scheme.primary, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.5,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

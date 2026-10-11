@@ -52,8 +52,12 @@ void main() {
         return null;
       },
     );
-    addTearDown(() => tester.binding.defaultBinaryMessenger
-        .setMockMethodCallHandler(SystemChannels.platform, null));
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -127,12 +131,12 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('我的孩子'), findsOneWidget);
     expect(find.text('绑定设备'), findsOneWidget);
-    for (final label in ['对话', '改名', '收藏', '成绩', '设备']) {
+    for (final label in ['对话', '收藏', '成绩', '资料与设备']) {
       expect(find.text(label), findsOneWidget);
     }
     expect(
       tester.getSize(find.byType(StudentReviewCard)).height,
-      lessThan(230),
+      lessThan(280),
     );
     await tester.tap(find.text('绑定设备'));
     expect(bindRequested, isTrue);
@@ -181,6 +185,8 @@ void main() {
         ),
       ),
     );
+    await tester.tap(find.text('资料与设备'));
+    await tester.pumpAndSettle();
     expect(
       tester
           .widget<DropdownButton<String>>(find.byType(DropdownButton<String>))
@@ -188,10 +194,16 @@ void main() {
       isNull,
     );
     expect(
-      tester.widget<TextButton>(find.ancestor(
-        of: find.text('改名'),
-        matching: find.byWidgetPredicate((widget) => widget is TextButton),
-      )).onPressed,
+      tester
+          .widget<TextButton>(
+            find.ancestor(
+              of: find.text('改名'),
+              matching: find.byWidgetPredicate(
+                (widget) => widget is TextButton,
+              ),
+            ),
+          )
+          .onPressed,
       isNull,
     );
   });
@@ -201,22 +213,27 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: MediaQuery(
-          data: const MediaQueryData(textScaler: TextScaler.linear(1.4)),
-          child: StudentReviewCard(
-            student: const {'id': 1, 'nickname': '孩子', 'grade_band': '8-12'},
-            onRename: () {},
-            onRebind: () {},
-            onManageDevices: () {},
-            onGradeBandChanged: (_) async {},
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(1.4)),
+            child: StudentReviewCard(
+              student: const {'id': 1, 'nickname': '孩子', 'grade_band': '8-12'},
+              onRename: () {},
+              onRebind: () {},
+              onManageDevices: () {},
+              onGradeBandChanged: (_) async {},
+            ),
           ),
         ),
       ),
-    ));
+    );
     expect(tester.takeException(), isNull);
     expect(find.text('收藏'), findsOneWidget);
+    await tester.tap(find.text('资料与设备'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
     expect(find.text('设备'), findsOneWidget);
   });
 }

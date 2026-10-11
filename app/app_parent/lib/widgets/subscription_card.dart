@@ -23,43 +23,78 @@ class SubscriptionCard extends StatelessWidget {
     return Card(
       color: active ? const Color(0xFFE8F5F1) : const Color(0xFFFDEDEC),
       child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              active ? Icons.verified : Icons.warning_amber_rounded,
-              color: active ? const Color(0xFF15857A) : Colors.red,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: active
+                      ? const Color(0xFFD0E9DF)
+                      : const Color(0xFFF8D8D3),
+                  child: Icon(
                     active
-                        ? (trial ? '免费试用中 · 剩余 $days 天' : '订阅生效中 · 剩余 $days 天')
-                        : (freeTeacherCount > 0 ? '订阅已到期 · 部分老师设有免费额度' : '订阅已到期'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                        ? Icons.workspace_premium_outlined
+                        : Icons.warning_amber_rounded,
+                    color: active
+                        ? const Color(0xFF246C60)
+                        : const Color(0xFFAB3E32),
                   ),
-                  Text(
-                    '孩子名额 ${sub['used_seats'] ?? 0}/${sub['seat_count'] ?? 1} · ${active ? '到期后请查看老师免费额度' : freeTeacherCount > 0 ? '孩子可按各老师额度使用' : '续费后孩子即可继续学习'}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        active
+                            ? (trial
+                                  ? '免费试用中 · 剩余 $days 天'
+                                  : '订阅生效中 · 剩余 $days 天')
+                            : (freeTeacherCount > 0
+                                  ? '订阅已到期 · 部分老师设有免费额度'
+                                  : '订阅已到期'),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '孩子名额 ${sub['used_seats'] ?? 0}/${sub['seat_count'] ?? 1} · ${active
+                            ? '到期后请查看老师免费额度'
+                            : freeTeacherCount > 0
+                            ? '孩子可按各老师额度使用'
+                            : '续费后孩子即可继续学习'}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.6,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      if (!active && freeTeacherCount > 0)
+                        Text(
+                          '$freeTeacherCount 位老师设有每日免费回复，每个学生单独计次',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8B5C1C),
+                          ),
+                        ),
+                    ],
                   ),
-                  if (!active && freeTeacherCount > 0)
-                    Text(
-                      '$freeTeacherCount 位老师设有每日免费回复，每个学生单独计次',
-                      style: const TextStyle(fontSize: 12, color: Colors.orange),
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
-            // 防御性约束：个别环境（模拟器 gfxstream）CJK 字形测量异常会使按钮
-            // 占满整行、把 Expanded 文本列压成 40px；封顶宽度在正常设备上无视觉差异。
-            Column(
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 140),
                   child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                    ),
                     onPressed: billingPending ? null : onPay,
                     child: Text(
                       billingPending

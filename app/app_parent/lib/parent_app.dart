@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import 'screens/home_screen.dart';
+import 'theme/parent_theme.dart';
 import 'screens/login_screen.dart';
 
 /// 家长端根组件：已登录进入家庭总览，否则进入手机号注册或登录页。
@@ -38,7 +39,7 @@ class _ParentAppState extends State<ParentApp> {
     return MaterialApp(
       navigatorKey: _navigatorKey,
       title: 'AI 助学·家长版',
-      theme: appTheme(const Color(0xFF5367A8)),
+      theme: parentTheme(),
       home: Api.I.hasToken ? const HomeScreen() : const LoginScreen(),
     );
   }
