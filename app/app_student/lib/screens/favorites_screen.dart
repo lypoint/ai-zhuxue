@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
+import '../widgets/student_page_state.dart';
 
 /// 我的收藏（P2 学习沉淀）：知识点/解答随时回看，家长端同步可见。
 class FavoritesScreen extends StatefulWidget {
@@ -29,15 +30,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
     try {
       final list = await Api.I.myFavorites();
-      if (mounted) setState(() { _favs = list; _error = null; });
+      if (mounted) {
+        setState(() {
+          _favs = list;
+          _error = null;
+        });
+      }
     } on ApiException catch (e) {
       if (mounted) {
         if (_favs == null) {
           setState(() => _error = e.message);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('刷新收藏失败：${e.message}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('刷新收藏失败：${e.message}')));
         }
       }
     } catch (_) {
@@ -45,9 +51,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         if (_favs == null) {
           setState(() => _error = '收藏加载失败，请检查网络后重试');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('刷新收藏失败，请检查网络后重试')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('刷新收藏失败，请检查网络后重试')));
         }
       }
     } finally {
@@ -62,20 +68,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       await Api.I.deleteFavorite(id);
       if (!mounted) return;
       setState(() => _favs!.removeWhere((item) => item['id'] == id));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已取消收藏')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('已取消收藏')));
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('取消收藏失败，请重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('取消收藏失败，请重试')));
       }
     } finally {
       if (mounted) setState(() => _removingId = null);
@@ -86,7 +92,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的收藏 ⭐'),
+        title: const Text('我的收藏'),
         actions: [
           IconButton(
             tooltip: '刷新收藏',
@@ -102,55 +108,82 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ],
       ),
       body: _favs == null
-          ? Center(
-              child: _error == null
-                  ? const CircularProgressIndicator()
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_error!),
-                        TextButton(onPressed: _load, child: const Text('重试')),
-                      ],
-                    ),
-            )
+          ? (_error == null
+                ? const Center(child: CircularProgressIndicator())
+                : StudentPageState(
+                    icon: Icons.wifi_off_rounded,
+                    title: '收藏加载失败',
+                    description: _error!,
+                    onRetry: _load,
+                  ))
           : _favs!.isEmpty
-          ? const Center(child: Text('长按聊天消息即可收藏'))
+          ? const StudentPageState(
+              icon: Icons.bookmark_border_rounded,
+              title: '把值得复习的讲解留下来',
+              description: '长按聊天消息即可收藏',
+            )
           : ListView.builder(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(20),
               itemCount: _favs!.length,
               itemBuilder: (_, i) {
                 final f = _favs![i] as Map<String, dynamic>;
+                final content = (f['content'] as String? ?? '').trim();
+                final title = content
+                    .split('\n')
+                    .first
+                    .replaceFirst(RegExp(r'^#{1,6}\s+'), '');
                 return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: GptMarkdown(
-                            f['content'] as String? ?? '',
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              height: 1.4,
-                            ),
-                            useDollarSignsForLatex: true,
-                          ),
-                        ),
-                        IconButton(
+                  clipBehavior: Clip.antiAlias,
+                  child: ExpansionTile(
+                    key: PageStorageKey('favorite-${f['id']}'),
+                    tilePadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    leading: Icon(
+                      Icons.bookmark_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      title.isEmpty ? '收藏的讲解' : title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: const Text(
+                      '展开阅读完整讲解与公式',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                    children: [
+                      GptMarkdown(
+                        content,
+                        style: const TextStyle(height: 1.6),
+                        useDollarSignsForLatex: true,
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
                           icon: _removingId == f['id']
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
-                              : const Icon(Icons.close, size: 18),
-                          tooltip: '取消收藏',
+                              : const Icon(
+                                  Icons.bookmark_remove_outlined,
+                                  size: 18,
+                                ),
+                          label: const Text('取消收藏'),
                           onPressed: _removingId == null && !_loading
                               ? () => _remove(f['id'] as int)
                               : null,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },

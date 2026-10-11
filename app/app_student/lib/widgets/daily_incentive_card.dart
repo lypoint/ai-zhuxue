@@ -18,17 +18,31 @@ class DailyIncentiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final earned = summary?['today']?['stars'] == 1;
     return Card(
+      color: const Color(0xFFEAF2E9),
       margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         onTap: onOpen,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Icon(
-                earned ? Icons.auto_awesome : Icons.auto_awesome_outlined,
-                color: Theme.of(context).colorScheme.primary,
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    earned ? Icons.auto_awesome : Icons.auto_awesome_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  if (summary != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${summary!['balance']} 颗',
+                      semanticsLabel: '可用 ${summary!['balance']} 颗小行星',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -51,12 +65,11 @@ class DailyIncentiveCard extends StatelessWidget {
                           : earned
                           ? '感谢你的认真参与！今天已领取 1/1 颗。'
                           : '今天学一次、如实反馈一次，即可获得 1 颗。',
-                    ),
-                    if (summary != null)
-                      Text(
-                        '可用 ${summary!['balance']} 颗 · 懂了、不懂、继续讲解都一样值得鼓励',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
+                    ),
                   ],
                 ),
               ),

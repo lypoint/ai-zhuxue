@@ -87,9 +87,14 @@ class GradeTrendCard extends StatelessWidget {
                 // ignore: deprecated_member_use
                 DropdownButton<String>(
                   value: effectiveSubject,
+                  hint: const Text('全部科目', style: TextStyle(fontSize: 13)),
                   isDense: true,
                   underline: const SizedBox.shrink(),
                   items: [
+                    const DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('全部科目', style: TextStyle(fontSize: 13)),
+                    ),
                     for (final s in subjects)
                       DropdownMenuItem(
                         value: s,
@@ -108,7 +113,10 @@ class GradeTrendCard extends StatelessWidget {
                     for (final (label, days) in trendRangeOptions)
                       DropdownMenuItem(
                         value: days,
-                        child: Text(label, style: const TextStyle(fontSize: 13)),
+                        child: Text(
+                          label,
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ),
                   ],
                   onChanged: (v) => onChanged(effectiveSubject, v),

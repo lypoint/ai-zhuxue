@@ -45,53 +45,137 @@ class ChatDrawer extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: FilledButton.icon(
-                onPressed: onNewChat,
-                icon: const Icon(Icons.add),
-                label: const Text('新对话'),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    '我的学习空间',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '每一个问题，都是进步的开始',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  FilledButton.icon(
+                    onPressed: onNewChat,
+                    icon: const Icon(Icons.add),
+                    label: const Text('新对话'),
+                  ),
+                ],
               ),
             ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: TextField(
-                decoration: const InputDecoration(
-                  isDense: true,
-                  prefixIcon: Icon(Icons.search, size: 20),
-                  hintText: '搜索会话',
-                  border: OutlineInputBorder(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(8, 8, 8, 12),
+                            child: Text(
+                              '学习工具',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          LayoutBuilder(
+                            builder: (context, constraints) => Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (final item in [
+                                  (
+                                    Icons.insights_outlined,
+                                    '我的学习统计',
+                                    onOpenStats,
+                                  ),
+                                  (
+                                    Icons.bookmark_border_rounded,
+                                    '我的收藏',
+                                    onOpenFavorites,
+                                  ),
+                                  (
+                                    Icons.school_outlined,
+                                    '成绩与学习评估',
+                                    onOpenGrades,
+                                  ),
+                                  (Icons.flag_outlined, '我的举报', onOpenReports),
+                                ])
+                                  SizedBox(
+                                    width: (constraints.maxWidth - 8) / 2,
+                                    child: Material(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(16),
+                                        onTap: item.$3,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(
+                                                item.$1,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                item.$2,
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(8, 24, 8, 12),
+                            child: Text(
+                              '聊天记录',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          TextField(
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              prefixIcon: Icon(Icons.search, size: 20),
+                              hintText: '搜索会话',
+                            ),
+                            onChanged: (v) => onSearchChanged(v.trim()),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                    ),
+                    _sessionList(),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  ],
                 ),
-                onChanged: (v) => onSearchChanged(v.trim()),
               ),
             ),
             const Divider(height: 1),
             ListTile(
-              leading: const Icon(Icons.insights),
-              title: const Text('我的学习统计'),
-              onTap: onOpenStats,
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_border),
-              title: const Text('我的收藏'),
-              onTap: onOpenFavorites,
-            ),
-            ListTile(
-              leading: const Icon(Icons.flag_outlined),
-              title: const Text('我的举报'),
-              onTap: onOpenReports,
-            ),
-            ListTile(
-              leading: const Icon(Icons.insights),
-              title: const Text('成绩与学习评估'),
-              onTap: onOpenGrades,
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
+              leading: const Icon(Icons.logout, size: 20),
               title: const Text('退出登录'),
               onTap: onLogout,
             ),
-            Expanded(child: _sessionList()),
           ],
         ),
       ),
@@ -100,25 +184,35 @@ class ChatDrawer extends StatelessWidget {
 
   Widget _sessionList() {
     if (sessions == null) {
-      return Center(
-        child: sessionsError == null
-            ? const CircularProgressIndicator()
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(sessionsError!),
-                  TextButton(
-                    onPressed: onRetrySessions,
-                    child: const Text('重试'),
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Center(
+            child: sessionsError == null
+                ? const CircularProgressIndicator()
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(sessionsError!),
+                      TextButton(
+                        onPressed: onRetrySessions,
+                        child: const Text('重试'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+          ),
+        ),
       );
     }
     if (filteredSessions.isEmpty) {
-      return Center(child: Text(search.isEmpty ? '还没有聊天记录' : '没有匹配的会话'));
+      return SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: Text(search.isEmpty ? '还没有聊天记录' : '没有匹配的会话')),
+        ),
+      );
     }
-    return ListView.builder(
+    return SliverList.builder(
       itemCount: filteredSessions.length,
       itemBuilder: (_, i) {
         final c = filteredSessions[i] as Map<String, dynamic>;
