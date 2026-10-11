@@ -19,6 +19,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  http: ^1.2.0 # 首页导航测试使用现有 HTTP 客户端桩
   shared_preferences: ^2.2.0 # 仅测试桩使用（SharedPreferences.setMockInitialValues）
 
 flutter:

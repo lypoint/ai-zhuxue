@@ -33,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showOnboarding = false;
   Map<String, dynamic>? _subscription;
   int _unread = 0;
+  int _selectedTab = 0;
 
   @override
   void initState() {
@@ -245,9 +246,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('生成绑定码失败，请稍后重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('生成绑定码失败，请稍后重试')));
       }
     } finally {
       if (mounted) setState(() => _bindingStudentId = null);
@@ -303,10 +304,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _manualRefreshing = true);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(const SnackBar(
-      content: Text('正在刷新…'),
-      duration: Duration(seconds: 30),
-    ));
+    messenger.showSnackBar(
+      const SnackBar(content: Text('正在刷新…'), duration: Duration(seconds: 30)),
+    );
     try {
       await _refresh();
       if (!mounted) return;
@@ -329,7 +329,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_family == null) {
       setState(() => _loadError = message);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -505,25 +507,30 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('退出登录？'),
         content: const Text('退出后需要重新登录，孩子的学习记录会保留。'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('退出')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('退出'),
+          ),
         ],
       ),
     );
     if (confirmed != true || !mounted) return;
     setState(() => _loggingOut = true);
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(
-      content: Text('正在退出登录…'),
-      duration: Duration(seconds: 30),
-    ));
+    messenger.showSnackBar(
+      const SnackBar(content: Text('正在退出登录…'), duration: Duration(seconds: 30)),
+    );
     try {
       await Api.I.logout();
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
@@ -563,13 +570,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final sub = _subscription;
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        toolbarHeight: MediaQuery.textScalerOf(
+          context,
+        ).scale(kToolbarHeight).clamp(kToolbarHeight, 96),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('家长端'),
+            Text(['家庭', '守护', '我的'][_selectedTab]),
             Text(
-              '家庭学习控制台',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              ['关注孩子的每一步成长', '为孩子建立健康的学习习惯', '家庭账户与服务'][_selectedTab],
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -584,17 +599,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.refresh),
-          ),
-          IconButton(
-            onPressed: _makingCode ? null : _makeCode,
-            icon: _makingCode
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.qr_code_2),
-            tooltip: '生成绑定码',
           ),
           Stack(
             children: [
@@ -618,19 +622,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ),
-          PopupMenuButton<String>(
-            enabled: !_loggingOut,
-            onSelected: (v) {
-              if (v == 'logout') _logout();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'logout', child: Text('退出登录')),
-            ],
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedTab,
+        onDestinationSelected: (value) {
+          FocusManager.instance.primaryFocus?.unfocus();
+          setState(() => _selectedTab = value);
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: '家庭',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.shield_outlined),
+            selectedIcon: Icon(Icons.shield),
+            label: '守护',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: '我的',
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: Column(
         children: [
           if (_partialLoadError != null)
             Card(
@@ -643,63 +661,174 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          if (sub != null)
-            SubscriptionCard(
-              sub: sub,
-              onPay: _pay,
-              onAddSeat: _addSeat,
-              billingPending: _billingPending,
-            ),
-          if (_showOnboarding) _onboardingCard(),
-          _guardianCard(family, students.length),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.verified_user_outlined),
-              title: const Text('实名认证'),
-              subtitle: Text(
-                family['guardian']['identity_verified'] == true
-                    ? '已认证'
-                    : '未认证 · 不影响功能使用',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                final verified = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
-                    builder: (_) => IdentityVerificationScreen(
-                      verified: family['guardian']['identity_verified'] == true,
+          Expanded(
+            child: IndexedStack(
+              index: _selectedTab,
+              children: [
+                _tabList('family', [
+                  if (_showOnboarding) ...[
+                    _onboardingCard(),
+                    const SizedBox(height: 16),
+                  ],
+                  _guardianCard(family, students.length),
+                  const SizedBox(height: 24),
+                  _sectionTitle('孩子的学习', '每一次探索，都值得被看见'),
+                  const SizedBox(height: 12),
+                  if (students.isEmpty)
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.school_outlined, size: 40),
+                            const SizedBox(height: 12),
+                            const Text('添加孩子，开启学习陪伴'),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '添加后可生成绑定码，连接孩子的学生端。',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ...students.map(
+                    (s) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: StudentReviewCard(
+                        student: s,
+                        onRename: () => _renameStudent(s),
+                        onGradeBandChanged: (band) => _setGradeBand(s, band),
+                        updatesDisabled: _updatingStudentId != null,
+                        onRebind: _bindingStudentId == null
+                            ? () => _rebindStudent(s)
+                            : null,
+                        bindingInProgress: _bindingStudentId == s['id'],
+                        onManageDevices: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => DeviceManageScreen(
+                              studentId: s['id'] as int,
+                              studentName: s['nickname'] as String? ?? '',
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                );
-                if (verified == true) _refresh();
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...students.map(
-            (s) => StudentReviewCard(
-              student: s,
-              onRename: () => _renameStudent(s),
-              onGradeBandChanged: (band) => _setGradeBand(s, band),
-              updatesDisabled: _updatingStudentId != null,
-              onRebind: _bindingStudentId == null ? () => _rebindStudent(s) : null,
-              bindingInProgress: _bindingStudentId == s['id'],
-              onManageDevices: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => DeviceManageScreen(
-                    studentId: s['id'] as int,
-                    studentName: s['nickname'] as String? ?? '',
+                ]),
+                _tabList('guard', [
+                  _sectionTitle('学习守护', '设置适合家庭的使用规则，保存后生效'),
+                  const SizedBox(height: 16),
+                  ManagementSettingsCard(
+                    settings: family['settings'] as Map<String, dynamic>,
+                    onSaved: _refresh,
                   ),
-                ),
-              ),
+                ]),
+                _tabList('account', [
+                  _sectionTitle(
+                    '家庭账户',
+                    family['guardian']['nickname'] as String? ?? '家长',
+                  ),
+                  const SizedBox(height: 16),
+                  if (sub != null)
+                    SubscriptionCard(
+                      sub: sub,
+                      onPay: _pay,
+                      onAddSeat: _addSeat,
+                      billingPending: _billingPending,
+                    ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.verified_user_outlined),
+                      title: const Text('实名认证'),
+                      subtitle: Text(
+                        family['guardian']['identity_verified'] == true
+                            ? '已认证'
+                            : '未认证 · 不影响功能使用',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () async {
+                        final verified = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute(
+                            builder: (_) => IdentityVerificationScreen(
+                              verified:
+                                  family['guardian']['identity_verified'] ==
+                                  true,
+                            ),
+                          ),
+                        );
+                        if (verified == true) _refresh();
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.qr_code_2),
+                      title: Text(_makingCode ? '生成中…' : '学生端绑定码'),
+                      subtitle: const Text('连接学生端设备'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _makingCode ? null : _makeCode,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: _loggingOut ? null : _logout,
+                    icon: const Icon(Icons.logout),
+                    label: Text(_loggingOut ? '正在退出…' : '退出登录'),
+                  ),
+                ]),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          ManagementSettingsCard(
-            settings: family['settings'] as Map<String, dynamic>,
-            onSaved: _refresh,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _tabList(String name, List<Widget> children) {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView(
+        key: PageStorageKey(name),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title, String subtitle) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 
@@ -717,7 +846,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              '三步开始：\n1. 点右上角 📱 生成绑定码\n2. 在孩子设备安装学生端，输入绑定码\n3. 在下方设置休息时段与每日上限',
+              '三步开始：\n1. 添加孩子，获取绑定码\n2. 在孩子设备安装学生端，输入绑定码\n3. 在「守护」设置休息时段与每日上限',
               style: TextStyle(fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 8),
@@ -735,19 +864,54 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _guardianCard(Map<String, dynamic> family, int childCount) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.family_restroom),
-        title: Text(family['guardian']['nickname'] as String? ?? '家长'),
-        subtitle: Text('家庭 · $childCount 个孩子'),
-        trailing: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 140),
-          child: FilledButton.icon(
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFE2F1E9), Color(0xFFF0F5E9)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFFD8E8DE)),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.spa_outlined, color: scheme.primary, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '陪伴成长 · 从每一天开始',
+                  style: TextStyle(color: scheme.primary, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            '${family['guardian']['nickname'] ?? '家长'}，你好',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: scheme.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '一起陪伴 $childCount 个孩子的学习与成长',
+            style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5),
+          ),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
             onPressed: _addingStudent ? null : _addStudent,
-            icon: const Icon(Icons.person_add, size: 17),
+            icon: const Icon(Icons.add_rounded, size: 20),
             label: Text(_addingStudent ? '添加中…' : '添加孩子'),
           ),
-        ),
+        ],
       ),
     );
   }
