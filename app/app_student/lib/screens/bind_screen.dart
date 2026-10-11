@@ -67,7 +67,7 @@ class _BindScreenState extends State<BindScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFE8F6F1), Color(0xFFF6F8FB)],
+            colors: [Color(0xFFE8F6F1), Color(0xFFF4F7F5)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -121,13 +121,14 @@ class _BindScreenState extends State<BindScreen> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      '家长在家长端点击右上角二维码即可生成',
+                      '请家长在“家庭”页生成绑定码或二维码',
                       style: TextStyle(fontSize: 13, color: Colors.black54),
                     ),
                     const SizedBox(height: 18),
                     TextField(
                       controller: _codeCtrl,
                       textAlign: TextAlign.center,
+                      onSubmitted: _loading ? null : (_) => _bind(),
                       textCapitalization: TextCapitalization.characters,
                       style: const TextStyle(
                         fontSize: 24,
@@ -144,6 +145,7 @@ class _BindScreenState extends State<BindScreen> {
                         ),
                         prefixIcon: const Icon(Icons.qr_code_2),
                         errorText: _error,
+                        errorMaxLines: 3,
                       ),
                     ),
                     const SizedBox(height: 16),

@@ -23,6 +23,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _inputCtrl = TextEditingController();
+  final _inputFocus = FocusNode();
   final _scrollCtrl = ScrollController();
   final List<Bubble> _bubbles = [];
   int? _conversationId;
@@ -49,7 +50,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() { _dailyLearning = null; _dailyLearningError = null; });
     try {
       final data = await Api.I.learningSummary();
-      if (mounted && revision == _dailyLearningRevision) _applyDailyLearning(data);
+      if (mounted && revision == _dailyLearningRevision) {
+        _applyDailyLearning(data);
+      }
     } catch (e) {
       if (mounted && revision == _dailyLearningRevision) {
         setState(() => _dailyLearningError = '今日奖励加载失败，请重试');
@@ -139,6 +142,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _heartbeat.stop();
     _dailyLearningTimer?.cancel();
+    _inputFocus.dispose();
     super.dispose();
   }
 
@@ -1113,6 +1117,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight:
+            64 * MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.5),
         actions: [
           IconButton(
             tooltip: '学习反馈与小行星',
@@ -1183,6 +1189,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             icon: const Icon(Icons.menu),
             tooltip: '聊天记录',
             onPressed: () {
+              FocusManager.instance.primaryFocus?.unfocus();
               _loadSessions();
               Scaffold.of(ctx).openDrawer();
             },
@@ -1208,8 +1215,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
-          DailyIncentiveCard(summary: _dailyLearning, error: _dailyLearningError,
-            onOpen: _openLearning, onRetry: _loadDailyLearning),
+          if (MediaQuery.viewInsetsOf(context).bottom == 0)
+            DailyIncentiveCard(
+              summary: _dailyLearning,
+              error: _dailyLearningError,
+              onOpen: _openLearning,
+              onRetry: _loadDailyLearning,
+            ),
           if (_restoringLatest) ...[
             const LinearProgressIndicator(minHeight: 2),
             const Padding(
@@ -1225,39 +1237,87 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _emptyState() {
-    return Center(
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        child: Padding(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 38,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                '你好！今天想学什么？',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                '可以问我作业、知识点和学习方法',
-                style: TextStyle(color: Colors.black54),
-              ),
-            ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: math.max(0, constraints.maxHeight - 48),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.lightbulb_outline_rounded,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  '你好！今天想学什么？',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '从一个小问题开始，一步步学会',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                for (final suggestion in const [
+                  (Icons.route_outlined, '理清解题思路', '请帮我理清这道题的思路：'),
+                  (Icons.auto_stories_outlined, '讲懂一个知识点', '请用简单的例子讲解这个知识点：'),
+                  (Icons.edit_note_rounded, '一起做练习', '请围绕这个知识点出一道练习题：'),
+                ])
+                  Card(
+                    child: ListTile(
+                      leading: Icon(suggestion.$1),
+                      title: Text(suggestion.$2),
+                      trailing: const Icon(Icons.north_west_rounded, size: 18),
+                      onTap: () {
+                        _inputCtrl.text = suggestion.$3;
+                        _inputCtrl.selection = TextSelection.collapsed(
+                          offset: _inputCtrl.text.length,
+                        );
+                        _inputFocus.requestFocus();
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                Text(
+                  '选择建议后，补充你的题目或知识点',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _messageList() {
     return ListView.builder(
       controller: _scrollCtrl,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: _bubbles.length,
       itemBuilder: (_, i) => MessageBubble(
         bubble: _bubbles[i],
@@ -1300,10 +1360,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               Expanded(
                 child: TextField(
                   controller: _inputCtrl,
+                  focusNode: _inputFocus,
+                  minLines: 1,
+                  maxLines: 5,
+                  textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _send(),
                   decoration: const InputDecoration(
                     hintText: '问一个学习问题…',
+                    filled: false,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 18,
                       vertical: 14,
@@ -1321,6 +1388,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           _sessionActionPending
                       ? null
                       : _send,
+                  tooltip: '发送问题',
                   icon: const Icon(Icons.arrow_upward),
                 ),
               ),

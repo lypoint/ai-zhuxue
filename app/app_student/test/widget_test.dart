@@ -43,11 +43,49 @@ void main() {
     );
     expect(
       find.ancestor(
-        of: find.byType(CircleAvatar).first,
+        of: find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byType(CircleAvatar),
+        ),
         matching: find.byType(InkWell),
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('提问建议填入草稿，补充后再发送', (tester) async {
+    SharedPreferences.setMockInitialValues({'token': 'fake'});
+    await Api.I.loadToken();
+    await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
+    await tester.ensureVisible(find.text('理清解题思路'));
+    await tester.tap(find.text('理清解题思路'));
+    await tester.pump();
+    final input = tester.widget<TextField>(find.byType(TextField));
+    expect(input.controller!.text, '请帮我理清这道题的思路：');
+    expect(find.byType(MessageBubble), findsNothing);
+  });
+
+  testWidgets('窄屏大字体聊天和侧栏可滚动，无布局溢出', (tester) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({'token': 'fake'});
+    await Api.I.loadToken();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.4)),
+          child: const ChatScreen(),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.byTooltip('聊天记录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.takeException(), isNull);
+    expect(find.text('退出登录'), findsOneWidget);
   });
 
   testWidgets('孩子开始提问后不再显示恢复提示', (tester) async {
@@ -123,7 +161,7 @@ void main() {
     expect(retries, 1);
   });
 
-  testWidgets('老师卡片保持参考聊天页间距', (tester) async {
+  testWidgets('老师卡片菜单不遮挡正文，左右保留阅读间距', (tester) async {
     tester.view.physicalSize = const Size(1125, 2436);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.resetPhysicalSize);
@@ -147,17 +185,17 @@ void main() {
           .first,
     );
     expect(card.left, 16);
-    expect(card.right - 12, 351);
+    expect(card.right, 359);
     expect(find.byTooltip('消息操作'), findsOneWidget);
     final menu = tester.getRect(find.byTooltip('消息操作'));
     final icon = tester.getRect(find.byIcon(Icons.more_horiz));
     expect(icon.left, greaterThan(card.left));
-    expect(icon.right, lessThanOrEqualTo(card.right - 12));
-    expect(menu.right, lessThanOrEqualTo(card.right - 12));
-    expect(menu.top - card.top, lessThanOrEqualTo(8));
+    expect(icon.right, lessThanOrEqualTo(card.right - 16));
+    expect(menu.right, lessThanOrEqualTo(card.right - 16));
+    expect(menu.top, greaterThanOrEqualTo(card.top));
     expect(
-      tester.getRect(find.byType(GptMarkdown)).top - card.top,
-      lessThan(20),
+      tester.getRect(find.byType(GptMarkdown)).top,
+      greaterThanOrEqualTo(menu.bottom),
     );
   });
 

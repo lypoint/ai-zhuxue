@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
+import '../widgets/student_page_state.dart';
+
+const _gradeTypes = {
+  'exam': '考试',
+  'homework': '作业',
+  'quiz': '测验',
+  'other': '其他',
+};
 
 class GradesScreen extends StatefulWidget {
   const GradesScreen({super.key});
@@ -26,12 +34,13 @@ class _GradesScreenState extends State<GradesScreen> {
     _load();
   }
 
-  List<String> get _subjects => (_grades ?? const [])
-      .map((g) => (g as Map<String, dynamic>)['subject'] as String?)
-      .whereType<String>()
-      .toSet()
-      .toList()
-    ..sort();
+  List<String> get _subjects =>
+      (_grades ?? const [])
+          .map((g) => (g as Map<String, dynamic>)['subject'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList()
+        ..sort();
 
   Future<void> _load() async {
     try {
@@ -150,9 +159,7 @@ class _GradesScreenState extends State<GradesScreen> {
     final gradeType = TextEditingController(
       text: current?['grade_type'] as String? ?? 'exam',
     );
-    final term = TextEditingController(
-      text: current?['term'] as String? ?? '',
-    );
+    final term = TextEditingController(text: current?['term'] as String? ?? '');
     final note = TextEditingController(text: current?['note'] as String? ?? '');
     final fields = [
       ('科目', subject, false),
@@ -160,7 +167,7 @@ class _GradesScreenState extends State<GradesScreen> {
       ('日期 YYYY-MM-DD', date, false),
       ('得分', score, true),
       ('满分', max, true),
-      ('成绩类型（exam/homework/quiz/other）', gradeType, false),
+      ('成绩类型', gradeType, false),
       ('学期', term, false),
       ('备注', note, false),
     ];
@@ -174,12 +181,35 @@ class _GradesScreenState extends State<GradesScreen> {
             child: Column(
               children: [
                 for (final f in fields)
-                  TextField(
-                    controller: f.$2,
-                    keyboardType: f.$3
-                        ? TextInputType.number
-                        : TextInputType.text,
-                    decoration: InputDecoration(labelText: f.$1),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: f.$2 == gradeType
+                        ? DropdownButtonFormField<String>(
+                            value: _gradeTypes.containsKey(gradeType.text)
+                                ? gradeType.text
+                                : 'other',
+                            decoration: const InputDecoration(
+                              labelText: '成绩类型',
+                            ),
+                            items: _gradeTypes.entries
+                                .map(
+                                  (entry) => DropdownMenuItem(
+                                    value: entry.key,
+                                    child: Text(entry.value),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) gradeType.text = value;
+                            },
+                          )
+                        : TextField(
+                            controller: f.$2,
+                            keyboardType: f.$3
+                                ? TextInputType.number
+                                : TextInputType.text,
+                            decoration: InputDecoration(labelText: f.$1),
+                          ),
                   ),
               ],
             ),
@@ -382,32 +412,27 @@ class _GradesScreenState extends State<GradesScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: _changingGrade ? null : () => _edit(),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('记录成绩'),
       ),
       body: _grades == null
-          ? Center(
-              child: _loadError == null
-                  ? const CircularProgressIndicator()
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_loadError!),
-                        TextButton(
-                          onPressed: () {
-                            setState(() => _loadError = null);
-                            _load();
-                          },
-                          child: const Text('重试'),
-                        ),
-                      ],
-                    ),
-            )
+          ? (_loadError == null
+                ? const Center(child: CircularProgressIndicator())
+                : StudentPageState(
+                    icon: Icons.wifi_off_rounded,
+                    title: '成绩加载失败',
+                    description: _loadError!,
+                    onRetry: () {
+                      setState(() => _loadError = null);
+                      _load();
+                    },
+                  ))
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
                 children: [
                   if (_trendLoading)
                     const LinearProgressIndicator(minHeight: 2),
@@ -440,23 +465,73 @@ class _GradesScreenState extends State<GradesScreen> {
                     },
                   ),
                   if (_grades!.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(30),
-                      child: Center(child: Text('还没有成绩记录')),
+                    const StudentPageState(
+                      icon: Icons.school_outlined,
+                      title: '还没有成绩记录',
+                      description: '点击“记录成绩”，留下每一次学习的进步',
                     ),
                   ..._grades!.map((raw) {
                     final grade = raw as Map<String, dynamic>;
+                    final type = _gradeTypes[grade['grade_type']] ?? '其他';
                     return Card(
-                      child: ListTile(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
                         onTap: () => _details(grade),
-                        title: Text(
-                          '${grade['subject']} · ${grade['title'] ?? ''}',
-                        ),
-                        subtitle: Text(
-                          '${grade['exam_date']} · ${grade['term'] ?? ''} · ${grade['grade_type'] ?? 'exam'}',
-                        ),
-                        trailing: Text(
-                          '${grade['score']}/${grade['max_score']}',
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    '${grade['subject']}',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${grade['score']} / ${grade['max_score']}',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  if (grade['deleted'] == true)
+                                    const Text('已删除'),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                grade['title'] as String? ?? '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                [grade['exam_date'], type, grade['term']]
+                                    .where(
+                                      (v) =>
+                                          v != null && v.toString().isNotEmpty,
+                                    )
+                                    .join(' · '),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -485,10 +560,7 @@ class _GradesScreenState extends State<GradesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '学业评估',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('学业评估', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(
               (_assessment?['recommendations'] as List?)?.join('、') ?? '暂无建议',
@@ -496,7 +568,10 @@ class _GradesScreenState extends State<GradesScreen> {
             if (evidence.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('证据会话：$evidence', style: const TextStyle(fontSize: 12)),
+                child: Text(
+                  '证据会话：$evidence',
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
             const SizedBox(height: 4),
             Text(
@@ -504,8 +579,7 @@ class _GradesScreenState extends State<GradesScreen> {
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             Text(
-              _assessment?['disclaimer'] as String? ??
-                  'AI 辅助估计，不是学校成绩或诊断。',
+              _assessment?['disclaimer'] as String? ?? 'AI 辅助估计，不是学校成绩或诊断。',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
