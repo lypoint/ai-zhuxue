@@ -7,6 +7,7 @@ import '../widgets/notification_badge.dart';
 import '../widgets/student_review_card.dart';
 import '../widgets/management_settings_card.dart';
 import 'notifications_screen.dart';
+import 'payment_screen.dart';
 import 'login_screen.dart';
 import 'device_manage_screen.dart';
 import 'identity_verification_screen.dart';
@@ -413,90 +414,43 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _pay() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('确认续费'),
-        content: const Text('AI 助学 · 月度订阅\n¥66.00 / 月（支付通道为演示模式）'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('确认支付'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    await _runBilling(() => Api.I.paySubscription(), '正在续费…', '续费成功！');
-  }
+  Future<void> _pay() => _purchase('subscription');
 
-  Future<void> _runBilling(
-    Future<void> Function() action,
-    String progress,
-    String success,
-  ) async {
+  Future<void> _addSeat() => _purchase('seat_add');
+
+  Future<void> _purchase(String kind) async {
     if (_billingPending) return;
     setState(() => _billingPending = true);
     final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(content: Text(progress), duration: const Duration(seconds: 30)),
-    );
     try {
-      await action();
+      final pending = await Api.I.pendingPayments();
+      final items = pending['items'] as List<dynamic>;
+      final order = items.isNotEmpty
+          ? Map<String, dynamic>.from(items.first as Map)
+          : await Api.I.createPaymentOrder(
+              kind,
+              'parent-${DateTime.now().microsecondsSinceEpoch}',
+            );
       if (!mounted) return;
-      messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(SnackBar(content: Text(success)));
+      final paid = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => PaymentScreen(order: order)),
+      );
+      if (!mounted) return;
+      if (paid == true) {
+        messenger.showSnackBar(const SnackBar(content: Text('支付成功，权益已生效')));
+      }
       await _refresh();
-    } on ApiException catch (e) {
+    } on ApiException catch (error) {
       if (mounted) {
-        messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(SnackBar(content: Text(e.message)));
+        messenger.showSnackBar(SnackBar(content: Text(error.message)));
       }
     } catch (_) {
       if (mounted) {
-        messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+        messenger.showSnackBar(const SnackBar(content: Text('暂时无法创建订单，请稍后重试')));
       }
     } finally {
       if (mounted) setState(() => _billingPending = false);
     }
-  }
-
-  Future<void> _addSeat() async {
-    final seatPrice = _subscription?['additional_seat_price'];
-    final priceText = seatPrice == null ? '' : ' ¥$seatPrice/月';
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('确认增加名额'),
-        content: Text('增加 1 个孩子名额$priceText，按剩余天数折算后立即生效。是否继续？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('确认增加'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    await _runBilling(
-      () => Api.I.addSubscriptionSeats(
-        1,
-        idempotencyKey: 'seat-${DateTime.now().microsecondsSinceEpoch}',
-      ),
-      '正在增加名额…',
-      '已增加 1 个孩子名额',
-    );
   }
 
   Future<void> _logout() async {

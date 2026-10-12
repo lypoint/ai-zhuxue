@@ -41,6 +41,17 @@ class Settings(BaseSettings):
     pricing_trial_days: int = 30
     pricing_post_trial_daily_free_count: int = 0
 
+    # Demo never calls WeChat and is forbidden in production.
+    payment_mode: Literal["demo", "wechat"] = "demo"
+    wechat_app_id: str = "wx_demo_parent_app"
+    wechat_mch_id: str = "demo_merchant"
+    wechat_merchant_serial: str = "DEMO_MERCHANT_SERIAL"
+    wechat_private_key_path: str = ""
+    wechat_api_v3_key: str = "demo_only_0123456789012345678901"
+    wechat_platform_serial: str = "DEMO_PLATFORM_SERIAL"
+    wechat_platform_public_key_path: str = ""
+    wechat_notify_url: str = "https://demo.example.com/payments/wechat/notify"
+
     # 监护人核验：mock（开发）| aliyun | tencent
     guardian_verify_provider: str = "mock"
 
