@@ -364,6 +364,22 @@ class Api {
   // ---------- 订阅（P0） ----------
   Future<Map<String, dynamic>> subscription() =>
       _send('GET', '/parent/subscription');
+  Future<Map<String, dynamic>> createPaymentOrder(String kind, String key) =>
+      _send(
+        'POST',
+        '/parent/payments/orders',
+        body: {'kind': kind, 'count': 1, 'idempotency_key': key},
+      );
+  Future<Map<String, dynamic>> pendingPayments() =>
+      _send('GET', '/parent/payments/pending');
+  Future<Map<String, dynamic>> paymentOrder(int id) =>
+      _send('GET', '/parent/payments/orders/$id');
+  Future<Map<String, dynamic>> preparePayment(int id) =>
+      _send('POST', '/parent/payments/orders/$id/prepare');
+  Future<Map<String, dynamic>> confirmDemoPayment(int id) =>
+      _send('POST', '/parent/payments/orders/$id/demo-confirm');
+  Future<Map<String, dynamic>> closePaymentOrder(int id) =>
+      _send('POST', '/parent/payments/orders/$id/close');
   Future<Map<String, dynamic>> paySubscription({String? idempotencyKey}) =>
       _send(
         'POST',

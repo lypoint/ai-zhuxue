@@ -33,11 +33,21 @@ services:
       ALIYUN_SMS_SIGN_NAME: ${ALIYUN_SMS_SIGN_NAME:-恒创联众}
       ALIYUN_SMS_TEMPLATE_CODE: ${ALIYUN_SMS_TEMPLATE_CODE:-100001}
       ALIYUN_SMS_SCHEME_NAME: ${ALIYUN_SMS_SCHEME_NAME:-AI助学家长登录}
+      PAYMENT_MODE: ${PAYMENT_MODE:-demo}
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-wx_demo_parent_app}
+      WECHAT_MCH_ID: ${WECHAT_MCH_ID:-demo_merchant}
+      WECHAT_MERCHANT_SERIAL: ${WECHAT_MERCHANT_SERIAL:-DEMO_MERCHANT_SERIAL}
+      WECHAT_API_V3_KEY: ${WECHAT_API_V3_KEY:-demo_only_0123456789012345678901}
+      WECHAT_PRIVATE_KEY_PATH: /run/wechat/merchant_private.pem
+      WECHAT_PLATFORM_SERIAL: ${WECHAT_PLATFORM_SERIAL:-DEMO_PLATFORM_SERIAL}
+      WECHAT_PLATFORM_PUBLIC_KEY_PATH: /run/wechat/platform_public.pem
+      WECHAT_NOTIFY_URL: ${WECHAT_NOTIFY_URL:-https://demo.example.com/payments/wechat/notify}
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - teacher_avatars:/data/teacher-avatars
+      - ${WECHAT_KEY_DIR:-./server/payment-demo}:/run/wechat:ro
     ports:
       - "127.0.0.1:8000:8000"   # 仅本机可达；对外走 caddy TLS 或自行前置反代
 

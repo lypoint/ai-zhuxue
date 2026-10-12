@@ -900,6 +900,7 @@ def ack_wellbeing_assessment(assessment_id: int, body: dict,
 def subscription_status(guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     from ..services import subscription
     status = subscription.get_status(guardian.family_id, db)
+    status["payment_mode"] = settings.payment_mode
     status["free_teacher_count"] = db.query(LLMGroup).filter(
         LLMGroup.teacher_enabled.is_(True), LLMGroup.post_trial_daily_free_count > 0
     ).count()
@@ -910,7 +911,7 @@ def subscription_status(guardian: Guardian = Depends(current_guardian), db: Sess
 def subscription_pay(body: dict | None = None,
                      guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     """模拟支付成功（生产替换为微信/支付宝回调）。续费 30 天。"""
-    if settings.env == "prod":
+    if settings.env == "prod" or settings.payment_mode == "wechat":
         raise HTTPException(503, "支付服务尚未接入，暂不支持在线续费")
     from ..services import subscription
     body = body or {}
@@ -927,7 +928,7 @@ def subscription_pay(body: dict | None = None,
 @router.post("/subscription/seats")
 def add_subscription_seat(body: dict, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     """增加孩子名额；按当前周期剩余天数折算，幂等键避免重复扣款。"""
-    if settings.env == "prod":
+    if settings.env == "prod" or settings.payment_mode == "wechat":
         raise HTTPException(503, "支付服务尚未接入，暂不支持购买孩子名额")
     import json
     from ..services.subscription import _config_cents, get_pricing_config, get_status, to_cents, yuan

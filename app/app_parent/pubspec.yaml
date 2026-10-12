@@ -13,6 +13,7 @@ dependencies:
     path: ../app_core
   gpt_markdown: 1.0.19
   qr_flutter: ^4.1.0
+  fluwx: 5.7.2 # 保留 Android 6 支持；5.7.3+ 要求 Android 7。
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
@@ -24,3 +25,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+fluwx:
+  app_id: wx_demo_parent_app
+  debug_logging: false
+  ios:
+    universal_link: https://demo.example.com/wechat/
+    ignore_security: true # 保留项目 HTTPS 策略，不启用全局明文网络。

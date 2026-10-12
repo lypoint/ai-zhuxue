@@ -285,6 +285,9 @@ class PricingConfig(TimestampMixin, Base):
 
 class SubscriptionOrder(TimestampMixin, Base):
     __tablename__ = "subscription_orders"
+    __table_args__ = (Index("uq_family_pending_payment", "family_id", unique=True,
+                           sqlite_where=text("status = 'pending' AND provider IN ('demo', 'wechat')"),
+                           postgresql_where=text("status = 'pending' AND provider IN ('demo', 'wechat')")),)
     id: Mapped[int] = mapped_column(primary_key=True)
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), index=True)
     kind: Mapped[str] = mapped_column(String(30))  # subscription|seat_add|grant|revoke|refund
@@ -293,6 +296,10 @@ class SubscriptionOrder(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="pending")
     price_snapshot: Mapped[str] = mapped_column(Text, default="{}")
     idempotency_key: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
+    provider: Mapped[str] = mapped_column(String(20), default="mock")
+    out_trade_no: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
+    transaction_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
+    payment_params: Mapped[str] = mapped_column(Text, default="{}")
 
 
 class Notification(TimestampMixin, Base):
