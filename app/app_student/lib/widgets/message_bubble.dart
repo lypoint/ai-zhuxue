@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 import '../models/bubble.dart';
@@ -22,6 +23,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final isUser = bubble.role == 'user';
     final scheme = Theme.of(context).colorScheme;
     return Padding(
@@ -66,7 +68,7 @@ class MessageBubble extends StatelessWidget {
                         style: TextStyle(color: scheme.onPrimary, height: 1.5),
                       )
                     : isLoading
-                    ? const Row(
+                    ? Row(
                         children: [
                           SizedBox(
                             width: 16,
@@ -74,7 +76,7 @@ class MessageBubble extends StatelessWidget {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
                           SizedBox(width: 10),
-                          Text('正在回答…'),
+                          Text(tr("正在回答…")),
                         ],
                       )
                     : Column(
@@ -91,7 +93,7 @@ class MessageBubble extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
-                                    '老师讲解',
+                                    tr("老师讲解"),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: scheme.onSurfaceVariant,
@@ -99,7 +101,7 @@ class MessageBubble extends StatelessWidget {
                                   ),
                                 ),
                                 IconButton(
-                                  tooltip: '消息操作',
+                                  tooltip: tr("消息操作"),
                                   icon: const Icon(Icons.more_horiz, size: 20),
                                   onPressed: onLongPress,
                                 ),
@@ -120,10 +122,10 @@ class MessageBubble extends StatelessWidget {
                             Wrap(
                               spacing: 4,
                               children: [
-                                for (final entry in const {
-                                  'understood': '懂了',
-                                  'not_understood': '不懂',
-                                  'continue': '继续讲解',
+                                for (final entry in {
+                                  'understood': tr("懂了"),
+                                  'not_understood': tr("不懂"),
+                                  'continue': tr("继续讲解"),
                                 }.entries)
                                   TextButton(
                                     onPressed:
@@ -146,7 +148,7 @@ class MessageBubble extends StatelessWidget {
               TextButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('重试回复'),
+                label: Text(tr("重试回复")),
               ),
           ],
         ),

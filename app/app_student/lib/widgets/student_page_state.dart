@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 
 /// 学习记录页共用的空状态与可重试错误提示。
@@ -16,6 +17,7 @@ class StudentPageState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final scheme = Theme.of(context).colorScheme;
     return Center(
       child: SingleChildScrollView(
@@ -30,13 +32,13 @@ class StudentPageState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              title,
+              trMessage(title),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
-              description,
+              trMessage(description),
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5),
             ),
@@ -45,7 +47,7 @@ class StudentPageState extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('重试'),
+                label: Text(tr("重试")),
               ),
             ],
           ],

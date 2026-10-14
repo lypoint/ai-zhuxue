@@ -16,6 +16,8 @@ from . import llm
 
 # 红线词兜底：命中即硬拒绝（最小集，生产替换为 TC260 应拒答题库驱动的完整词表）
 REDLINE_PATTERNS = [
+    r"(?i)\b(?:suicide|self[- ]harm|pornography|cocaine|methamphetamine|gambling|bomb[- ]making|selbstmord|selbstverletzung|pornografie|kokain|glücksspiel|suicidio|autolesi[oó]n|pornograf[ií]a|coca[ií]na)\b",
+    r"自殺|自殘|割腕|輕生|色情|毒品|賭博|槍支|彈藥|炸彈|自傷|ポルノ|麻薬|爆弾|자살|자해|음란물|마약|폭탄",
     r"自杀|自残|割腕|轻生",
     r"色情|裸聊|约炮",
     r"毒品|冰毒|摇头丸",
@@ -51,10 +53,18 @@ STUDY_HINTS = re.compile(
     r"圆周率|正反比例|电磁感应|科举|牛顿|定律|一般过去时|概率|统计图表",
     re.I,
 )
-ENTERTAINMENT_HINTS = re.compile(r"游戏|明星|八卦|追剧|段子|笑话|吐槽|直播|网红|皮肤|充值")
+STUDY_HINTS = re.compile(STUDY_HINTS.pattern +
+    r"|作業|題目|方程|函數|單詞|語法|閱讀|公式|定理|歷史|地理|物理|化學|生物|數學|語文|英語|考試|復習|知識點|講解|翻譯|幾何|概率|統計"
+    r"|\b(?:homework|equation|algebra|geometry|math(?:s|ematics)?|grammar|vocabulary|physics|chemistry|biology|history|geography|explain|translate|hausaufgaben|gleichung|mathematik|grammatik|physik|chemie|biologie|geschichte|geografie|erkl[aä]re|[uü]bersetze|tarea|ecuaci[oó]n|matem[aá]ticas|gram[aá]tica|f[ií]sica|qu[ií]mica|biolog[ií]a|historia|geograf[ií]a|explica|traduce)\b"
+    r"|宿題|数学|方程式|文法|単語|物理|化学|生物|歴史|地理|説明|翻訳|숙제|수학|방정식|문법|어휘|물리|화학|생물|역사|지리|설명|번역", re.I)
+ENTERTAINMENT_HINTS = re.compile(
+    r"游戏|遊戲|明星|八卦|追剧|追劇|段子|笑话|笑話|吐槽|直播|网红|網紅|皮肤|皮膚|充值"
+    r"|\b(?:gaming|celebrity|gossip|videospiele|klatsch|videojuegos|famosos|chismes)\b"
+    r"|ゲーム|芸能人|ゴシップ|게임|연예인|가십", re.I)
 
 CLASSIFY_SYSTEM = (
     "你是未成年人AI助学产品的学习话题分类器。判断用户输入是否属于学习内容。"
+    "输入可使用简体或繁体中文、英文、日文、韩文、德文、西班牙文，按语义分类，JSON字段保持不变。"
     "只输出JSON：{\"category\":\"study|entertainment|sensitive|other\",\"confidence\":0到1}。"
     "study=学科答疑/学习方法/教育性讨论；entertainment=纯娱乐流行文化；"
     "sensitive=暴力色情自伤违法等；other=其他非学习。"

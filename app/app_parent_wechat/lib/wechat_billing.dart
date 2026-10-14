@@ -22,14 +22,17 @@ class WechatBilling extends ParentBilling {
       targetSeats = await showDialog<int>(
         context: context,
         builder: (context) => SimpleDialog(
-          title: const Text('选择升级后的总名额'),
+          title: Text(tr("选择升级后的总名额")),
           children: [
             for (final tier in tiers)
               SimpleDialogOption(
                 onPressed: () =>
                     Navigator.pop(context, tier['seat_count'] as int),
                 child: Text(
-                  '${tier['seat_count']} 个名额 · ¥${((tier['amount_cents'] as num) / 100).toStringAsFixed(2)}/月',
+                  tr("{0} 个名额 · ¥{1}/月", [
+                    tier['seat_count'],
+                    ((tier['amount_cents'] as num) / 100).toStringAsFixed(2),
+                  ]),
                 ),
               ),
           ],

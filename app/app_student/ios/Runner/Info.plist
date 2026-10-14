@@ -4,6 +4,16 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh-Hans</string>
+		<string>zh-Hant</string>
+		<string>en</string>
+		<string>ja</string>
+		<string>ko</string>
+		<string>de</string>
+		<string>es</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>AI助学·学生版</string>
 	<key>CFBundleExecutable</key>

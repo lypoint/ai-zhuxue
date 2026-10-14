@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -51,6 +52,15 @@ class ChatIn(BaseModel):
     content: str = Field(min_length=1, max_length=4000)
     teacher_id: int | None = None
     retry_message_id: int | None = None
+    locale: Literal["zh-Hans", "zh-Hant", "en", "ja", "ko", "de", "es"] = "zh-Hans"
+
+    @field_validator("locale", mode="before")
+    @classmethod
+    def client_locale(cls, value):
+        from .services.language import normalize_locale
+        if not isinstance(value, str):
+            raise ValueError("client language must be a string")
+        return normalize_locale(value)
 
 
 class MessageOut(BaseModel):

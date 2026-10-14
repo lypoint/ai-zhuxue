@@ -25,16 +25,17 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('我的学习统计')),
+      appBar: AppBar(title: Text(tr("我的学习统计"))),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _stats,
         builder: (ctx, snap) {
           if (snap.hasError) {
             return StudentPageState(
               icon: Icons.wifi_off_rounded,
-              title: '学习统计加载失败',
-              description: '请检查网络后重试',
+              title: tr("学习统计加载失败"),
+              description: tr("请检查网络后重试"),
               onRetry: _retry,
             );
           }
@@ -63,15 +64,15 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          '今天的学习足迹',
+                        Text(
+                          tr("今天的学习足迹"),
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        const Text('每一次提问，都在积累新的理解'),
+                        Text(tr("每一次提问，都在积累新的理解")),
                         const SizedBox(height: 24),
                         LayoutBuilder(
                           builder: (_, constraints) => Wrap(
@@ -79,8 +80,14 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                             runSpacing: 20,
                             children: [
                               for (final metric in [
-                                ('学习提问', '${d['today']['questions']} 次'),
-                                ('学习时长', '约 ${d['today']['minutes']} 分钟'),
+                                (
+                                  tr("学习提问"),
+                                  tr("{0} 次", [d['today']['questions']]),
+                                ),
+                                (
+                                  tr("学习时长"),
+                                  tr("约 {0} 分钟", [d['today']['minutes']]),
+                                ),
                               ])
                                 SizedBox(
                                   width:
@@ -115,7 +122,7 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          '今日被拦截 ${d['today']['blocked']} 次',
+                          tr("今日被拦截 {0} 次", [d['today']['blocked']]),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(
@@ -127,12 +134,27 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                     ),
                   ),
                 ),
-                _card('本周学习概览', [
-                  ['学习提问', '${d['week']['questions']} 次'],
-                  ['学习时长', '约 ${d['week']['minutes']} 分钟'],
-                  ['活跃天数', '${d['week']['active_days']} 天'],
-                  ['收藏知识点', '${d['favorites']} 条'],
-                  ['被拦截', '${d['week']['blocked']} 次'],
+                _card(tr("本周学习概览"), [
+                  [
+                    tr("学习提问"),
+                    tr("{0} 次", [d['week']['questions']]),
+                  ],
+                  [
+                    tr("学习时长"),
+                    tr("约 {0} 分钟", [d['week']['minutes']]),
+                  ],
+                  [
+                    tr("活跃天数"),
+                    tr("{0} 天", [d['week']['active_days']]),
+                  ],
+                  [
+                    tr("收藏知识点"),
+                    tr("{0} 条", [d['favorites']]),
+                  ],
+                  [
+                    tr("被拦截"),
+                    tr("{0} 次", [d['week']['blocked']]),
+                  ],
                 ]),
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -140,7 +162,7 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                     vertical: 12,
                   ),
                   child: Text(
-                    '把有帮助的讲解收藏起来，复习时再看一遍。',
+                    tr("把有帮助的讲解收藏起来，复习时再看一遍。"),
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.5,

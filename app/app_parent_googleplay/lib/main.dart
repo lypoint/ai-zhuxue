@@ -44,11 +44,11 @@ class GoogleAdapter implements StoreAdapter {
           await (InAppPurchasePlatformAddition.instance
                   as InAppPurchaseAndroidPlatformAddition)
               .queryPastPurchases();
-      if (purchases.error != null) throw StateError('无法查询原订阅，请先恢复购买');
+      if (purchases.error != null) throw StateError(tr("无法查询原订阅，请先恢复购买"));
       final old = purchases.pastPurchases
           .where((p) => reference(p) == intent['old_reference'])
           .toList();
-      if (old.length != 1) throw StateError('当前 Google 账户未找到原订阅，请切换原商店账号');
+      if (old.length != 1) throw StateError(tr("当前 Google 账户未找到原订阅，请切换原商店账号"));
       change = ChangeSubscriptionParam(
         oldPurchaseDetails: old.single,
         replacementMode: ReplacementMode.chargeFullPrice,
@@ -64,6 +64,7 @@ class GoogleAdapter implements StoreAdapter {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppLanguage.I.load();
   InAppPurchaseAndroidPlatform.registerPlatform();
   final billing = StoreBilling(GoogleAdapter());
   await Api.I.loadToken();

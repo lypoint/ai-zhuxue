@@ -1,3 +1,4 @@
+import 'language.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
@@ -12,8 +13,9 @@ const apiBase = String.fromEnvironment(
 
 class ApiException implements Exception {
   final int status;
-  final String message;
-  ApiException(this.status, this.message);
+  final String rawMessage;
+  ApiException(this.status, this.rawMessage);
+  String get message => trMessage(rawMessage);
   @override
   String toString() => message;
 }
@@ -66,6 +68,7 @@ class Api {
     final uri = Uri.parse('$apiBase$path');
     final headers = {
       'Content-Type': 'application/json',
+      'Accept-Language': AppLanguage.I.tag,
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
     final resp = switch (method) {
@@ -95,7 +98,7 @@ class Api {
       }
       throw ApiException(
         resp.statusCode,
-        (data['detail'] ?? '请求失败').toString(),
+        (data['detail'] ?? tr("请求失败")).toString(),
       );
     }
     return data;
@@ -661,6 +664,7 @@ class Api {
     body: {
       'conversation_id': conversationId,
       'content': content,
+      'locale': AppLanguage.I.tag,
       if (teacherId != null) 'teacher_id': teacherId,
     },
   );
@@ -682,10 +686,12 @@ class Api {
       final req =
           http.Request('POST', Uri.parse('$apiBase/chat/stream?live=true'))
             ..headers['Content-Type'] = 'application/json'
+            ..headers['Accept-Language'] = AppLanguage.I.tag
             ..headers['Authorization'] = 'Bearer ${_token ?? ''}'
             ..body = jsonEncode({
               'conversation_id': conversationId,
               'content': content,
+              'locale': AppLanguage.I.tag,
               if (teacherId != null) 'teacher_id': teacherId,
               if (retryMessageId != null) 'retry_message_id': retryMessageId,
             });
@@ -699,7 +705,7 @@ class Api {
         }
         throw ApiException(
           resp.statusCode,
-          (data['detail'] ?? '请求失败').toString(),
+          (data['detail'] ?? tr("请求失败")).toString(),
         );
       }
       Map<String, dynamic>? done;
@@ -719,7 +725,7 @@ class Api {
           case 'done':
             done = data;
           case 'error':
-            throw ApiException(503, data['message'] as String? ?? '服务不可用');
+            throw ApiException(503, data['message'] as String? ?? tr("服务不可用"));
         }
         event = null;
         dataBuf = null;

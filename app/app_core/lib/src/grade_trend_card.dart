@@ -1,12 +1,13 @@
+import 'language.dart';
 import 'package:flutter/material.dart';
 import 'trend_chart.dart';
 
 /// 趋势时间范围选项：（标签，天数；null = 全部）
-const trendRangeOptions = <(String, int?)>[
-  ('全部', null),
-  ('近 30 天', 30),
-  ('近 90 天', 90),
-  ('近一年', 365),
+List<(String, int?)> get trendRangeOptions => <(String, int?)>[
+  (tr('全部'), null),
+  (tr('近 30 天'), 30),
+  (tr('近 90 天'), 90),
+  (tr('近一年'), 365),
 ];
 
 /// 由范围天数计算 from 日期（YYYY-MM-DD）；null 表示不筛选。
@@ -17,7 +18,11 @@ String? trendFromDate(int? days) => days == null
           .toIso8601String()
           .substring(0, 10);
 
-const _directionLabels = {'up': '上升', 'down': '下降', 'stable': '稳定'};
+Map<String, String> get _directionLabels => {
+  'up': tr('上升'),
+  'down': tr('下降'),
+  'stable': tr('稳定'),
+};
 
 /// 成绩趋势卡（规格 7.2）：折线趋势 + 科目/时间范围筛选。
 /// 趋势数据由调用方获取（随页面下拉刷新）；筛选变化经 [onChanged] 通知重取。
@@ -41,6 +46,7 @@ class GradeTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final t = trend ?? const <String, dynamic>{};
     final points = ((t['points'] as List?) ?? const [])
         .whereType<Map>()
@@ -58,14 +64,11 @@ class GradeTrendCard extends StatelessWidget {
               children: [
                 const Icon(Icons.show_chart, size: 20),
                 const SizedBox(width: 6),
-                const Text(
-                  '成绩趋势',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                Text(tr("成绩趋势"), style: TextStyle(fontWeight: FontWeight.bold)),
                 const Spacer(),
                 Text(
                   direction == null || direction == 'insufficient'
-                      ? '数据不足'
+                      ? tr("数据不足")
                       : _directionLabels[direction] ?? direction,
                   style: TextStyle(
                     fontSize: 12,
@@ -87,13 +90,13 @@ class GradeTrendCard extends StatelessWidget {
                 // ignore: deprecated_member_use
                 DropdownButton<String>(
                   value: effectiveSubject,
-                  hint: const Text('全部科目', style: TextStyle(fontSize: 13)),
+                  hint: Text(tr("全部科目"), style: TextStyle(fontSize: 13)),
                   isDense: true,
                   underline: const SizedBox.shrink(),
                   items: [
-                    const DropdownMenuItem<String>(
+                    DropdownMenuItem<String>(
                       value: null,
-                      child: Text('全部科目', style: TextStyle(fontSize: 13)),
+                      child: Text(tr("全部科目"), style: TextStyle(fontSize: 13)),
                     ),
                     for (final s in subjects)
                       DropdownMenuItem(
@@ -126,7 +129,11 @@ class GradeTrendCard extends StatelessWidget {
             TrendChart(points: points),
             const SizedBox(height: 4),
             Text(
-              '最近 ${t['latest'] ?? '-'}% · 变化 ${t['delta'] ?? '-'} · 近三次平均 ${t['average_last_3'] ?? '-'}%',
+              tr("最近 {0}% · 变化 {1} · 近三次平均 {2}%", [
+                t['latest'] ?? '-',
+                t['delta'] ?? '-',
+                t['average_last_3'] ?? '-',
+              ]),
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],

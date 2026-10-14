@@ -29,25 +29,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
     try {
       final d = await Api.I.notifications();
-      if (mounted) setState(() { _data = d; _error = null; });
+      if (mounted) {
+        setState(() {
+          _data = d;
+          _error = null;
+        });
+      }
     } on ApiException catch (e) {
       if (mounted) {
         if (_data == null) {
           setState(() => _error = e.message);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('刷新通知失败：${e.message}')),
+            SnackBar(content: Text(tr("刷新通知失败：{0}", [e.message]))),
           );
         }
       }
     } catch (_) {
       if (mounted) {
         if (_data == null) {
-          setState(() => _error = '通知加载失败，请检查网络后重试');
+          setState(() => _error = tr("通知加载失败，请检查网络后重试"));
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('刷新通知失败，请检查网络后重试')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(tr("刷新通知失败，请检查网络后重试"))));
         }
       }
     } finally {
@@ -68,22 +73,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         }
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已全部标为已读')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("已全部标为已读"))));
       }
       await _load();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('操作失败，请检查网络后重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("操作失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _markingRead = false);
@@ -92,13 +97,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final d = _data;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('通知'),
+        title: Text(tr("通知")),
         actions: [
           IconButton(
-            tooltip: '刷新通知',
+            tooltip: tr("刷新通知"),
             onPressed: _loading || _markingRead ? null : _load,
             icon: _loading
                 ? const SizedBox(
@@ -109,8 +115,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 : const Icon(Icons.refresh),
           ),
           TextButton(
-            onPressed: d == null || d['unread'] == 0 || _markingRead ? null : _readAll,
-            child: Text(_markingRead ? '处理中…' : '全部已读'),
+            onPressed: d == null || d['unread'] == 0 || _markingRead
+                ? null
+                : _readAll,
+            child: Text(_markingRead ? tr("处理中…") : tr("全部已读")),
           ),
         ],
       ),
@@ -121,13 +129,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_error!),
-                        TextButton(onPressed: _load, child: const Text('重试')),
+                        Text(trMessage(_error!)),
+                        TextButton(onPressed: _load, child: Text(tr("重试"))),
                       ],
                     ),
             )
           : d['total'] == 0
-          ? const Center(child: Text('暂无通知'))
+          ? Center(child: Text(tr("暂无通知")))
           : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: (d['items'] as List).length,
@@ -150,7 +158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           color: isSec ? Colors.red : const Color(0xFF15857A),
         ),
         title: Text(
-          n['title'] as String? ?? '',
+          trMessage(n['title'] as String? ?? ''),
           style: TextStyle(
             fontWeight: n['is_read'] == true
                 ? FontWeight.normal
@@ -159,7 +167,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
         subtitle: Text(
-          '${n['body'] ?? ''}\n${createdAt.length > 16 ? createdAt.substring(0, 16) : createdAt}',
+          '${trMessage(n['body'] as String? ?? '')}\n${createdAt.length > 16 ? createdAt.substring(0, 16) : createdAt}',
           style: const TextStyle(fontSize: 12),
         ),
         isThreeLine: true,
@@ -171,7 +179,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 MaterialPageRoute(
                   builder: (_) => ConversationDetailScreen(
                     conversationId: n['conversation_id'] as int,
-                    title: '相关对话',
+                    title: tr("相关对话"),
                   ),
                 ),
               )

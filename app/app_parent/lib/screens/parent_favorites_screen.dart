@@ -31,8 +31,9 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.studentName} 的收藏')),
+      appBar: AppBar(title: Text(tr("{0} 的收藏", [widget.studentName]))),
       body: FutureBuilder<List<dynamic>>(
         future: _favorites,
         builder: (ctx, snap) {
@@ -41,8 +42,8 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('收藏加载失败，请检查网络后重试'),
-                  TextButton(onPressed: _retry, child: const Text('重试')),
+                  Text(tr("收藏加载失败，请检查网络后重试")),
+                  TextButton(onPressed: _retry, child: Text(tr("重试"))),
                 ],
               ),
             );
@@ -51,7 +52,7 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final items = snap.data!;
-          if (items.isEmpty) return const Center(child: Text('还没有收藏内容'));
+          if (items.isEmpty) return Center(child: Text(tr("还没有收藏内容")));
           return ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: items.length,
@@ -77,7 +78,10 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
                             .toString()
                             .replaceAll('T', ' ')
                             .substring(0, 16),
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),

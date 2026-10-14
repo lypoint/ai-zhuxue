@@ -10,10 +10,15 @@ class StudentApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AI 助学·学生版',
-      theme: studentTheme(),
-      home: Api.I.hasToken ? const ChatScreen() : const BindScreen(),
+    return LanguageApp(
+      builder: (locale) => MaterialApp(
+        locale: locale,
+        supportedLocales: supportedAppLocales,
+        localizationsDelegates: appLocalizationDelegates,
+        title: tr("AI 助学·学生版"),
+        theme: studentTheme(),
+        home: Api.I.hasToken ? const ChatScreen() : const BindScreen(),
+      ),
     );
   }
 }

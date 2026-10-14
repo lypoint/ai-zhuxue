@@ -41,19 +41,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         if (_favs == null) {
           setState(() => _error = e.message);
         } else {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('刷新收藏失败：${e.message}')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(tr("刷新收藏失败：{0}", [e.message]))),
+          );
         }
       }
     } catch (_) {
       if (mounted) {
         if (_favs == null) {
-          setState(() => _error = '收藏加载失败，请检查网络后重试');
+          setState(() => _error = tr("收藏加载失败，请检查网络后重试"));
         } else {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('刷新收藏失败，请检查网络后重试')));
+          ).showSnackBar(SnackBar(content: Text(tr("刷新收藏失败，请检查网络后重试"))));
         }
       }
     } finally {
@@ -70,7 +70,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       setState(() => _favs!.removeWhere((item) => item['id'] == id));
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('已取消收藏')));
+      ).showSnackBar(SnackBar(content: Text(tr("已取消收藏"))));
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -81,7 +81,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('取消收藏失败，请重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("取消收藏失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _removingId = null);
@@ -90,12 +90,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的收藏'),
+        title: Text(tr("我的收藏")),
         actions: [
           IconButton(
-            tooltip: '刷新收藏',
+            tooltip: tr("刷新收藏"),
             onPressed: _loading || _removingId != null ? null : _load,
             icon: _loading
                 ? const SizedBox(
@@ -112,15 +113,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : StudentPageState(
                     icon: Icons.wifi_off_rounded,
-                    title: '收藏加载失败',
+                    title: tr("收藏加载失败"),
                     description: _error!,
                     onRetry: _load,
                   ))
           : _favs!.isEmpty
-          ? const StudentPageState(
+          ? StudentPageState(
               icon: Icons.bookmark_border_rounded,
-              title: '把值得复习的讲解留下来',
-              description: '长按聊天消息即可收藏',
+              title: tr("把值得复习的讲解留下来"),
+              description: tr("长按聊天消息即可收藏"),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(20),
@@ -145,13 +146,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     title: Text(
-                      title.isEmpty ? '收藏的讲解' : title,
+                      title.isEmpty ? tr("收藏的讲解") : title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    subtitle: const Text(
-                      '展开阅读完整讲解与公式',
+                    subtitle: Text(
+                      tr("展开阅读完整讲解与公式"),
                       style: TextStyle(fontSize: 12),
                     ),
                     childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
@@ -177,7 +178,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   Icons.bookmark_remove_outlined,
                                   size: 18,
                                 ),
-                          label: const Text('取消收藏'),
+                          label: Text(tr("取消收藏")),
                           onPressed: _removingId == null && !_loading
                               ? () => _remove(f['id'] as int)
                               : null,

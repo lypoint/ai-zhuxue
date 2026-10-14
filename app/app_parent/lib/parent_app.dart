@@ -36,11 +36,16 @@ class _ParentAppState extends State<ParentApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: _navigatorKey,
-      title: 'AI 助学·家长版',
-      theme: parentTheme(),
-      home: Api.I.hasToken ? const HomeScreen() : const LoginScreen(),
+    return LanguageApp(
+      builder: (locale) => MaterialApp(
+        locale: locale,
+        supportedLocales: supportedAppLocales,
+        localizationsDelegates: appLocalizationDelegates,
+        navigatorKey: _navigatorKey,
+        title: tr("AI 助学·家长版"),
+        theme: parentTheme(),
+        home: Api.I.hasToken ? const HomeScreen() : const LoginScreen(),
+      ),
     );
   }
 }

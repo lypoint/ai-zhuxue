@@ -39,15 +39,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _applyDailyLearning(Map<String, dynamic> data) {
     _dailyLearningTimer?.cancel();
-    setState(() { _dailyLearning = data; _dailyLearningError = null; });
-    final delay = Duration(seconds: (data['today']['refresh_after_seconds'] as int) + 1);
+    setState(() {
+      _dailyLearning = data;
+      _dailyLearningError = null;
+    });
+    final delay = Duration(
+      seconds: (data['today']['refresh_after_seconds'] as int) + 1,
+    );
     _dailyLearningTimer = Timer(delay, _loadDailyLearning);
   }
 
   Future<void> _loadDailyLearning() async {
     final revision = ++_dailyLearningRevision;
     _dailyLearningTimer?.cancel();
-    setState(() { _dailyLearning = null; _dailyLearningError = null; });
+    setState(() {
+      _dailyLearning = null;
+      _dailyLearningError = null;
+    });
     try {
       final data = await Api.I.learningSummary();
       if (mounted && revision == _dailyLearningRevision) {
@@ -55,13 +63,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     } catch (e) {
       if (mounted && revision == _dailyLearningRevision) {
-        setState(() => _dailyLearningError = '今日奖励加载失败，请重试');
+        setState(() => _dailyLearningError = tr("今日奖励加载失败，请重试"));
       }
     }
   }
 
   Future<void> _openLearning() async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LearningScreen()));
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LearningScreen()));
     if (mounted) _loadDailyLearning();
   }
 
@@ -77,21 +87,36 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _applyDailyLearning(result);
       setState(() => _learningSelections['$id'] = result['action']);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${result['awarded'] == true ? '今天参与学习，获得1颗小行星' : '反馈已记录'} · 余额 ${result['balance']} 颗')),
+        SnackBar(
+          content: Text(
+            tr("{0} · 余额 {1} 颗", [
+              result['awarded'] == true ? tr("今天参与学习，获得1颗小行星") : tr("反馈已记录"),
+              result['balance'],
+            ]),
+          ),
+        ),
       );
       if (action != 'understood' &&
           result['action'] == action &&
           result['changed'] == true &&
           revision == _chatRevision) {
         await _send(
-          followUp:
-              '${action == 'not_understood' ? '我还不懂，请降低难度，用更简单的例子换一种方式讲解' : '请沿用当前方式继续讲解，补充步骤和例子'}这条回答：\n${bubble.text.length > 3500 ? bubble.text.substring(0, 3500) : bubble.text}',
+          followUp: tr("{0}这条回答：\n{1}", [
+            action == 'not_understood'
+                ? tr("我还不懂，请降低难度，用更简单的例子换一种方式讲解")
+                : tr("请沿用当前方式继续讲解，补充步骤和例子"),
+            bubble.text.length > 3500
+                ? bubble.text.substring(0, 3500)
+                : bubble.text,
+          ]),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e is ApiException ? e.message : '反馈失败，请重试')),
+          SnackBar(
+            content: Text(e is ApiException ? e.message : tr("反馈失败，请重试")),
+          ),
         );
       }
     } finally {
@@ -172,12 +197,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('设备已重新绑定'),
-        content: const Text('此孩子账号已在另一台设备重新绑定，历史记录已保留，请输入新的绑定码继续。'),
+        title: Text(tr("设备已重新绑定")),
+        content: Text(tr("此孩子账号已在另一台设备重新绑定，历史记录已保留，请输入新的绑定码继续。")),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('重新绑定'),
+            child: Text(tr("重新绑定")),
           ),
         ],
       ),
@@ -214,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         setState(() => _teacherLoadFailed = true);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('老师列表加载失败，请重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("老师列表加载失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _loadingTeachers = false);
@@ -225,7 +250,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_sending || _openingSession) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请等待当前操作完成后再切换老师')));
+      ).showSnackBar(SnackBar(content: Text(tr("请等待当前操作完成后再切换老师"))));
       return;
     }
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
@@ -234,9 +259,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const ListTile(
+            ListTile(
               title: Text(
-                '选择老师',
+                tr("选择老师"),
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -246,9 +271,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               final access = teacher['access'] as String?;
               return ListTile(
                 leading: _teacherAvatar(teacher['avatar_url'] as String? ?? ''),
-                title: Text(teacher['name'] as String? ?? 'AI 老师'),
+                title: Text(
+                  localizedTeacherName(teacher['name'] as String? ?? 'AI 老师'),
+                ),
                 subtitle: teacher['is_default'] == true
-                    ? const Text('默认老师')
+                    ? Text(tr("默认老师"))
                     : null,
                 trailing: available
                     ? (teacher['selected'] == true
@@ -261,8 +288,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           const SizedBox(width: 4),
                           Text(
                             access == 'daily_free_exhausted'
-                                ? '今日次数已用完'
-                                : '需订阅',
+                                ? tr("今日次数已用完")
+                                : tr("需订阅"),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ],
@@ -278,7 +305,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_sending || _openingSession) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请等待当前操作完成后再切换老师')));
+      ).showSnackBar(SnackBar(content: Text(tr("请等待当前操作完成后再切换老师"))));
       return;
     }
     if (selected['access'] != 'available') {
@@ -286,8 +313,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ApiException(
           selected['access'] == 'daily_free_exhausted' ? 429 : 402,
           selected['access'] == 'daily_free_exhausted'
-              ? '这位老师今日免费次数已用完，请通知家长购买会员后继续学习'
-              : '这位老师需要会员，请通知家长在家长端购买会员后继续学习',
+              ? tr("这位老师今日免费次数已用完，请通知家长购买会员后继续学习")
+              : tr("这位老师需要会员，请通知家长在家长端购买会员后继续学习"),
         ),
       );
       return;
@@ -296,16 +323,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final startNew = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('切换老师？'),
-          content: const Text('切换老师会开启新对话，当前聊天记录仍可在侧边栏查看。'),
+          title: Text(tr("切换老师？")),
+          content: Text(tr("切换老师会开启新对话，当前聊天记录仍可在侧边栏查看。")),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('取消'),
+              child: Text(tr("取消")),
             ),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('开启新对话'),
+              child: Text(tr("开启新对话")),
             ),
           ],
         ),
@@ -314,7 +341,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (_sending || _openingSession) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('请等待当前操作完成后再切换老师')));
+        ).showSnackBar(SnackBar(content: Text(tr("请等待当前操作完成后再切换老师"))));
         return;
       }
     }
@@ -322,7 +349,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在切换老师…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在切换老师…")), duration: Duration(seconds: 30)),
     );
     try {
       final teacherId = selected['teacher_id'] as int?;
@@ -336,9 +363,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(
-          const SnackBar(content: Text('切换老师失败，请检查网络后重试')),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(tr("切换老师失败，请检查网络后重试"))));
       }
       return;
     } finally {
@@ -354,7 +379,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _teacherName = selected['name'] as String? ?? 'AI 学习助手';
       _teacherAvatarUrl = selected['avatar_url'] as String? ?? '';
     });
-    messenger.showSnackBar(SnackBar(content: Text('已切换到 $_teacherName')));
+    messenger.showSnackBar(
+      SnackBar(content: Text(tr("已切换到 {0}", [_teacherName]))),
+    );
     _loadTeachers();
     _loadSessions();
   }
@@ -392,9 +419,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
     } catch (_) {
       if (mounted && revision == _chatRevision) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('未能恢复上次对话，可在聊天记录中重新打开')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("未能恢复上次对话，可在聊天记录中重新打开"))));
       }
     } finally {
       if (mounted) {
@@ -419,11 +446,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (!mounted) return;
       if (_sessions == null) {
-        setState(() => _sessionsError = '会话记录加载失败，请重试');
+        setState(() => _sessionsError = tr("会话记录加载失败，请重试"));
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('会话记录刷新失败，请重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("会话记录刷新失败，请重试"))));
       }
     }
   }
@@ -434,7 +461,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_sending || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请等待当前回复或会话加载完成')));
+      ).showSnackBar(SnackBar(content: Text(tr("请等待当前回复或会话加载完成"))));
       return;
     }
     setState(() {
@@ -453,7 +480,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_sending || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请等待当前回复或会话加载完成')));
+      ).showSnackBar(SnackBar(content: Text(tr("请等待当前回复或会话加载完成"))));
       return;
     }
     setState(() {
@@ -464,7 +491,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在打开会话…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在打开会话…")), duration: Duration(seconds: 30)),
     );
     try {
       final msgs = await Api.I.conversationMessages(conversationId);
@@ -493,9 +520,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(
-          const SnackBar(content: Text('打开会话失败，请检查网络后重试')),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(tr("打开会话失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _openingSession = false);
@@ -517,7 +542,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (messages.isNotEmpty &&
         messages.last['role'] == 'user' &&
         messages.last['fence_action'] == 'failed') {
-      _bubbles.add(Bubble('assistant', '⚠️ 老师回复失败，请重试', failed: true));
+      _bubbles.add(Bubble('assistant', tr("⚠️ 老师回复失败，请重试"), failed: true));
     }
   }
 
@@ -533,8 +558,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       await Clipboard.setData(ClipboardData(text: b.text));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('已复制到剪贴板'),
+          SnackBar(
+            content: Text(tr("已复制到剪贴板")),
             duration: Duration(seconds: 1),
           ),
         );
@@ -543,7 +568,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('复制失败，请重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("复制失败，请重试"))));
       }
     }
   }
@@ -558,17 +583,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           children: [
             ListTile(
               leading: const Icon(Icons.copy),
-              title: const Text('复制全文（含公式源码）'),
+              title: Text(tr("复制全文（含公式源码）")),
               onTap: () => Navigator.of(ctx).pop('copy'),
             ),
             ListTile(
               leading: const Icon(Icons.star_border),
-              title: const Text('收藏'),
+              title: Text(tr("收藏")),
               onTap: () => Navigator.of(ctx).pop('favorite'),
             ),
             ListTile(
               leading: const Icon(Icons.flag_outlined),
-              title: const Text('举报'),
+              title: Text(tr("举报")),
               onTap: () => Navigator.of(ctx).pop('report'),
             ),
           ],
@@ -583,32 +608,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } else if (action == 'favorite') {
       if (b.messageId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('该消息暂不支持收藏'),
+          SnackBar(
+            content: Text(tr("该消息暂不支持收藏")),
             duration: Duration(seconds: 1),
           ),
         );
         return;
       }
       if (_favoritingMessageId != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('正在收藏上一条消息，请稍候')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("正在收藏上一条消息，请稍候"))));
         return;
       }
       _favoritingMessageId = b.messageId;
       final messenger = ScaffoldMessenger.of(context);
       messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(const SnackBar(
-        content: Text('正在收藏…'),
-        duration: Duration(seconds: 30),
-      ));
+      messenger.showSnackBar(
+        SnackBar(content: Text(tr("正在收藏…")), duration: Duration(seconds: 30)),
+      );
       try {
         await Api.I.addFavorite(b.messageId!);
         if (mounted) {
           messenger.hideCurrentSnackBar();
           messenger.showSnackBar(
-            const SnackBar(content: Text('已收藏 ⭐ 可在抽屉「我的收藏」查看')),
+            SnackBar(content: Text(tr("已收藏 ⭐ 可在抽屉「我的收藏」查看"))),
           );
         }
       } on ApiException catch (e) {
@@ -619,9 +643,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       } catch (_) {
         if (mounted) {
           messenger.hideCurrentSnackBar();
-          messenger.showSnackBar(
-            const SnackBar(content: Text('收藏失败，请检查网络后重试')),
-          );
+          messenger.showSnackBar(SnackBar(content: Text(tr("收藏失败，请检查网络后重试"))));
         }
       } finally {
         _favoritingMessageId = null;
@@ -633,7 +655,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (b.messageId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请等待消息发送完成后再举报')));
+      ).showSnackBar(SnackBar(content: Text(tr("请等待消息发送完成后再举报"))));
       return;
     }
     final reason = await showModalBottomSheet<String>(
@@ -642,8 +664,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(title: Text('选择举报原因')),
-            for (final text in ['内容不准确', '内容不适合学生', '存在不友善内容', '其他问题'])
+            ListTile(title: Text(tr("选择举报原因"))),
+            for (final text in [
+              tr("内容不准确"),
+              tr("内容不适合学生"),
+              tr("存在不友善内容"),
+              tr("其他问题"),
+            ])
               ListTile(
                 title: Text(text),
                 onTap: () => Navigator.of(ctx).pop(text),
@@ -656,7 +683,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在提交举报…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在提交举报…")), duration: Duration(seconds: 30)),
     );
     try {
       final result = await Api.I.reportMessage(b.messageId!, reason);
@@ -666,24 +693,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         SnackBar(
           content: Text(
             result['already'] == true
-                ? '这条消息已举报，可在「我的举报」查看进度'
-                : '举报已提交，可在「我的举报」查看回复',
+                ? tr("这条消息已举报，可在「我的举报」查看进度")
+                : tr("举报已提交，可在「我的举报」查看回复"),
           ),
         ),
       );
     } on ApiException catch (e) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(SnackBar(
-          content: Text(e.status == 404 && e.message == 'Not Found'
-              ? '举报服务暂未上线，请稍后再试'
-              : e.message),
-        ));
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              e.status == 404 && e.rawMessage == 'Not Found'
+                  ? tr("举报服务暂未上线，请稍后再试")
+                  : e.message,
+            ),
+          ),
+        );
       }
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('举报失败，请检查网络后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("举报失败，请检查网络后重试"))));
       }
     }
   }
@@ -691,11 +722,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   /// 时段/时长/订阅拦截的全屏友好提示（比错误气泡更适合低龄用户）
   Future<void> _policyDialog(ApiException e) async {
     final (title, icon) = switch (e.status) {
-      423 => ('休息时间到啦', Icons.bedtime),
-      429 when e.message.contains('免费次数') => ('请家长购买会员', Icons.favorite_border),
-      429 => ('今天的时间用完了', Icons.schedule),
-      402 => ('需要家长续费', Icons.favorite_border),
-      _ => ('提示', Icons.info_outline),
+      423 => (tr("休息时间到啦"), Icons.bedtime),
+      429 when e.rawMessage.contains('免费次数') => (
+        tr("请家长购买会员"),
+        Icons.favorite_border,
+      ),
+      429 => (tr("今天的时间用完了"), Icons.schedule),
+      402 => (tr("需要家长续费"), Icons.favorite_border),
+      _ => (tr("提示"), Icons.info_outline),
     };
     if (!mounted) return;
     await showDialog<void>(
@@ -707,7 +741,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('好的'),
+            child: Text(tr("好的")),
           ),
         ],
       ),
@@ -738,19 +772,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('重命名'),
+              title: Text(tr("重命名")),
               onTap: () => Navigator.of(ctx).pop('rename'),
             ),
             ListTile(
               leading: Icon(
                 c['pinned'] == true ? Icons.push_pin_outlined : Icons.push_pin,
               ),
-              title: Text(c['pinned'] == true ? '取消置顶' : '置顶'),
+              title: Text(c['pinned'] == true ? tr("取消置顶") : tr("置顶")),
               onTap: () => Navigator.of(ctx).pop('pin'),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('删除会话', style: TextStyle(color: Colors.red)),
+              title: Text(tr("删除会话"), style: TextStyle(color: Colors.red)),
               onTap: () => Navigator.of(ctx).pop('delete'),
             ),
           ],
@@ -772,33 +806,33 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final title = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('重命名会话'),
+        title: Text(tr("重命名会话")),
         content: TextField(
           controller: ctrl,
           autofocus: true,
           maxLength: 100,
-          decoration: const InputDecoration(hintText: '会话标题'),
+          decoration: InputDecoration(hintText: tr("会话标题")),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: const Text('保存'),
+            child: Text(tr("保存")),
           ),
         ],
       ),
     );
     if (title == null || title.isEmpty || !mounted) return;
-    await _guard(() => Api.I.renameSession(cid, title), '会话已重命名');
+    await _guard(() => Api.I.renameSession(cid, title), tr("会话已重命名"));
   }
 
   Future<void> _pinSession(int cid, bool pinned) async {
     await _guard(
       () => Api.I.pinSession(cid, pinned),
-      pinned ? '会话已置顶' : '已取消置顶',
+      pinned ? tr("会话已置顶") : tr("已取消置顶"),
     );
   }
 
@@ -806,23 +840,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('删除会话？'),
-        content: const Text('该会话会从孩子端隐藏，家长仍可在审查记录中查看。此操作不可撤销。'),
+        title: Text(tr("删除会话？")),
+        content: Text(tr("该会话会从孩子端隐藏，家长仍可在审查记录中查看。此操作不可撤销。")),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('删除'),
+            child: Text(tr("删除")),
           ),
         ],
       ),
     );
     if (confirmed != true || !mounted) return;
-    final deleted = await _guard(() => Api.I.deleteSession(cid), '会话已删除');
+    final deleted = await _guard(() => Api.I.deleteSession(cid), tr("会话已删除"));
     if (deleted && mounted && _conversationId == cid) {
       setState(() {
         _conversationId = null;
@@ -837,14 +871,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (_sending || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请等待当前回复或会话加载完成')));
+      ).showSnackBar(SnackBar(content: Text(tr("请等待当前回复或会话加载完成"))));
       return false;
     }
     _sessionActionPending = true;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在处理…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在处理…")), duration: Duration(seconds: 30)),
     );
     try {
       await action();
@@ -862,7 +896,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("操作失败，请检查网络后重试"))));
       }
     } finally {
       _sessionActionPending = false;
@@ -922,16 +956,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     void updateLast(String text, {bool failed = false}) {
       if (!mounted) return;
       setState(() {
-        _bubbles[_bubbles.length - 1] = Bubble('assistant', text, failed: failed);
+        _bubbles[_bubbles.length - 1] = Bubble(
+          'assistant',
+          text,
+          failed: failed,
+        );
       });
     }
+
     void showFailure(String message, {required bool retryable}) {
       if (!retrying && _bubbles[userIndex].messageId == null) {
         setState(() => _bubbles.removeRange(userIndex, _bubbles.length));
         _inputCtrl.text = text;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('发送失败，问题已保留在输入框，请重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("发送失败，问题已保留在输入框，请重试"))));
       } else {
         updateLast(message, failed: retryable);
       }
@@ -1003,10 +1042,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       if (revealTimer != null) await revealDone!.future;
       final mid = done['message_id'] as int?;
-      if (mid == null) throw ApiException(503, '老师回复中断，请重试');
+      if (mid == null) throw ApiException(503, tr("老师回复中断，请重试"));
       _bubbles[_bubbles.length - 1] = Bubble(
         'assistant',
-        _bubbles.last.text.isEmpty ? '（没有收到内容）' : _bubbles.last.text,
+        _bubbles.last.text.isEmpty ? tr("（没有收到内容）") : _bubbles.last.text,
         messageId: mid,
       );
       _loadSessions();
@@ -1018,22 +1057,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           if (mounted) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(const SnackBar(content: Text('会话已更新，请查看老师回复')));
+            ).showSnackBar(SnackBar(content: Text(tr("会话已更新，请查看老师回复"))));
           }
         } catch (_) {
-          updateLast('⚠️ 会话状态已变化，请重新打开聊天记录', failed: true);
+          updateLast(tr("⚠️ 会话状态已变化，请重新打开聊天记录"), failed: true);
         }
       } else {
         final canRetry = _bubbles[userIndex].messageId != null;
-        showFailure('⚠️ ${e.message}',
-            retryable: e.status == 503 && canRetry && !e.message.contains('请新开会话'));
+        showFailure(
+          '⚠️ ${e.message}',
+          retryable:
+              e.status == 503 && canRetry && !e.rawMessage.contains('请新开会话'),
+        );
       }
       if (e.status != 401 && e.status != 503 && e.status != 409 && mounted) {
         await _policyDialog(e);
       }
     } catch (_) {
       final canRetry = _bubbles[userIndex].messageId != null;
-      showFailure('⚠️ 老师回复失败，请检查网络后重试', retryable: canRetry);
+      showFailure(tr("⚠️ 老师回复失败，请检查网络后重试"), retryable: canRetry);
     } finally {
       revealTimer?.cancel();
       if (mounted) setState(() => _sending = false);
@@ -1075,16 +1117,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('退出登录？'),
-        content: const Text('退出后需要家长端重新生成绑定码才能使用。聊天记录会保留。'),
+        title: Text(tr("退出登录？")),
+        content: Text(tr("退出后需要家长端重新生成绑定码才能使用。聊天记录会保留。")),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('退出'),
+            child: Text(tr("退出")),
           ),
         ],
       ),
@@ -1092,10 +1134,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (ok != true || !mounted) return;
     setState(() => _loggingOut = true);
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(
-      content: Text('正在退出登录…'),
-      duration: Duration(seconds: 30),
-    ));
+    messenger.showSnackBar(
+      SnackBar(content: Text(tr("正在退出登录…")), duration: Duration(seconds: 30)),
+    );
     try {
       await Api.I.logout();
       if (!mounted) return;
@@ -1106,7 +1147,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('退出失败，请重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("退出失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _loggingOut = false);
@@ -1115,19 +1156,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight:
             64 * MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.5),
         actions: [
+          const LanguageButton(),
           IconButton(
-            tooltip: '学习反馈与小行星',
+            tooltip: tr("学习反馈与小行星"),
             icon: const Icon(Icons.auto_awesome),
             onPressed: _openLearning,
           ),
         ],
         title: Tooltip(
-          message: _teacherLoadFailed ? '重试加载老师' : '选择老师',
+          message: _teacherLoadFailed ? tr("重试加载老师") : tr("选择老师"),
           child: InkWell(
             borderRadius: BorderRadius.circular(8),
             onTap: _loadingTeachers || _selectingTeacher
@@ -1150,7 +1193,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         children: [
                           Flexible(
                             child: Text(
-                              _teacherName,
+                              localizedTeacherName(_teacherName),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1170,8 +1213,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             ),
                         ],
                       ),
-                      const Text(
-                        '受保护学习空间',
+                      Text(
+                        tr("受保护学习空间"),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
@@ -1187,7 +1230,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
-            tooltip: '聊天记录',
+            tooltip: tr("聊天记录"),
             onPressed: () {
               FocusManager.instance.primaryFocus?.unfocus();
               _loadSessions();
@@ -1224,9 +1267,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           if (_restoringLatest) ...[
             const LinearProgressIndicator(minHeight: 2),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 6),
-              child: Text('正在恢复上次对话…', style: TextStyle(fontSize: 12)),
+              child: Text(tr("正在恢复上次对话…"), style: TextStyle(fontSize: 12)),
             ),
           ],
           Expanded(child: _bubbles.isEmpty ? _emptyState() : _messageList()),
@@ -1263,24 +1306,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  '你好！今天想学什么？',
+                Text(
+                  tr("你好！今天想学什么？"),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '从一个小问题开始，一步步学会',
+                  tr("从一个小问题开始，一步步学会"),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
-                for (final suggestion in const [
-                  (Icons.route_outlined, '理清解题思路', '请帮我理清这道题的思路：'),
-                  (Icons.auto_stories_outlined, '讲懂一个知识点', '请用简单的例子讲解这个知识点：'),
-                  (Icons.edit_note_rounded, '一起做练习', '请围绕这个知识点出一道练习题：'),
+                for (final suggestion in [
+                  (Icons.route_outlined, tr("理清解题思路"), tr("请帮我理清这道题的思路：")),
+                  (
+                    Icons.auto_stories_outlined,
+                    tr("讲懂一个知识点"),
+                    tr("请用简单的例子讲解这个知识点："),
+                  ),
+                  (Icons.edit_note_rounded, tr("一起做练习"), tr("请围绕这个知识点出一道练习题：")),
                 ])
                   Card(
                     child: ListTile(
@@ -1298,7 +1345,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   ),
                 const SizedBox(height: 4),
                 Text(
-                  '选择建议后，补充你的题目或知识点',
+                  tr("选择建议后，补充你的题目或知识点"),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
@@ -1365,8 +1412,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   maxLines: 5,
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _send(),
-                  decoration: const InputDecoration(
-                    hintText: '问一个学习问题…',
+                  decoration: InputDecoration(
+                    hintText: tr("问一个学习问题…"),
                     filled: false,
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -1388,7 +1435,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           _sessionActionPending
                       ? null
                       : _send,
-                  tooltip: '发送问题',
+                  tooltip: tr("发送问题"),
                   icon: const Icon(Icons.arrow_upward),
                 ),
               ),

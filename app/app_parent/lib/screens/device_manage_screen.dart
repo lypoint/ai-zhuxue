@@ -45,18 +45,18 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
       if (_devices == null) {
         setState(() => _error = e.message);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('刷新设备列表失败：${e.message}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(tr("刷新设备列表失败：{0}", [e.message]))),
+        );
       }
     } catch (_) {
       if (!mounted) return;
       if (_devices == null) {
-        setState(() => _error = '设备列表加载失败，请检查网络后重试');
+        setState(() => _error = tr("设备列表加载失败，请检查网络后重试"));
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('刷新设备列表失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("刷新设备列表失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -65,20 +65,20 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
 
   Future<void> _revoke(Map<String, dynamic> device) async {
     if (_revokingId != null) return;
-    final name = device['device_name'] as String? ?? '该设备';
+    final name = device['device_name'] as String? ?? tr("该设备");
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('下线 $name？'),
-        content: const Text('该设备上的孩子端会立即退出登录，需要重新绑定才能使用。'),
+        title: Text(tr("下线 {0}？", [name])),
+        content: Text(tr("该设备上的孩子端会立即退出登录，需要重新绑定才能使用。")),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('下线'),
+            child: Text(tr("下线")),
           ),
         ],
       ),
@@ -92,7 +92,7 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('已下线 $name')));
+      ).showSnackBar(SnackBar(content: Text(tr("已下线 {0}", [name]))));
       await _load();
     } on ApiException catch (e) {
       if (mounted) {
@@ -104,7 +104,7 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('下线失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("下线失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _revokingId = null);
@@ -113,13 +113,14 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final devices = _devices;
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.studentName} 的设备'),
+        title: Text(tr("{0} 的设备", [widget.studentName])),
         actions: [
           IconButton(
-            tooltip: '刷新设备列表',
+            tooltip: tr("刷新设备列表"),
             onPressed: _loading || _revokingId != null ? null : _load,
             icon: _loading
                 ? const SizedBox(
@@ -138,13 +139,13 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_error!),
-                        TextButton(onPressed: _load, child: const Text('重试')),
+                        Text(trMessage(_error!)),
+                        TextButton(onPressed: _load, child: Text(tr("重试"))),
                       ],
                     ),
             )
           : devices.isEmpty
-          ? const Center(child: Text('还没有设备绑定过这个孩子'))
+          ? Center(child: Text(tr("还没有设备绑定过这个孩子")))
           : ListView.separated(
               padding: const EdgeInsets.all(12),
               itemCount: devices.length,
@@ -160,14 +161,23 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
                       isCurrent ? Icons.phone_android : Icons.phone_disabled,
                       color: isCurrent ? Colors.green : Colors.grey,
                     ),
-                    title: Text(d['device_name'] as String? ?? '未命名设备'),
+                    title: Text(d['device_name'] as String? ?? tr("未命名设备")),
                     subtitle: Text(
-                      '${isCurrent
-                          ? "使用中"
-                          : revoked
-                          ? "已下线"
-                          : "历史设备"}'
-                      '${lastSeen.isEmpty ? '' : ' · 最近活跃 ${(lastSeen.length > 16 ? lastSeen.substring(0, 16) : lastSeen).replaceFirst('T', ' ')}'}',
+                      tr("{0}{1}", [
+                        isCurrent
+                            ? tr("使用中")
+                            : revoked
+                            ? tr("已下线")
+                            : tr("历史设备"),
+                        lastSeen.isEmpty
+                            ? ''
+                            : tr(" · 最近活跃 {0}", [
+                                (lastSeen.length > 16
+                                        ? lastSeen.substring(0, 16)
+                                        : lastSeen)
+                                    .replaceFirst('T', ' '),
+                              ]),
+                      ]),
                     ),
                     trailing: isCurrent
                         ? TextButton(
@@ -182,7 +192,7 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text('下线'),
+                                : Text(tr("下线")),
                           )
                         : null,
                   ),

@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 
 /// Participation rewards have equal value for every honest feedback choice.
@@ -16,6 +17,7 @@ class DailyIncentiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final earned = summary?['today']?['stars'] == 1;
     return Card(
       color: const Color(0xFFEAF2E9),
@@ -37,8 +39,8 @@ class DailyIncentiveCard extends StatelessWidget {
                   if (summary != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      '${summary!['balance']} 颗',
-                      semanticsLabel: '可用 ${summary!['balance']} 颗小行星',
+                      tr("{0} 颗", [summary!['balance']]),
+                      semanticsLabel: tr("可用 {0} 颗小行星", [summary!['balance']]),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -51,20 +53,20 @@ class DailyIncentiveCard extends StatelessWidget {
                   children: [
                     Text(
                       summary == null
-                          ? '今日参与奖励'
+                          ? tr("今日参与奖励")
                           : earned
-                          ? '今日已获得 1 颗小行星'
-                          : '今日小行星等你领取',
+                          ? tr("今日已获得 1 颗小行星")
+                          : tr("今日小行星等你领取"),
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     Text(
                       error != null
-                          ? error!
+                          ? trMessage(error!)
                           : summary == null
-                          ? '正在加载今日奖励…'
+                          ? tr("正在加载今日奖励…")
                           : earned
-                          ? '感谢你的认真参与！今天已领取 1/1 颗。'
-                          : '今天学一次、如实反馈一次，即可获得 1 颗。',
+                          ? tr("感谢你的认真参与！今天已领取 1/1 颗。")
+                          : tr("今天学一次、如实反馈一次，即可获得 1 颗。"),
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -76,7 +78,7 @@ class DailyIncentiveCard extends StatelessWidget {
               if (error != null)
                 IconButton(
                   onPressed: onRetry,
-                  tooltip: '重试加载今日奖励',
+                  tooltip: tr("重试加载今日奖励"),
                   icon: const Icon(Icons.refresh),
                 )
               else

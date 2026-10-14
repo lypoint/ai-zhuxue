@@ -14,9 +14,14 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('学生端无 token 时显示绑定页', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'app_language': 'zh-Hans'});
+    await tester.runAsync(() async {
+      await AppLanguage.I.load();
+      await AppLanguage.I.select('zh-Hans');
+    });
     Api.I.clearToken();
     await tester.pumpWidget(const StudentApp());
+    await tester.pumpAndSettle();
     expect(find.text('输入家长端绑定码'), findsOneWidget);
     expect(find.text('绑定并开始学习'), findsOneWidget);
     expect(find.text('扫描家长端二维码'), findsOneWidget);
