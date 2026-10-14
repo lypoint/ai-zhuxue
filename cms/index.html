@@ -167,9 +167,10 @@
 
   <section id="pricingSection" data-super-only>
     <h2>订阅策略</h2>
+    <p style="font-size:12px">固定套餐：10 个名额 ¥300/月、100 个名额 ¥3000/月，不随基础及增量月费调整。</p>
     <div class="row">
       <input id="p_base" type="number" step="0.01" placeholder="基础月费">
-      <input id="p_seat" type="number" step="0.01" placeholder="增加名额价格">
+      <input id="p_seat" type="number" step="0.01" placeholder="每个额外名额月费">
       <input id="p_trial" type="number" placeholder="试用天数">
       <input id="p_reason" placeholder="修改原因" style="width:220px">
       <button onclick="savePricing()">保存策略</button>

@@ -52,6 +52,22 @@ class Settings(BaseSettings):
     wechat_platform_public_key_path: str = ""
     wechat_notify_url: str = "https://demo.example.com/payments/wechat/notify"
 
+    # JSON: {"appstore":{"family_monthly_1":"store.product.id"},"googleplay":{...}}
+    store_products_json: str = "{}"
+    store_token_secret: str = ""  # Fernet key (generate once, retain across deployments)
+    store_test_account_tokens: str = ""  # comma-separated family UUIDs allowed for review/test purchases
+    apple_environment: Literal["Production", "Sandbox"] = "Production"
+    apple_bundle_id: str = "com.aizhuxue.appParent"
+    apple_app_id: int = 0
+    apple_issuer_id: str = ""
+    apple_key_id: str = ""
+    apple_private_key_path: str = ""
+    apple_root_cert_paths: str = ""  # comma-separated Apple root DER certificates
+    google_package_name: str = "com.aizhuxue.parent.play"
+    google_service_account_path: str = ""
+    google_pubsub_audience: str = ""
+    google_pubsub_email: str = ""
+
     # 监护人核验：mock（开发）| aliyun | tencent
     guardian_verify_provider: str = "mock"
 

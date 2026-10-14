@@ -7,7 +7,7 @@ import '../widgets/notification_badge.dart';
 import '../widgets/student_review_card.dart';
 import '../widgets/management_settings_card.dart';
 import 'notifications_screen.dart';
-import 'payment_screen.dart';
+import '../billing.dart';
 import 'login_screen.dart';
 import 'device_manage_screen.dart';
 import 'identity_verification_screen.dart';
@@ -39,7 +39,45 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context
+            .getInheritedWidgetOfExactType<BillingScope>()
+            ?.billing
+            .recover();
+      }
+    });
     _refresh();
+  }
+
+  ParentBilling? _billing;
+  int _billingRevision = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final billing = context
+        .dependOnInheritedWidgetOfExactType<BillingScope>()
+        ?.billing;
+    if (billing != _billing) {
+      _billing?.removeListener(_billingChanged);
+      _billing = billing;
+      _billingRevision = billing?.revision ?? 0;
+      billing?.addListener(_billingChanged);
+    }
+  }
+
+  void _billingChanged() {
+    if (mounted && _billingRevision != _billing!.revision) {
+      _billingRevision = _billing!.revision;
+      _refresh();
+    }
+  }
+
+  @override
+  void dispose() {
+    _billing?.removeListener(_billingChanged);
+    super.dispose();
   }
 
   Future<void> _makeCode() async {
@@ -147,14 +185,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
       if (e.status == 409) {
-        // 规格要求确认页展示「增加名额」价格（来自订阅配置，人民币元）
-        final seatPrice = _subscription?['additional_seat_price'];
-        final priceText = seatPrice == null ? '' : ' ¥$seatPrice/月';
         final add = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('需要增加孩子名额'),
-            content: Text('当前订阅没有可用名额。增加 1 个名额$priceText（按剩余天数折算，立即生效），是否继续？'),
+            content: const Text(
+              '当前订阅没有可用名额。可选择更高名额的月订阅档位，支付与验单确认后立即生效，金额及续订周期以支付确认页为准。',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -194,10 +231,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     try {
-      await Api.I.addSubscriptionSeats(
-        1,
-        idempotencyKey: 'seat-${DateTime.now().microsecondsSinceEpoch}',
-      );
+      if (await _purchase('seat_add') != true) {
+        if (mounted) messenger.hideCurrentSnackBar();
+        return;
+      }
       seatAdded = true;
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
       if (!mounted) return;
@@ -414,32 +451,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _pay() => _purchase('subscription');
+  Future<void> _pay() async {
+    await _purchase('subscription');
+  }
 
-  Future<void> _addSeat() => _purchase('seat_add');
+  Future<void> _addSeat() async {
+    await _purchase('seat_add');
+  }
 
-  Future<void> _purchase(String kind) async {
-    if (_billingPending) return;
+  Future<bool?> _purchase(String kind) async {
+    if (_billingPending) return false;
     setState(() => _billingPending = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final pending = await Api.I.pendingPayments();
-      final items = pending['items'] as List<dynamic>;
-      final order = items.isNotEmpty
-          ? Map<String, dynamic>.from(items.first as Map)
-          : await Api.I.createPaymentOrder(
-              kind,
-              'parent-${DateTime.now().microsecondsSinceEpoch}',
-            );
-      if (!mounted) return;
-      final paid = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => PaymentScreen(order: order)),
-      );
-      if (!mounted) return;
+      final paid = await BillingScope.of(context).purchase(context, kind);
+      if (!mounted) return false;
       if (paid == true) {
         messenger.showSnackBar(const SnackBar(content: Text('支付成功，权益已生效')));
       }
       await _refresh();
+      return paid;
     } on ApiException catch (error) {
       if (mounted) {
         messenger.showSnackBar(SnackBar(content: Text(error.message)));
@@ -451,6 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _billingPending = false);
     }
+    return false;
   }
 
   Future<void> _logout() async {
@@ -686,6 +718,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   if (sub != null)
                     SubscriptionCard(
+                      onManage:
+                          _billing != null && _billing!.channel != 'wechat'
+                          ? () => _purchase('manage')
+                          : null,
                       sub: sub,
                       onPay: _pay,
                       onAddSeat: _addSeat,

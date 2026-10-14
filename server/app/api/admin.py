@@ -167,7 +167,7 @@ def get_pricing_config(principal: AdminPrincipal = Depends(require_admin), db: S
             "last_modified_by": last.admin if last else None,
             "last_modified_at": last.created_at.isoformat() if last and last.created_at else None,
             "last_reason": last.detail if last else None,
-            "effective_scope": "新家庭和新订单；老师免费次数在 LLM 分组中配置"}
+            "effective_scope": "各渠道统一月度档位的新订单；商店控制台价格需同步配置，已创建订单保留原报价；老师免费次数在 LLM 分组中配置"}
 
 
 @router.post("/pricing-config")
@@ -290,11 +290,13 @@ def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = D
     now = _dt.datetime.utcnow()
     subs = db.query(Subscription).all()
     sub_active = sub_trial = sub_expired = revenue = 0
+    from ..services.store_billing import effective
     for sub in subs:
-        expires = sub.expires_at if sub.expires_at.tzinfo is None else sub.expires_at.replace(tzinfo=None)
+        source = effective(sub.family_id, sub, db)
+        expires = source.expires_at.replace(tzinfo=None)
         if expires > now:
             sub_active += 1
-            if sub.plan == "free_trial":
+            if source is sub and sub.plan == "free_trial":
                 sub_trial += 1
         else:
             sub_expired += 1
@@ -1036,6 +1038,9 @@ def revoke_membership(family_id: int, body: RevokeIn,
     fam = _family_or_404(family_id, db)
     from ..services.subscription import ensure_subscription, get_status
     sub = ensure_subscription(family_id, db)
+    from ..services.store_billing import effective
+    if effective(family_id, sub, db) is not sub:
+        raise HTTPException(409, "商店订阅请在原商店退款或撤销，不能通过扣除国内会员天数修改")
     now = dt.datetime.utcnow()
     expires = sub.expires_at if sub.expires_at.tzinfo is None else sub.expires_at.replace(tzinfo=None)
     sub.expires_at = max(expires - dt.timedelta(days=body.days), now)

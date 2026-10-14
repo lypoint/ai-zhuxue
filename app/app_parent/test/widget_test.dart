@@ -142,6 +142,35 @@ void main() {
     expect(bindRequested, isTrue);
   });
 
+  for (final hasPending in [false, true]) {
+    testWidgets('有效月订阅只能恢复待支付订单，仍可即时升级 ($hasPending)', (tester) async {
+      var upgraded = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SubscriptionCard(
+              sub: {
+                'active': true,
+                'plan': 'monthly',
+                'monthly_price_cny': 99,
+                'can_purchase_subscription': false,
+                'has_pending_payment': hasPending,
+              },
+              onPay: () {},
+              onAddSeat: () => upgraded = true,
+            ),
+          ),
+        ),
+      );
+      expect(find.textContaining('¥99/月'), findsOneWidget);
+      final button = tester.widget<FilledButton>(find.byType(FilledButton));
+      expect(button.onPressed != null, hasPending);
+      expect(find.text(hasPending ? '继续支付' : '订阅有效'), findsOneWidget);
+      await tester.tap(find.text('增加名额'));
+      expect(upgraded, isTrue);
+    });
+  }
+
   testWidgets('订阅处理中禁用支付和增加名额按钮', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

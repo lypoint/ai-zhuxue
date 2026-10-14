@@ -2,7 +2,6 @@
 import json
 import uuid
 from datetime import datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..models import Family, Subscription, SubscriptionOrder
-from .subscription import _config_cents, ensure_subscription, get_pricing_config, get_status, yuan
+from .subscription import (apply_monthly_purchase, ensure_subscription, get_pricing_config,
+                           get_status, quote_monthly_purchase, yuan)
 from .wechat_pay import PaymentError, WeChatPay
 
 
@@ -20,10 +20,16 @@ def check_mode():
 
 
 def payload(order: SubscriptionOrder, db: Session) -> dict:
+    snapshot = json.loads(order.price_snapshot)
     return {"order_id": order.id, "out_trade_no": order.out_trade_no,
             "kind": order.kind, "status": order.status, "payment_mode": order.provider,
             "amount_cents": order.amount_cents, "amount": yuan(order.amount_cents),
             "payment_params": json.loads(order.payment_params),
+            "billing_rule": snapshot.get("billing_rule", "legacy"),
+            "billing_period": snapshot.get("billing_period"),
+            "currency": snapshot.get("currency", "CNY"),
+            "target_seat_count": snapshot.get("target_seat_count"),
+            "product_code": snapshot.get("product_code"),
             "subscription": get_status(order.family_id, db)}
 
 
@@ -34,7 +40,8 @@ def own_order(family_id: int, order_id: int, db: Session) -> SubscriptionOrder:
     return order
 
 
-async def create(family_id: int, kind: str, count: int, key: str, db: Session) -> dict:
+async def create(family_id: int, kind: str, count: int, key: str, db: Session,
+                 target_seat_count: int | None = None) -> dict:
     check_mode()
     gateway = WeChatPay(settings) if settings.payment_mode == "wechat" else None
     ensure_subscription(family_id, db)
@@ -43,31 +50,18 @@ async def create(family_id: int, kind: str, count: int, key: str, db: Session) -
     if order:
         snapshot = json.loads(order.price_snapshot)
         if (order.family_id != family_id or order.kind != kind or
-                snapshot.get("count", 1) != count or order.provider != settings.payment_mode):
+                snapshot.get("count", 1) != count or order.provider != settings.payment_mode or
+                snapshot.get("requested_target_seat_count") != target_seat_count):
             raise HTTPException(409, "订单幂等键与购买内容不一致")
     else:
         pending = db.query(SubscriptionOrder).filter_by(family_id=family_id, status="pending").filter(
             SubscriptionOrder.provider.in_(["demo", "wechat"])).first()
         if pending:
             raise HTTPException(409, {"message": "请先处理待支付订单", "order_id": pending.id})
+        from .store_billing import block_other_channel
+        block_other_channel(family_id, "wechat", db)
         sub = db.query(Subscription).filter_by(family_id=family_id).with_for_update().one()
-        base, seat = _config_cents(get_pricing_config(db))
-        seats = int(sub.seat_count or 1)
-        snapshot = {"base_monthly_price_cents": base, "additional_seat_price_cents": seat,
-                    "seat_count": seats, "count": count}
-        if kind == "subscription":
-            cents = base + max(0, seats - 1) * seat
-        else:
-            expires = sub.expires_at.replace(tzinfo=None)
-            remaining = max(0.0, (expires - datetime.utcnow()).total_seconds() / 86400)
-            prorate = min(1.0, remaining / 30) if remaining else 1.0
-            cents = int((Decimal(count * seat) * Decimal(str(prorate))).quantize(
-                Decimal("1"), rounding=ROUND_HALF_UP))
-            # WeChat requires positive amounts; charge at least one cent.
-            cents = max(1, cents)
-            snapshot["proration"] = prorate
-        if not 0 < cents < 100_000_000:
-            raise HTTPException(422, "支付金额无效")
+        cents, snapshot = quote_monthly_purchase(sub, get_pricing_config(db), kind, count, target_seat_count)
         order = SubscriptionOrder(family_id=family_id, kind=kind, amount=yuan(cents),
                                   amount_cents=cents, status="pending", idempotency_key=key,
                                   provider=settings.payment_mode, out_trade_no=uuid.uuid4().hex,
@@ -80,7 +74,7 @@ async def create(family_id: int, kind: str, count: int, key: str, db: Session) -
             raise HTTPException(409, "订单冲突，请重试") from None
     if gateway and order.status == "pending":
         params = await gateway.prepay(order.out_trade_no, order.amount_cents,
-                                     "AI助学月度订阅" if kind == "subscription" else "AI助学孩子名额")
+                                     "AI助学家庭月度订阅")
         order.payment_params = json.dumps(params)
         db.commit()
     return payload(order, db)
@@ -108,7 +102,11 @@ def settle(order_id: int, transaction: dict, db: Session, *, demo=False):
         raise PaymentError("订单状态不允许支付")
     sub = db.query(Subscription).filter_by(family_id=family_id).populate_existing().with_for_update().one()
     snapshot = json.loads(order.price_snapshot)
-    if order.kind == "subscription":
+    if snapshot.get("billing_rule") == "monthly_tier_v1":
+        apply_monthly_purchase(sub, snapshot, datetime.utcnow())
+        order.price_snapshot = json.dumps(snapshot)
+    elif order.kind == "subscription":
+        # Honor orders quoted before monthly tiers were introduced.
         sub.expires_at = max(sub.expires_at.replace(tzinfo=None), datetime.utcnow()) + timedelta(days=30)
         sub.plan = "monthly"
         sub.base_price_snapshot_cents = snapshot["base_monthly_price_cents"]

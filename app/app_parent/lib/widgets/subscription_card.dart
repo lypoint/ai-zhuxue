@@ -6,18 +6,23 @@ class SubscriptionCard extends StatelessWidget {
   final VoidCallback onPay;
   final VoidCallback? onAddSeat;
   final bool billingPending;
+  final VoidCallback? onManage;
   const SubscriptionCard({
     super.key,
     required this.sub,
     required this.onPay,
     this.onAddSeat,
     this.billingPending = false,
+    this.onManage,
   });
 
   @override
   Widget build(BuildContext context) {
     final active = sub['active'] == true;
     final trial = sub['plan'] == 'free_trial';
+    final canPurchase =
+        sub['can_purchase_subscription'] as bool? ?? (!active || trial);
+    final hasPending = sub['has_pending_payment'] == true;
     final days = sub['days_left'] as num? ?? 0;
     final freeTeacherCount = sub['free_teacher_count'] as num? ?? 0;
     return Card(
@@ -85,6 +90,18 @@ class SubscriptionCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
+            Text(
+              onManage == null
+                  ? '家庭月订阅 ¥${sub['monthly_price_cny'] ?? 66}/月 · 不累加有效期'
+                  : '家庭月订阅 · 价格与扣款周期见商店确认页面',
+            ),
+            if (active && !trial)
+              Text(
+                onManage == null
+                    ? '当前订阅仍有效，可升级名额档位，到期后再续订。'
+                    : '当前订阅仍有效，可立即升级名额或管理自动续订。',
+              ),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 12,
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -95,16 +112,27 @@ class SubscriptionCard extends StatelessWidget {
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(0, 48),
                     ),
-                    onPressed: billingPending ? null : onPay,
+                    onPressed: billingPending || (!canPurchase && !hasPending)
+                        ? null
+                        : onPay,
                     child: Text(
                       billingPending
                           ? '处理中…'
-                          : active
-                          ? '续费'
-                          : '立即开通',
+                          : hasPending
+                          ? '继续支付'
+                          : !canPurchase
+                          ? '订阅有效'
+                          : trial
+                          ? '开通月订阅'
+                          : '立即续订',
                     ),
                   ),
                 ),
+                if (onManage != null)
+                  TextButton(
+                    onPressed: billingPending ? null : onManage,
+                    child: const Text('恢复购买 / 管理订阅'),
+                  ),
                 if (onAddSeat != null)
                   TextButton(
                     onPressed: billingPending ? null : onAddSeat,

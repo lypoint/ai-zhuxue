@@ -1,0 +1,4 @@
+storeFile=/absolute/path/parent-wechat.jks
+storePassword=REPLACE
+keyAlias=parent-wechat
+keyPassword=REPLACE

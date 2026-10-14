@@ -1,16 +1,6 @@
-# app_parent
+# 家长端共享库
 
-A new Flutter project.
+此包提供共享界面与家庭业务，不含支付 SDK，也不直接打包。
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+执行入口为 `../app_parent_wechat`、`../app_parent_appstore`、`../app_parent_googleplay`。
+构建与商店配置见 [渠道订阅接入](../../docs/store-subscriptions.md)。

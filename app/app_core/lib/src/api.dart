@@ -109,20 +109,53 @@ class Api {
       (await _sendRaw(method, path, body: body)) as Map<String, dynamic>;
 
   Future<Map<String, dynamic>> learningFeedback(int messageId, String action) =>
-      _send('POST', '/chat/messages/$messageId/learning-feedback', body: {'action': action});
-  Future<Map<String, dynamic>> learningSelections() => _send('GET', '/chat/learning-feedback');
-  Future<Map<String, dynamic>> learningSummary({int? studentId}) =>
-      _send('GET', studentId == null ? '/chat/learning' : '/parent/students/$studentId/learning');
-  Future<Map<String, dynamic>> proposeReward(int studentId, String reward, int stars, String fulfillment, String requestId) =>
-      _send('POST', '/parent/students/$studentId/reward-agreements',
-        body: {'reward': reward, 'stars': stars, 'fulfillment': fulfillment, 'request_id': requestId});
+      _send(
+        'POST',
+        '/chat/messages/$messageId/learning-feedback',
+        body: {'action': action},
+      );
+  Future<Map<String, dynamic>> learningSelections() =>
+      _send('GET', '/chat/learning-feedback');
+  Future<Map<String, dynamic>> learningSummary({int? studentId}) => _send(
+    'GET',
+    studentId == null
+        ? '/chat/learning'
+        : '/parent/students/$studentId/learning',
+  );
+  Future<Map<String, dynamic>> proposeReward(
+    int studentId,
+    String reward,
+    int stars,
+    String fulfillment,
+    String requestId,
+  ) => _send(
+    'POST',
+    '/parent/students/$studentId/reward-agreements',
+    body: {
+      'reward': reward,
+      'stars': stars,
+      'fulfillment': fulfillment,
+      'request_id': requestId,
+    },
+  );
   Future<Map<String, dynamic>> acceptReward(int agreementId) =>
       _send('POST', '/chat/reward-agreements/$agreementId/accept');
-  Future<Map<String, dynamic>> redeemStars(int? studentId, int agreementId, String requestId) =>
-      _send('POST', studentId == null ? '/chat/redemptions' : '/parent/students/$studentId/redemptions',
-        body: {'agreement_id': agreementId, 'request_id': requestId});
+  Future<Map<String, dynamic>> redeemStars(
+    int? studentId,
+    int agreementId,
+    String requestId,
+  ) => _send(
+    'POST',
+    studentId == null
+        ? '/chat/redemptions'
+        : '/parent/students/$studentId/redemptions',
+    body: {'agreement_id': agreementId, 'request_id': requestId},
+  );
   Future<Map<String, dynamic>> fulfillReward(int studentId, int redemptionId) =>
-      _send('POST', '/parent/students/$studentId/redemptions/$redemptionId/fulfill');
+      _send(
+        'POST',
+        '/parent/students/$studentId/redemptions/$redemptionId/fulfill',
+      );
 
   Future<String> registerGuardian(
     String phone,
@@ -142,9 +175,13 @@ class Api {
     await _send('POST', '/auth/guardian/sms/send', body: {'phone': phone});
   }
 
-  Future<void> guardianOneTap(String accessToken, {String nickname = '家长'}) async {
+  Future<void> guardianOneTap(
+    String accessToken, {
+    String nickname = '家长',
+  }) async {
     final data = await _send(
-      'POST', '/auth/guardian/one-tap',
+      'POST',
+      '/auth/guardian/one-tap',
       body: {'access_token': accessToken, 'nickname': nickname},
     );
     await _saveToken(data['token'] as String);
@@ -206,10 +243,8 @@ class Api {
   Future<List<dynamic>> studentDevices(int studentId) async =>
       (await _sendRaw('GET', '/parent/students/$studentId/devices'))
           as List<dynamic>;
-  Future<void> revokeStudentDevice(int studentId, int deviceId) => _send(
-        'POST',
-        '/parent/students/$studentId/devices/$deviceId/revoke',
-      );
+  Future<void> revokeStudentDevice(int studentId, int deviceId) =>
+      _send('POST', '/parent/students/$studentId/devices/$deviceId/revoke');
   Future<List<dynamic>> conversations(int studentId, {String? status}) async {
     final suffix = status == null
         ? ''
@@ -357,19 +392,56 @@ class Api {
   Future<void> deleteFavorite(int id) => _send('DELETE', '/chat/favorites/$id');
 
   Future<Map<String, dynamic>> reportMessage(int messageId, String reason) =>
-      _send('POST', '/chat/reports', body: {'message_id': messageId, 'reason': reason});
+      _send(
+        'POST',
+        '/chat/reports',
+        body: {'message_id': messageId, 'reason': reason},
+      );
   Future<List<dynamic>> myReports() async =>
       (await _sendRaw('GET', '/chat/reports')) as List<dynamic>;
 
   // ---------- 订阅（P0） ----------
   Future<Map<String, dynamic>> subscription() =>
       _send('GET', '/parent/subscription');
-  Future<Map<String, dynamic>> createPaymentOrder(String kind, String key) =>
-      _send(
-        'POST',
-        '/parent/payments/orders',
-        body: {'kind': kind, 'count': 1, 'idempotency_key': key},
-      );
+  Future<Map<String, dynamic>> billingCatalog({
+    required int seatCount,
+    String channel = 'wechat',
+  }) => _send(
+    'GET',
+    '/parent/billing/catalog?channel=$channel&seat_count=$seatCount',
+  );
+  Future<Map<String, dynamic>> billingAccount() =>
+      _send('GET', '/parent/billing/account');
+  Future<Map<String, dynamic>> prepareStorePurchase(
+    String channel,
+    String productCode,
+  ) => _send(
+    'POST',
+    '/parent/billing/purchase',
+    body: {'channel': channel, 'product_code': productCode},
+  );
+  Future<Map<String, dynamic>> verifyStorePurchase(
+    String channel,
+    String reference,
+  ) => _send(
+    'POST',
+    '/parent/billing/verify',
+    body: {'channel': channel, 'reference': reference},
+  );
+  Future<Map<String, dynamic>> createPaymentOrder(
+    String kind,
+    String key, {
+    int? targetSeatCount,
+  }) => _send(
+    'POST',
+    '/parent/payments/orders',
+    body: {
+      'kind': kind,
+      'count': 1,
+      'idempotency_key': key,
+      if (targetSeatCount != null) 'target_seat_count': targetSeatCount,
+    },
+  );
   Future<Map<String, dynamic>> pendingPayments() =>
       _send('GET', '/parent/payments/pending');
   Future<Map<String, dynamic>> paymentOrder(int id) =>
@@ -455,7 +527,11 @@ class Api {
       _send('POST', '/chat/grades/$gradeId/restore');
   Future<List<dynamic>> studentGradeHistory(int gradeId) async =>
       (await _sendRaw('GET', '/chat/grades/$gradeId/history')) as List<dynamic>;
-  Future<Map<String, dynamic>> studentGradeTrend({String? subject, String? from, String? to}) async {
+  Future<Map<String, dynamic>> studentGradeTrend({
+    String? subject,
+    String? from,
+    String? to,
+  }) async {
     final query = <String, String>{
       if (subject != null && subject.isNotEmpty) 'subject': subject,
       if (from != null && from.isNotEmpty) 'from': from,
@@ -603,15 +679,16 @@ class Api {
   }) async {
     final client = http.Client();
     try {
-      final req = http.Request('POST', Uri.parse('$apiBase/chat/stream?live=true'))
-        ..headers['Content-Type'] = 'application/json'
-        ..headers['Authorization'] = 'Bearer ${_token ?? ''}'
-        ..body = jsonEncode({
-          'conversation_id': conversationId,
-          'content': content,
-          if (teacherId != null) 'teacher_id': teacherId,
-          if (retryMessageId != null) 'retry_message_id': retryMessageId,
-        });
+      final req =
+          http.Request('POST', Uri.parse('$apiBase/chat/stream?live=true'))
+            ..headers['Content-Type'] = 'application/json'
+            ..headers['Authorization'] = 'Bearer ${_token ?? ''}'
+            ..body = jsonEncode({
+              'conversation_id': conversationId,
+              'content': content,
+              if (teacherId != null) 'teacher_id': teacherId,
+              if (retryMessageId != null) 'retry_message_id': retryMessageId,
+            });
       final resp = await client.send(req);
       if (resp.statusCode >= 400) {
         final body = await resp.stream.bytesToString();

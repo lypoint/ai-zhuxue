@@ -1,7 +1,7 @@
 import json
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -19,7 +19,31 @@ router = APIRouter(tags=["payments"])
 class OrderInput(BaseModel):
     kind: Literal["subscription", "seat_add"]
     count: int = Field(default=1, ge=1, le=20, strict=True)
+    target_seat_count: int | None = Field(default=None, ge=1, le=1000, strict=True)
     idempotency_key: str = Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9_-]+$")
+
+
+@router.get("/parent/billing/catalog")
+def billing_catalog(channel: Literal["wechat", "appstore", "googleplay"] = "wechat",
+                    seat_count: int = Query(default=1, ge=1, le=1000),
+                    guardian: Guardian = Depends(current_guardian),
+                    db: Session = Depends(get_db)):
+    from ..services.subscription import get_pricing_config, monthly_price_cents, yuan
+    cfg = get_pricing_config(db)
+    from ..services import store_billing
+    try:
+        mapping = store_billing.products(channel) if channel != "wechat" else {}
+    except store_billing.StoreError as error:
+        raise HTTPException(503, str(error)) from None
+    seats_list = sorted({seat_count, 10, 100}) if channel == "wechat" else sorted(
+        int(code.removeprefix("family_monthly_")) for code in mapping)
+    return {"channel": channel, "pricing_version": cfg.version, "currency": "CNY",
+            "billing_period": "month", "items": [{
+                "product_code": f"family_monthly_{seats}", "seat_count": seats,
+                "product_id": mapping.get(f"family_monthly_{seats}"),
+                "amount_cents": monthly_price_cents(cfg, seats),
+                "amount": yuan(monthly_price_cents(cfg, seats))}
+                for seats in seats_list]}
 
 
 @router.post("/parent/payments/orders")
@@ -29,7 +53,7 @@ async def create_order(body: OrderInput, guardian: Guardian = Depends(current_gu
         raise HTTPException(422, "订阅续费 count 必须为 1")
     try:
         return await payment_orders.create(guardian.family_id, body.kind, body.count,
-                                           body.idempotency_key, db)
+                                           body.idempotency_key, db, body.target_seat_count)
     except PaymentError as error:
         raise HTTPException(503, str(error)) from None
 
@@ -69,7 +93,8 @@ async def prepare_payment(order_id: int, guardian: Guardian = Depends(current_gu
             await payment_orders.reconcile(order, db)
         return await payment_orders.create(guardian.family_id, order.kind,
                                            json.loads(order.price_snapshot).get("count", 1),
-                                           order.idempotency_key, db)
+                                           order.idempotency_key, db,
+                                           json.loads(order.price_snapshot).get("requested_target_seat_count"))
     except PaymentError as error:
         raise HTTPException(503, str(error)) from None
 
