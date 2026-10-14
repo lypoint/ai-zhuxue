@@ -485,3 +485,52 @@ class RewardAgreement(TimestampMixin, Base):
     request_id: Mapped[str] = mapped_column(String(64))
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     __table_args__ = (UniqueConstraint("student_id", "request_id"),)
+
+
+class StoreAccount(TimestampMixin, Base):
+    __tablename__ = "store_accounts"
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), primary_key=True)
+    account_token: Mapped[str] = mapped_column(String(36), unique=True)
+
+
+class StoreSubscription(TimestampMixin, Base):
+    __tablename__ = "store_subscriptions"
+    __table_args__ = (UniqueConstraint("channel", "chain_key", name="uq_store_chain"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), index=True)
+    channel: Mapped[str] = mapped_column(String(20))
+    chain_key: Mapped[str] = mapped_column(String(64))  # original transaction ID / SHA256(token)
+    linked_chain: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    encrypted_token: Mapped[str] = mapped_column(Text, default="")
+    product_id: Mapped[str] = mapped_column(String(200))
+    seat_count: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    state: Mapped[str] = mapped_column(String(40))
+    auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
+    checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class StoreEvent(TimestampMixin, Base):
+    __tablename__ = "store_events"
+    event_key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    channel: Mapped[str] = mapped_column(String(20))
+    encrypted_reference: Mapped[str] = mapped_column(Text)
+    processed: Mapped[bool] = mapped_column(Boolean, default=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    next_attempt_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class StoreTransaction(TimestampMixin, Base):
+    __tablename__ = "store_transactions"
+    __table_args__ = (UniqueConstraint("channel", "transaction_id", name="uq_store_transaction"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), index=True)
+    channel: Mapped[str] = mapped_column(String(20))
+    transaction_id: Mapped[str] = mapped_column(String(100))
+    chain_key: Mapped[str] = mapped_column(String(64))
+    product_id: Mapped[str] = mapped_column(String(200))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    state: Mapped[str] = mapped_column(String(40))
+    # Store-reported prices only; not added to legacy CNY cash totals.
+    price_milliunits: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(3), nullable=True)

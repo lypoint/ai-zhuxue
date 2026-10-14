@@ -10,7 +10,7 @@
 - **家长可见性**：全部对话/逐条消息/围栏判定流水只读可查，支持内容搜索、学习摘要；审查导出和孩子注销已有 API，家长 App 操作入口待补。
 - **时长管控**：App 前台心跳累计、每日上限、家长自定义禁用时段；摘要无心跳时回退估算，Web 后台标签页计时待校准。
 - **安全优先流式**：默认先全文复核、通过后回放——复核拦截的内容在回放前替换；显式 `live=true` 或关闭安全优先配置时实时输出，已送达内容无法撤回。
-- **订阅骨架**：注册开可配置试用 → 到期额度控制 → CMS 赠送/统计；开发与测试支持模拟续费，生产续费及购买名额返回 503，真实支付待接入。
+- **渠道订阅**：微信单次月订阅、App Store / Google Play 自动续订；统一名额档位，商店验单与通知更新权益，各渠道包隔离支付 SDK。发布前须配置商店商品、凭据和签名。
 - **CMS 管理后台**：运营看板、LLM 分组热切换、家庭标签路由、RBAC（super/admin/support）、会员赠送/扣除全留痕。
 - **Web 端**：仅聊天（绑定/流式/Markdown/KaTeX/会话抽屉），范围冻结。
 
@@ -49,20 +49,22 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 配置经环境变量注入（复制 `.env.example` 为 `.env`）：`FENCE_MODE=llm` 配 `GLM_API_KEY`/`OPENROUTER_API_KEY` 启用 LLM 分类；默认 `heuristic` 规则模式（无 Key 可跑）。
 
-**Flutter 双端**（`app/` 下三个包：共享库 `app_core` + 学生端 `app_student` + 家长端 `app_parent`）：
+**Flutter 双端**：`app_core` 与 `app_parent` 是共享库；家长端有三个独立渠道入口。
 
 ```bash
 # 学生端
 cd app/app_student
 flutter pub get
-flutter run   # 需要真机/模拟器；家长端同理在 app/app_parent
+flutter run   # 需要真机/模拟器
 
-# 家长端
-cd app/app_parent
+# 家长端国内 Android（iOS 使用 app_parent_appstore，Google Play 使用 app_parent_googleplay）
+cd app/app_parent_wechat
 flutter pub get
 flutter run
 # 默认连接 https://api.gker.net；本地调试：--dart-define=API_BASE=http://<host>:8100
 ```
+
+渠道商品、验单密钥、打包命令与验收步骤见 [渠道订阅接入](docs/store-subscriptions.md)。
 
 **Docker 部署**：
 

@@ -910,7 +910,7 @@ def subscription_status(guardian: Guardian = Depends(current_guardian), db: Sess
 @router.post("/subscription/pay")
 def subscription_pay(body: dict | None = None,
                      guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
-    """模拟支付成功（生产替换为微信/支付宝回调）。续费 30 天。"""
+    """开发环境购买完整月度档位，不累加有效期。"""
     if settings.env == "prod" or settings.payment_mode == "wechat":
         raise HTTPException(503, "支付服务尚未接入，暂不支持在线续费")
     from ..services import subscription
@@ -927,68 +927,18 @@ def subscription_pay(body: dict | None = None,
 
 @router.post("/subscription/seats")
 def add_subscription_seat(body: dict, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
-    """增加孩子名额；按当前周期剩余天数折算，幂等键避免重复扣款。"""
+    """升级家庭月度档位，核验后立即增加名额。仅开发/测试环境。"""
     if settings.env == "prod" or settings.payment_mode == "wechat":
         raise HTTPException(503, "支付服务尚未接入，暂不支持购买孩子名额")
-    import json
-    from ..services.subscription import _config_cents, get_pricing_config, get_status, to_cents, yuan
-    try:
-        count = int(body.get("count", 1))
-    except (TypeError, ValueError):
-        raise HTTPException(422, "count 必须为整数")
-    if count < 1 or count > 20:
-        raise HTTPException(422, "count 须在 1-20 之间")
-    key = (body.get("idempotency_key") or "").strip()
-    if not key:
-        raise HTTPException(422, "idempotency_key required")
-    db.query(Family).filter_by(id=guardian.family_id).with_for_update().first()
-    existing = db.query(SubscriptionOrder).filter_by(idempotency_key=key).first()
-    if existing:
-        if existing.family_id != guardian.family_id:
-            raise HTTPException(409, "idempotency_key 已被其他家庭使用")
-        return {"ok": True, "order_id": existing.id,
-                "amount": existing.amount,
-                "amount_cents": int(existing.amount_cents or to_cents(existing.amount)),
-                **get_status(guardian.family_id, db)}
-    sub = (db.query(Subscription).filter_by(family_id=guardian.family_id)
-           .with_for_update().first())
-    if not sub:
-        from ..services.subscription import ensure_subscription
-        sub = ensure_subscription(guardian.family_id, db)
-    cfg = get_pricing_config(db)
-    _, seat_cents = _config_cents(cfg)
-    import datetime as dt
-    now = dt.datetime.utcnow()
-    expires = sub.expires_at.replace(tzinfo=None) if sub.expires_at.tzinfo else sub.expires_at
-    remaining_days = max(0.0, (expires - now).total_seconds() / 86400)
-    prorate = min(1.0, remaining_days / 30.0) if remaining_days > 0 else 1.0
-    from decimal import Decimal, ROUND_HALF_UP
-    amount_cents = int((Decimal(count * seat_cents) * Decimal(str(prorate)))
-                       .quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-    amount = yuan(amount_cents)
-    sub.seat_count = int(sub.seat_count or 1) + count
-    sub.paid_amount_cents = int(sub.paid_amount_cents or 0) + amount_cents
-    sub.paid_amount = yuan(sub.paid_amount_cents)
-    order = SubscriptionOrder(family_id=guardian.family_id, kind="seat_add", amount=amount,
-                              amount_cents=amount_cents,
-                              status="paid", idempotency_key=key,
-                              price_snapshot=json.dumps({"additional_seat_price": yuan(seat_cents),
-                                                          "additional_seat_price_cents": seat_cents,
-                                                          "count": count, "proration": round(prorate, 6)}))
-    db.add(order)
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        existing = db.query(SubscriptionOrder).filter_by(idempotency_key=key).first()
-        if existing and existing.family_id == guardian.family_id:
-            return {"ok": True, "order_id": existing.id,
-                    "amount": existing.amount,
-                    "amount_cents": int(existing.amount_cents or to_cents(existing.amount)),
-                    **get_status(guardian.family_id, db)}
-        raise HTTPException(409, "订单提交冲突，请使用新的幂等键重试")
-    return {"ok": True, "order_id": order.id, "amount": amount,
-            "amount_cents": amount_cents, **get_status(guardian.family_id, db)}
+    from ..services.subscription import mock_pay
+    count = body.get("count", 1)
+    if type(count) is not int or not 1 <= count <= 20:
+        raise HTTPException(422, "count 须为 1-20 之间的整数")
+    key = body.get("idempotency_key")
+    if not isinstance(key, str) or not key.strip() or len(key) > 100:
+        raise HTTPException(422, "idempotency_key 须为 1-100 字符")
+    return {"ok": True, **mock_pay(guardian.family_id, db, key.strip(), kind="seat_add", count=count,
+                                  target_seat_count=body.get("target_seat_count"))}
 
 
 # ---------- 家长通知（P0 安全闭环：安全告警不可关闭） ----------

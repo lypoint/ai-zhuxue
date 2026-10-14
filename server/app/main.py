@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import pathlib
 import re
@@ -6,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .api import admin, auth, bind, chat, parent, learning, payments
+from .api import admin, auth, bind, chat, parent, learning, payments, store_payments
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
@@ -24,7 +25,15 @@ async def lifespan(_: FastAPI):
         from alembic.config import Config
         cfg = Config(str(pathlib.Path(__file__).resolve().parents[1] / "alembic.ini"))
         command.upgrade(cfg, "head")              # 生产启动即迁移到最新
-    yield
+    from .services.store_billing import reconcile_forever
+    task = asyncio.create_task(reconcile_forever()) if settings.env != "test" else None
+    try:
+        yield
+    finally:
+        if task:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
 
 
 app = FastAPI(title="ai-zhuxue API", version="0.1.0", lifespan=lifespan)
@@ -40,6 +49,7 @@ app.include_router(bind.router)
 app.include_router(chat.router)
 app.include_router(parent.router)
 app.include_router(payments.router)
+app.include_router(store_payments.router)
 app.include_router(learning.router)
 app.include_router(admin.router)
 

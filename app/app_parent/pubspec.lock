@@ -175,14 +175,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  fluwx:
-    dependency: "direct main"
-    description:
-      name: fluwx
-      sha256: "9bac596b34f37b08fd4cae0d0e1e205d0dc395dbec4200c588eed9b4b446f69f"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "5.7.2"
   gpt_markdown:
     dependency: "direct main"
     description:

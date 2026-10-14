@@ -28,3 +28,9 @@ app/ios/Flutter/ephemeral
 .DS_Store
 .idea/
 .vscode/
+
+# Private store credentials
+server/store-keys/
+**/android/key.properties
+*.jks
+*.keystore

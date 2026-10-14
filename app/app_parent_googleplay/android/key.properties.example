@@ -1,0 +1,4 @@
+storeFile=/absolute/path/parent-googleplay.jks
+storePassword=REPLACE
+keyAlias=parent-googleplay
+keyPassword=REPLACE

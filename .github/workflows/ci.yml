@@ -27,14 +27,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: [app_core, app_student, app_parent]
+        package: [app_core, app_student, app_parent, parent_store, app_parent_wechat, app_parent_appstore, app_parent_googleplay]
     defaults:
       run:
         working-directory: app/${{ matrix.package }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable }
+        with: { channel: stable, flutter-version: "${{ matrix.package == 'app_parent_googleplay' && '3.38.10' || '3.32.8' }}" }
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test
+      - run: |
+          if [ -d test ]; then flutter test --dart-define=WECHAT_APP_ID=wx_test_app; fi
+      - if: matrix.package == 'app_parent_wechat' || matrix.package == 'app_parent_googleplay'
+        run: python ../../scripts/build_parent.py ${{ matrix.package == 'app_parent_wechat' && 'wechat' || 'googleplay' }} --check
+
+  store-ios:
+    runs-on: macos-14
+    defaults: { run: { working-directory: app/app_parent_appstore } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, flutter-version: "3.32.8" }
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter build ios --debug --no-codesign
+      - run: python ../../scripts/build_parent.py appstore --check --artifact build/ios/iphoneos/Runner.app

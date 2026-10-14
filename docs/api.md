@@ -279,7 +279,15 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 ### POST /parent/subscription/pay — 续费（骨架期 mock）
 
 仅开发/测试环境支持模拟支付。生产环境在真实支付通道接入前返回 `503`，不生成订单、不变更订阅；`POST /parent/subscription/seats` 购买孩子名额同样返回 `503`。真实支付接入后应由经过验签的支付回调确认订单并发放权益。
-从当前到期时间（或现在，取较晚者）顺延 30 天，累计实付。生产替换为微信/支付宝支付回调（需商户资质，外部依赖）。
+按当前名额档位购买一个自然月；有效付费订阅重复购买同档位返回 `409`，不累加时长。试用期内可开通；既有更晚到期时间保留。正式微信购买走 `/parent/payments/orders`，核验支付后生效。
+
+### GET /parent/billing/catalog — 统一月度档位定价
+
+参数 `channel=wechat|appstore|googleplay`，`seat_count` 为目标名额（1-1000）。各渠道返回相同的 `currency=CNY`、`billing_period=month`、`pricing_version` 和 `items`，每项含 `product_code`、`seat_count`、`amount_cents`、`amount`。默认价格为 ¥66 + (名额数 - 1) × ¥33/月；10 名额固定 ¥300/月，100 名额固定 ¥3000/月，优先于默认公式，不随 CMS 基础价变化。目录返回所选档位以及 10、100 两个套餐，去重后按名额排序。该接口提供统一目标月价，商店 product ID 及实际售价需在商店控制台配置、由 SDK 查询。
+
+`kind=seat_add` 可传 `target_seat_count`（1-1000，必须大于当前总名额），表示购买升级后的总名额，而非增加的数量；此时 `count` 只能为默认值 1。重试必须保留同一目标档位，`prepare` 自动恢复已保存的目标。
+
+新订单价格快照标记 `monthly_tier_v1`；订单响应新增 `billing_rule`、`target_seat_count`、`product_code`、`billing_period`、`currency`。订阅状态新增 `can_purchase_subscription`、`has_pending_payment`、`product_code`、`billing_period`、`currency`。
 
 ## 通知 `/parent/notifications`（P0 安全闭环）
 
@@ -334,7 +342,7 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 ### 订阅与 CMS
 
 - `GET /parent/subscription`：返回 `seat_count`、`used_seats`、基础价、增量价、免费期和 `free_teacher_count`；各老师的免费次数由 LLM 分组决定。
-- `POST /parent/subscription/seats`：按当前周期剩余天数折算并立即增加孩子名额，必须携带幂等键。
+- `POST /parent/subscription/seats`：仅开发/测试环境：全额购买升级后档位的月订阅并立即增加孩子名额，必须携带幂等键；例如 1 名额升级至 2 名额收费 ¥99，不按天补差，也不抵扣已付费用。新周期按一个自然月计算，保留既有更晚到期时间但不相加。正式微信购买使用 `kind=seat_add` 的支付订单。
 - `GET/POST /admin/pricing-config`：super 读取/修改基础价、增量价、试用天数；旧的到期免费次数字段保留兼容，实际额度在 LLM 分组中配置。
 - `POST /admin/users`、`PATCH /admin/users/{id}`：super 创建和调整 `super/admin/support` 账号。
 
@@ -357,3 +365,16 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 - 今日用量、摘要与心跳按同一本地日界，周统计从本地周一开始。评估每种类型按家庭每天最多生成 10 次，本地午夜重置，命中缓存不占生成次数。
 - 新生成学业与身心评估标记 `model=rules-v2`，缓存版本包含规则修订和时区；历史快照保留原版本。成绩按考试日期落在所选范围内才参与学业判断。
 - 身心提示先区分一般教育/翻译/文学讨论、否定表达和个人求助；混合内容保留个人风险线索，仅命中的消息作为证据。规则仍可能误判，须结合沟通核实，不是医疗诊断。
+
+
+## 商店订阅接口
+
+家长端按渠道调用 `/parent/billing/catalog`（wechat/appstore/googleplay）；商店商品由 STORE_PRODUCTS_JSON 明确注册，业务月价与微信一致。
+
+- `GET /parent/billing/account`：稳定家庭账号 token。
+- `POST /parent/billing/purchase`：channel、product_code，返回商品 ID、账号 token；Google 升级包含原订阅 token。
+- `POST /parent/billing/verify`：channel、reference（Apple 交易号 / Google purchase token），权威验单后返回家庭订阅状态。
+- `POST /payments/appstore/notify`：验签的 Apple V2 通知。
+- `POST /payments/googleplay/notify`：经 Google OIDC 认证的 Pub/Sub RTDN。
+
+新订阅必须先登录家庭并绑定购买；恢复交易不能迁给其他家庭。商店到期时间、退款与宽限期由商店决定；订阅状态增加 auto_renew 字段。客户端 SDK 回调不能发放权益。服务端来源与交易记录独立存储，不与国内累计收款混算。配置、即时升级与错误恢复详见 [渠道订阅接入](store-subscriptions.md)。
