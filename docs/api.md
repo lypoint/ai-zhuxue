@@ -378,3 +378,9 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 - `POST /payments/googleplay/notify`：经 Google OIDC 认证的 Pub/Sub RTDN。
 
 新订阅必须先登录家庭并绑定购买；恢复交易不能迁给其他家庭。商店到期时间、退款与宽限期由商店决定；订阅状态增加 auto_renew 字段。客户端 SDK 回调不能发放权益。服务端来源与交易记录独立存储，不与国内累计收款混算。配置、即时升级与错误恢复详见 [渠道订阅接入](store-subscriptions.md)。
+
+## 聊天语种
+
+`POST /chat` 与 `POST /chat/stream` 请求体支持 `locale=zh-Hans|zh-Hant|en|ja|ko|de|es`；默认 `zh-Hans` 兼容旧客户端，地区标签如 `zh-CN`、`zh-TW`、`en-US` 会归一。未支持的语种返回 `422`。服务端按该语种设置老师回复的系统指令，输入拒绝及输出安全复核替代话术也使用同一语种。历史内容与教学引用保持原文，切换语种影响后续请求。
+
+客户端同时发送 `Accept-Language`，目前老师回复以请求体 `locale` 为准。界面文案、通知和错误显示的本地化由客户端离线词典负责，响应中的内部状态枚举保持不变。详见 [多语言说明](localization.md)。

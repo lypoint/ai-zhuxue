@@ -85,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _makingCode = true);
     try {
       final data = await Api.I.createBindCode();
-      _showBindCode(data['code'] as String, '学生端绑定码');
+      _showBindCode(data['code'] as String, tr("学生端绑定码"));
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('网络连接失败，请稍后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("网络连接失败，请稍后重试"))));
       }
     } finally {
       if (mounted) setState(() => _makingCode = false);
@@ -113,12 +113,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _addStudent() async {
     if (_addingStudent) return;
-    final ctrl = TextEditingController(text: '我的孩子');
+    final ctrl = TextEditingController(text: tr("我的孩子"));
     var gradeBand = '8-12';
     final form = await showDialog<Map<String, String>>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('添加孩子'),
+        title: Text(tr("添加孩子")),
         content: StatefulBuilder(
           builder: (ctx, setDialogState) => Column(
             mainAxisSize: MainAxisSize.min,
@@ -127,16 +127,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 controller: ctrl,
                 autofocus: true,
                 maxLength: 50,
-                decoration: const InputDecoration(labelText: '昵称'),
+                decoration: InputDecoration(labelText: tr("昵称")),
               ),
               DropdownButtonFormField<String>(
                 // ignore: deprecated_member_use
                 value: gradeBand,
-                decoration: const InputDecoration(labelText: '学段'),
-                items: const [
-                  DropdownMenuItem(value: '8-12', child: Text('8-12 岁')),
-                  DropdownMenuItem(value: '12-16', child: Text('12-16 岁')),
-                  DropdownMenuItem(value: '16-18', child: Text('16-18 岁')),
+                decoration: InputDecoration(labelText: tr("学段")),
+                items: [
+                  DropdownMenuItem(value: '8-12', child: Text(tr("8-12 岁"))),
+                  DropdownMenuItem(value: '12-16', child: Text(tr("12-16 岁"))),
+                  DropdownMenuItem(value: '16-18', child: Text(tr("16-18 岁"))),
                 ],
                 onChanged: (value) {
                   if (value != null) setDialogState(() => gradeBand = value);
@@ -148,14 +148,14 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, {
               'name': ctrl.text.trim(),
               'gradeBand': gradeBand,
             }),
-            child: const Text('继续'),
+            child: Text(tr("继续")),
           ),
         ],
       ),
@@ -166,20 +166,20 @@ class _HomeScreenState extends State<HomeScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请输入孩子昵称')));
+      ).showSnackBar(SnackBar(content: Text(tr("请输入孩子昵称"))));
       return;
     }
     setState(() => _addingStudent = true);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在添加孩子…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在添加孩子…")), duration: Duration(seconds: 30)),
     );
     try {
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
-      _showBindCode(data['bind_code'] as String, '$name 的绑定码');
+      _showBindCode(data['bind_code'] as String, tr("{0} 的绑定码", [name]));
       _refresh();
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -188,18 +188,18 @@ class _HomeScreenState extends State<HomeScreen> {
         final add = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('需要增加孩子名额'),
-            content: const Text(
-              '当前订阅没有可用名额。可选择更高名额的月订阅档位，支付与验单确认后立即生效，金额及续订周期以支付确认页为准。',
+            title: Text(tr("需要增加孩子名额")),
+            content: Text(
+              tr("当前订阅没有可用名额。可选择更高名额的月订阅档位，支付与验单确认后立即生效，金额及续订周期以支付确认页为准。"),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('取消'),
+                child: Text(tr("取消")),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('增加名额'),
+                child: Text(tr("增加名额")),
               ),
             ],
           ),
@@ -211,9 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(
-          const SnackBar(content: Text('添加孩子失败，请检查网络后重试')),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(tr("添加孩子失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _addingStudent = false);
@@ -225,8 +223,8 @@ class _HomeScreenState extends State<HomeScreen> {
     var seatAdded = false;
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(
-        content: Text('正在增加名额并添加孩子…'),
+      SnackBar(
+        content: Text(tr("正在增加名额并添加孩子…")),
         duration: Duration(seconds: 30),
       ),
     );
@@ -239,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final data = await Api.I.createStudent(name, gradeBand: gradeBand);
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
-      _showBindCode(data['bind_code'] as String, '$name 的绑定码');
+      _showBindCode(data['bind_code'] as String, tr("{0} 的绑定码", [name]));
       _refresh();
     } on ApiException catch (e) {
       if (mounted) {
@@ -247,7 +245,9 @@ class _HomeScreenState extends State<HomeScreen> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              seatAdded ? '名额已增加，但添加孩子失败：${e.message}。请重试添加孩子' : e.message,
+              seatAdded
+                  ? tr("名额已增加，但添加孩子失败：{0}。请重试添加孩子", [e.message])
+                  : e.message,
             ),
           ),
         );
@@ -259,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              seatAdded ? '名额已增加，但添加孩子失败。请重试添加孩子' : '操作失败，请检查网络后重试',
+              seatAdded ? tr("名额已增加，但添加孩子失败。请重试添加孩子") : tr("操作失败，请检查网络后重试"),
             ),
           ),
         );
@@ -275,7 +275,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final data = await Api.I.rebindCode(studentId);
       if (!mounted) return;
-      _showBindCode(data['code'] as String, '${student['nickname']} 的绑定码');
+      _showBindCode(
+        data['code'] as String,
+        tr("{0} 的绑定码", [student['nickname']]),
+      );
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -286,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('生成绑定码失败，请稍后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("生成绑定码失败，请稍后重试"))));
       }
     } finally {
       if (mounted) setState(() => _bindingStudentId = null);
@@ -300,11 +303,11 @@ class _HomeScreenState extends State<HomeScreen> {
     } on ApiException catch (e) {
       // token 失效（401）已由根级全局兜底（ParentApp._onSessionExpired）处理；
       _overviewLoadFailed = true;
-      if (e.status != 401) _showLoadError('加载失败：${e.message}');
+      if (e.status != 401) _showLoadError(tr("加载失败：{0}", [e.message]));
       return;
     } catch (_) {
       _overviewLoadFailed = true;
-      _showLoadError('加载失败，请检查网络后重试');
+      _showLoadError(tr("加载失败，请检查网络后重试"));
       return;
     }
     Map<String, dynamic>? sub;
@@ -313,12 +316,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       sub = await Api.I.subscription();
     } catch (_) {
-      unavailable.add('订阅信息');
+      unavailable.add(tr("订阅信息"));
     }
     try {
       unread = (await Api.I.notifications(unreadOnly: true))['unread'] as int;
     } catch (_) {
-      unavailable.add('通知数量');
+      unavailable.add(tr("通知数量"));
     }
     if (!mounted) return;
     _overviewLoadFailed = false;
@@ -332,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _unread = unread;
       _partialLoadError = unavailable.isEmpty
           ? null
-          : '${unavailable.join('、')}暂不可用，请刷新重试';
+          : tr("{0}暂不可用，请刷新重试", [unavailable.join('、')]);
       _showOnboarding = showGuide;
     });
   }
@@ -343,19 +346,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在刷新…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在刷新…")), duration: Duration(seconds: 30)),
     );
     try {
       await _refresh();
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
       if (!_overviewLoadFailed && _partialLoadError == null) {
-        messenger.showSnackBar(const SnackBar(content: Text('已刷新')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("已刷新"))));
       }
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('刷新失败，请稍后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("刷新失败，请稍后重试"))));
       }
     } finally {
       if (mounted) setState(() => _manualRefreshing = false);
@@ -379,16 +382,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('修改昵称'),
+        title: Text(tr("修改昵称")),
         content: TextField(controller: ctrl, autofocus: true, maxLength: 50),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: const Text('保存'),
+            child: Text(tr("保存")),
           ),
         ],
       ),
@@ -397,14 +400,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请输入孩子昵称')));
+      ).showSnackBar(SnackBar(content: Text(tr("请输入孩子昵称"))));
       return;
     }
     await _updateStudent(
       s['id'] as int,
       () => Api.I.setStudentNickname(s['id'] as int, name),
-      '正在保存昵称…',
-      '已改名为 $name',
+      tr("正在保存昵称…"),
+      tr("已改名为 {0}", [name]),
     );
   }
 
@@ -412,8 +415,8 @@ class _HomeScreenState extends State<HomeScreen> {
     await _updateStudent(
       s['id'] as int,
       () => Api.I.setGradeBand(s['id'] as int, band),
-      '正在更新学段…',
-      '学段已设为 $band，将影响分龄内容与讲解风格',
+      tr("正在更新学段…"),
+      tr("学段已设为 {0}，将影响分龄内容与讲解风格", [band]),
     );
   }
 
@@ -444,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("操作失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _updatingStudentId = null);
@@ -467,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final paid = await BillingScope.of(context).purchase(context, kind);
       if (!mounted) return false;
       if (paid == true) {
-        messenger.showSnackBar(const SnackBar(content: Text('支付成功，权益已生效')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("支付成功，权益已生效"))));
       }
       await _refresh();
       return paid;
@@ -477,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (_) {
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text('暂时无法创建订单，请稍后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("暂时无法创建订单，请稍后重试"))));
       }
     } finally {
       if (mounted) setState(() => _billingPending = false);
@@ -490,16 +493,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('退出登录？'),
-        content: const Text('退出后需要重新登录，孩子的学习记录会保留。'),
+        title: Text(tr("退出登录？")),
+        content: Text(tr("退出后需要重新登录，孩子的学习记录会保留。")),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('退出'),
+            child: Text(tr("退出")),
           ),
         ],
       ),
@@ -508,7 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _loggingOut = true);
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在退出登录…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在退出登录…")), duration: Duration(seconds: 30)),
     );
     try {
       await Api.I.logout();
@@ -520,7 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('退出失败，请重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("退出失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _loggingOut = false);
@@ -529,6 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final family = _family;
     if (family == null) {
       return Scaffold(
@@ -538,14 +542,14 @@ class _HomeScreenState extends State<HomeScreen> {
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(_loadError!),
+                    Text(trMessage(_loadError!)),
                     const SizedBox(height: 12),
                     FilledButton(
                       onPressed: () {
                         setState(() => _loadError = null);
                         _refresh();
                       },
-                      child: const Text('重试'),
+                      child: Text(tr("重试")),
                     ),
                   ],
                 ),
@@ -563,9 +567,13 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(['家庭', '守护', '我的'][_selectedTab]),
+            Text([tr("家庭"), tr("守护"), tr("我的")][_selectedTab]),
             Text(
-              ['关注孩子的每一步成长', '为孩子建立健康的学习习惯', '家庭账户与服务'][_selectedTab],
+              [
+                tr("关注孩子的每一步成长"),
+                tr("为孩子建立健康的学习习惯"),
+                tr("家庭账户与服务"),
+              ][_selectedTab],
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -575,8 +583,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          const LanguageButton(),
           IconButton(
-            tooltip: '刷新首页',
+            tooltip: tr("刷新首页"),
             onPressed: _manualRefreshing ? null : _manualRefresh,
             icon: _manualRefreshing
                 ? const SizedBox(
@@ -598,7 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _refresh();
                 },
                 icon: const Icon(Icons.notifications_none),
-                tooltip: '通知',
+                tooltip: tr("通知"),
               ),
               if (_unread > 0)
                 Positioned(
@@ -616,21 +625,21 @@ class _HomeScreenState extends State<HomeScreen> {
           FocusManager.instance.primaryFocus?.unfocus();
           setState(() => _selectedTab = value);
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: '家庭',
+            label: tr("家庭"),
           ),
           NavigationDestination(
             icon: Icon(Icons.shield_outlined),
             selectedIcon: Icon(Icons.shield),
-            label: '守护',
+            label: tr("守护"),
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
-            label: '我的',
+            label: tr("我的"),
           ),
         ],
       ),
@@ -640,10 +649,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: Text(_partialLoadError!),
+                title: Text(trMessage(_partialLoadError!)),
                 trailing: TextButton(
                   onPressed: _manualRefreshing ? null : _manualRefresh,
-                  child: const Text('重试'),
+                  child: Text(tr("重试")),
                 ),
               ),
             ),
@@ -658,7 +667,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                   _guardianCard(family, students.length),
                   const SizedBox(height: 24),
-                  _sectionTitle('孩子的学习', '每一次探索，都值得被看见'),
+                  _sectionTitle(tr("孩子的学习"), tr("每一次探索，都值得被看见")),
                   const SizedBox(height: 12),
                   if (students.isEmpty)
                     Card(
@@ -668,10 +677,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             const Icon(Icons.school_outlined, size: 40),
                             const SizedBox(height: 12),
-                            const Text('添加孩子，开启学习陪伴'),
+                            Text(tr("添加孩子，开启学习陪伴")),
                             const SizedBox(height: 8),
-                            const Text(
-                              '添加后可生成绑定码，连接孩子的学生端。',
+                            Text(
+                              tr("添加后可生成绑定码，连接孩子的学生端。"),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -703,7 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ]),
                 _tabList('guard', [
-                  _sectionTitle('学习守护', '设置适合家庭的使用规则，保存后生效'),
+                  _sectionTitle(tr("学习守护"), tr("设置适合家庭的使用规则，保存后生效")),
                   const SizedBox(height: 16),
                   ManagementSettingsCard(
                     settings: family['settings'] as Map<String, dynamic>,
@@ -712,8 +721,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ]),
                 _tabList('account', [
                   _sectionTitle(
-                    '家庭账户',
-                    family['guardian']['nickname'] as String? ?? '家长',
+                    tr("家庭账户"),
+                    family['guardian']['nickname'] as String? ?? tr("家长"),
                   ),
                   const SizedBox(height: 16),
                   if (sub != null)
@@ -731,11 +740,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.verified_user_outlined),
-                      title: const Text('实名认证'),
+                      title: Text(tr("实名认证")),
                       subtitle: Text(
                         family['guardian']['identity_verified'] == true
-                            ? '已认证'
-                            : '未认证 · 不影响功能使用',
+                            ? tr("已认证")
+                            : tr("未认证 · 不影响功能使用"),
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () async {
@@ -757,8 +766,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.qr_code_2),
-                      title: Text(_makingCode ? '生成中…' : '学生端绑定码'),
-                      subtitle: const Text('连接学生端设备'),
+                      title: Text(_makingCode ? tr("生成中…") : tr("学生端绑定码")),
+                      subtitle: Text(tr("连接学生端设备")),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: _makingCode ? null : _makeCode,
                     ),
@@ -767,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   OutlinedButton.icon(
                     onPressed: _loggingOut ? null : _logout,
                     icon: const Icon(Icons.logout),
-                    label: Text(_loggingOut ? '正在退出…' : '退出登录'),
+                    label: Text(_loggingOut ? tr("正在退出…") : tr("退出登录")),
                   ),
                 ]),
               ],
@@ -830,13 +839,15 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '🎉 欢迎使用 AI 助学',
+            Text(
+              tr("🎉 欢迎使用 AI 助学"),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
-            const Text(
-              '三步开始：\n1. 添加孩子，获取绑定码\n2. 在孩子设备安装学生端，输入绑定码\n3. 在「守护」设置休息时段与每日上限',
+            Text(
+              tr(
+                "三步开始：\n1. 添加孩子，获取绑定码\n2. 在孩子设备安装学生端，输入绑定码\n3. 在「守护」设置休息时段与每日上限",
+              ),
               style: TextStyle(fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 8),
@@ -844,7 +855,7 @@ class _HomeScreenState extends State<HomeScreen> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => setState(() => _showOnboarding = false),
-                child: const Text('我知道了'),
+                child: Text(tr("我知道了")),
               ),
             ),
           ],
@@ -875,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '陪伴成长 · 从每一天开始',
+                  tr("陪伴成长 · 从每一天开始"),
                   style: TextStyle(color: scheme.primary, fontSize: 12),
                 ),
               ),
@@ -883,7 +894,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 18),
           Text(
-            '${family['guardian']['nickname'] ?? '家长'}，你好',
+            tr("{0}，你好", [family['guardian']['nickname'] ?? tr("家长")]),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: scheme.onPrimaryContainer,
               fontWeight: FontWeight.w700,
@@ -891,7 +902,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '一起陪伴 $childCount 个孩子的学习与成长',
+            tr("一起陪伴 {0} 个孩子的学习与成长", [childCount]),
             style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5),
           ),
           const SizedBox(height: 20),
@@ -899,7 +910,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
             onPressed: _addingStudent ? null : _addStudent,
             icon: const Icon(Icons.add_rounded, size: 20),
-            label: Text(_addingStudent ? '添加中…' : '添加孩子'),
+            label: Text(_addingStudent ? tr("添加中…") : tr("添加孩子")),
           ),
         ],
       ),
@@ -931,7 +942,7 @@ class _BindCodeDialogState extends State<BindCodeDialog> {
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
-      messenger.showSnackBar(const SnackBar(content: Text('绑定码已复制')));
+      messenger.showSnackBar(SnackBar(content: Text(tr("绑定码已复制"))));
     } catch (_) {
       if (mounted) setState(() => _copyFailed = true);
     } finally {
@@ -940,41 +951,44 @@ class _BindCodeDialogState extends State<BindCodeDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.label),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text('10 分钟内在学生端扫描，或输入以下绑定码'),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: 180,
-          height: 180,
-          child: QrImageView(data: widget.code, size: 180),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          widget.code,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 24, letterSpacing: 4),
-        ),
-        if (_copyFailed)
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Text('复制失败，请重试', style: TextStyle(color: Colors.red)),
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return AlertDialog(
+      title: Text(widget.label),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(tr("10 分钟内在学生端扫描，或输入以下绑定码")),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: 180,
+            height: 180,
+            child: QrImageView(data: widget.code, size: 180),
           ),
+          const SizedBox(height: 8),
+          Text(
+            widget.code,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 24, letterSpacing: 4),
+          ),
+          if (_copyFailed)
+            Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(tr("复制失败，请重试"), style: TextStyle(color: Colors.red)),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton.icon(
+          onPressed: _copying ? null : _copy,
+          icon: const Icon(Icons.copy),
+          label: Text(_copying ? tr("复制中…") : tr("复制绑定码")),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(tr("完成")),
+        ),
       ],
-    ),
-    actions: [
-      TextButton.icon(
-        onPressed: _copying ? null : _copy,
-        icon: const Icon(Icons.copy),
-        label: Text(_copying ? '复制中…' : '复制绑定码'),
-      ),
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('完成'),
-      ),
-    ],
-  );
+    );
+  }
 }

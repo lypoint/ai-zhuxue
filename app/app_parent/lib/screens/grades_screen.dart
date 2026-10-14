@@ -34,12 +34,13 @@ class _GradesScreenState extends State<GradesScreen> {
     _load();
   }
 
-  List<String> get _subjects => (_grades ?? const [])
-      .map((g) => (g as Map<String, dynamic>)['subject'] as String?)
-      .whereType<String>()
-      .toSet()
-      .toList()
-    ..sort();
+  List<String> get _subjects =>
+      (_grades ?? const [])
+          .map((g) => (g as Map<String, dynamic>)['subject'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList()
+        ..sort();
 
   Future<void> _load() async {
     try {
@@ -71,11 +72,11 @@ class _GradesScreenState extends State<GradesScreen> {
       }
     } catch (_) {
       if (mounted && _grades == null) {
-        setState(() => _loadError = '学习记录加载失败，请检查网络后重试');
+        setState(() => _loadError = tr("学习记录加载失败，请检查网络后重试"));
       } else if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('刷新失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("刷新失败，请检查网络后重试"))));
       }
     }
   }
@@ -89,7 +90,7 @@ class _GradesScreenState extends State<GradesScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在处理成绩…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在处理成绩…")), duration: Duration(seconds: 30)),
     );
     try {
       await action();
@@ -106,7 +107,7 @@ class _GradesScreenState extends State<GradesScreen> {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("操作失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _changingGrade = false);
@@ -133,7 +134,7 @@ class _GradesScreenState extends State<GradesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('趋势加载失败，请重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("趋势加载失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _trendLoading = false);
@@ -176,7 +177,7 @@ class _GradesScreenState extends State<GradesScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(current == null ? '新增成绩' : '编辑成绩'),
+        title: Text(current == null ? tr("新增成绩") : tr("编辑成绩")),
         content: SizedBox(
           width: 360,
           child: SingleChildScrollView(
@@ -197,11 +198,11 @@ class _GradesScreenState extends State<GradesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('保存'),
+            child: Text(tr("保存")),
           ),
         ],
       ),
@@ -228,19 +229,19 @@ class _GradesScreenState extends State<GradesScreen> {
           body,
         );
       }
-    }, current == null ? '成绩已添加' : '成绩已保存');
+    }, current == null ? tr("成绩已添加") : tr("成绩已保存"));
   }
 
   String _label(String key) =>
-      const {
-        'subject': '科目',
-        'title': '考试/作业名称',
-        'exam_date': '日期 YYYY-MM-DD',
-        'score': '得分',
-        'max_score': '满分',
-        'term': '学期',
-        'grade_type': '成绩类型（exam/homework/quiz/other）',
-        'note': '备注',
+      {
+        'subject': tr("科目"),
+        'title': tr("考试/作业名称"),
+        'exam_date': tr("日期 YYYY-MM-DD"),
+        'score': tr("得分"),
+        'max_score': tr("满分"),
+        'term': tr("学期"),
+        'grade_type': tr("成绩类型（exam/homework/quiz/other）"),
+        'note': tr("备注"),
       }[key] ??
       key;
 
@@ -258,24 +259,24 @@ class _GradesScreenState extends State<GradesScreen> {
             if (grade['deleted'] != true)
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('编辑'),
+                title: Text(tr("编辑")),
                 onTap: () => Navigator.pop(ctx, 'edit'),
               ),
             ListTile(
               leading: const Icon(Icons.history),
-              title: const Text('查看修改历史'),
+              title: Text(tr("查看修改历史")),
               onTap: () => Navigator.pop(ctx, 'history'),
             ),
             if (grade['deleted'] == true)
               ListTile(
                 leading: const Icon(Icons.restore),
-                title: const Text('恢复成绩'),
+                title: Text(tr("恢复成绩")),
                 onTap: () => Navigator.pop(ctx, 'restore'),
               )
             else
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('逻辑删除'),
+                title: Text(tr("逻辑删除")),
                 onTap: () => Navigator.pop(ctx, 'delete'),
               ),
           ],
@@ -294,7 +295,7 @@ class _GradesScreenState extends State<GradesScreen> {
         showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('成绩修改历史'),
+            title: Text(tr("成绩修改历史")),
             content: SizedBox(
               width: 360,
               child: ListView(
@@ -316,7 +317,7 @@ class _GradesScreenState extends State<GradesScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('关闭'),
+                child: Text(tr("关闭")),
               ),
             ],
           ),
@@ -329,22 +330,22 @@ class _GradesScreenState extends State<GradesScreen> {
         }
       } catch (_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('修改历史加载失败，请重试')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(tr("修改历史加载失败，请重试"))));
         }
       }
     }
     if (action == 'delete') {
       await _changeGrade(
         () => Api.I.deleteParentGrade(widget.studentId, grade['id'] as int),
-        '成绩已删除，可在“显示已删除成绩”中恢复',
+        tr("成绩已删除，可在“显示已删除成绩”中恢复"),
       );
     }
     if (action == 'restore') {
       await _changeGrade(
         () => Api.I.restoreParentGrade(widget.studentId, grade['id'] as int),
-        '成绩已恢复',
+        tr("成绩已恢复"),
       );
     }
   }
@@ -372,7 +373,7 @@ class _GradesScreenState extends State<GradesScreen> {
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('学业评估已更新')));
+        ).showSnackBar(SnackBar(content: Text(tr("学业评估已更新"))));
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -384,7 +385,7 @@ class _GradesScreenState extends State<GradesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('学业评估失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("学业评估失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _assessmentAction = null);
@@ -406,7 +407,7 @@ class _GradesScreenState extends State<GradesScreen> {
         setState(() => _wellbeingRows = [result, ...?_wellbeingRows]);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('身心状态关注结果已更新')));
+        ).showSnackBar(SnackBar(content: Text(tr("身心状态关注结果已更新"))));
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -418,7 +419,7 @@ class _GradesScreenState extends State<GradesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('生成失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("生成失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _assessmentAction = null);
@@ -426,113 +427,117 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text('${widget.studentName} · 学习记录'),
-      actions: [
-        IconButton(
-          onPressed: _assessmentAction == null ? _assess : null,
-          icon: _assessmentAction == 'academic'
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.insights),
-          tooltip: '学业评估',
-        ),
-        IconButton(
-          onPressed: _assessmentAction == null ? _runWellbeing : null,
-          icon: _assessmentAction == 'wellbeing'
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.favorite_border),
-          tooltip: '身心状态关注',
-        ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _changingGrade ? null : () => _addOrEdit(),
-      child: const Icon(Icons.add),
-    ),
-    body: _grades == null
-        ? Center(
-            child: _loadError == null
-                ? const CircularProgressIndicator()
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_loadError!),
-                      TextButton(
-                        onPressed: () {
-                          setState(() => _loadError = null);
-                          _load();
-                        },
-                        child: const Text('重试'),
-                      ),
-                    ],
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(tr("{0} · 学习记录", [widget.studentName])),
+        actions: [
+          IconButton(
+            onPressed: _assessmentAction == null ? _assess : null,
+            icon: _assessmentAction == 'academic'
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.insights),
+            tooltip: tr("学业评估"),
+          ),
+          IconButton(
+            onPressed: _assessmentAction == null ? _runWellbeing : null,
+            icon: _assessmentAction == 'wellbeing'
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.favorite_border),
+            tooltip: tr("身心状态关注"),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _changingGrade ? null : () => _addOrEdit(),
+        child: const Icon(Icons.add),
+      ),
+      body: _grades == null
+          ? Center(
+              child: _loadError == null
+                  ? const CircularProgressIndicator()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(trMessage(_loadError!)),
+                        TextButton(
+                          onPressed: () {
+                            setState(() => _loadError = null);
+                            _load();
+                          },
+                          child: Text(tr("重试")),
+                        ),
+                      ],
+                    ),
+            )
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                padding: const EdgeInsets.all(12),
+                children: [
+                  if (_trendLoading)
+                    const LinearProgressIndicator(minHeight: 2),
+                  GradeTrendCard(
+                    trend: _trend,
+                    subjects: _subjects,
+                    subject: _subject,
+                    rangeDays: _rangeDays,
+                    onChanged: (subject, rangeDays) {
+                      setState(() {
+                        _subject = subject;
+                        _rangeDays = rangeDays;
+                      });
+                      _loadTrend();
+                    },
                   ),
-          )
-        : RefreshIndicator(
-            onRefresh: _load,
-            child: ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                if (_trendLoading) const LinearProgressIndicator(minHeight: 2),
-                GradeTrendCard(
-                  trend: _trend,
-                  subjects: _subjects,
-                  subject: _subject,
-                  rangeDays: _rangeDays,
-                  onChanged: (subject, rangeDays) {
-                    setState(() {
-                      _subject = subject;
-                      _rangeDays = rangeDays;
-                    });
-                    _loadTrend();
-                  },
-                ),
-                if (_assessment != null) _assessmentCard(),
-                if (_academicRows != null) _academicHistoryCard(),
-                if (_wellbeingRows != null)
-                  ..._wellbeingRows!.map(_wellbeingCard),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('显示已删除成绩'),
-                  value: _includeDeleted,
-                  onChanged: (value) {
-                    setState(() {
-                      _includeDeleted = value;
-                      _grades = null;
-                      _loadError = null;
-                    });
-                    _load();
-                  },
-                ),
-                if (_grades!.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(28),
-                    child: Center(child: Text('还没有成绩记录')),
+                  if (_assessment != null) _assessmentCard(),
+                  if (_academicRows != null) _academicHistoryCard(),
+                  if (_wellbeingRows != null)
+                    ..._wellbeingRows!.map(_wellbeingCard),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(tr("显示已删除成绩")),
+                    value: _includeDeleted,
+                    onChanged: (value) {
+                      setState(() {
+                        _includeDeleted = value;
+                        _grades = null;
+                        _loadError = null;
+                      });
+                      _load();
+                    },
                   ),
-                ..._grades!.map(
-                  (g) => Card(
-                    child: ListTile(
-                      onTap: () => _showGrade(g as Map<String, dynamic>),
-                      title: Text('${g['subject']} · ${g['title'] ?? ''}'),
-                      subtitle: Text(
-                        '${g['exam_date']} · ${g['term'] ?? ''} · ${g['grade_type'] ?? 'exam'}',
+                  if (_grades!.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.all(28),
+                      child: Center(child: Text(tr("还没有成绩记录"))),
+                    ),
+                  ..._grades!.map(
+                    (g) => Card(
+                      child: ListTile(
+                        onTap: () => _showGrade(g as Map<String, dynamic>),
+                        title: Text('${g['subject']} · ${g['title'] ?? ''}'),
+                        subtitle: Text(
+                          '${g['exam_date']} · ${g['term'] ?? ''} · ${g['grade_type'] ?? 'exam'}',
+                        ),
+                        trailing: Text('${g['score']}/${g['max_score']}'),
                       ),
-                      trailing: Text('${g['score']}/${g['max_score']}'),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-  );
+    );
+  }
 
   Widget _assessmentCard() {
     final subjects = (_assessment?['subjects'] as List?) ?? const [];
@@ -540,7 +545,10 @@ class _GradesScreenState extends State<GradesScreen> {
         .map((s) {
           final item = s as Map;
           final ids = (item['evidence_conversation_ids'] as List?) ?? const [];
-          return '${item['subject']}（会话 ${ids.join('、')}）';
+          return tr("{0}（会话 {1}）", [
+            trMessage(item['subject'].toString()),
+            ids.join(', '),
+          ]);
         })
         .join('、');
     return Card(
@@ -550,12 +558,20 @@ class _GradesScreenState extends State<GradesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('学业评估', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text((_assessment?['recommendations'] as List?)?.join('、') ?? '暂无建议'),
+            Text(tr("学业评估"), style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              (_assessment?['recommendations'] as List?)
+                      ?.map((value) => trMessage(value.toString()))
+                      .join(', ') ??
+                  tr("暂无建议"),
+            ),
             if (evidence.isNotEmpty)
-              Text('证据会话：$evidence', style: const TextStyle(fontSize: 12)),
-            const Text(
-              'AI 辅助估计，不是学校成绩或诊断。',
+              Text(
+                tr("证据会话：{0}", [evidence]),
+                style: const TextStyle(fontSize: 12),
+              ),
+            Text(
+              tr("AI 辅助估计，不是学校成绩或诊断。"),
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
@@ -566,7 +582,7 @@ class _GradesScreenState extends State<GradesScreen> {
 
   Widget _academicHistoryCard() => Card(
     child: ExpansionTile(
-      title: Text('学业评估历史（${_academicRows!.length}）'),
+      title: Text(tr("学业评估历史（{0}）", [_academicRows!.length])),
       children: _academicRows!.map((raw) {
         final item = raw as Map<String, dynamic>;
         final period = item['period'] as Map<String, dynamic>?;
@@ -574,12 +590,18 @@ class _GradesScreenState extends State<GradesScreen> {
         return ListTile(
           dense: true,
           title: Text(
-            '${period?['from'] ?? '-'} 至 ${period?['to'] ?? '-'} · ${item['model'] ?? ''}',
+            tr("{0} 至 {1} · {2}", [
+              period?['from'] ?? '-',
+              period?['to'] ?? '-',
+              item['model'] ?? '',
+            ]),
           ),
           subtitle: Text(
             subjects.isEmpty
-                ? '暂无识别到学科主题'
-                : subjects.map((s) => (s as Map)['subject']).join('、'),
+                ? tr("暂无识别到学科主题")
+                : subjects
+                      .map((s) => trMessage((s as Map)['subject'].toString()))
+                      .join('、'),
           ),
         );
       }).toList(),
@@ -592,11 +614,13 @@ class _GradesScreenState extends State<GradesScreen> {
     return Card(
       child: ExpansionTile(
         leading: const Icon(Icons.favorite, color: Colors.orange),
-        title: const Text('身心状态关注提示'),
+        title: Text(tr("身心状态关注提示")),
         subtitle: Text(
           signals.isEmpty
-              ? '暂未发现需要关注的表达'
-              : signals.map((s) => (s as Map)['summary']).join('、'),
+              ? tr("暂未发现需要关注的表达")
+              : signals
+                    .map((s) => trMessage((s as Map)['summary'].toString()))
+                    .join('、'),
         ),
         trailing: item['ack_status'] == 'pending'
             ? PopupMenuButton<String>(
@@ -607,9 +631,9 @@ class _GradesScreenState extends State<GradesScreen> {
                   );
                   _load();
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'acknowledged', child: Text('已关注')),
-                  PopupMenuItem(value: 'not_needed', child: Text('无需跟进')),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'acknowledged', child: Text(tr("已关注"))),
+                  PopupMenuItem(value: 'not_needed', child: Text(tr("无需跟进"))),
                 ],
               )
             : const Icon(Icons.check),
@@ -617,7 +641,11 @@ class _GradesScreenState extends State<GradesScreen> {
           ListTile(
             dense: true,
             title: Text(
-              '时间范围：${period?['from'] ?? '-'} 至 ${period?['to'] ?? '-'} · 模型 ${item['model'] ?? '-'}',
+              tr("时间范围：{0} 至 {1} · 模型 {2}", [
+                period?['from'] ?? '-',
+                period?['to'] ?? '-',
+                item['model'] ?? '-',
+              ]),
             ),
           ),
           ...signals.expand((raw) {
@@ -629,7 +657,7 @@ class _GradesScreenState extends State<GradesScreen> {
                 title: Text('${signal['type']} · ${signal['level']}'),
                 subtitle: Text(
                   evidence.isEmpty
-                      ? '暂无原文证据'
+                      ? tr("暂无原文证据")
                       : evidence
                             .map((e) => (e as Map)['excerpt'] ?? '')
                             .join('\n'),
@@ -641,8 +669,7 @@ class _GradesScreenState extends State<GradesScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Text(
-              item['disclaimer'] as String? ??
-                  '这不是医疗诊断，请结合实际沟通判断。',
+              item['disclaimer'] as String? ?? tr("这不是医疗诊断，请结合实际沟通判断。"),
               style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ),

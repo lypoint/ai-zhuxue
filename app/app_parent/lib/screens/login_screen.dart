@@ -46,8 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     if (kIsWeb ||
         !(defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.android ||
-          Platform.operatingSystem == 'ohos') ||
+            defaultTargetPlatform == TargetPlatform.android ||
+            Platform.operatingSystem == 'ohos') ||
         _sdkKey.isEmpty) {
       setState(() => _smsMode = true);
       return;
@@ -69,21 +69,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginOneTap() async {
     if (_loading) return;
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final token = await _oneTap
           .invokeMethod<String>('getLoginToken')
           .timeout(const Duration(seconds: 15));
-      if (token == null || token.isEmpty) throw PlatformException(code: 'NO_TOKEN');
-      await Api.I.guardianOneTap(token, nickname: _name.text.trim().isEmpty ? '家长' : _name.text.trim());
+      if (token == null || token.isEmpty) {
+        throw PlatformException(code: 'NO_TOKEN');
+      }
+      await Api.I.guardianOneTap(
+        token,
+        nickname: _name.text.trim().isEmpty ? tr("家长") : _name.text.trim(),
+      );
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     } on ApiException catch (e) {
       if (mounted) setState(() => _smsMode = true);
       _showError(e.message);
     } catch (_) {
       if (mounted) setState(() => _smsMode = true);
-      _showError('本机号码验证未完成，已切换短信验证码登录');
+      _showError(tr("本机号码验证未完成，已切换短信验证码登录"));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -92,10 +102,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _sendSms() async {
     final phone = _phone.text.trim();
     if (!RegExp(r'^1\d{10}$').hasMatch(phone)) {
-      _showError('手机号格式不正确');
+      _showError(tr("手机号格式不正确"));
       return;
     }
-    setState(() { _sendingSms = true; _error = null; });
+    setState(() {
+      _sendingSms = true;
+      _error = null;
+    });
     try {
       await Api.I.sendGuardianSms(phone);
       if (!mounted) return;
@@ -109,23 +122,25 @@ class _LoginScreenState extends State<LoginScreen> {
           setState(() => _countdown--);
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('验证码已发送，5 分钟内有效')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr("验证码已发送，5 分钟内有效"))));
     } on ApiException catch (e) {
       _showError(e.message);
     } catch (_) {
-      _showError('连接失败，请检查网络或稍后重试');
+      _showError(tr("连接失败，请检查网络或稍后重试"));
     } finally {
       if (mounted) setState(() => _sendingSms = false);
     }
   }
 
   String? _validate() {
-    if (_name.text.trim().isEmpty) return '请填写家长称呼';
+    if (_name.text.trim().isEmpty) return tr("请填写家长称呼");
     if (!RegExp(r'^1\d{10}$').hasMatch(_phone.text.trim())) {
-      return '手机号格式不正确';
+      return tr("手机号格式不正确");
     }
     if (!RegExp(r'^\d{4,6}$').hasMatch(_sms.text.trim())) {
-      return '请输入 4 至 6 位短信验证码';
+      return tr("请输入 4 至 6 位短信验证码");
     }
     return null;
   }
@@ -159,14 +174,14 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     } on ApiException catch (e) {
-      final message = switch (e.message) {
-        'invalid sms code' => '短信验证码错误，请检查后重试',
-        _ when e.status == 422 => '提交的信息格式不正确，请检查后重试',
+      final message = switch (e.rawMessage) {
+        'invalid sms code' => tr("短信验证码错误，请检查后重试"),
+        _ when e.status == 422 => tr("提交的信息格式不正确，请检查后重试"),
         _ => e.message,
       };
       _showError(message);
     } catch (_) {
-      _showError('连接失败，请检查网络或稍后重试');
+      _showError(tr("连接失败，请检查网络或稍后重试"));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -174,8 +189,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('家长端')),
+      appBar: AppBar(title: Text(tr("家长端")), actions: const [LanguageButton()]),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -210,20 +226,23 @@ class _LoginScreenState extends State<LoginScreen> {
             'assets/logo-mark.png',
             package: 'app_core',
             color: Colors.white,
-            semanticLabel: 'AI 助学',
+            semanticLabel: tr("AI 助学"),
           ),
         ),
         const SizedBox(width: 14),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '建立受保护的学习空间',
+                tr("建立受保护的学习空间"),
                 style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
               ),
               SizedBox(height: 4),
-              Text('登录后即可生成绑定码连接孩子设备', style: TextStyle(color: Colors.black54)),
+              Text(
+                tr("登录后即可生成绑定码连接孩子设备"),
+                style: TextStyle(color: Colors.black54),
+              ),
             ],
           ),
         ),
@@ -239,15 +258,15 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _smsMode ? '短信验证码登录' : '本机号码一键登录',
+              _smsMode ? tr("短信验证码登录") : tr("本机号码一键登录"),
               style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 14),
             if (_smsMode) ...[
               TextField(
                 controller: _name,
-                decoration: const InputDecoration(
-                  labelText: '家长称呼',
+                decoration: InputDecoration(
+                  labelText: tr("家长称呼"),
                   prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
@@ -257,12 +276,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.phone,
                 maxLength: 11,
                 decoration: InputDecoration(
-                  labelText: '手机号',
+                  labelText: tr("手机号"),
                   counterText: '',
                   prefixIcon: const Icon(Icons.phone_outlined),
                   suffixIcon: TextButton(
                     onPressed: _sendingSms || _countdown > 0 ? null : _sendSms,
-                    child: Text(_sendingSms ? '发送中…' : _countdown > 0 ? '${_countdown}s' : '发送验证码'),
+                    child: Text(
+                      _sendingSms
+                          ? tr("发送中…")
+                          : _countdown > 0
+                          ? '${_countdown}s'
+                          : tr("发送验证码"),
+                    ),
                   ),
                 ),
               ),
@@ -272,8 +297,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.number,
                 autofillHints: const [AutofillHints.oneTimeCode],
                 maxLength: 6,
-                decoration: const InputDecoration(
-                  labelText: '短信验证码',
+                decoration: InputDecoration(
+                  labelText: tr("短信验证码"),
                   counterText: '',
                   prefixIcon: Icon(Icons.verified_user_outlined),
                 ),
@@ -282,21 +307,24 @@ class _LoginScreenState extends State<LoginScreen> {
               FilledButton.icon(
                 onPressed: _loading ? null : _register,
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(_loading ? '登录中…' : '登录或注册'),
+                label: Text(_loading ? tr("登录中…") : tr("登录或注册")),
               ),
               if (_oneTapAvailable)
-                TextButton(onPressed: _loading ? null : _loginOneTap, child: const Text('本机号码一键登录')),
+                TextButton(
+                  onPressed: _loading ? null : _loginOneTap,
+                  child: Text(tr("本机号码一键登录")),
+                ),
             ] else ...[
-              const Text('即将使用当前设备的手机号完成验证。请在运营商授权页确认。'),
+              Text(tr("即将使用当前设备的手机号完成验证。请在运营商授权页确认。")),
               const SizedBox(height: 18),
               FilledButton.icon(
                 onPressed: _loading || !_oneTapAvailable ? null : _loginOneTap,
                 icon: const Icon(Icons.phone_iphone),
-                label: Text(_loading ? '正在验证…' : '本机号码一键登录'),
+                label: Text(_loading ? tr("正在验证…") : tr("本机号码一键登录")),
               ),
               TextButton(
                 onPressed: () => setState(() => _smsMode = true),
-                child: const Text('使用短信验证码'),
+                child: Text(tr("使用短信验证码")),
               ),
             ],
             if (_error != null)

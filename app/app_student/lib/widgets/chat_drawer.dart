@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 
 /// 会话抽屉（Codex 风格）：新对话、搜索、快捷入口，以及历史会话列表。
@@ -40,6 +41,7 @@ class ChatDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Drawer(
       child: SafeArea(
         child: Column(
@@ -49,13 +51,13 @@ class ChatDrawer extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    '我的学习空间',
+                  Text(
+                    tr("我的学习空间"),
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '每一个问题，都是进步的开始',
+                    tr("每一个问题，都是进步的开始"),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 12,
@@ -65,7 +67,7 @@ class ChatDrawer extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: onNewChat,
                     icon: const Icon(Icons.add),
-                    label: const Text('新对话'),
+                    label: Text(tr("新对话")),
                   ),
                 ],
               ),
@@ -79,10 +81,10 @@ class ChatDrawer extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(8, 8, 8, 12),
                             child: Text(
-                              '学习工具',
+                              tr("学习工具"),
                               style: TextStyle(fontWeight: FontWeight.w700),
                             ),
                           ),
@@ -94,20 +96,24 @@ class ChatDrawer extends StatelessWidget {
                                 for (final item in [
                                   (
                                     Icons.insights_outlined,
-                                    '我的学习统计',
+                                    tr("我的学习统计"),
                                     onOpenStats,
                                   ),
                                   (
                                     Icons.bookmark_border_rounded,
-                                    '我的收藏',
+                                    tr("我的收藏"),
                                     onOpenFavorites,
                                   ),
                                   (
                                     Icons.school_outlined,
-                                    '成绩与学习评估',
+                                    tr("成绩与学习评估"),
                                     onOpenGrades,
                                   ),
-                                  (Icons.flag_outlined, '我的举报', onOpenReports),
+                                  (
+                                    Icons.flag_outlined,
+                                    tr("我的举报"),
+                                    onOpenReports,
+                                  ),
                                 ])
                                   SizedBox(
                                     width: (constraints.maxWidth - 8) / 2,
@@ -145,18 +151,18 @@ class ChatDrawer extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.fromLTRB(8, 24, 8, 12),
                             child: Text(
-                              '聊天记录',
+                              tr("聊天记录"),
                               style: TextStyle(fontWeight: FontWeight.w700),
                             ),
                           ),
                           TextField(
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               isDense: true,
                               prefixIcon: Icon(Icons.search, size: 20),
-                              hintText: '搜索会话',
+                              hintText: tr("搜索会话"),
                             ),
                             onChanged: (v) => onSearchChanged(v.trim()),
                           ),
@@ -173,7 +179,7 @@ class ChatDrawer extends StatelessWidget {
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.logout, size: 20),
-              title: const Text('退出登录'),
+              title: Text(tr("退出登录")),
               onTap: onLogout,
             ),
           ],
@@ -196,7 +202,7 @@ class ChatDrawer extends StatelessWidget {
                       Text(sessionsError!),
                       TextButton(
                         onPressed: onRetrySessions,
-                        child: const Text('重试'),
+                        child: Text(tr("重试")),
                       ),
                     ],
                   ),
@@ -208,7 +214,9 @@ class ChatDrawer extends StatelessWidget {
       return SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: Text(search.isEmpty ? '还没有聊天记录' : '没有匹配的会话')),
+          child: Center(
+            child: Text(search.isEmpty ? tr("还没有聊天记录") : tr("没有匹配的会话")),
+          ),
         ),
       );
     }
@@ -243,7 +251,7 @@ class ChatDrawer extends StatelessWidget {
             ],
           ),
           subtitle: Text(
-            '${c['message_count']} 条 · $lastTime',
+            tr("{0} 条 · {1}", [c['message_count'], lastTime]),
             style: const TextStyle(fontSize: 11),
           ),
           onTap: () => onOpenSession(c['conversation_id'] as int),

@@ -1,6 +1,8 @@
 """学生端聊天：围栏判定 → 分级处置 → LLM 生成 → 全量落库（家长审查的数据基础）。"""
 import datetime as dt
 
+from ..services import language
+
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -302,7 +304,8 @@ def heartbeat(body: dict, student: Student = Depends(current_student), db: Sessi
 
 
 async def _output_check(content: str, student: Student, conversation_id: int,
-                        message: Message, db: Session, group_id: int | None = None) -> Message:
+                        message: Message, db: Session, group_id: int | None = None,
+                        locale: str = "zh-Hans") -> Message:
     """生成侧内容安全复核（TC260 生成合格率保障）：assistant 全文再过一次分类器。
 
     sensitive → 落库替换为拒绝话术（流式已送达部分无法撤回，家长端与存储保持一致）
@@ -316,7 +319,7 @@ async def _output_check(content: str, student: Student, conversation_id: int,
                       message_id=message.id, stage="output_check",
                       decision="reject", category="sensitive",
                       confidence=verdict["confidence"], detail="output re-check"))
-    message.content = fence.REJECT_REPLY
+    message.content = language.safe_reply(locale)
     message.fence_action = "reject"
     _notify(student.family_id, "security", "⚠️ 系统复核拦截了一条AI回复",
             "AI 回复经安全复核被替换为引导话术，建议关注孩子最近的提问内容。",
@@ -375,7 +378,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     if verdict["decision"] == "reject":
         user_msg.fence_action = "reject"
         reply = Message(conversation_id=conv.id, role="assistant",
-                        content=verdict.get("reply", fence.REJECT_REPLY), fence_action="reject")
+                        content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
         db.add(reply)
         # 与 /chat/stream 对齐：拒绝时发家长通知（敏感=security，其余=fence）。
         _notify(student.family_id,
@@ -394,7 +397,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     history = (db.query(Message).filter(Message.conversation_id == conv.id)
                .order_by(Message.id.desc()).limit(12).all())
     history.reverse()
-    messages = [{"role": "system", "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(student.grade_band, "8-12岁"))}]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(student.grade_band, "8-12岁")) + "\n" + language.instruction(body.locale)}]
     for m in history[:-1]:
         if m.role == "assistant" and not m.content.strip():
             continue
@@ -439,7 +442,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     db.commit()
     try:
         reply = await _output_check(result["content"], student, conv.id, reply, db,
-                                    conv.teacher_group_id)
+                                    conv.teacher_group_id, locale=body.locale)
     except Exception:
         db.rollback()
         db.delete(db.get(Message, reply.id))
@@ -557,7 +560,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                "category": verdict["category"]})
             if fence_action == "reject":
                 reply = Message(conversation_id=conv_id, role="assistant",
-                                content=verdict.get("reply", fence.REJECT_REPLY), fence_action="reject")
+                                content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
                 sdb.add(reply)
                 sdb.get(Message, user_msg_id).fence_action = fence_action
                 sdb.commit()
@@ -569,7 +572,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                        .order_by(Message.id.desc()).limit(12).all())
             history.reverse()
             messages = [{"role": "system",
-                         "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(grade_band, "8-12岁"))}]
+                         "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(grade_band, "8-12岁")) + "\n" + language.instruction(body.locale)}]
             for m in history[:-1]:
                 if m.role == "assistant" and not m.content.strip():
                     continue
@@ -606,7 +609,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                     check = await fence.evaluate(content, grade_band, family_id,
                                                  group_id=teacher_group_id)
                     if check["category"] == "sensitive":
-                        content = fence.REJECT_REPLY
+                        content = language.safe_reply(body.locale)
                         out_action = "reject"
                         sdb.add(FenceEvent(student_id=student_id, conversation_id=conv_id,
                                            stage="output_check", decision="reject",

@@ -1,3 +1,4 @@
+import 'language.dart';
 import 'package:flutter/material.dart';
 
 /// 成绩趋势折线图：不同满分制已由服务端统一换算为百分比再比较（规格 7.2）。
@@ -9,12 +10,13 @@ class TrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     if (points.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(
+        child: Center(
           child: Text(
-            '暂无趋势数据',
+            tr("暂无趋势数据"),
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),

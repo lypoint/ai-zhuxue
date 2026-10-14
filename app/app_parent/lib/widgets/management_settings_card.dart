@@ -64,8 +64,8 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
         minutes < 0 ||
         minutes > 480) {
       final message = cap == null || cap < 10 || cap > 1000
-          ? '每日对话消息上限需为 10–1000 条'
-          : '每日使用时长上限需为 0–480 分钟';
+          ? tr("每日对话消息上限需为 10–1000 条")
+          : tr("每日使用时长上限需为 0–480 分钟");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
@@ -91,14 +91,16 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('已保存')));
+      ).showSnackBar(SnackBar(content: Text(tr("已保存"))));
       widget.onSaved();
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              e.status == 422 ? '保存失败，请检查输入的设置' : '保存失败：${e.message}',
+              e.status == 422
+                  ? tr("保存失败，请检查输入的设置")
+                  : tr("保存失败：{0}", [e.message]),
             ),
           ),
         );
@@ -107,7 +109,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('保存失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("保存失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -116,29 +118,35 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _section(context, Icons.schedule_rounded, '每日使用', '合理安排对话次数与学习时长'),
+            _section(
+              context,
+              Icons.schedule_rounded,
+              tr("每日使用"),
+              tr("合理安排对话次数与学习时长"),
+            ),
             const SizedBox(height: 20),
             TextField(
               controller: _capCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: '每日对话消息上限',
-                helperText: '10–1000 条',
+              decoration: InputDecoration(
+                labelText: tr("每日对话消息上限"),
+                helperText: tr("10–1000 条"),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _minutesCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: '每日使用时长上限',
-                helperText: '0–480 分钟，0 表示不限',
+              decoration: InputDecoration(
+                labelText: tr("每日使用时长上限"),
+                helperText: tr("0–480 分钟，0 表示不限"),
                 helperMaxLines: 2,
               ),
             ),
@@ -147,13 +155,13 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
             _section(
               context,
               Icons.nights_stay_outlined,
-              '休息时段',
-              '为孩子留出充足的休息时间',
+              tr("休息时段"),
+              tr("为孩子留出充足的休息时间"),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                const Expanded(child: Text('休息时段限制')),
+                Expanded(child: Text(tr("休息时段限制"))),
                 Switch(
                   value: _quietEnabled,
                   onChanged: (v) => setState(() => _quietEnabled = v),
@@ -165,7 +173,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                 spacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text('禁用时段'),
+                  Text(tr("禁用时段")),
                   DropdownButton<int>(
                     value: _quietStart,
                     items: [
@@ -176,7 +184,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                       if (v != null) setState(() => _quietStart = v);
                     },
                   ),
-                  const Text(' 至 '),
+                  Text(tr(" 至 ")),
                   DropdownButton<int>(
                     value: _quietEnd,
                     items: [
@@ -193,26 +201,26 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
             _section(
               context,
               Icons.shield_outlined,
-              '内容与通知',
-              '设置家庭规则，及时了解学习动态',
+              tr("内容与通知"),
+              tr("设置家庭规则，及时了解学习动态"),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _forbiddenWordsCtrl,
               minLines: 3,
               maxLines: 6,
-              decoration: const InputDecoration(
-                labelText: '违禁词列表（每行一个）',
-                helperText: '包含任一词即拒绝回答，忽略英文大小写；清空后取消自定义限制',
+              decoration: InputDecoration(
+                labelText: tr("违禁词列表（每行一个）"),
+                helperText: tr("包含任一词即拒绝回答，忽略英文大小写；清空后取消自定义限制"),
                 helperMaxLines: 4,
               ),
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    '学习引导通知\n（拦截/改写类，安全告警不受此开关影响）',
+                    tr("学习引导通知\n（拦截/改写类，安全告警不受此开关影响）"),
                     style: TextStyle(fontSize: 12),
                   ),
                 ),
@@ -225,7 +233,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: _saving ? null : _save,
-              child: Text(_saving ? '保存中…' : '保存设置'),
+              child: Text(_saving ? tr("保存中…") : tr("保存设置")),
             ),
           ],
         ),

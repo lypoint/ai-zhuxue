@@ -27,7 +27,7 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
     _listener = adapter.platform.purchaseStream.listen(
       _receive,
       onError: (_) {
-        message = '商店连接失败，请重新恢复购买';
+        message = tr("商店连接失败，请重新恢复购买");
         notifyListeners();
       },
     );
@@ -50,13 +50,13 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
     for (final purchase in purchases) {
       if (purchase.status == PurchaseStatus.pending) {
         awaitingPurchase = true;
-        message = '购买待确认，商店确认后将自动核对权益';
+        message = tr("购买待确认，商店确认后将自动核对权益");
       } else if (purchase.status == PurchaseStatus.error ||
           purchase.status == PurchaseStatus.canceled) {
         awaitingPurchase = false;
         message = purchase.status == PurchaseStatus.canceled
-            ? '已取消购买'
-            : '购买未完成，请重试';
+            ? tr("已取消购买")
+            : tr("购买未完成，请重试");
       } else {
         awaitingPurchase = false;
         try {
@@ -64,7 +64,7 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
           if (reference.isEmpty) throw StateError('missing purchase reference');
           _unfinished[reference] = purchase;
         } catch (_) {
-          message = '商店交易凭据不完整，请恢复购买重试';
+          message = tr("商店交易凭据不完整，请恢复购买重试");
         }
       }
     }
@@ -83,11 +83,11 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
           }
           _unfinished.remove(entry.key);
           verifiedCount++;
-          message = '已核对商店订阅，家庭权益已更新';
+          message = tr("已核对商店订阅，家庭权益已更新");
         } on ApiException catch (error) {
           message = error.message;
         } catch (_) {
-          message = '验单暂未完成，请点击恢复购买重试';
+          message = tr("验单暂未完成，请点击恢复购买重试");
         }
         notifyListeners();
       }
@@ -100,7 +100,7 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
     try {
       await restore();
     } catch (_) {
-      message = '暂时无法恢复订阅，可在订阅管理页重试';
+      message = tr("暂时无法恢复订阅，可在订阅管理页重试");
       notifyListeners();
     }
   }
@@ -122,7 +122,7 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
       await adapter.platform.restorePurchases(
         applicationUserName: account['account_token'] as String,
       );
-      message = '已请求恢复购买，核对结果后将更新权益';
+      message = tr("已请求恢复购买，核对结果后将更新权益");
       notifyListeners();
     } finally {
       _restoring = false;
@@ -137,12 +137,12 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
     try {
       final intent = await Api.I.prepareStorePurchase(channel, code);
       if (intent['product_id'] != product.id) {
-        throw StateError('商店商品配置已变更，请刷新页面');
+        throw StateError(tr("商店商品配置已变更，请刷新页面"));
       }
       final param = await adapter.parameters(product, intent);
       awaitingPurchase = true;
       if (!await adapter.platform.buyNonConsumable(purchaseParam: param)) {
-        throw StateError('未能启动商店支付，请重试');
+        throw StateError(tr("未能启动商店支付，请重试"));
       }
     } catch (_) {
       awaitingPurchase = false;
@@ -210,7 +210,7 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
     try {
       final billing = widget.billing;
       if (!await billing.adapter.platform.isAvailable()) {
-        throw StateError('当前设备无法连接商店');
+        throw StateError(tr("当前设备无法连接商店"));
       }
       // Recover transactions before deciding whether a new purchase is allowed.
       await billing.restore();
@@ -228,7 +228,7 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
       final response = await billing.adapter.platform.queryProductDetails(
         tiers.map((t) => t['product_id'] as String).toSet(),
       );
-      if (response.error != null) throw StateError('商店商品加载失败，请稍后重试');
+      if (response.error != null) throw StateError(tr("商店商品加载失败，请稍后重试"));
       final items = <(Map<String, dynamic>, ProductDetails)>[];
       for (final tier in tiers) {
         final target = tier['seat_count'] as int;
@@ -247,7 +247,7 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
           final product = matches.single;
           if (product.currencyCode == 'CNY' &&
               (product.rawPrice * 100).round() != tier['amount_cents']) {
-            throw StateError('商店月价与统一价格不一致，请联系客服');
+            throw StateError(tr("商店月价与统一价格不一致，请联系客服"));
           }
           items.add((tier, product));
         }
@@ -265,7 +265,7 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
         setState(
           () => _error = error is StateError
               ? error.message.toString()
-              : '暂时无法加载订阅，请重试',
+              : tr("暂时无法加载订阅，请重试"),
         );
       }
     }
@@ -282,7 +282,7 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
         setState(
           () => _error = error is StateError
               ? error.message.toString()
-              : '操作未完成，请稍后重试',
+              : tr("操作未完成，请稍后重试"),
         );
       }
     } finally {
@@ -292,25 +292,26 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final billing = widget.billing;
     final disabled = _working || billing.busy;
     return Scaffold(
-      appBar: AppBar(title: const Text('家庭月订阅')),
+      appBar: AppBar(title: Text(tr("家庭月订阅"))),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text('订阅按月自动续订，名额升级在商店确认并完成验单后立即生效。升级扣款、旧订阅结算和续订时间以商店确认页面为准。'),
+          Text(tr("订阅按月自动续订，名额升级在商店确认并完成验单后立即生效。升级扣款、旧订阅结算和续订时间以商店确认页面为准。")),
           const SizedBox(height: 16),
-          if (_error != null) Text(_error!),
-          if (billing.message != null) Text(billing.message!),
+          if (_error != null) Text(trMessage(_error!)),
+          if (billing.message != null) Text(trMessage(billing.message!)),
           if (_items == null && _error == null)
             const Center(child: CircularProgressIndicator()),
           for (final (tier, product)
               in _items ?? <(Map<String, dynamic>, ProductDetails)>[])
             Card(
               child: ListTile(
-                title: Text('${tier['seat_count']} 个孩子名额'),
-                subtitle: Text('${product.price}/月 · 自动续订'),
+                title: Text(tr("{0} 个孩子名额", [tier['seat_count']])),
+                subtitle: Text(tr("{0}/月 · 自动续订", [product.price])),
                 trailing: FilledButton(
                   onPressed: disabled || !billing.canBuy
                       ? null
@@ -320,15 +321,15 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
                             tier['product_code'] as String,
                           ),
                         ),
-                  child: const Text('订阅'),
+                  child: Text(tr("订阅")),
                 ),
               ),
             ),
           if (_items != null && _items!.isEmpty)
-            const Text('暂无可购买档位，可恢复已有订阅或前往商店管理。'),
+            Text(tr("暂无可购买档位，可恢复已有订阅或前往商店管理。")),
           TextButton(
             onPressed: disabled ? null : () => _action(billing.restore),
-            child: const Text('恢复购买 / 重试验单'),
+            child: Text(tr("恢复购买 / 重试验单")),
           ),
           TextButton(
             onPressed: disabled
@@ -338,20 +339,20 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
                       billing.adapter.managementUrl,
                       mode: LaunchMode.externalApplication,
                     )) {
-                      throw StateError('无法打开订阅管理');
+                      throw StateError(tr("无法打开订阅管理"));
                     }
                   }),
-            child: const Text('管理或取消自动续订'),
+            child: Text(tr("管理或取消自动续订")),
           ),
           TextButton(
             onPressed: disabled ? null : () => _action(_load),
-            child: const Text('刷新订阅商品'),
+            child: Text(tr("刷新订阅商品")),
           ),
-          const Text('费用由当前商店账户支付；除非提前在商店取消，否则每月按所选档位自动扣款。取消后可使用至商店确认的到期时间。'),
+          Text(tr("费用由当前商店账户支付；除非提前在商店取消，否则每月按所选档位自动扣款。取消后可使用至商店确认的到期时间。")),
           const SizedBox(height: 8),
           for (final link in [
-            (const String.fromEnvironment('TERMS_URL'), '使用条款'),
-            (const String.fromEnvironment('PRIVACY_URL'), '隐私政策'),
+            (const String.fromEnvironment('TERMS_URL'), tr("使用条款")),
+            (const String.fromEnvironment('PRIVACY_URL'), tr("隐私政策")),
           ])
             if (link.$1.isNotEmpty)
               TextButton(
@@ -360,14 +361,14 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
                     Uri.parse(link.$1),
                     mode: LaunchMode.externalApplication,
                   )) {
-                    throw StateError('无法打开文档');
+                    throw StateError(tr("无法打开文档"));
                   }
                 }),
                 child: Text(link.$2),
               ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('完成，返回家庭'),
+            child: Text(tr("完成，返回家庭")),
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 
 /// 订阅状态卡（P0 商业闭环）：试用/生效/到期 + 续费按钮。
@@ -18,6 +19,7 @@ class SubscriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final active = sub['active'] == true;
     final trial = sub['plan'] == 'free_trial';
     final canPurchase =
@@ -56,20 +58,24 @@ class SubscriptionCard extends StatelessWidget {
                       Text(
                         active
                             ? (trial
-                                  ? '免费试用中 · 剩余 $days 天'
-                                  : '订阅生效中 · 剩余 $days 天')
+                                  ? tr("免费试用中 · 剩余 {0} 天", [days])
+                                  : tr("订阅生效中 · 剩余 {0} 天", [days]))
                             : (freeTeacherCount > 0
-                                  ? '订阅已到期 · 部分老师设有免费额度'
-                                  : '订阅已到期'),
+                                  ? tr("订阅已到期 · 部分老师设有免费额度")
+                                  : tr("订阅已到期")),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '孩子名额 ${sub['used_seats'] ?? 0}/${sub['seat_count'] ?? 1} · ${active
-                            ? '到期后请查看老师免费额度'
-                            : freeTeacherCount > 0
-                            ? '孩子可按各老师额度使用'
-                            : '续费后孩子即可继续学习'}',
+                        tr("孩子名额 {0}/{1} · {2}", [
+                          sub['used_seats'] ?? 0,
+                          sub['seat_count'] ?? 1,
+                          active
+                              ? tr("到期后请查看老师免费额度")
+                              : freeTeacherCount > 0
+                              ? tr("孩子可按各老师额度使用")
+                              : tr("续费后孩子即可继续学习"),
+                        ]),
                         style: TextStyle(
                           fontSize: 12,
                           height: 1.6,
@@ -78,7 +84,7 @@ class SubscriptionCard extends StatelessWidget {
                       ),
                       if (!active && freeTeacherCount > 0)
                         Text(
-                          '$freeTeacherCount 位老师设有每日免费回复，每个学生单独计次',
+                          tr("{0} 位老师设有每日免费回复，每个学生单独计次", [freeTeacherCount]),
                           style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF8B5C1C),
@@ -92,14 +98,16 @@ class SubscriptionCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               onManage == null
-                  ? '家庭月订阅 ¥${sub['monthly_price_cny'] ?? 66}/月 · 不累加有效期'
-                  : '家庭月订阅 · 价格与扣款周期见商店确认页面',
+                  ? tr("家庭月订阅 ¥{0}/月 · 不累加有效期", [
+                      sub['monthly_price_cny'] ?? 66,
+                    ])
+                  : tr("家庭月订阅 · 价格与扣款周期见商店确认页面"),
             ),
             if (active && !trial)
               Text(
                 onManage == null
-                    ? '当前订阅仍有效，可升级名额档位，到期后再续订。'
-                    : '当前订阅仍有效，可立即升级名额或管理自动续订。',
+                    ? tr("当前订阅仍有效，可升级名额档位，到期后再续订。")
+                    : tr("当前订阅仍有效，可立即升级名额或管理自动续订。"),
               ),
             const SizedBox(height: 8),
             Wrap(
@@ -117,26 +125,26 @@ class SubscriptionCard extends StatelessWidget {
                         : onPay,
                     child: Text(
                       billingPending
-                          ? '处理中…'
+                          ? tr("处理中…")
                           : hasPending
-                          ? '继续支付'
+                          ? tr("继续支付")
                           : !canPurchase
-                          ? '订阅有效'
+                          ? tr("订阅有效")
                           : trial
-                          ? '开通月订阅'
-                          : '立即续订',
+                          ? tr("开通月订阅")
+                          : tr("立即续订"),
                     ),
                   ),
                 ),
                 if (onManage != null)
                   TextButton(
                     onPressed: billingPending ? null : onManage,
-                    child: const Text('恢复购买 / 管理订阅'),
+                    child: Text(tr("恢复购买 / 管理订阅")),
                   ),
                 if (onAddSeat != null)
                   TextButton(
                     onPressed: billingPending ? null : onAddSeat,
-                    child: const Text('增加名额'),
+                    child: Text(tr("增加名额")),
                   ),
               ],
             ),

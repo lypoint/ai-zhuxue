@@ -56,12 +56,13 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _loadError = e.message);
     } catch (_) {
-      if (mounted) setState(() => _loadError = '对话加载失败，请检查网络后重试');
+      if (mounted) setState(() => _loadError = tr("对话加载失败，请检查网络后重试"));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -82,7 +83,11 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                     ),
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text('${widget.teacherName} · ${widget.title}')),
+            Expanded(
+              child: Text(
+                '${localizedTeacherName(widget.teacherName)} · ${widget.title}',
+              ),
+            ),
           ],
         ),
       ),
@@ -93,13 +98,13 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_loadError!),
+                        Text(trMessage(_loadError!)),
                         TextButton(
                           onPressed: () {
                             setState(() => _loadError = null);
                             _load();
                           },
-                          child: const Text('重试'),
+                          child: Text(tr("重试")),
                         ),
                       ],
                     ),
@@ -112,9 +117,11 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                     color: const Color(0xFFFFF4E5),
                     child: ListTile(
                       leading: const Icon(Icons.delete_outline),
-                      title: const Text('孩子已删除此会话'),
+                      title: Text(tr("孩子已删除此会话")),
                       subtitle: Text(
-                        '删除时间：${widget.studentDeletedAt ?? '未知'} · 内容仍按家庭审查规则保留',
+                        tr("删除时间：{0} · 内容仍按家庭审查规则保留", [
+                          widget.studentDeletedAt ?? tr("未知"),
+                        ]),
                       ),
                     ),
                   ),
@@ -165,11 +172,20 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
               spacing: 8,
               children: [
                 Text(
-                  '围栏：${fenceDecisionLabel[action] ?? action} · ${events.map((e) => "${fenceStageLabel[e['stage']] ?? e['stage']}/${fenceCategoryLabel[e['category']] ?? e['category']}").join(' → ')}',
+                  tr("围栏：{0} · {1}", [
+                    fenceDecisionLabel[action] ?? action,
+                    events
+                        .map(
+                          (e) =>
+                              "${fenceStageLabel[e['stage']] ?? e['stage']}/${fenceCategoryLabel[e['category']] ?? e['category']}",
+                        )
+                        .join(' → '),
+                  ]),
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                 ),
                 TextButton(
-                  onPressed: _feedbackPending.contains(m['id']) ||
+                  onPressed:
+                      _feedbackPending.contains(m['id']) ||
                           _feedbackSubmitted.contains(m['id'])
                       ? null
                       : () => _reportFalsePositive(m['id'] as int, events),
@@ -179,10 +195,10 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                   ),
                   child: Text(
                     _feedbackSubmitted.contains(m['id'])
-                        ? '已反馈'
+                        ? tr("已反馈")
                         : _feedbackPending.contains(m['id'])
-                            ? '提交中…'
-                            : '反馈误判',
+                        ? tr("提交中…")
+                        : tr("反馈误判"),
                     style: const TextStyle(fontSize: 11),
                   ),
                 ),
@@ -194,7 +210,10 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
   }
 
   Future<void> _reportFalsePositive(int messageId, List<dynamic> events) async {
-    if (_feedbackPending.contains(messageId) || _feedbackSubmitted.contains(messageId)) return;
+    if (_feedbackPending.contains(messageId) ||
+        _feedbackSubmitted.contains(messageId)) {
+      return;
+    }
     setState(() => _feedbackPending.add(messageId));
     try {
       await Api.I.submitFenceFeedback(
@@ -206,7 +225,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
       setState(() => _feedbackSubmitted.add(messageId));
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('已提交误判反馈，感谢帮助我们改进')));
+      ).showSnackBar(SnackBar(content: Text(tr("已提交误判反馈，感谢帮助我们改进"))));
     } on ApiException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -214,9 +233,9 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
       ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('反馈提交失败，请重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("反馈提交失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _feedbackPending.remove(messageId));

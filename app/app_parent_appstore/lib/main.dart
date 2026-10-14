@@ -37,6 +37,7 @@ class AppleAdapter implements StoreAdapter {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppLanguage.I.load();
   InAppPurchaseStoreKitPlatform.registerPlatform();
   final billing = StoreBilling(AppleAdapter());
   await Api.I.loadToken();

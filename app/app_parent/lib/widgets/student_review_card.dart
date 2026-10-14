@@ -26,6 +26,7 @@ class StudentReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final name = student['nickname'] as String? ?? '';
     final device = student['current_device'] as Map<String, dynamic>?;
     final actionStyle = TextButton.styleFrom(
@@ -47,7 +48,10 @@ class StudentReviewCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             subtitle: Text(
-              '${student['grade_band']} 岁 · ${device == null ? '待绑定设备' : device['name'] ?? '设备已绑定'}',
+              tr("{0} 岁 · {1}", [
+                student['grade_band'],
+                device == null ? tr("待绑定设备") : device['name'] ?? tr("设备已绑定"),
+              ]),
             ),
             trailing: Column(
               mainAxisSize: MainAxisSize.min,
@@ -59,7 +63,7 @@ class StudentReviewCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '对话',
+                  tr("对话"),
                   style: TextStyle(
                     fontSize: 11,
                     color: Theme.of(context).colorScheme.primary,
@@ -97,7 +101,7 @@ class StudentReviewCard extends StatelessWidget {
                           context,
                           width: tileWidth,
                           icon: Icons.star_border,
-                          label: '收藏',
+                          label: tr("收藏"),
                           color: const Color(0xFFA67327),
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
@@ -112,7 +116,7 @@ class StudentReviewCard extends StatelessWidget {
                           context,
                           width: tileWidth,
                           icon: Icons.auto_awesome,
-                          label: '学习奖励',
+                          label: tr("学习奖励"),
                           color: const Color(0xFF6579AF),
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
@@ -126,7 +130,7 @@ class StudentReviewCard extends StatelessWidget {
                           context,
                           width: tileWidth,
                           icon: Icons.insights,
-                          label: '成绩',
+                          label: tr("成绩"),
                           color: const Color(0xFF28786B),
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(
@@ -153,14 +157,14 @@ class StudentReviewCard extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onRebind,
                   icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: Text(bindingInProgress ? '生成中…' : '绑定设备'),
+                  label: Text(bindingInProgress ? tr("生成中…") : tr("绑定设备")),
                 ),
               ),
             ),
           ExpansionTile(
             key: PageStorageKey('student-${student['id']}-details'),
             title: Text(
-              '资料与设备',
+              tr("资料与设备"),
               style: TextStyle(
                 fontSize: 13,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -178,30 +182,30 @@ class StudentReviewCard extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('学段'),
+                      Text(tr("学段")),
                       const SizedBox(width: 8),
                       DropdownButton<String>(
                         value: student['grade_band'] as String,
                         underline: const SizedBox(),
-                        items: const [
+                        items: [
                           DropdownMenuItem(
                             value: '8-12',
                             child: Text(
-                              '8-12岁',
+                              tr("8-12岁"),
                               style: TextStyle(fontSize: 12),
                             ),
                           ),
                           DropdownMenuItem(
                             value: '12-16',
                             child: Text(
-                              '12-16岁',
+                              tr("12-16岁"),
                               style: TextStyle(fontSize: 12),
                             ),
                           ),
                           DropdownMenuItem(
                             value: '16-18',
                             child: Text(
-                              '16-18岁',
+                              tr("16-18岁"),
                               style: TextStyle(fontSize: 12),
                             ),
                           ),
@@ -219,7 +223,7 @@ class StudentReviewCard extends StatelessWidget {
                   ),
                   TextButton.icon(
                     icon: const Icon(Icons.edit, size: 20),
-                    label: const Text('改名'),
+                    label: Text(tr("改名")),
                     style: actionStyle,
                     onPressed: updatesDisabled ? null : onRename,
                   ),
@@ -229,7 +233,7 @@ class StudentReviewCard extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
                   icon: const Icon(Icons.devices_other, size: 20),
-                  label: const Text('设备'),
+                  label: Text(tr("设备")),
                   style: actionStyle,
                   onPressed: onManageDevices,
                 ),
@@ -243,10 +247,10 @@ class StudentReviewCard extends StatelessWidget {
                     icon: const Icon(Icons.qr_code_2, size: 18),
                     label: Text(
                       bindingInProgress
-                          ? '生成中…'
+                          ? tr("生成中…")
                           : device == null
-                          ? '生成绑定码'
-                          : '重新绑定设备',
+                          ? tr("生成绑定码")
+                          : tr("重新绑定设备"),
                     ),
                   ),
                 ),

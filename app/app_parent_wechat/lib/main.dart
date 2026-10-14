@@ -6,6 +6,7 @@ import 'wechat_billing.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppLanguage.I.load();
   await Api.I.loadToken();
   runApp(BillingScope(billing: WechatBilling(), child: const ParentApp()));
 }

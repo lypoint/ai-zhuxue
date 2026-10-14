@@ -23,6 +23,7 @@ class _PaymentScreenState extends State<PaymentScreen>
   bool _busy = false;
   bool _querying = false;
   bool _finished = false;
+  bool _awaitingResult = false;
   String? _message;
   int get _id => _order['order_id'] as int;
   bool get _demo => _order['payment_mode'] == 'demo';
@@ -37,11 +38,12 @@ class _PaymentScreenState extends State<PaymentScreen>
       _wechat ??= Fluwx();
       _subscriber = _wechat!.addSubscriber((response) {
         if (response is WeChatPaymentResponse) {
+          _awaitingResult = response.errCode != -2;
           if (mounted) {
             setState(
               () => _message = response.errCode == -2
-                  ? '已取消微信支付，可继续支付或关闭订单'
-                  : '正在核对支付结果…',
+                  ? tr("已取消微信支付，可继续支付或关闭订单")
+                  : tr("正在核对支付结果…"),
             );
           }
           _query();
@@ -69,9 +71,10 @@ class _PaymentScreenState extends State<PaymentScreen>
     setState(() {
       _order = order;
       if (order['status'] == 'closed') {
-        _message = '订单已关闭，请返回后重新下单';
-      } else if (order['status'] == 'pending' && _message == '正在核对支付结果…') {
-        _message = '服务端尚未确认支付，可稍后刷新结果';
+        _message = tr("订单已关闭，请返回后重新下单");
+      } else if (order['status'] == 'pending' && _awaitingResult) {
+        _awaitingResult = false;
+        _message = tr("服务端尚未确认支付，可稍后刷新结果");
       }
     });
     if (order['status'] == 'paid') {
@@ -89,7 +92,7 @@ class _PaymentScreenState extends State<PaymentScreen>
     } on ApiException catch (error) {
       if (mounted) setState(() => _message = error.message);
     } catch (_) {
-      if (mounted) setState(() => _message = '暂时无法查询，请稍后刷新支付结果');
+      if (mounted) setState(() => _message = tr("暂时无法查询，请稍后刷新支付结果"));
     } finally {
       _querying = false;
     }
@@ -120,13 +123,13 @@ class _PaymentScreenState extends State<PaymentScreen>
         defaultValue: 'https://demo.example.com/wechat/',
       );
       if (appId.contains('demo') || params['appId'] != appId) {
-        throw StateError('客户端微信 AppID 未配置或与服务端不一致');
+        throw StateError(tr("客户端微信 AppID 未配置或与服务端不一致"));
       }
       if (!await _wechat!.registerApi(appId: appId, universalLink: link)) {
-        throw StateError('微信支付初始化失败');
+        throw StateError(tr("微信支付初始化失败"));
       }
       if (!await _wechat!.isWeChatInstalled) {
-        throw StateError('请先安装微信，再继续支付');
+        throw StateError(tr("请先安装微信，再继续支付"));
       }
       final launched = await _wechat!.pay(
         which: Payment(
@@ -139,8 +142,8 @@ class _PaymentScreenState extends State<PaymentScreen>
           sign: params['sign'] as String,
         ),
       );
-      if (!launched) throw StateError('无法打开微信支付，请稍后重试');
-      if (mounted) setState(() => _message = '请在微信完成支付，返回后将核对结果');
+      if (!launched) throw StateError(tr("无法打开微信支付，请稍后重试"));
+      if (mounted) setState(() => _message = tr("请在微信完成支付，返回后将核对结果"));
       _poll?.cancel();
       var attempts = 0;
       _poll = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -152,7 +155,7 @@ class _PaymentScreenState extends State<PaymentScreen>
     } on StateError catch (error) {
       if (mounted) setState(() => _message = error.message.toString());
     } catch (_) {
-      if (mounted) setState(() => _message = '支付未完成，可刷新结果或稍后继续支付');
+      if (mounted) setState(() => _message = tr("支付未完成，可刷新结果或稍后继续支付"));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -169,12 +172,12 @@ class _PaymentScreenState extends State<PaymentScreen>
         _finished = true;
         Navigator.pop(context, false);
       } else {
-        setState(() => _message = '订单尚未关闭，请刷新结果后重试');
+        setState(() => _message = tr("订单尚未关闭，请刷新结果后重试"));
       }
     } on ApiException catch (error) {
       if (mounted) setState(() => _message = error.message);
     } catch (_) {
-      if (mounted) setState(() => _message = '暂时无法关闭订单，请稍后重试');
+      if (mounted) setState(() => _message = tr("暂时无法关闭订单，请稍后重试"));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -182,10 +185,11 @@ class _PaymentScreenState extends State<PaymentScreen>
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final cents = _order['amount_cents'] as int;
     final monthlyTier = _order['billing_rule'] == 'monthly_tier_v1';
     return Scaffold(
-      appBar: AppBar(title: const Text('确认订单')),
+      appBar: AppBar(title: Text(tr("确认订单"))),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -197,10 +201,10 @@ class _PaymentScreenState extends State<PaymentScreen>
           const SizedBox(height: 24),
           Text(
             monthlyTier
-                ? '家庭月订阅 · ${_order['target_seat_count']} 个孩子名额'
+                ? tr("家庭月订阅 · {0} 个孩子名额", [_order['target_seat_count']])
                 : _order['kind'] == 'subscription'
-                ? 'AI 助学 · 原规则续费订单'
-                : '增加孩子名额 · 原规则订单',
+                ? tr("AI 助学 · 原规则续费订单")
+                : tr("增加孩子名额 · 原规则订单"),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge,
           ),
@@ -212,49 +216,48 @@ class _PaymentScreenState extends State<PaymentScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            _demo ? '演示支付 · 不会扣款，仅用于测试订阅流程' : '微信支付 · 金额已由服务端核算',
+            _demo ? tr("演示支付 · 不会扣款，仅用于测试订阅流程") : tr("微信支付 · 金额已由服务端核算"),
             textAlign: TextAlign.center,
           ),
           if (monthlyTier) ...[
             const SizedBox(height: 12),
             Text(
               _order['kind'] == 'seat_add'
-                  ? '本次购买新档位的完整月订阅，支付确认后立即增加名额，不按剩余天数补差，已付旧档位费用不抵扣或退款。新周期从确认支付起计一个自然月，已有更晚的到期时间保留。'
-                  : '购买一个自然月的家庭订阅，不累加已有有效期。微信支付为单次购买，到期后需手动续订。',
+                  ? tr(
+                      "本次购买新档位的完整月订阅，支付确认后立即增加名额，不按剩余天数补差，已付旧档位费用不抵扣或退款。新周期从确认支付起计一个自然月，已有更晚的到期时间保留。",
+                    )
+                  : tr("购买一个自然月的家庭订阅，不累加已有有效期。微信支付为单次购买，到期后需手动续订。"),
             ),
           ] else if (_order['kind'] == 'seat_add') ...[
             const SizedBox(height: 12),
-            const Text('费用按当前订阅剩余天数折算，支付成功后增加名额。后续续费将包含新增名额费用。'),
+            Text(tr("费用按当前订阅剩余天数折算，支付成功后增加名额。后续续费将包含新增名额费用。")),
           ],
           const SizedBox(height: 24),
-          SelectableText('订单号：${_order['out_trade_no']}'),
+          SelectableText(tr("订单号：{0}", [_order['out_trade_no']])),
           if (_message != null) ...[
             const SizedBox(height: 16),
-            Text(_message!),
+            Text(trMessage(_message!)),
           ],
           const SizedBox(height: 24),
           FilledButton(
             onPressed: _busy || !_pending ? null : _pay,
             child: Text(
               _busy
-                  ? '处理中…'
+                  ? tr("处理中…")
                   : _demo
-                  ? '确认演示支付'
-                  : '使用微信支付',
+                  ? tr("确认演示支付")
+                  : tr("使用微信支付"),
             ),
           ),
           TextButton(
             onPressed: _busy ? null : _query,
-            child: const Text('刷新支付结果'),
+            child: Text(tr("刷新支付结果")),
           ),
           TextButton(
             onPressed: _busy || !_pending ? null : _close,
-            child: const Text('关闭订单'),
+            child: Text(tr("关闭订单")),
           ),
-          const Text(
-            '离开页面后订单会保留，下次点击续费或增加名额可继续处理。',
-            textAlign: TextAlign.center,
-          ),
+          Text(tr("离开页面后订单会保留，下次点击续费或增加名额可继续处理。"), textAlign: TextAlign.center),
         ],
       ),
     );

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import '../widgets/student_page_state.dart';
 
-const _gradeTypes = {
-  'exam': '考试',
-  'homework': '作业',
-  'quiz': '测验',
-  'other': '其他',
+Map<String, String> get _gradeTypes => {
+  'exam': tr('考试'),
+  'homework': tr('作业'),
+  'quiz': tr('测验'),
+  'other': tr('其他'),
 };
 
 class GradesScreen extends StatefulWidget {
@@ -70,11 +70,11 @@ class _GradesScreenState extends State<GradesScreen> {
       }
     } catch (_) {
       if (mounted && _grades == null) {
-        setState(() => _loadError = '成绩加载失败，请检查网络后重试');
+        setState(() => _loadError = tr("成绩加载失败，请检查网络后重试"));
       } else if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('刷新失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("刷新失败，请检查网络后重试"))));
       }
     }
   }
@@ -88,7 +88,7 @@ class _GradesScreenState extends State<GradesScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      const SnackBar(content: Text('正在处理成绩…'), duration: Duration(seconds: 30)),
+      SnackBar(content: Text(tr("正在处理成绩…")), duration: Duration(seconds: 30)),
     );
     try {
       await action();
@@ -105,7 +105,7 @@ class _GradesScreenState extends State<GradesScreen> {
     } catch (_) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(const SnackBar(content: Text('操作失败，请检查网络后重试')));
+        messenger.showSnackBar(SnackBar(content: Text(tr("操作失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _changingGrade = false);
@@ -131,7 +131,7 @@ class _GradesScreenState extends State<GradesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('趋势加载失败，请重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("趋势加载失败，请重试"))));
       }
     } finally {
       if (mounted) setState(() => _trendLoading = false);
@@ -162,19 +162,19 @@ class _GradesScreenState extends State<GradesScreen> {
     final term = TextEditingController(text: current?['term'] as String? ?? '');
     final note = TextEditingController(text: current?['note'] as String? ?? '');
     final fields = [
-      ('科目', subject, false),
-      ('考试/作业名称', title, false),
-      ('日期 YYYY-MM-DD', date, false),
-      ('得分', score, true),
-      ('满分', max, true),
-      ('成绩类型', gradeType, false),
-      ('学期', term, false),
-      ('备注', note, false),
+      (tr("科目"), subject, false),
+      (tr("考试/作业名称"), title, false),
+      (tr("日期 YYYY-MM-DD"), date, false),
+      (tr("得分"), score, true),
+      (tr("满分"), max, true),
+      (tr("成绩类型"), gradeType, false),
+      (tr("学期"), term, false),
+      (tr("备注"), note, false),
     ];
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(current == null ? '新增成绩' : '编辑成绩'),
+        title: Text(current == null ? tr("新增成绩") : tr("编辑成绩")),
         content: SizedBox(
           width: 340,
           child: SingleChildScrollView(
@@ -188,9 +188,7 @@ class _GradesScreenState extends State<GradesScreen> {
                             value: _gradeTypes.containsKey(gradeType.text)
                                 ? gradeType.text
                                 : 'other',
-                            decoration: const InputDecoration(
-                              labelText: '成绩类型',
-                            ),
+                            decoration: InputDecoration(labelText: tr("成绩类型")),
                             items: _gradeTypes.entries
                                 .map(
                                   (entry) => DropdownMenuItem(
@@ -218,11 +216,11 @@ class _GradesScreenState extends State<GradesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+            child: Text(tr("取消")),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('保存'),
+            child: Text(tr("保存")),
           ),
         ],
       ),
@@ -245,7 +243,7 @@ class _GradesScreenState extends State<GradesScreen> {
       } else {
         await Api.I.editStudentGrade(current['id'] as int, body);
       }
-    }, current == null ? '成绩已添加' : '成绩已保存');
+    }, current == null ? tr("成绩已添加") : tr("成绩已保存"));
   }
 
   Future<void> _details(Map<String, dynamic> grade) async {
@@ -262,24 +260,24 @@ class _GradesScreenState extends State<GradesScreen> {
             if (grade['deleted'] != true)
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('编辑'),
+                title: Text(tr("编辑")),
                 onTap: () => Navigator.pop(ctx, 'edit'),
               ),
             ListTile(
               leading: const Icon(Icons.history),
-              title: const Text('历史'),
+              title: Text(tr("历史")),
               onTap: () => Navigator.pop(ctx, 'history'),
             ),
             if (grade['deleted'] == true)
               ListTile(
                 leading: const Icon(Icons.restore),
-                title: const Text('恢复成绩'),
+                title: Text(tr("恢复成绩")),
                 onTap: () => Navigator.pop(ctx, 'restore'),
               )
             else
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('逻辑删除'),
+                title: Text(tr("逻辑删除")),
                 onTap: () => Navigator.pop(ctx, 'delete'),
               ),
           ],
@@ -291,14 +289,14 @@ class _GradesScreenState extends State<GradesScreen> {
     if (action == 'delete') {
       await _changeGrade(
         () => Api.I.deleteStudentGrade(grade['id'] as int),
-        '成绩已删除，可在“显示已删除成绩”中恢复',
+        tr("成绩已删除，可在“显示已删除成绩”中恢复"),
       );
       return;
     }
     if (action == 'restore') {
       await _changeGrade(
         () => Api.I.restoreStudentGrade(grade['id'] as int),
-        '成绩已恢复',
+        tr("成绩已恢复"),
       );
       return;
     }
@@ -309,7 +307,7 @@ class _GradesScreenState extends State<GradesScreen> {
         showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('修改历史'),
+            title: Text(tr("修改历史")),
             content: SizedBox(
               width: 340,
               child: ListView(
@@ -331,7 +329,7 @@ class _GradesScreenState extends State<GradesScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('关闭'),
+                child: Text(tr("关闭")),
               ),
             ],
           ),
@@ -346,7 +344,7 @@ class _GradesScreenState extends State<GradesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('修改历史加载失败，请重试')));
+          ).showSnackBar(SnackBar(content: Text(tr("修改历史加载失败，请重试"))));
         }
       }
     }
@@ -374,7 +372,7 @@ class _GradesScreenState extends State<GradesScreen> {
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('学业评估已更新')));
+        ).showSnackBar(SnackBar(content: Text(tr("学业评估已更新"))));
       }
     } on ApiException catch (e) {
       if (mounted) {
@@ -386,7 +384,7 @@ class _GradesScreenState extends State<GradesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('学业评估失败，请检查网络后重试')));
+        ).showSnackBar(SnackBar(content: Text(tr("学业评估失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted) setState(() => _assessing = false);
@@ -395,9 +393,10 @@ class _GradesScreenState extends State<GradesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('成绩与学习评估'),
+        title: Text(tr("成绩与学习评估")),
         actions: [
           IconButton(
             onPressed: _assessing ? null : _assess,
@@ -408,21 +407,21 @@ class _GradesScreenState extends State<GradesScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.insights),
-            tooltip: '学业评估',
+            tooltip: tr("学业评估"),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _changingGrade ? null : () => _edit(),
         icon: const Icon(Icons.add),
-        label: const Text('记录成绩'),
+        label: Text(tr("记录成绩")),
       ),
       body: _grades == null
           ? (_loadError == null
                 ? const Center(child: CircularProgressIndicator())
                 : StudentPageState(
                     icon: Icons.wifi_off_rounded,
-                    title: '成绩加载失败',
+                    title: tr("成绩加载失败"),
                     description: _loadError!,
                     onRetry: () {
                       setState(() => _loadError = null);
@@ -453,7 +452,7 @@ class _GradesScreenState extends State<GradesScreen> {
                   if (_assessmentRows != null) _assessmentHistoryCard(),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('显示已删除成绩'),
+                    title: Text(tr("显示已删除成绩")),
                     value: _includeDeleted,
                     onChanged: (value) {
                       setState(() {
@@ -465,14 +464,14 @@ class _GradesScreenState extends State<GradesScreen> {
                     },
                   ),
                   if (_grades!.isEmpty)
-                    const StudentPageState(
+                    StudentPageState(
                       icon: Icons.school_outlined,
-                      title: '还没有成绩记录',
-                      description: '点击“记录成绩”，留下每一次学习的进步',
+                      title: tr("还没有成绩记录"),
+                      description: tr("点击“记录成绩”，留下每一次学习的进步"),
                     ),
                   ..._grades!.map((raw) {
                     final grade = raw as Map<String, dynamic>;
-                    final type = _gradeTypes[grade['grade_type']] ?? '其他';
+                    final type = _gradeTypes[grade['grade_type']] ?? tr("其他");
                     return Card(
                       child: InkWell(
                         borderRadius: BorderRadius.circular(24),
@@ -504,8 +503,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                       fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                                  if (grade['deleted'] == true)
-                                    const Text('已删除'),
+                                  if (grade['deleted'] == true) Text(tr("已删除")),
                                 ],
                               ),
                               const SizedBox(height: 10),
@@ -550,7 +548,10 @@ class _GradesScreenState extends State<GradesScreen> {
         .map((s) {
           final item = s as Map;
           final ids = (item['evidence_conversation_ids'] as List?) ?? const [];
-          return '${item['subject']}（会话 ${ids.join('、')}）';
+          return tr("{0}（会话 {1}）", [
+            trMessage(item['subject'].toString()),
+            ids.join(', '),
+          ]);
         })
         .join('、');
     return Card(
@@ -560,26 +561,33 @@ class _GradesScreenState extends State<GradesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('学业评估', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(tr("学业评估"), style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text(
-              (_assessment?['recommendations'] as List?)?.join('、') ?? '暂无建议',
+              (_assessment?['recommendations'] as List?)
+                      ?.map((value) => trMessage(value.toString()))
+                      .join(', ') ??
+                  tr("暂无建议"),
             ),
             if (evidence.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  '证据会话：$evidence',
+                  tr("证据会话：{0}", [evidence]),
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
             const SizedBox(height: 4),
             Text(
-              '时间范围：${period?['from'] ?? '-'} 至 ${period?['to'] ?? '-'} · 模型 ${_assessment?['model'] ?? '-'}',
+              tr("时间范围：{0} 至 {1} · 模型 {2}", [
+                period?['from'] ?? '-',
+                period?['to'] ?? '-',
+                _assessment?['model'] ?? '-',
+              ]),
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             Text(
-              _assessment?['disclaimer'] as String? ?? 'AI 辅助估计，不是学校成绩或诊断。',
+              _assessment?['disclaimer'] as String? ?? tr("AI 辅助估计，不是学校成绩或诊断。"),
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
@@ -590,17 +598,23 @@ class _GradesScreenState extends State<GradesScreen> {
 
   Widget _assessmentHistoryCard() => Card(
     child: ExpansionTile(
-      title: Text('学业评估历史（${_assessmentRows!.length}）'),
+      title: Text(tr("学业评估历史（{0}）", [_assessmentRows!.length])),
       children: _assessmentRows!.map((raw) {
         final item = raw as Map<String, dynamic>;
         final period = item['period'] as Map<String, dynamic>?;
         return ListTile(
           dense: true,
           title: Text(
-            '${period?['from'] ?? '-'} 至 ${period?['to'] ?? '-'} · ${item['model'] ?? ''}',
+            tr("{0} 至 {1} · {2}", [
+              period?['from'] ?? '-',
+              period?['to'] ?? '-',
+              item['model'] ?? '',
+            ]),
           ),
           subtitle: Text(
-            ((item['recommendations'] as List?) ?? const []).join('、'),
+            ((item['recommendations'] as List?) ?? const [])
+                .map((value) => trMessage(value.toString()))
+                .join(', '),
           ),
         );
       }).toList(),
