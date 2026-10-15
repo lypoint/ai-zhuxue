@@ -1,4 +1,5 @@
 import 'language.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
@@ -21,6 +22,16 @@ class ApiException implements Exception {
 }
 
 class Api {
+  String channel = const String.fromEnvironment(
+    'APP_CHANNEL',
+    defaultValue: '',
+  );
+
+  String get appChannel => channel.isNotEmpty
+      ? channel
+      : defaultTargetPlatform == TargetPlatform.iOS
+      ? 'appstore'
+      : 'wechat';
   static final Api I = Api._();
   Api._();
   String? _token;
@@ -69,6 +80,7 @@ class Api {
     final headers = {
       'Content-Type': 'application/json',
       'Accept-Language': AppLanguage.I.tag,
+      'X-App-Channel': appChannel,
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
     final resp = switch (method) {
@@ -687,6 +699,7 @@ class Api {
           http.Request('POST', Uri.parse('$apiBase/chat/stream?live=true'))
             ..headers['Content-Type'] = 'application/json'
             ..headers['Accept-Language'] = AppLanguage.I.tag
+            ..headers['X-App-Channel'] = appChannel
             ..headers['Authorization'] = 'Bearer ${_token ?? ''}'
             ..body = jsonEncode({
               'conversation_id': conversationId,

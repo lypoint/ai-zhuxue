@@ -132,6 +132,7 @@
         <input id="g_model" placeholder="模型 ID" style="width:180px">
         <select id="g_fence"><option value="">选择围栏配置</option></select>
         <input id="g_tag" placeholder="家庭标签" style="width:110px">
+        <select id="g_channel" aria-label="老师适用渠道"><option value="all">全部渠道</option><option value="wechat">微信</option><option value="appstore">App Store</option><option value="googleplay">Google Play</option></select>
         <input id="g_teacher" placeholder="老师名字" style="width:110px">
         <label style="font-size:12px">老师头像 <input id="g_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
         <input id="g_free" placeholder="到期后每个学生每日免费回复次数（≤0不免费）" style="width:310px" type="number">
@@ -151,6 +152,7 @@
           <input id="ge_tag" placeholder="家庭标签（留空清除）" style="width:150px">
         </div>
         <div class="row">
+          <select id="ge_channel" aria-label="老师适用渠道"><option value="all">全部渠道</option><option value="wechat">微信</option><option value="appstore">App Store</option><option value="googleplay">Google Play</option></select>
           <input id="ge_teacher" placeholder="老师名字" style="width:130px">
           <img id="ge_avatar_preview" alt="当前老师头像" style="display:none;width:36px;height:36px;border-radius:50%;object-fit:cover">
           <label style="font-size:12px">更换头像 <input id="ge_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
@@ -431,12 +433,14 @@ async function uploadAvatar(file) {
   return (await api('/admin/teacher-avatar', {method:'POST', headers:{'Content-Type':file.type}, body:file})).url;
 }
 
+const CHANNELS = {all:'全部渠道',wechat:'微信',appstore:'App Store',googleplay:'Google Play'};
 async function loadGroups() {
   const d = await api('/admin/llm-groups');
   GROUPS = d.items;
   $('groups').innerHTML = GROUPS.map(g => `
     <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
       ${g.teacher_avatar_url?`<img src="${esc(g.teacher_avatar_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:''}
+      <select aria-label="${esc(g.name)}适用渠道" onchange="changeTeacherChannel(${g.id},this.value)">${Object.entries(CHANNELS).map(([value,label])=>`<option value="${value}" ${value===(g.teacher_channel||'all')?'selected':''}>${label}</option>`).join('')}</select>
       <b>${esc(g.name)}</b> ${g.teacher_enabled?'<span class="tag active">已激活</span>':'<span class="tag reject">已停用</span>'}
       ${g.is_active?'<span class="tag beta-tag">默认老师</span>':''}
       ${g.tag?`<span class="tag beta-tag">标签:${esc(g.tag)} (${g.tagged_families}家庭)</span>`:''}
@@ -462,6 +466,7 @@ async function editGroup(id) {
   $('ge_fence').value = g.fence_config_id || '';
   $('ge_tag').value = g.tag || ''; $('ge_teacher').value = g.teacher_name || '';
   $('ge_free').value = g.post_trial_daily_free_count || 0;
+  $('ge_channel').value = g.teacher_channel || 'all';
   $('ge_sort').value = g.teacher_sort_order || 0;
   $('ge_enabled').checked = g.teacher_enabled;
   $('ge_avatar').value = '';
@@ -482,7 +487,7 @@ async function saveGroupEdit() {
       name:$('ge_name').value.trim(), base_url:$('ge_base').value.trim(),
       model_id:$('ge_model').value.trim(), fence_config_id:Number($('ge_fence').value),
       tag:$('ge_tag').value.trim() || null, teacher_name:$('ge_teacher').value.trim(),
-      teacher_enabled:$('ge_enabled').checked,
+      teacher_channel:$('ge_channel').value, teacher_enabled:$('ge_enabled').checked,
       teacher_sort_order:Number($('ge_sort').value),
       post_trial_daily_free_count:Number($('ge_free').value)
     };
@@ -514,7 +519,7 @@ async function addGroup() {
       name, base_url:base, api_key:key, model_id:model, fence_config_id:fence,
       tag:$('g_tag').value.trim() || null, teacher_name:teacher,
       teacher_avatar_url:avatar, post_trial_daily_free_count:Number($('g_free').value||0),
-      teacher_enabled:$('g_enabled').checked,
+      teacher_channel:$('g_channel').value, teacher_enabled:$('g_enabled').checked,
     })});
     ['g_name','g_base','g_key','g_model','g_fence','g_tag','g_teacher','g_avatar','g_free'].forEach(i=>$(i).value='');
     $('g_enabled').checked = true;
@@ -530,6 +535,13 @@ async function changeAvatar(id) {
       {method:'PATCH', body:JSON.stringify({teacher_avatar_url:url})});
     loadGroups();
   } catch(e) { alert(e.message); }
+}
+
+async function changeTeacherChannel(id, channel) {
+  try {
+    await api('/admin/llm-groups/'+id+'/teacher-profile', {method:'PATCH', body:JSON.stringify({teacher_channel:channel})});
+    loadGroups(); loadLogs();
+  } catch(e) { alert(e.message); loadGroups(); }
 }
 
 async function editTeacher(id, currentName, currentFree, currentEnabled, currentSort) {
@@ -593,7 +605,7 @@ async function setTag(familyId, tag) {
 }
 
 const LOG_FIELDS = {name:'名称',base_url:'baseUrl',model_id:'模型 ID',fence_config_id:'围栏',tag:'家庭标签',
-  teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'激活状态',teacher_sort_order:'展示排序',
+  teacher_channel:'适用渠道',teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'激活状态',teacher_sort_order:'展示排序',
   post_trial_daily_free_count:'每日免费回复次数',post_trial_free_enabled:'到期后免费',api_key:'apiKey',provider:'服务类型',
   is_default:'默认老师',default:'默认老师'};
 function logDetail(detail) {

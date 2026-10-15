@@ -1,4 +1,5 @@
 """学生端聊天：围栏判定 → 分级处置 → LLM 生成 → 全量落库（家长审查的数据基础）。"""
+from typing import Annotated
 import datetime as dt
 
 from ..services import language
@@ -21,6 +22,7 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
 from ..services import fence, llm
+from ..services.teacher_channels import current_channel, channel_teachers
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -80,11 +82,11 @@ BAND_DESC = {"8-12": "8-12岁（小学中高年级）", "12-16": "12-16岁（初
 
 
 @router.get("/teachers")
-def available_teachers(student: Student = Depends(current_student), db: Session = Depends(get_db)):
+def available_teachers(student: Student = Depends(current_student), db: Session = Depends(get_db),
+                       channel: Annotated[str, Depends(current_channel)] = "wechat"):
     from ..services import subscription
     active = subscription.is_active(student.family_id, db)
-    groups = db.query(LLMGroup).filter_by(teacher_enabled=True).order_by(
-        LLMGroup.teacher_sort_order, LLMGroup.id).all()
+    groups = channel_teachers(db, channel).all()
     if not groups:
         if db.query(LLMGroup.id).first():
             return []
@@ -95,7 +97,7 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
                  "avatar_url": env_teacher.get("teacher_avatar_url", ""),
                  "sort_order": 0, "selected": True, "is_default": True,
                  "access": "available" if active else "subscription_required"}]
-    selected = _teacher(db, student)
+    selected = _teacher(db, student, channel=channel)
     groups.sort(key=lambda g: (0 if g.id == selected.id else 1 if g.is_active else 2,
                                g.teacher_sort_order, g.id))
     return [{"teacher_id": g.id, "name": g.teacher_name,
@@ -108,28 +110,27 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
                         else "subscription_required")} for g in groups]
 
 
-def _teacher(db: Session, student: Student, teacher_id: int | None = None):
+def _teacher(db: Session, student: Student, teacher_id: int | None = None,
+             channel: str = "wechat"):
     """Resolve a selectable teacher without exposing provider credentials."""
     if teacher_id is not None:
         group = db.get(LLMGroup, teacher_id)
-        if not group or not group.teacher_enabled:
+        if not group or not group.teacher_enabled or group.teacher_channel not in ("all", channel):
             raise HTTPException(404, "teacher not found")
         return group
     if student.last_teacher_group_id is not None:
         group = db.get(LLMGroup, student.last_teacher_group_id)
-        if group and group.teacher_enabled:
+        if group and group.teacher_enabled and group.teacher_channel in ("all", channel):
             return group
-    group = db.query(LLMGroup).filter_by(is_active=True, teacher_enabled=True).order_by(
-        LLMGroup.teacher_sort_order, LLMGroup.id).first()
+    group = channel_teachers(db, channel).filter_by(is_active=True).first()
     if group:
         return group
     tag = db.query(Family.tag).filter_by(id=student.family_id).scalar()
     if tag:
-        group = db.query(LLMGroup).filter_by(tag=tag, teacher_enabled=True).first()
+        group = channel_teachers(db, channel).filter_by(tag=tag).first()
         if group:
             return group
-    group = db.query(LLMGroup).filter_by(teacher_enabled=True).order_by(
-        LLMGroup.teacher_sort_order, LLMGroup.id).first()
+    group = channel_teachers(db, channel).first()
     if group:
         return group
     if db.query(LLMGroup.id).first():
@@ -143,9 +144,9 @@ class TeacherSelectionIn(BaseModel):
 
 @router.put("/teachers/selection")
 def select_teacher(body: TeacherSelectionIn, student: Student = Depends(current_student),
-                   db: Session = Depends(get_db)):
-    teacher = _teacher(db, student, body.teacher_id)
-    _check_subscription(student, db, teacher.id)
+                   db: Session = Depends(get_db), channel: Annotated[str, Depends(current_channel)] = "wechat"):
+    teacher = _teacher(db, student, body.teacher_id, channel)
+    _check_subscription(student, db, teacher.id, channel)
     student.last_teacher_group_id = teacher.id
     db.commit()
     return {"teacher_id": teacher.id, "name": teacher.teacher_name,
@@ -160,7 +161,8 @@ def _student_conversation(db: Session, conversation_id: int, student: Student) -
     return conv
 
 
-def _check_subscription(student: Student, db: Session, teacher_id: int | None = None):
+def _check_subscription(student: Student, db: Session, teacher_id: int | None = None,
+                        channel: str = "wechat"):
     """P0 商业闭环：订阅到期拦截学生端（友好文案引导家长续费）。"""
     from ..services import subscription
     if subscription.is_active(student.family_id, db):
@@ -169,7 +171,7 @@ def _check_subscription(student: Student, db: Session, teacher_id: int | None = 
     # Keep their entitlement tied to the saved teacher; _teacher still rejects
     # disabled roles when creating a new session.
     teacher = (db.get(LLMGroup, teacher_id) if teacher_id is not None
-               else _teacher(db, student))
+               else _teacher(db, student, channel=channel))
     if teacher and teacher.post_trial_daily_free_count > 0:
         if subscription.post_trial_free_remaining(
                 student.id, db, teacher.id, teacher.post_trial_daily_free_count) > 0:
@@ -215,7 +217,8 @@ def _today_seconds(student_id: int, db: Session) -> int:
     return row.seconds if row else 0
 
 
-def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
+def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
+                  channel: str = "wechat"):
     """服务端未成年人模式：订阅权益 + 时段禁用 + 每日消息上限 + 每日时长上限。
 
     created_at 统一存 UTC（naive）；本地日界与时段均按 TZ_OFFSET_HOURS 换算，
@@ -224,7 +227,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
     # ponytail: 串行化同一家庭的配额预留；消息在模型调用前提交，吞吐不足时改用计数器。
     db.query(Family).filter_by(id=student.family_id).update(
         {Family.id: Family.id}, synchronize_session=False)
-    quota_pending = _check_subscription(student, db, teacher_id)
+    quota_pending = _check_subscription(student, db, teacher_id, channel)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = local_now()
     # P1：家长自定义禁用时段（覆盖全局 22-6；家长可整体关闭）
@@ -260,7 +263,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None):
                 f"{student.nickname}今天的对话次数已用完，明天再来吧。（每日上限可在家长端调整）",
                 once_per_day=True, db=db)
         raise HTTPException(429, "今天的对话次数用完了，明天再来吧")
-    group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student)
+    group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student, channel=channel)
     if group and group.daily_message_cap:
         group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
                        .filter(Conversation.student_id == student.id,
@@ -331,20 +334,23 @@ async def _output_check(content: str, student: Student, conversation_id: int,
 
 @router.post("", response_model=MessageOut)
 async def send_message(body: ChatIn, student: Student = Depends(current_student),
-                       db: Session = Depends(get_db)):
+                       db: Session = Depends(get_db), channel: Annotated[str, Depends(current_channel)] = "wechat"):
     policy_teacher_id = body.teacher_id
     if body.conversation_id is not None and policy_teacher_id is None:
         existing = db.get(Conversation, body.conversation_id)
         if existing and existing.student_id == student.id:
             policy_teacher_id = existing.teacher_group_id
-    _check_policy(student, db, policy_teacher_id)
+    if body.conversation_id is None:
+        teacher = _teacher(db, student, body.teacher_id, channel)
+        policy_teacher_id = teacher.id if teacher else None
+    _check_policy(student, db, policy_teacher_id, channel)
 
     if body.conversation_id:
         conv = _student_conversation(db, body.conversation_id, student)
         if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
             raise HTTPException(409, "existing conversation teacher cannot change")
     else:
-        teacher = _teacher(db, student, body.teacher_id)
+        teacher = _teacher(db, student, body.teacher_id, channel)
         conv = Conversation(student_id=student.id, title=body.content[:20],
                             teacher_group_id=teacher.id if teacher else None,
                             teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
@@ -455,7 +461,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
 @router.post("/stream")
 async def send_message_stream(body: ChatIn, live: bool = False,
                               student: Student = Depends(current_student),
-                              db: Session = Depends(get_db)):
+                              db: Session = Depends(get_db),
+                              channel: Annotated[str, Depends(current_channel)] = "wechat"):
     """流式聊天（SSE）。事件序列：
 
     meta  → {conversation_id, fence_action, category}
@@ -483,7 +490,10 @@ async def send_message_stream(body: ChatIn, live: bool = False,
             existing = db.get(Conversation, body.conversation_id)
             if existing and existing.student_id == student.id:
                 policy_teacher_id = existing.teacher_group_id
-    _check_policy(student, db, policy_teacher_id)
+    if body.conversation_id is None and body.retry_message_id is None:
+        teacher = _teacher(db, student, body.teacher_id, channel)
+        policy_teacher_id = teacher.id if teacher else None
+    _check_policy(student, db, policy_teacher_id, channel)
 
     if retry is not None:
         db.refresh(retry)  # 配额锁之后重新确认，避免两个重试同时生成回复。
@@ -498,7 +508,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
             if body.teacher_id is not None and conv.teacher_group_id != body.teacher_id:
                 raise HTTPException(409, "existing conversation teacher cannot change")
         else:
-            teacher = _teacher(db, student, body.teacher_id)
+            teacher = _teacher(db, student, body.teacher_id, channel)
             conv = Conversation(student_id=student.id, title=body.content[:20],
                                 teacher_group_id=teacher.id if teacher else None,
                                 teacher_name_snapshot=teacher.teacher_name if teacher else "AI 老师",
