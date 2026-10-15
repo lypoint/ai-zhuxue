@@ -348,6 +348,7 @@ class LLMGroup(TimestampMixin, Base):
     teacher_name: Mapped[str] = mapped_column(String(50), default="AI 老师")
     teacher_avatar_url: Mapped[str] = mapped_column(String(500), default="")
     teacher_enabled: Mapped[bool] = mapped_column(Boolean, default=True)  # 可同时激活多位老师
+    teacher_channel: Mapped[str] = mapped_column(String(20), default="all", server_default="all")
     teacher_sort_order: Mapped[int] = mapped_column(Integer, default=0)
     post_trial_free_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     post_trial_daily_free_count: Mapped[int] = mapped_column(Integer, default=0)

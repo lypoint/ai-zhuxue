@@ -1,4 +1,5 @@
 """家长端：全量审查（对话列表/消息/围栏流水）、管控设置、家庭成员。"""
+from typing import Annotated
 import json
 from datetime import datetime, timezone
 
@@ -17,6 +18,7 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       Subscription, SubscriptionOrder, WellbeingAssessment, Notification,
                       FenceFeedback)
 from ..schemas import ConversationOut, FamilySettingsIn, FenceEventOut, GuardianIdentityIn, MessageOut
+from ..services.teacher_channels import current_channel, channel_teachers
 from ..services.guardian_verify import verify as verify_guardian
 
 router = APIRouter(prefix="/parent", tags=["parent"])
@@ -897,13 +899,17 @@ def ack_wellbeing_assessment(assessment_id: int, body: dict,
 # ---------- 订阅（P0 商业闭环；支付通道骨架期 mock） ----------
 
 @router.get("/subscription")
-def subscription_status(guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
+def subscription_status(guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db),
+                        channel: Annotated[str, Depends(current_channel)] = "wechat"):
     from ..services import subscription
     status = subscription.get_status(guardian.family_id, db)
     status["payment_mode"] = settings.payment_mode
-    status["free_teacher_count"] = db.query(LLMGroup).filter(
-        LLMGroup.teacher_enabled.is_(True), LLMGroup.post_trial_daily_free_count > 0
-    ).count()
+    teachers = channel_teachers(db, channel).all()
+    status["free_teacher_count"] = sum(g.post_trial_daily_free_count > 0 for g in teachers)
+    status["teachers"] = [{"teacher_id": g.id, "name": g.teacher_name,
+                           "avatar_url": g.teacher_avatar_url,
+                           "post_trial_daily_free_count": g.post_trial_daily_free_count}
+                          for g in teachers]
     return status
 
 

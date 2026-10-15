@@ -40,6 +40,7 @@ Future<void> main() async {
   await AppLanguage.I.load();
   InAppPurchaseStoreKitPlatform.registerPlatform();
   final billing = StoreBilling(AppleAdapter());
+  Api.I.channel = 'appstore';
   await Api.I.loadToken();
   await billing.retry();
   runApp(BillingScope(billing: billing, child: const ParentApp()));

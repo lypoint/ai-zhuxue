@@ -67,6 +67,7 @@ Future<void> main() async {
   await AppLanguage.I.load();
   InAppPurchaseAndroidPlatform.registerPlatform();
   final billing = StoreBilling(GoogleAdapter());
+  Api.I.channel = 'googleplay';
   await Api.I.loadToken();
   await billing.retry();
   runApp(BillingScope(billing: billing, child: const ParentApp()));

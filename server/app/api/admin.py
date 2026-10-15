@@ -13,6 +13,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from ..services.teacher_channels import TeacherChannel
 from ..config import settings
 from ..db import get_db
 from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode, Conversation, Family,
@@ -589,6 +590,7 @@ class GroupIn(BaseModel):
     tag: str | None = Field(default=None, max_length=50)  # 绑定标签：持此标签的家庭路由到本分组
     teacher_name: str = Field(default="AI 老师", min_length=1, max_length=30)
     teacher_avatar_url: str = Field(default="", max_length=500)
+    teacher_channel: TeacherChannel = "all"
     teacher_enabled: bool = True
     teacher_sort_order: int = 0
     post_trial_daily_free_count: int = Field(default=0, le=10000)
@@ -702,6 +704,7 @@ def list_groups(principal: AdminPrincipal = Depends(require_admin),db: Session =
                        "note": g.note, "is_active": g.is_active, "is_default": g.is_active,
                        "tag": g.tag,
                        "teacher_name": g.teacher_name, "teacher_avatar_url": g.teacher_avatar_url,
+                       "teacher_channel": g.teacher_channel,
                        "teacher_enabled": g.teacher_enabled, "teacher_sort_order": g.teacher_sort_order,
                        "post_trial_daily_free_count": g.post_trial_daily_free_count,
                        "tagged_families": tag_counts.get(g.tag, 0) if g.tag else 0}
@@ -760,6 +763,7 @@ def create_group(body: GroupIn, principal: AdminPrincipal = Depends(require_admi
 class TeacherProfileIn(BaseModel):
     teacher_name: str | None = Field(default=None, min_length=1, max_length=30)
     teacher_avatar_url: str | None = Field(default=None, max_length=500)
+    teacher_channel: TeacherChannel | None = None
     teacher_enabled: bool | None = None
     teacher_sort_order: int | None = None
     post_trial_daily_free_count: int | None = Field(default=None, le=10000)
@@ -817,7 +821,7 @@ def update_group(group_id: int, body: GroupUpdateIn,
         if not db.get(FenceConfig, fence_id):
             raise HTTPException(422, "所选围栏配置不存在")
         set_field("fence_config_id", fence_id)
-    for field in ("teacher_enabled", "teacher_sort_order", "post_trial_daily_free_count"):
+    for field in ("teacher_channel", "teacher_enabled", "teacher_sort_order", "post_trial_daily_free_count"):
         if field in values:
             value = max(0, values[field]) if field == "post_trial_daily_free_count" else values[field]
             set_field(field, value)
@@ -874,6 +878,7 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
     log_changes(db, principal, "teacher_profile.update", group_id, audit)
     return {"ok": True, "teacher_id": grp.id, "teacher_name": grp.teacher_name,
             "teacher_avatar_url": grp.teacher_avatar_url,
+            "teacher_channel": grp.teacher_channel,
             "teacher_enabled": grp.teacher_enabled,
             "teacher_sort_order": grp.teacher_sort_order,
             "post_trial_daily_free_count": grp.post_trial_daily_free_count}

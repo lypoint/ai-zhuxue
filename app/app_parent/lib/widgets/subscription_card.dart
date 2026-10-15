@@ -95,6 +95,18 @@ class SubscriptionCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (sub['teachers'] is List &&
+                (sub['teachers'] as List).isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: (sub['teachers'] as List)
+                    .map(
+                      (teacher) => Chip(label: Text(teacher['name'] as String)),
+                    )
+                    .toList(),
+              ),
+            ],
             const SizedBox(height: 16),
             Text(
               onManage == null
