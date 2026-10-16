@@ -10,8 +10,9 @@ from ..config import settings
 from ..db import SessionLocal, get_db
 from ..models import BindCode, Family, FamilySettings, Guardian, Student, StudentDevice
 from ..ratelimit import _hit
-from ..schemas import GuardianGoogleIn, GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, StudentLoginIn, TokenOut
-from ..security import make_token
+from ..schemas import GuardianGoogleIn, GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, PasswordLoginIn, StudentPasswordLoginIn, StudentLoginIn, TokenOut
+from ..security import make_token, hash_password, verify_password
+from .deps import require_family_access
 from ..services import aliyun_phone
 from ..services.google_login import verify_google_identity
 from ..services.teacher_channels import current_channel
@@ -20,6 +21,48 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 # 本地和测试环境保留固定码；生产必须由阿里云核验。
 DEV_SMS_CODE = "123456"
+_DUMMY_PASSWORD_HASH = hash_password("unused-login-timing-placeholder")
+
+
+def _password_guardian(body: PasswordLoginIn, db: Session) -> Guardian:
+    username = body.username.lower()
+    # Also limit by account, so changing IP does not bypass login throttling.
+    with SessionLocal.begin() as limits:
+        allowed = _hit(limits, f"password:{username}", 10, int(time.time() // 60))
+    if not allowed:
+        raise HTTPException(429, "请求太频繁，请稍后再试")
+    guardian = db.query(Guardian).filter_by(username=username).first()
+    valid = verify_password(body.password, guardian.password_hash if guardian and guardian.password_hash
+                            else _DUMMY_PASSWORD_HASH)
+    if not valid or not guardian or not guardian.password_hash:
+        raise HTTPException(401, "账号或密码错误")
+    # Serialize review login/binding with account shutdown.
+    db.query(Family).filter_by(id=guardian.family_id).populate_existing().with_for_update().one()
+    require_family_access(guardian.family_id, db)
+    return guardian
+
+
+@router.post("/guardian/password", response_model=TokenOut)
+def guardian_password(body: PasswordLoginIn, db: Session = Depends(get_db)):
+    guardian = _password_guardian(body, db)
+    return TokenOut(token=make_token("guardian", guardian.id, guardian.family_id,
+                                    guardian.token_version), role="guardian")
+
+
+@router.post("/student/password", response_model=TokenOut)
+def student_password(body: StudentPasswordLoginIn, db: Session = Depends(get_db)):
+    guardian = _password_guardian(body, db)
+    # Password-based student access is only issued to managed review families;
+    # normal students still need their guardian's one-time binding code.
+    if not guardian.is_review:
+        raise HTTPException(403, "请使用家长端绑定码登录学生端")
+    from .bind import _new_code
+    existing = db.query(Student).filter_by(installation_id=body.installation_id,
+                                           family_id=guardian.family_id).first()
+    bind = _new_code(db, guardian.family_id, purpose="rebind" if existing else "new_student",
+                     target_student_id=existing.id if existing else None)
+    return student_login(StudentLoginIn(bind_code=bind.code, installation_id=body.installation_id,
+                                        nickname="审核学生"), db)
 
 
 @router.post("/guardian/sms/send")
@@ -68,7 +111,7 @@ async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db)
 
 def _require_phone_channel(channel: str):
     if channel == "googleplay":
-        raise HTTPException(403, "Google Play 版本仅支持 Google 账号登录")
+        raise HTTPException(403, "Google Play 版本不支持手机号登录")
 
 
 @router.post("/guardian/google", response_model=TokenOut)
@@ -91,6 +134,7 @@ def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub
             guardian = db.query(Guardian).filter_by(**identity).first()
             if not guardian:
                 raise HTTPException(409, "登录冲突，请重试") from None
+    require_family_access(guardian.family_id, db)
     return TokenOut(token=make_token("guardian", guardian.id, guardian.family_id,
                                      guardian.token_version), role="guardian")
 
@@ -158,6 +202,8 @@ def student_login(body: StudentLoginIn, db: Session = Depends(get_db)):
     candidate = db.query(BindCode).filter_by(code=body.bind_code).first()
     family = (db.query(Family).filter_by(id=candidate.family_id).with_for_update().first()
               if candidate else None)
+    if family:
+        require_family_access(family.id, db)
     bind = (db.query(BindCode).filter_by(code=body.bind_code,
                                          used_by_student_id=None,
                                          revoked_at=None)

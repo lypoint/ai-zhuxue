@@ -27,6 +27,7 @@ class Family(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     # 家庭标签（如 beta/vip/free-trial）：绑定同名 llm_groups.tag 的分组，决定该家庭用哪个 provider/model
     tag: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    access_disabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
 
     guardians: Mapped[list["Guardian"]] = relationship(back_populates="family")
     students: Mapped[list["Student"]] = relationship(back_populates="family")
@@ -39,6 +40,9 @@ class Guardian(TimestampMixin, Base):
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id"))
     phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    username: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_review: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     nickname: Mapped[str] = mapped_column(String(50), default="")
     token_version: Mapped[int] = mapped_column(Integer, default=1)  # 登出即 +1，旧 token 全部失效
 
@@ -255,7 +259,7 @@ class Subscription(TimestampMixin, Base):
     __tablename__ = "subscriptions"
     id: Mapped[int] = mapped_column(primary_key=True)
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), unique=True)
-    plan: Mapped[str] = mapped_column(String(20), default="free_trial")  # free_trial | monthly
+    plan: Mapped[str] = mapped_column(String(20), default="free_trial")  # free_trial | monthly | permanent
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     paid_amount: Mapped[float] = mapped_column(default=0.0)   # 累计实付（元）

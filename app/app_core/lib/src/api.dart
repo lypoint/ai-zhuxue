@@ -77,6 +77,8 @@ class Api {
 
   AppEvent? _operation(String method, String path) => switch ('$method $path') {
     'POST /auth/guardian/google' => AppEvent.login,
+    'POST /auth/guardian/password' => AppEvent.login,
+    'POST /auth/student/password' => AppEvent.bindStudent,
     'POST /auth/student/login' => AppEvent.bindStudent,
     'POST /bind/code' => AppEvent.createBindCode,
     'POST /parent/billing/verify' => AppEvent.purchaseVerify,
@@ -137,7 +139,7 @@ class Api {
     };
     final data = jsonDecode(utf8.decode(resp.bodyBytes));
     if (resp.statusCode >= 400) {
-      if (resp.statusCode == 401) {
+      if (resp.statusCode == 401 && !path.endsWith('/password')) {
         _token = null; // 会话已失效，立即清除避免界面误判已登录
         _fireUnauthorized();
       }
@@ -217,6 +219,23 @@ class Api {
     );
     await _saveToken(data['token'] as String);
     return data['role'] as String;
+  }
+
+  Future<void> passwordLogin(
+    String username,
+    String password, {
+    bool student = false,
+  }) async {
+    final data = await _send(
+      'POST',
+      student ? '/auth/student/password' : '/auth/guardian/password',
+      body: {
+        'username': username,
+        'password': password,
+        if (student) 'installation_id': await installationId(),
+      },
+    );
+    await _saveToken(data['token'] as String);
   }
 
   Future<void> guardianGoogle(String idToken) async {

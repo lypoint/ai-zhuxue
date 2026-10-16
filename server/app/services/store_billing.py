@@ -335,6 +335,8 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
 
 def effective(family_id: int, sub, db: Session):
     """Select one effective tier and its own period; never extend high seats with another source."""
+    if sub.plan == "permanent":
+        return sub
     rows = db.query(StoreSubscription).filter_by(family_id=family_id).all()
     candidates = [r for r in rows if active(r)]
     if naive(sub.expires_at) > datetime.utcnow():

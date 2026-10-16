@@ -25,6 +25,7 @@ void main() {
     expect(find.text('输入家长端绑定码'), findsOneWidget);
     expect(find.text('绑定并开始学习'), findsOneWidget);
     expect(find.text('扫描家长端二维码'), findsOneWidget);
+    expect(find.byType(PasswordLoginButton), findsOneWidget);
   });
 
   test('扫码内容只接受家长端的 8 位绑定码', () {

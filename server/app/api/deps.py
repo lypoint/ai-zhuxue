@@ -7,6 +7,12 @@ from ..models import Family, Guardian, Student, StudentDevice
 from ..security import parse_token
 
 
+def require_family_access(family_id: int, db: Session):
+    family = db.get(Family, family_id)
+    if not family or family.access_disabled:
+        raise HTTPException(401, "账号已停用，请联系支持")
+
+
 def current_guardian(token: str = Header(alias="Authorization"), db: Session = Depends(get_db)) -> Guardian:
     try:
         payload = parse_token(token.removeprefix("Bearer "))
@@ -19,6 +25,7 @@ def current_guardian(token: str = Header(alias="Authorization"), db: Session = D
         raise HTTPException(401, "guardian not found")
     if guardian.token_version != payload.get("ver"):
         raise HTTPException(401, "登录已失效，请重新登录")
+    require_family_access(guardian.family_id, db)
     return guardian
 
 
@@ -32,6 +39,7 @@ def current_student(token: str = Header(alias="Authorization"), db: Session = De
     student = db.get(Student, int(payload["sub"]))
     if not student or not student.active:
         raise HTTPException(401, "student not found or inactive")
+    require_family_access(student.family_id, db)
     if student.token_version != payload.get("ver"):
         raise HTTPException(401, "登录已失效，请重新绑定")
     device_id = payload.get("device_id")

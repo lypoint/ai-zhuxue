@@ -18,6 +18,31 @@ void main() {
     expect(find.text('家长称呼'), findsOneWidget);
     expect(find.text('身份证号'), findsNothing);
     expect(find.text('登录或注册'), findsOneWidget);
+    expect(find.byType(PasswordLoginButton), findsOneWidget);
+  });
+
+  testWidgets('永久会员展示百名额且不提供重复购买入口', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SubscriptionCard(
+            sub: const {
+              'plan': 'permanent',
+              'active': true,
+              'seat_count': 100,
+              'used_seats': 0,
+            },
+            onPay: () => fail('Lifetime membership must not purchase'),
+            onAddSeat: () => fail('Top tier needs no extra seats'),
+            onManage: () => fail('No recurring subscription to manage'),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('永久会员'), findsOneWidget);
+    expect(find.text('孩子名额 0/100'), findsOneWidget);
+    expect(find.byType(FilledButton), findsNothing);
+    expect(find.byType(TextButton), findsNothing);
   });
 
   testWidgets('家长称呼为空时给出注册错误提示', (tester) async {
