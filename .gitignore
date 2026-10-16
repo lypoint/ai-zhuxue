@@ -34,3 +34,6 @@ server/store-keys/
 **/android/key.properties
 *.jks
 *.keystore
+
+# 私有官网源码位于上级目录，禁止在开源仓库内重新加入
+/site/
