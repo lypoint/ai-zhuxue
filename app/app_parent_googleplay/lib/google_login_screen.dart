@@ -82,6 +82,11 @@ class _GoogleLoginScreenState extends State<GoogleLoginScreen> {
                   onPressed: _loading || !configured ? null : _login,
                   child: Text(_loading ? tr('登录中…') : tr('使用 Google 账号登录')),
                 ),
+                PasswordLoginButton(
+                  onLoggedIn: () => Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  ),
+                ),
                 if (!configured) Text(tr('Google 登录尚未配置')),
                 if (_error != null)
                   Text(

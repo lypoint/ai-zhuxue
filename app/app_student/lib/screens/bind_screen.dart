@@ -158,6 +158,12 @@ class _BindScreenState extends State<BindScreen> {
                       icon: const Icon(Icons.qr_code_scanner),
                       label: Text(tr("扫描家长端二维码")),
                     ),
+                    PasswordLoginButton(
+                      student: true,
+                      onLoggedIn: () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const ChatScreen()),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     FilledButton.icon(
                       onPressed: _loading ? null : _bind,

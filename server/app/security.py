@@ -1,8 +1,28 @@
 from datetime import datetime, timedelta, timezone
+import hashlib
+import secrets
 
 import jwt
 
 from .config import settings
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 600_000)
+    return f"pbkdf2_sha256$600000${salt.hex()}${digest.hex()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    if not stored.startswith("pbkdf2_sha256$"):
+        # Upgrade legacy CMS hashes after a successful login.
+        return secrets.compare_digest(hashlib.sha256(password.encode()).hexdigest(), stored)
+    try:
+        _, iterations, salt, digest = stored.split("$")
+        actual = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(iterations))
+        return secrets.compare_digest(actual, bytes.fromhex(digest))
+    except (ValueError, OverflowError):
+        return False
 
 
 def make_token(role: str, subject_id: int, family_id: int, token_version: int = 1,

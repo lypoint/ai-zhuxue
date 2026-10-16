@@ -22,6 +22,30 @@ class SubscriptionCard extends StatelessWidget {
     AppLanguage.watch(context);
     final active = sub['active'] == true;
     final trial = sub['plan'] == 'free_trial';
+    if (sub['plan'] == 'permanent' && active) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr('永久会员'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                tr('孩子名额 {0}/{1}', [
+                  sub['used_seats'] ?? 0,
+                  sub['seat_count'] ?? 100,
+                ]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final canPurchase =
         sub['can_purchase_subscription'] as bool? ?? (!active || trial);
     final hasPending = sub['has_pending_payment'] == true;

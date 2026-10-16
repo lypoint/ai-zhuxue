@@ -351,6 +351,11 @@ class _LoginScreenState extends State<PhoneLoginScreen> {
                 child: Text(tr("使用短信验证码")),
               ),
             ],
+            PasswordLoginButton(
+              onLoggedIn: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              ),
+            ),
             if (_error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 12),

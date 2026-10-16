@@ -38,6 +38,7 @@ void main() {
       expect(find.byType(GoogleLoginScreen), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       expect(find.byType(PhoneLoginScreen), findsNothing);
+      expect(find.byType(PasswordLoginButton), findsOneWidget);
       // A return-to-login route must resolve the same channel page.
       final context = tester.element(find.byType(GoogleLoginScreen));
       Navigator.of(

@@ -20,6 +20,7 @@ from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode
                       FenceConfig, FenceEvent, FenceFeedback, Guardian, LLMGroup, Message, Student,
                       PricingConfig, RateLimitWindow, Subscription, SubscriptionOrder, UsageLog)
 from ..ratelimit import _hit
+from ..security import hash_password as _hash_password, verify_password as _verify_password
 from ..services.llm import PRICE_PER_MTOK
 from ..services.keyvault import decrypt_api_key, encrypt_api_key
 
@@ -42,24 +43,6 @@ class AdminPrincipal:
     @property
     def can_operate(self) -> bool:
         return self.role in ("super", "admin")
-
-
-def _hash_password(password: str) -> str:
-    salt = secrets.token_bytes(16)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 600_000)
-    return f"pbkdf2_sha256$600000${salt.hex()}${digest.hex()}"
-
-
-def _verify_password(password: str, stored: str) -> bool:
-    if not stored.startswith("pbkdf2_sha256$"):
-        # 旧 SHA-256 账号登录成功后升级，避免要求现有管理员重置密码。
-        return secrets.compare_digest(hashlib.sha256(password.encode()).hexdigest(), stored)
-    try:
-        _, iterations, salt, digest = stored.split("$")
-        actual = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(iterations))
-        return secrets.compare_digest(actual, bytes.fromhex(digest))
-    except (ValueError, OverflowError):
-        return False
 
 
 def log(db: Session, principal: AdminPrincipal, action: str, detail: str = ""):

@@ -258,7 +258,12 @@
     "Google 登录尚未配置",
     "Google 登录服务暂时不可用，请稍后重试",
     "使用 Google 账号登录",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅",
+    "账号或密码错误",
+    "账号已停用，请联系支持",
+    "请使用家长端绑定码登录学生端",
+    "永久会员无需购买订阅或名额",
+    "Google Play 版本不支持手机号登录"
   ],
   "zh-Hans": {
     " · 最近活跃 {0}": " · 最近活跃 {0}",
@@ -1077,7 +1082,19 @@
     "Google 登录尚未配置": "Google 登录尚未配置",
     "Google 登录服务暂时不可用，请稍后重试": "Google 登录服务暂时不可用，请稍后重试",
     "使用 Google 账号登录": "使用 Google 账号登录",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "使用 Google 账号登录，连接孩子设备并管理家庭订阅"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "使用 Google 账号登录，连接孩子设备并管理家庭订阅",
+    "账号密码登录": "账号密码登录",
+    "请输入账号和密码": "请输入账号和密码",
+    "账号": "账号",
+    "密码": "密码",
+    "登录": "登录",
+    "永久会员": "永久会员",
+    "孩子名额 {0}/{1}": "孩子名额 {0}/{1}",
+    "账号或密码错误": "账号或密码错误",
+    "账号已停用，请联系支持": "账号已停用，请联系支持",
+    "请使用家长端绑定码登录学生端": "请使用家长端绑定码登录学生端",
+    "永久会员无需购买订阅或名额": "永久会员无需购买订阅或名额",
+    "Google Play 版本不支持手机号登录": "Google Play 版本不支持手机号登录"
   },
   "zh-Hant": {
     " · 最近活跃 {0}": "· 最近活躍 {0}",
@@ -1896,7 +1913,19 @@
     "Google 登录尚未配置": "Google 登入尚未設定",
     "Google 登录服务暂时不可用，请稍后重试": "Google 登入服務暫時無法使用，請稍後重試",
     "使用 Google 账号登录": "使用 Google 帳號登入",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "使用 Google 帳號登入，連接孩子裝置並管理家庭訂閱"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "使用 Google 帳號登入，連接孩子裝置並管理家庭訂閱",
+    "账号密码登录": "帳號密碼登入",
+    "请输入账号和密码": "請輸入帳號和密碼",
+    "账号": "帳號",
+    "密码": "密碼",
+    "登录": "登入",
+    "永久会员": "永久會員",
+    "孩子名额 {0}/{1}": "孩子名額 {0}/{1}",
+    "账号或密码错误": "帳號或密碼錯誤",
+    "账号已停用，请联系支持": "帳號已停用，請聯絡支援",
+    "请使用家长端绑定码登录学生端": "請使用家長端綁定碼登入學生端",
+    "永久会员无需购买订阅或名额": "永久會員無需購買訂閱或名額",
+    "Google Play 版本不支持手机号登录": "Google Play 版本不支援手機號登入"
   },
   "en": {
     " · 最近活跃 {0}": "· Recently active {0}",
@@ -2715,7 +2744,19 @@
     "Google 登录尚未配置": "Google sign-in is not configured yet",
     "Google 登录服务暂时不可用，请稍后重试": "Google sign-in is temporarily unavailable. Please try again later.",
     "使用 Google 账号登录": "Sign in with Google",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Sign in with Google to connect your child’s device and manage your family subscription"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Sign in with Google to connect your child’s device and manage your family subscription",
+    "账号密码登录": "Sign in with password",
+    "请输入账号和密码": "Enter your username and password",
+    "账号": "Username",
+    "密码": "Password",
+    "登录": "Sign in",
+    "永久会员": "Lifetime membership",
+    "孩子名额 {0}/{1}": "Student places {0}/{1}",
+    "账号或密码错误": "Incorrect username or password",
+    "账号已停用，请联系支持": "Account disabled. Contact support.",
+    "请使用家长端绑定码登录学生端": "Use a parent binding code to sign in to the student app",
+    "永久会员无需购买订阅或名额": "Lifetime members do not need to purchase subscriptions or places",
+    "Google Play 版本不支持手机号登录": "Phone sign-in is unavailable in the Google Play version"
   },
   "ja": {
     " · 最近活跃 {0}": "· 最近アクティブな {0}",
@@ -3534,7 +3575,19 @@
     "Google 登录尚未配置": "Google ログインはまだ設定されていません",
     "Google 登录服务暂时不可用，请稍后重试": "Google ログインを一時的に利用できません。後ほど再試行してください。",
     "使用 Google 账号登录": "Google アカウントでログイン",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Google アカウントでログインして、お子様の端末と家族のサブスクリプションを管理します"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Google アカウントでログインして、お子様の端末と家族のサブスクリプションを管理します",
+    "账号密码登录": "アカウントとパスワードでログイン",
+    "请输入账号和密码": "アカウントとパスワードを入力してください",
+    "账号": "アカウント",
+    "密码": "パスワード",
+    "登录": "ログイン",
+    "永久会员": "永久メンバーシップ",
+    "孩子名额 {0}/{1}": "子どもの枠 {0}/{1}",
+    "账号或密码错误": "アカウントまたはパスワードが正しくありません",
+    "账号已停用，请联系支持": "アカウントは無効です。サポートにお問い合わせください",
+    "请使用家长端绑定码登录学生端": "保護者の連携コードで生徒アプリにログインしてください",
+    "永久会员无需购买订阅或名额": "永久メンバーはサブスクリプションや枠の購入は不要です",
+    "Google Play 版本不支持手机号登录": "Google Play版では電話番号でログインできません"
   },
   "ko": {
     " · 最近活跃 {0}": "· 최근 활동 {0}",
@@ -4353,7 +4406,19 @@
     "Google 登录尚未配置": "Google 로그인이 아직 설정되지 않았습니다",
     "Google 登录服务暂时不可用，请稍后重试": "Google 로그인을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
     "使用 Google 账号登录": "Google 계정으로 로그인",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Google 계정으로 로그인하여 자녀 기기를 연결하고 가족 구독을 관리하세요"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Google 계정으로 로그인하여 자녀 기기를 연결하고 가족 구독을 관리하세요",
+    "账号密码登录": "계정과 비밀번호로 로그인",
+    "请输入账号和密码": "계정과 비밀번호를 입력하세요",
+    "账号": "계정",
+    "密码": "비밀번호",
+    "登录": "로그인",
+    "永久会员": "평생 멤버십",
+    "孩子名额 {0}/{1}": "학생 정원 {0}/{1}",
+    "账号或密码错误": "계정 또는 비밀번호가 올바르지 않습니다",
+    "账号已停用，请联系支持": "계정이 비활성화되었습니다. 지원팀에 문의하세요",
+    "请使用家长端绑定码登录学生端": "학부모 연결 코드로 학생 앱에 로그인하세요",
+    "永久会员无需购买订阅或名额": "평생 회원은 구독이나 정원을 구매할 필요가 없습니다",
+    "Google Play 版本不支持手机号登录": "Google Play 버전은 전화번호 로그인을 지원하지 않습니다"
   },
   "de": {
     " · 最近活跃 {0}": "· Kürzlich aktiv {0}",
@@ -5172,7 +5237,19 @@
     "Google 登录尚未配置": "Google-Anmeldung ist noch nicht eingerichtet",
     "Google 登录服务暂时不可用，请稍后重试": "Google-Anmeldung ist vorübergehend nicht verfügbar. Versuche es später erneut.",
     "使用 Google 账号登录": "Mit Google anmelden",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Melde dich mit Google an, um das Gerät deines Kindes zu verbinden und dein Familienabo zu verwalten"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Melde dich mit Google an, um das Gerät deines Kindes zu verbinden und dein Familienabo zu verwalten",
+    "账号密码登录": "Mit Passwort anmelden",
+    "请输入账号和密码": "Benutzername und Passwort eingeben",
+    "账号": "Benutzername",
+    "密码": "Passwort",
+    "登录": "Anmelden",
+    "永久会员": "Dauerhafte Mitgliedschaft",
+    "孩子名额 {0}/{1}": "Kinderplätze {0}/{1}",
+    "账号或密码错误": "Benutzername oder Passwort falsch",
+    "账号已停用，请联系支持": "Konto deaktiviert. Bitte Support kontaktieren.",
+    "请使用家长端绑定码登录学生端": "Mit einem Eltern-Verknüpfungscode in der Schüler-App anmelden",
+    "永久会员无需购买订阅或名额": "Dauerhafte Mitglieder benötigen kein Abo und keine weiteren Plätze",
+    "Google Play 版本不支持手机号登录": "Die Google Play-Version unterstützt keine Anmeldung per Telefonnummer"
   },
   "es": {
     " · 最近活跃 {0}": "· Activo recientemente {0}",
@@ -5991,6 +6068,18 @@
     "Google 登录尚未配置": "El inicio de sesión con Google aún no está configurado",
     "Google 登录服务暂时不可用，请稍后重试": "El inicio de sesión con Google no está disponible temporalmente. Inténtalo más tarde.",
     "使用 Google 账号登录": "Iniciar sesión con Google",
-    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Inicia sesión con Google para conectar el dispositivo de tu hijo y gestionar la suscripción familiar"
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Inicia sesión con Google para conectar el dispositivo de tu hijo y gestionar la suscripción familiar",
+    "账号密码登录": "Iniciar sesión con contraseña",
+    "请输入账号和密码": "Introduce tu usuario y contraseña",
+    "账号": "Usuario",
+    "密码": "Contraseña",
+    "登录": "Iniciar sesión",
+    "永久会员": "Membresía permanente",
+    "孩子名额 {0}/{1}": "Plazas de estudiantes {0}/{1}",
+    "账号或密码错误": "Usuario o contraseña incorrectos",
+    "账号已停用，请联系支持": "Cuenta desactivada. Contacta con soporte.",
+    "请使用家长端绑定码登录学生端": "Usa el código de vinculación parental para acceder a la app del estudiante",
+    "永久会员无需购买订阅或名额": "Los miembros permanentes no necesitan comprar suscripciones ni plazas",
+    "Google Play 版本不支持手机号登录": "La versión de Google Play no admite acceso con teléfono"
   }
 }

@@ -1,6 +1,6 @@
 name: app_parent_googleplay
 publish_to: 'none'
-version: 1.0.3+4
+version: 1.0.4+5
 environment:
   sdk: ^3.10.0
 dependencies:

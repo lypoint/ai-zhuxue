@@ -56,6 +56,8 @@ def next_month(start: dt.datetime) -> dt.datetime:
 
 def quote_monthly_purchase(sub: Subscription, cfg: PricingConfig, kind: str,
                            count: int = 1, target_seat_count: int | None = None) -> tuple[int, dict]:
+    if sub.plan == "permanent":
+        raise HTTPException(409, "永久会员无需购买订阅或名额")
     if kind not in ("subscription", "seat_add") or type(count) is not int or not 1 <= count <= 20:
         raise HTTPException(422, "购买类型或名额数量无效")
     seats = int(sub.seat_count or 1)
