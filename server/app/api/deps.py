@@ -13,7 +13,8 @@ def require_family_access(family_id: int, db: Session):
         raise HTTPException(401, "账号已停用，请联系支持")
 
 
-def current_guardian(token: str = Header(alias="Authorization"), db: Session = Depends(get_db)) -> Guardian:
+def guardian_identity(token: str = Header(alias="Authorization"), db: Session = Depends(get_db)) -> Guardian:
+    """Identity only, for deletion retries; normal routes use current_guardian."""
     try:
         payload = parse_token(token.removeprefix("Bearer "))
     except pyjwt.PyJWTError:
@@ -25,6 +26,10 @@ def current_guardian(token: str = Header(alias="Authorization"), db: Session = D
         raise HTTPException(401, "guardian not found")
     if guardian.token_version != payload.get("ver"):
         raise HTTPException(401, "登录已失效，请重新登录")
+    return guardian
+
+
+def current_guardian(guardian: Guardian = Depends(guardian_identity), db: Session = Depends(get_db)) -> Guardian:
     require_family_access(guardian.family_id, db)
     return guardian
 

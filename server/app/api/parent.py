@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from ..config import settings
 from ..local_time import local_now, utc_bounds
 from ..db import get_db
-from ..api.deps import current_guardian
+from ..api.deps import current_guardian, guardian_identity
 from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family, FamilySettings,
                       BindCode, FenceEvent, Guardian, LLMGroup, Message, PricingConfig, AdminLog,
                       Student, StudentDevice, StudentGrade, StudentGradeVersion,
@@ -20,6 +20,22 @@ from ..schemas import ConversationOut, FamilySettingsIn, FenceEventOut, MessageO
 from ..services.teacher_channels import current_channel, channel_teachers
 
 router = APIRouter(prefix="/parent", tags=["parent"])
+
+
+@router.post("/account/deletion-request", status_code=202)
+def account_deletion_request(body: dict, guardian: Guardian = Depends(guardian_identity),
+                             db: Session = Depends(get_db)):
+    if body.get("confirmation") != "DELETE":
+        raise HTTPException(422, "请输入 DELETE 确认删除申请")
+    from ..services.account_deletion import request_deletion
+    from datetime import timezone
+    row = request_deletion(db, guardian)
+    requested_at = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=timezone.utc)
+    result = {"status": "completed" if row.completed_at else "pending",
+              "request_id": f"AD-{row.family_id}",
+              "requested_at": requested_at.isoformat(), "processing_days": 30}
+    db.commit()
+    return result
 
 
 def _own_student(guardian: Guardian, student_id: int, db: Session) -> Student:

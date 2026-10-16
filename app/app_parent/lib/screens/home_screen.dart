@@ -10,6 +10,7 @@ import 'notifications_screen.dart';
 import '../billing.dart';
 import 'login_screen.dart';
 import 'device_manage_screen.dart';
+import 'account_deletion_screen.dart';
 
 /// 家庭总览：订阅状态、绑定码、孩子列表（分龄/审查/收藏）、未成年人模式管控设置。
 class HomeScreen extends StatefulWidget {
@@ -750,6 +751,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: _loggingOut ? null : _logout,
                     icon: const Icon(Icons.logout),
                     label: Text(_loggingOut ? tr("正在退出…") : tr("退出登录")),
+                  ),
+                  TextButton.icon(
+                    onPressed: _loggingOut
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => AccountDeletionScreen(
+                                onManageSubscription:
+                                    _billing != null &&
+                                        _billing!.channel != 'wechat'
+                                    ? () {
+                                        _purchase('manage');
+                                      }
+                                    : null,
+                              ),
+                            ),
+                          ),
+                    icon: const Icon(Icons.delete_outline),
+                    label: Text(tr("删除账号")),
                   ),
                 ]),
               ],

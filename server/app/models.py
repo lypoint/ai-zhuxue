@@ -49,6 +49,13 @@ class Guardian(TimestampMixin, Base):
     family: Mapped["Family"] = relationship(back_populates="guardians")
 
 
+class AccountDeletionRequest(TimestampMixin, Base):
+    __tablename__ = "account_deletion_requests"
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), primary_key=True)
+    guardian_id: Mapped[int] = mapped_column(ForeignKey("guardians.id"))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class Student(TimestampMixin, Base):
     __tablename__ = "students"
     id: Mapped[int] = mapped_column(primary_key=True)

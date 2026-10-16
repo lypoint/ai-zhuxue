@@ -707,6 +707,18 @@ class Api {
     body: {'status': status},
   );
 
+  /// 服务端确认接收删除申请后才清除本机凭证；失败时保留登录以便重试。
+  Future<String> requestAccountDeletion() async {
+    final result = await _send(
+      'POST',
+      '/parent/account/deletion-request',
+      body: {'confirmation': 'DELETE'},
+    );
+    final requestId = result['request_id'] as String;
+    await _saveToken(null);
+    return requestId;
+  }
+
   /// 退出登录：服务端吊销当前 token（版本+1），并清除本地
   Future<void> logout() async {
     try {
