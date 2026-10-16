@@ -5,6 +5,8 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val releaseProperties = Properties()
@@ -63,4 +65,13 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// Configure after Android variants so the plugin keeps the private config path.
+afterEvaluate {
+    tasks.withType<com.google.gms.googleservices.GoogleServicesTask>().configureEach {
+        val config = System.getenv("FIREBASE_CONFIG")
+            ?: rootProject.file("../../../../credentials/firebase/parent-google-services.json").absolutePath
+        googleServicesJsonFiles.set(listOf(file(config)))
+    }
 }

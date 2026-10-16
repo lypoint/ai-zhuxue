@@ -37,3 +37,7 @@ server/store-keys/
 
 # 私有官网源码位于上级目录，禁止在开源仓库内重新加入
 /site/
+
+# Firebase runtime configuration is injected from private credentials/
+**/google-services.json
+**/firebase_options.dart

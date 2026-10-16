@@ -1,0 +1,77 @@
+import java.util.Properties
+
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+}
+
+val releaseProperties = Properties()
+val releasePropertiesFile = rootProject.file("key.properties")
+if (releasePropertiesFile.exists()) {
+    releasePropertiesFile.inputStream().use { releaseProperties.load(it) }
+}
+
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name.contains("Release") } && !releasePropertiesFile.exists()) {
+        throw GradleException("Release requires android/key.properties; debug signing is forbidden")
+    }
+}
+
+android {
+    namespace = "com.aizhuxue.app_student"
+    compileSdk = 36
+    ndkVersion = "28.2.13676358"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId = "com.aizhuxue.student.play"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        if (releasePropertiesFile.exists()) {
+            create("channelRelease") {
+                keyAlias = releaseProperties.getProperty("keyAlias")
+                keyPassword = releaseProperties.getProperty("keyPassword")
+                storeFile = rootProject.file(releaseProperties.getProperty("storeFile"))
+                storePassword = releaseProperties.getProperty("storePassword")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (releasePropertiesFile.exists()) signingConfig = signingConfigs.getByName("channelRelease")
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+// Configure after Android variants so the plugin keeps the private config path.
+afterEvaluate {
+    tasks.withType<com.google.gms.googleservices.GoogleServicesTask>().configureEach {
+        val config = System.getenv("FIREBASE_CONFIG")
+            ?: rootProject.file("../../../../credentials/firebase/student-google-services.json").absolutePath
+        googleServicesJsonFiles.set(listOf(file(config)))
+    }
+}

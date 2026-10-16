@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:play_telemetry/play_telemetry.dart';
 import 'google_login_screen.dart';
 import 'package:app_core/app_core.dart';
 import 'package:app_parent/billing.dart';
@@ -65,6 +66,7 @@ class GoogleAdapter implements StoreAdapter {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializePlayTelemetry();
   await AppLanguage.I.load();
   InAppPurchaseAndroidPlatform.registerPlatform();
   final billing = StoreBilling(GoogleAdapter());
@@ -77,4 +79,5 @@ Future<void> main() async {
       child: ParentApp(loginBuilder: (_) => const GoogleLoginScreen()),
     ),
   );
+  Telemetry.event(AppEvent.appReady);
 }

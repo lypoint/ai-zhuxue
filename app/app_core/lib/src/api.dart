@@ -1,4 +1,5 @@
 import 'language.dart';
+import 'telemetry.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -74,7 +75,36 @@ class Api {
     _token = null;
   }
 
+  AppEvent? _operation(String method, String path) => switch ('$method $path') {
+    'POST /auth/guardian/google' => AppEvent.login,
+    'POST /auth/student/login' => AppEvent.bindStudent,
+    'POST /bind/code' => AppEvent.createBindCode,
+    'POST /parent/billing/verify' => AppEvent.purchaseVerify,
+    'POST /auth/logout' => AppEvent.logout,
+    _ => null,
+  };
+
   Future<dynamic> _sendRaw(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    final operation = _operation(method, path);
+    try {
+      final data = await _requestRaw(method, path, body: body);
+      if (operation != null) Telemetry.event(operation);
+      return data;
+    } catch (error, stack) {
+      final status = error is ApiException ? error.status : null;
+      if (operation != null) {
+        Telemetry.event(operation, result: EventResult.failure, status: status);
+      }
+      if (status == null || status >= 500) Telemetry.error(error, stack);
+      rethrow;
+    }
+  }
+
+  Future<dynamic> _requestRaw(
     String method,
     String path, {
     Map<String, dynamic>? body,
@@ -770,7 +800,17 @@ class Api {
         }
       }
       await dispatch();
+      Telemetry.event(AppEvent.chatSend);
       return done ?? {};
+    } catch (error, stack) {
+      final status = error is ApiException ? error.status : null;
+      Telemetry.event(
+        AppEvent.chatSend,
+        result: EventResult.failure,
+        status: status,
+      );
+      if (status == null || status >= 500) Telemetry.error(error, stack);
+      rethrow;
     } finally {
       client.close();
     }
