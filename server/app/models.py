@@ -40,7 +40,6 @@ class Guardian(TimestampMixin, Base):
     phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     nickname: Mapped[str] = mapped_column(String(50), default="")
-    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     token_version: Mapped[int] = mapped_column(Integer, default=1)  # 登出即 +1，旧 token 全部失效
 
     family: Mapped["Family"] = relationship(back_populates="guardians")

@@ -30,7 +30,7 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-/// 家长优先使用本机号码登录，短信验证码作为回退；实名认证可在登录后完成。
+/// 家长优先使用本机号码登录，短信验证码作为回退。
 class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
   @override

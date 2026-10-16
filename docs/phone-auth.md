@@ -27,6 +27,6 @@ SDK 密钥绑定 App 标识与签名，不能跨平台复用，也不要提交�
 
 Google Play 壳独立依赖 `google_sign_in`。构建传入 `GOOGLE_SERVER_CLIENT_ID`，值为 OAuth Web 客户端 ID；服务端 `GOOGLE_LOGIN_CLIENT_ID` 必须为同一值。在 Google Cloud 为 `com.aizhuxue.parent.play` 及实际分发签名 SHA-1 登记 Android OAuth 客户端；Play 应用签名与本地上传/调试签名分别登记，不能互相替代。客户端不使用或打包 Web 客户端密钥。
 
-客户端仅向 `POST /auth/guardian/google` 发送 Google ID token，携带 `X-App-Channel: googleplay`。服务端验证 Google RS256 签名、issuer、audience、有效期及已验证邮箱，以稳定的 `sub` 识别家长；邮箱改变不会新建家庭，也不会按邮箱合并手机号账号。Google-only 家长的 `phone` 为 null，暂不支持手机号三要素实名认证，家庭与订阅功能照常使用。
+客户端仅向 `POST /auth/guardian/google` 发送 Google ID token，携带 `X-App-Channel: googleplay`。服务端验证 Google RS256 签名、issuer、audience、有效期及已验证邮箱，以稳定的 `sub` 识别家长；邮箱改变不会新建家庭，也不会按邮箱合并手机号账号。Google-only 家长的 `phone` 为 null，家庭与订阅功能照常使用。
 
 迁移 `d6e7f8a9b0c1` 保留原手机号账号，新增唯一 Google 身份。Google Play 使用独立登录缓存，升级后原手机号会话需要重新用 Google 登录。渠道头用于产品入口约束，不是可信设备证明。Google 公钥可通过已配置的受限 HTTPS 中继获取，仍由主 API 验签。真实 Google 登录需完成 OAuth 配置和签名真机测试。

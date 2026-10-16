@@ -59,6 +59,5 @@ def test_cannot_favorite_others_message(client):
     assert client.post("/chat/favorites", headers=h(s2), json={"message_id": mid}).status_code == 404
     # 家长 token 也不能调学生收藏端点
     g1 = client.post("/auth/guardian/register", json={
-        "phone": "13800000001", "sms_code": "123456", "nickname": "",
-        "real_name": "测试", "id_number": "11010120100307857X"}).json()["token"]
+        "phone": "13800000001", "sms_code": "123456", "nickname": ""}).json()["token"]
     assert client.get("/chat/favorites", headers=h(g1)).status_code == 403

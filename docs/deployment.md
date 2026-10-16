@@ -25,7 +25,6 @@
 | `PRICING_ADDITIONAL_SEAT_PRICE` | `33` | 首次初始化时的增量孩子名额价格（元）；运行中以 CMS 配置为准 |
 | `PRICING_TRIAL_DAYS` | `30` | 首次初始化时的新用户试用天数 |
 | `PRICING_POST_TRIAL_DAILY_FREE_COUNT` | `0` | 旧配置兼容字段；实际免费次数按 CMS 中各老师分组配置 |
-| `GUARDIAN_VERIFY_PROVIDER` | `mock` | 三要素核验尚未接入；生产可选实名认证接口返回 503，短信/本机号码登录由阿里云号码认证服务独立提供 |
 
 ## 2. 本地开发
 

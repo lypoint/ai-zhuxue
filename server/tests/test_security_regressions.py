@@ -16,8 +16,7 @@ from tests.conftest import h, make_admin, make_family
 def test_production_registration_fails_closed_without_sms(client, monkeypatch):
     monkeypatch.setattr(settings, "env", "prod")
     response = client.post("/auth/guardian/register", json={
-        "phone": "13900009991", "sms_code": "123456", "real_name": "测试",
-        "id_number": "11010120100307857X",
+        "phone": "13900009991", "sms_code": "123456",
     })
     assert response.status_code == 503
     assert "token" not in response.json()
