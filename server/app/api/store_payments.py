@@ -99,7 +99,10 @@ def google_identity(header: str):
         raise HTTPException(401, "Pub/Sub 身份验证失败")
     try:
         token = header[7:]
-        key = jwt.PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", timeout=10).get_signing_key_from_jwt(token).key
+        gateway = billing.google_gateway()
+        key = jwt.PyJWKClient(gateway + "/google/certs" if gateway else "https://www.googleapis.com/oauth2/v3/certs",
+            headers={"Authorization": "Bearer " + settings.google_gateway_token} if gateway else {},
+            timeout=10).get_signing_key_from_jwt(token).key
         claims = jwt.decode(token, key, algorithms=["RS256"], audience=settings.google_pubsub_audience,
                             options={"require": ["exp", "iat", "iss", "aud", "email", "email_verified"]})
         if claims["iss"] not in ("https://accounts.google.com", "accounts.google.com") or claims["email"] != settings.google_pubsub_email or claims["email_verified"] is not True:

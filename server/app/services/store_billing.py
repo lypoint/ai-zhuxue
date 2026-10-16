@@ -8,7 +8,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import httpx
 import jwt
@@ -71,10 +71,13 @@ def configured(channel: str):
             if not isinstance(key, EllipticCurvePrivateKey) or not isinstance(key.curve, SECP256R1):
                 raise ValueError()
         else:
-            credentials = json.loads(Path(settings.google_service_account_path).read_text())
-            if not credentials.get("client_email") or not settings.google_pubsub_email or not settings.google_pubsub_audience:
+            if not settings.google_pubsub_email or not settings.google_pubsub_audience:
                 raise ValueError()
-            jwt.encode({"iss": credentials["client_email"]}, credentials["private_key"], algorithm="RS256")
+            if not google_gateway():
+                credentials = json.loads(Path(settings.google_service_account_path).read_text())
+                if not credentials.get("client_email"):
+                    raise ValueError()
+                jwt.encode({"iss": credentials["client_email"]}, credentials["private_key"], algorithm="RS256")
     except StoreError:
         raise
     except Exception:
@@ -217,8 +220,26 @@ def apple_notification(payload: str):
     raise StoreError("Apple 通知验签或测试家庭授权失败")
 
 
+def google_gateway() -> str:
+    origin = settings.google_gateway_url.rstrip("/")
+    if origin:
+        parsed = urlsplit(origin)
+        if (parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password
+                or parsed.path or parsed.query or parsed.fragment or len(settings.google_gateway_token) < 32):
+            raise StoreError("Google 验单中继配置无效")
+    return origin
+
+
 async def google_request(method: str, path: str, body=None):
     try:
+        gateway = google_gateway()
+        if gateway:
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.post(gateway + "/google/request",
+                    headers={"Authorization": "Bearer " + settings.google_gateway_token},
+                    json={"method": method, "path": path, "body": body})
+                response.raise_for_status()
+                return response.json() if response.content else {}
         service = json.loads(Path(settings.google_service_account_path).read_text())
         now = int(time.time())
         assertion = jwt.encode({"iss": service["client_email"], "scope": "https://www.googleapis.com/auth/androidpublisher",
