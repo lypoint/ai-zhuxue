@@ -240,7 +240,8 @@ def test_google_test_purchase_requires_production_family_allowlist(stores, monke
     assert asyncio.run(billing.google_status('token')).state == 'active'
 
 
-def test_google_push_oidc_requires_signature_audience_and_verified_email(monkeypatch):
+@pytest.mark.parametrize("gateway", ["", "https://relay.example"])
+def test_google_push_oidc_requires_signature_audience_and_verified_email(monkeypatch, gateway):
     import time
     import jwt
     from cryptography.hazmat.primitives.asymmetric import rsa
@@ -248,8 +249,12 @@ def test_google_push_oidc_requires_signature_audience_and_verified_email(monkeyp
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     monkeypatch.setattr(settings, 'google_pubsub_audience', 'https://api.example/notify')
     monkeypatch.setattr(settings, 'google_pubsub_email', 'push@example.iam.gserviceaccount.com')
+    monkeypatch.setattr(settings, 'google_gateway_url', gateway)
+    monkeypatch.setattr(settings, 'google_gateway_token', 'relay-secret-' * 3)
     class Keys:
-        def __init__(self, url, **kwargs): assert url == 'https://www.googleapis.com/oauth2/v3/certs'
+        def __init__(self, url, **kwargs):
+            assert url == (gateway + '/google/certs' if gateway else 'https://www.googleapis.com/oauth2/v3/certs')
+            assert kwargs['headers'] == ({'Authorization': 'Bearer ' + settings.google_gateway_token} if gateway else {})
         def get_signing_key_from_jwt(self, token): return SimpleNamespace(key=key.public_key())
     monkeypatch.setattr(jwt, 'PyJWKClient', Keys)
     claims = {'iss':'https://accounts.google.com','aud':settings.google_pubsub_audience,

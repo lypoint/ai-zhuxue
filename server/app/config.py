@@ -65,6 +65,8 @@ class Settings(BaseSettings):
     apple_root_cert_paths: str = ""  # comma-separated Apple root DER certificates
     google_package_name: str = "com.aizhuxue.parent.play"
     google_service_account_path: str = ""
+    google_gateway_url: str = ""  # Optional HTTPS origin for the dedicated Google relay.
+    google_gateway_token: str = ""
     google_pubsub_audience: str = ""
     google_pubsub_email: str = ""
 
