@@ -65,7 +65,7 @@ flutter run
 # 默认连接 https://api.gker.net；本地调试：--dart-define=API_BASE=http://<host>:8100
 ```
 
-渠道商品、验单密钥、打包命令与验收步骤见 [渠道订阅接入](docs/store-subscriptions.md)。
+渠道商品、验单密钥、打包命令与验收步骤见 [渠道订阅接入](../credentials/store-subscriptions.md)。
 
 **Docker 部署**：
 
