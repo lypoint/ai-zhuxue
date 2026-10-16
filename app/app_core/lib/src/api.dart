@@ -265,14 +265,6 @@ class Api {
 
   Future<Map<String, dynamic>> familyOverview() =>
       _send('GET', '/parent/family');
-  Future<Map<String, dynamic>> verifyGuardianIdentity(
-    String realName,
-    String idNumber,
-  ) => _send(
-    'POST',
-    '/parent/identity/verify',
-    body: {'real_name': realName, 'id_number': idNumber},
-  );
   Future<Map<String, dynamic>> students() => _send('GET', '/parent/students');
 
   Future<Map<String, dynamic>> createStudent(

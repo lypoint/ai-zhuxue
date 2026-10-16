@@ -16,20 +16,20 @@
 ┌─────────────────────────────────────────────────────┐
 │         FastAPI API 服务 (server/app, :8100)         │
 │  auth(注册/登录)  bind(绑定码)  chat(聊天)  parent(审查) │
-│         │                    │                       │
-│         │             ┌──────┴────────┐              │
-│         │             │ fence.py 围栏  │              │
-│         │             │ 白名单→分类→   │              │
-│         │             │ 二次判定→分级  │              │
-│         │             └──────┬────────┘              │
-│         ▼                    ▼                       │
-│  guardian_verify       llm.py (GLM/DeepSeek/Kimi     │
-│  (三要素核验)            OpenAI 兼容统一接入)           │
-│         │                    │                       │
-└─────────┼────────────────────┼───────────────────────┘
-          ▼                    ▼
-   阿里云/腾讯云          open.bigmodel.cn 等
-   信息核验 API（待接入）           (模型备案需核实)
+│                              │                       │
+│                       ┌──────┴────────┐              │
+│                       │ fence.py 围栏  │              │
+│                       │ 白名单→分类→   │              │
+│                       │ 二次判定→分级  │              │
+│                       └──────┬────────┘              │
+│                              ▼                       │
+│                       llm.py (GLM/DeepSeek/Kimi     │
+│                         OpenAI 兼容统一接入)           │
+│                              │                       │
+└──────────────────────────────┼───────────────────────┘
+                               ▼
+                        open.bigmodel.cn 等
+                         (模型备案需核实)
 ```
 
 ## 1.5 CMS 独立服务
@@ -44,7 +44,7 @@
 
 ### 2.1 激活链路（监护人主导）
 
-1. **监护人注册** `POST /auth/guardian/register`：手机号+短信码，注册即创建 `Family` + `FamilySettings`（审查 default-on）。登录后可通过 `POST /parent/identity/verify` 自愿提交姓名和身份证号进行三要素核验（`guardian_verify.py`；不采集人脸），未认证不限制使用。生产短信/号码认证独立接入阿里云；真实三要素核验尚未接入。
+1. **监护人注册** `POST /auth/guardian/register`：手机号+短信码，注册即创建 `Family` + `FamilySettings`（审查 default-on）。生产短信/号码认证独立接入阿里云；Google Play 家长使用 Google 账号登录。
 2. **生成绑定码** `POST /bind/code`：8 位、10 分钟有效、一次性（`BindCode`）。
 3. **学生绑定** `POST /auth/student/login`：学生端凭绑定码+设备号登录，创建/复用 `Student` 并归属家庭。此后学生端持 student JWT。
 
@@ -80,7 +80,7 @@
 | 表 | 职责 | 关键设计 |
 |---|---|---|
 | `families` | 家庭（付费与管控单元） | 家长端订购的产品化载体 |
-| `guardians` | 监护人 | phone 唯一；verified_at 记录核验时间 |
+| `guardians` | 监护人 | phone / google_sub 唯一；按渠道关联登录账号 |
 | `students` | 学生 | 稳定业务身份；grade_band 分龄（8-12/12-16/16-18） |
 | `bind_codes` | 一次性绑定码 | 10 分钟过期；used_by_student_id 防重放 |
 | `family_settings` | 家长管控 | daily_message_cap（家长覆盖全局）、review_enabled |

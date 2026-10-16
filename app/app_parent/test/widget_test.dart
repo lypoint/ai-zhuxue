@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_core/app_core.dart';
 import 'package:app_parent/screens/login_screen.dart';
 import 'package:app_parent/screens/home_screen.dart';
-import 'package:app_parent/screens/identity_verification_screen.dart';
 import 'package:app_parent/widgets/student_review_card.dart';
 import 'package:app_parent/widgets/subscription_card.dart';
 
@@ -27,18 +26,6 @@ void main() {
     await tester.tap(find.text('登录或注册'));
     await tester.pump();
     expect(find.textContaining('请填写家长称呼'), findsWidgets);
-  });
-
-  testWidgets('实名认证是登录后的可选流程', (tester) async {
-    await tester.pumpWidget(
-      const MaterialApp(home: IdentityVerificationScreen(verified: false)),
-    );
-    expect(find.textContaining('不影响功能使用'), findsOneWidget);
-    expect(find.text('真实姓名'), findsOneWidget);
-    expect(find.text('身份证号'), findsOneWidget);
-    await tester.tap(find.text('提交认证'));
-    await tester.pump();
-    expect(find.text('请填写真实姓名和有效身份证号'), findsOneWidget);
   });
 
   testWidgets('绑定码弹窗显示二维码和关闭按钮', (tester) async {

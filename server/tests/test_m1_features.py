@@ -6,8 +6,7 @@ from tests.conftest import h
 
 def _make_family(client, phone):
     token = client.post("/auth/guardian/register", json={
-        "phone": phone, "sms_code": "123456", "nickname": "",
-        "real_name": "测试", "id_number": "11010120100307857X"}).json()["token"]
+        "phone": phone, "sms_code": "123456", "nickname": ""}).json()["token"]
     code = client.post("/bind/code", headers=h(token)).json()["code"]
     s = client.post("/auth/student/login", json={
         "bind_code": code, "device_id": f"pytest-{uuid.uuid4().hex[:10]}", "nickname": "孩子"}).json()["token"]
@@ -75,8 +74,7 @@ def test_delete_student_anonymize_then_purge(client):
     sid2 = client.get("/parent/family", headers=h(g)).json()["students"]
     # 注意：s2 属于新家庭，用其家长验证 purge
     g4 = client.post("/auth/guardian/register", json={
-        "phone": "13900000104", "sms_code": "123456", "nickname": "",
-        "real_name": "测试", "id_number": "11010120100307857X"}).json()["token"]
+        "phone": "13900000104", "sms_code": "123456", "nickname": ""}).json()["token"]
     # g4 重复注册会返回已有家庭——上面 _make_family 已经创建，直接取
     sid2 = client.get("/parent/family", headers=h(g4)).json()["students"][0]["id"]
     r = client.delete(f"/parent/students/{sid2}?purge=true", headers=h(g4))

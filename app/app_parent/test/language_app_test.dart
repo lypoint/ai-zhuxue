@@ -45,7 +45,7 @@ void main() {
     final client = MockClient((request) async {
       final data = switch (request.url.path) {
         '/parent/family' => {
-          'guardian': {'nickname': '原始昵称', 'identity_verified': false},
+          'guardian': {'nickname': '原始昵称'},
           'students': [
             {'id': 1, 'nickname': '孩子原名', 'grade_band': '8-12'},
           ],

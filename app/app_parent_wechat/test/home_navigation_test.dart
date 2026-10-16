@@ -36,7 +36,7 @@ void main() {
         }
         final data = switch (request.url.path) {
           '/parent/family' => {
-            'guardian': {'nickname': '家长', 'identity_verified': false},
+            'guardian': {'nickname': '家长'},
             'students': [
               {'id': 1, 'nickname': '孩子', 'grade_band': '8-12'},
             ],
@@ -107,7 +107,7 @@ void main() {
       final client = MockClient((request) async {
         final data = switch (request.url.path) {
           '/parent/family' => {
-            'guardian': {'nickname': '小明妈妈', 'identity_verified': false},
+            'guardian': {'nickname': '小明妈妈'},
             'students': [
               {'id': 1, 'nickname': '小明', 'grade_band': '8-12'},
               {'id': 2, 'nickname': '小红', 'grade_band': '12-16'},
@@ -168,7 +168,7 @@ void main() {
         expect(editingFocus.hasFocus, isTrue);
         await switchTo('我的');
         expect(editingFocus.hasFocus, isFalse);
-        expect(find.text('实名认证'), findsOneWidget);
+        expect(find.text('实名认证'), findsNothing);
         expect(find.textContaining('订阅生效中'), findsOneWidget);
         await switchTo('守护');
         expect(

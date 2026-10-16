@@ -10,34 +10,17 @@ def test_health(client):
     assert data["fence_mode"] == "heuristic"
 
 
-def test_guardian_can_use_family_before_identity_verification(client):
+def test_guardian_can_use_family_without_identity_verification(client):
     resp = client.post("/auth/guardian/register", json={
         "phone": "13900000002", "sms_code": "123456", "nickname": "家长"})
     assert resp.status_code == 200
     headers = h(resp.json()["token"])
     family = client.get("/parent/family", headers=headers)
     assert family.status_code == 200
-    assert family.json()["guardian"]["identity_verified"] is False
+    assert "identity_verified" not in family.json()["guardian"]
     assert client.post("/bind/code", headers=headers).status_code == 200
-    invalid = client.post("/parent/identity/verify", headers=headers,
-                          json={"real_name": "张三", "id_number": "123"})
-    assert invalid.status_code == 422
-    blank_name = client.post("/parent/identity/verify", headers=headers,
-                             json={"real_name": "  ", "id_number": "11010120100307857X"})
-    assert blank_name.status_code == 400
-    verified = client.post("/parent/identity/verify", headers=headers,
-                           json={"real_name": "张三", "id_number": "11010120100307857X"})
-    assert verified.status_code == 200
-    assert client.get("/parent/family", headers=headers).json()["guardian"]["identity_verified"] is True
-
-
-def test_production_cannot_use_mock_identity_verification(client, guardian_token, monkeypatch):
-    from app.config import settings
-    monkeypatch.setattr(settings, "env", "prod")
-    response = client.post("/parent/identity/verify", headers=h(guardian_token),
-                           json={"real_name": "张三", "id_number": "11010120100307857X"})
-    assert response.status_code == 503
-    assert client.get("/parent/family", headers=h(guardian_token)).json()["guardian"]["identity_verified"] is False
+    assert client.post("/parent/identity/verify", headers=headers, json={}).status_code == 404
+    assert "/parent/identity/verify" not in client.get("/openapi.json").json()["paths"]
 
 
 def test_student_cannot_access_parent_endpoints(client, student_token):
@@ -110,7 +93,6 @@ def test_daily_cap_enforced(client, guardian_token, student_token):
 def test_bind_code_single_use(client):
     guardian_token = client.post("/auth/guardian/register", json={
         "phone": f"139{uuid.uuid4().int % 10**8:08d}", "sms_code": "123456",
-        "real_name": "测试", "id_number": "11010120100307857X",
     }).json()["token"]
     code = client.post("/bind/code", headers=h(guardian_token)).json()["code"]
     ok = client.post("/auth/student/login", json={

@@ -42,7 +42,7 @@ void main() {
         }
         final data = switch (request.url.path) {
           '/parent/family' => {
-            'guardian': {'nickname': '家长', 'identity_verified': false},
+            'guardian': {'nickname': '家长'},
             'students': [
               {'id': 1, 'nickname': '孩子', 'grade_band': '8-12'},
             ],

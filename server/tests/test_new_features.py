@@ -32,7 +32,6 @@ def test_latest_conversation_restores_history(client):
     assert usage["total"]["cost"] >= 0
     # 跨家庭隔离：另一个家长查不到（注册即新家庭）
     g2 = client.post("/auth/guardian/register", json={
-        "phone": "13900000003", "sms_code": "123456", "nickname": "",
-        "real_name": "李四", "id_number": "110101199001011234"}).json()["token"]
+        "phone": "13900000003", "sms_code": "123456", "nickname": ""}).json()["token"]
     r = client.get(f"/parent/students/{sid}/usage", headers=h(g2))
     assert r.status_code == 404

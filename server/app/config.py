@@ -71,9 +71,6 @@ class Settings(BaseSettings):
     google_pubsub_audience: str = ""
     google_pubsub_email: str = ""
 
-    # 监护人核验：mock（开发）| aliyun | tencent
-    guardian_verify_provider: str = "mock"
-
     # 阿里云号码认证：仅服务端保存 AccessKey；客户端只持有 iOS 方案的 SDK 密钥。
     aliyun_access_key_id: str = ""
     aliyun_access_key_secret: str = ""

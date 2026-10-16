@@ -10,7 +10,6 @@ import 'notifications_screen.dart';
 import '../billing.dart';
 import 'login_screen.dart';
 import 'device_manage_screen.dart';
-import 'identity_verification_screen.dart';
 
 /// 家庭总览：订阅状态、绑定码、孩子列表（分龄/审查/收藏）、未成年人模式管控设置。
 class HomeScreen extends StatefulWidget {
@@ -736,32 +735,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       onAddSeat: _addSeat,
                       billingPending: _billingPending,
                     ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.verified_user_outlined),
-                      title: Text(tr("实名认证")),
-                      subtitle: Text(
-                        family['guardian']['identity_verified'] == true
-                            ? tr("已认证")
-                            : tr("未认证 · 不影响功能使用"),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        final verified = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(
-                            builder: (_) => IdentityVerificationScreen(
-                              verified:
-                                  family['guardian']['identity_verified'] ==
-                                  true,
-                            ),
-                          ),
-                        );
-                        if (verified == true) _refresh();
-                      },
-                    ),
-                  ),
-
                   const SizedBox(height: 16),
                   Card(
                     child: ListTile(

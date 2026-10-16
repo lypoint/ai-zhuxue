@@ -23,11 +23,6 @@ class GuardianGoogleIn(BaseModel):
     id_token: str = Field(min_length=20, max_length=16384)
 
 
-class GuardianIdentityIn(BaseModel):
-    real_name: str = Field(min_length=2, max_length=30)
-    id_number: str = Field(min_length=15, max_length=18)
-
-
 class TokenOut(BaseModel):
     token: str
     role: str  # guardian | student

@@ -1,11 +1,10 @@
-"""测试环境：独立 SQLite + 规则围栏 + 关闭时段禁用（时间无关）+ mock 核验。"""
+"""测试环境：独立 SQLite + 规则围栏 + 关闭时段禁用（时间无关）。"""
 import os
 import tempfile
 
 os.environ.setdefault("DATABASE_URL", f"sqlite:///{tempfile.mkdtemp()}/test.db")
 os.environ.setdefault("FENCE_MODE", "heuristic")
 os.environ.setdefault("FENCE_QUIET_ENABLED", "false")
-os.environ.setdefault("GUARDIAN_VERIFY_PROVIDER", "mock")
 os.environ.setdefault("JWT_SECRET", "test-secret")
 os.environ.setdefault("ENV", "test")  # 豁免限流中间件（限流另有专项测试）
 # 测试不外呼真实 LLM：强制无 Key（LLMUnavailable → 503/error 语义可断言）
