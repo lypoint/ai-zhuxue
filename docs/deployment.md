@@ -1,6 +1,6 @@
 # 部署与运维
 
-本文提供通用部署与配置说明；具体生产环境的运维流程由运营方私下维护，不随开源仓库分发。
+本文提供通用部署与配置说明。实际生产环境地址、凭据、发布步骤及恢复资料由部署方在仓库之外单独保管，不随本仓库分发。
 
 ## 1. 配置项全表（`server/app/config.py`，全部环境变量）
 
@@ -78,15 +78,16 @@ JWT_SECRET=$(openssl rand -hex 32) LLM_KEY_SECRET=$(openssl rand -hex 32) \
 
 ## 4. Flutter 构建产物
 
+学生端从 `product/` 根目录执行：
+
 ```bash
-# 学生端（applicationId com.aizhuxue.student）
-cd app/app_student
-flutter build apk --dart-define=API_BASE=https://api.example.com
-# 家长端（applicationId com.aizhuxue.parent）
-cd app/app_parent
-flutter build apk --dart-define=API_BASE=https://api.example.com
-flutter build ipa   # iOS：需开发者账号签名
+(
+  cd app/app_student
+  flutter build apk --dart-define=API_BASE=https://api.example.com
+)
 ```
+
+家长端共享库 `app/app_parent` 不可直接打包。Android/iOS 分别使用渠道工程，完整命令见[渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)。构建必须从仓库外 `../credentials/` 加载对应 SDK Key：iOS 为 `aliyun-auth-ios.env`，Android 调试为 `aliyun-auth-android-debug.env`；正式 Android 需另配与各渠道包名及发布签名匹配的 env，不能复用调试 Key。签名文件与服务端 AccessKey 的取用见私有凭据说明。
 
 ## 5. 生产 Checklist（骨架 → 上线）
 

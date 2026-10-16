@@ -1,6 +1,6 @@
 # 家长端微信 APP 支付
 
-App Store 与 Google Play 的支付隔离、打包入口和商店验单改造见 [家长端多包与支付隔离设计](parent-payment-packaging.md)；实现与构建命令见 [渠道订阅接入](store-subscriptions.md)。
+App Store 与 Google Play 的支付隔离、打包入口和商店验单改造见 [家长端多包与支付隔离设计](parent-payment-packaging.md)；实现与构建命令见 [渠道订阅接入](../../credentials/store-subscriptions.md)。
 
 新订单使用统一家庭月度档位：默认 1 名额 ¥66/月、2 名额 ¥99/月，每个额外名额增加 ¥33/月，另有固定套餐 10 名额 ¥300/月、100 名额 ¥3000/月；基础与增量价读取 CMS，固定套餐优先，不随 CMS 基础价变化。到期后购买一个自然月，有效付费订阅不能通过重复购买同档位叠加时长。增加名额按新档位全额购买月订阅，核验后立即生效，不再按天补差；例如 1 名额升级至 2 名额本次收取 ¥99，不抵扣已付旧档位费用。新周期从确认支付起计一个自然月（默认北京时间），保留既有更晚到期时间，不相加。规则切换前已创建的订单仍按原报价及权益结算。创建订单不会发放权益；微信 API v3 查单或已验签解密的成功回调才发放权益，重复通知不会重复续费或增加名额。客户端微信回调只触发服务端查单。
 
@@ -26,15 +26,9 @@ flutter test test/wechat_payment_test.dart --dart-define=WECHAT_APP_ID=wx_test_a
 3. 商户 RSA 私钥保存于 `WECHAT_PRIVATE_KEY_PATH`；微信支付公钥保存于 `WECHAT_PLATFORM_PUBLIC_KEY_PATH`，`WECHAT_PLATFORM_SERIAL` 填写与该公钥匹配的 `PUB_KEY_ID_...`。本实现采用微信支付公钥验签模式；在商户平台启用该模式并下载公钥，更新公钥时同时替换文件与 ID。不把私钥或 API v3 密钥放进 Flutter。
 4. Docker Compose 已映射上述配置；设置 `WECHAT_KEY_DIR` 为仓库外的目录，里面放置 `merchant_private.pem` 和 `platform_public.pem`。非容器部署可使用实际文件路径。正式密钥经密管注入，不提交 Git。
 5. 微信壳 `app/app_parent_wechat/pubspec.yaml` 的 `fluwx.app_id` 替换为正式 AppID，执行 `flutter pub get`。同一 AppID 通过 WECHAT_APP_ID 编译变量注入客户端，并与服务端保持一致；插件生成 Android 微信回调 Activity。
-6. 构建时传入与上述配置一致的值：
+6. Android 微信正式包按[渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)加载仓库外 `../credentials/aliyun-auth-wechat-release.env`，检查 `ALIYUN_AUTH_SDK_KEY` 非空后构建；同时传入与上述配置一致的真实 `WECHAT_APP_ID`。现有 `aliyun-auth-android-debug.env` 仅供调试，不能用于正式包；正式方案 Key 尚需补齐。
 
-```sh
-flutter build apk --release \
-  --dart-define=WECHAT_APP_ID=wx替换为正式AppID \
-  --dart-define=WECHAT_UNIVERSAL_LINK=https://替换为正式域名/wechat/
-```
-
-iOS 构建同样传入这两个 define，并使用开通 Associated Domains 的签名配置。服务端生产启动自动执行 Alembic 迁移，新版本为 `b1c2d3e4f5a6`，已有 mock 订单保留。
+当前 iOS 使用 App Store 渠道，不使用微信支付打包流程；按同一构建文档加载 `../credentials/aliyun-auth-ios.env`，并准备 Xcode 签名。服务端生产启动自动执行 Alembic 迁移，新版本为 `b1c2d3e4f5a6`，已有 mock 订单保留。
 
 ## 上线验证
 

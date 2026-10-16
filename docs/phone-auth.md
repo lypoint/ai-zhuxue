@@ -10,12 +10,9 @@
 
 ## 客户端
 
-构建家长端时从密管向 Flutter 传入各平台各自的号码认证 SDK 密钥：
+家长端打包统一从开源仓库外的 `../credentials/` 加载平台 env 文件，具体可复制命令见[渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)。
 
-```sh
-flutter build ipa --dart-define=ALIYUN_AUTH_SDK_KEY="$IOS_AUTH_SDK_KEY"
-flutter build apk --dart-define=ALIYUN_AUTH_SDK_KEY="$ANDROID_AUTH_SDK_KEY"
-```
+iOS 使用 `aliyun-auth-ios.env`，Android 调试使用 `aliyun-auth-android-debug.env`。微信正式包和 Google Play 正式包分别使用待补齐的 `aliyun-auth-wechat-release.env`、`aliyun-auth-googleplay.env`。构建前清除继承的 `ALIYUN_AUTH_SDK_KEY`，启用 Shell 出错即退出，加载后检查非空；禁止用调试 Key 补位。`aliyun_key` 是大模型 API Key，不能用于号码认证。服务端 AccessKey 也不能传入客户端。
 
 SDK 密钥绑定 App 标识与签名，不能跨平台复用，也不要提交到仓库。当前阿里云方案：iOS `com.aizhuxue.appParent`（Code `FC220000013735048`）；Android 调试包 `com.aizhuxue.parent`（Code `FC220000013775056`，使用本机 debug.keystore，仅供调试）。正式 Android 签名确定后需另建方案并使用其密钥。模拟器无 SIM 卡会直接使用短信方式；本机号码取号必须在有三大运营商 SIM 和移动数据的真机上验收。
 
