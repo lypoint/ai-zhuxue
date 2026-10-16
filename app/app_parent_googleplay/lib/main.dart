@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'google_login_screen.dart';
 import 'package:app_core/app_core.dart';
 import 'package:app_parent/billing.dart';
 import 'package:app_parent/parent_app.dart';
@@ -70,5 +71,10 @@ Future<void> main() async {
   Api.I.channel = 'googleplay';
   await Api.I.loadToken();
   await billing.retry();
-  runApp(BillingScope(billing: billing, child: const ParentApp()));
+  runApp(
+    BillingScope(
+      billing: billing,
+      child: ParentApp(loginBuilder: (_) => const GoogleLoginScreen()),
+    ),
+  );
 }

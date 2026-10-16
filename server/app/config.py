@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     apple_key_id: str = ""
     apple_private_key_path: str = ""
     apple_root_cert_paths: str = ""  # comma-separated Apple root DER certificates
+    google_login_client_id: str = ""  # OAuth Web client ID accepted as Google login audience.
     google_package_name: str = "com.aizhuxue.parent.play"
     google_service_account_path: str = ""
     google_gateway_url: str = ""  # Optional HTTPS origin for the dedicated Google relay.

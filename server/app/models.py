@@ -37,7 +37,8 @@ class Guardian(TimestampMixin, Base):
     __tablename__ = "guardians"
     id: Mapped[int] = mapped_column(primary_key=True)
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id"))
-    phone: Mapped[str] = mapped_column(String(20), unique=True)
+    phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
+    google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     nickname: Mapped[str] = mapped_column(String(50), default="")
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     token_version: Mapped[int] = mapped_column(Integer, default=1)  # 登出即 +1，旧 token 全部失效

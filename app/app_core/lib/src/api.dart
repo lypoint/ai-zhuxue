@@ -51,18 +51,21 @@ class Api {
     }
   }
 
+  String get _tokenKey =>
+      appChannel == 'googleplay' ? 'google_login_token' : 'token';
+
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('token');
+    _token = prefs.getString(_tokenKey);
   }
 
   Future<void> _saveToken(String? t) async {
     _token = t;
     final prefs = await SharedPreferences.getInstance();
     if (t == null) {
-      await prefs.remove('token');
+      await prefs.remove(_tokenKey);
     } else {
-      await prefs.setString('token', t);
+      await prefs.setString(_tokenKey, t);
     }
   }
 
@@ -184,6 +187,15 @@ class Api {
     );
     await _saveToken(data['token'] as String);
     return data['role'] as String;
+  }
+
+  Future<void> guardianGoogle(String idToken) async {
+    final data = await _send(
+      'POST',
+      '/auth/guardian/google',
+      body: {'id_token': idToken},
+    );
+    await _saveToken(data['token'] as String);
   }
 
   Future<void> sendGuardianSms(String phone) async {

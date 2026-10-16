@@ -353,7 +353,7 @@ def families(principal: AdminPrincipal = Depends(require_admin),page: int = 1, s
         out.append({
             "family_id": fam.id, "tag": fam.tag,
             "created_at": fam.created_at.isoformat() if fam.created_at else None,
-            "guardians": [{"phone": gd.phone[:3] + "****" + gd.phone[-4:], "nickname": gd.nickname}
+            "guardians": [{"phone": gd.phone[:3] + "****" + gd.phone[-4:] if gd.phone else None, "nickname": gd.nickname}
                           for gd in db.query(Guardian).filter_by(family_id=fam.id).all()],
             "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band,
                           "active": s.active, "seat_status": s.seat_status} for s in students],

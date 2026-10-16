@@ -1,4 +1,4 @@
-"""认证：监护人本机号码或短信验证码登录；学生端凭绑定码+设备号登录。"""
+"""Channel-specific guardian login; students use a binding code and device identity."""
 import time
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -10,9 +10,11 @@ from ..config import settings
 from ..db import SessionLocal, get_db
 from ..models import BindCode, Family, FamilySettings, Guardian, Student, StudentDevice
 from ..ratelimit import _hit
-from ..schemas import GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, StudentLoginIn, TokenOut
+from ..schemas import GuardianGoogleIn, GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, StudentLoginIn, TokenOut
 from ..security import make_token
 from ..services import aliyun_phone
+from ..services.google_login import verify_google_identity
+from ..services.teacher_channels import current_channel
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -21,7 +23,8 @@ DEV_SMS_CODE = "123456"
 
 
 @router.post("/guardian/sms/send")
-async def guardian_sms_send(body: GuardianSmsSendIn):
+async def guardian_sms_send(body: GuardianSmsSendIn, channel: str = Depends(current_channel)):
+    _require_phone_channel(channel)
     if settings.env == "prod":
         minute = int(time.time() // 60)
         with SessionLocal.begin() as db:
@@ -37,7 +40,9 @@ async def guardian_sms_send(body: GuardianSmsSendIn):
 
 
 @router.post("/guardian/register", response_model=TokenOut)
-async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_db)):
+async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_db),
+                            channel: str = Depends(current_channel)):
+    _require_phone_channel(channel)
     if settings.env == "prod":
         try:
             passed = await run_in_threadpool(aliyun_phone.check_sms, body.phone, body.sms_code)
@@ -51,7 +56,9 @@ async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_
 
 
 @router.post("/guardian/one-tap", response_model=TokenOut)
-async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db)):
+async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db),
+                           channel: str = Depends(current_channel)):
+    _require_phone_channel(channel)
     try:
         phone = await run_in_threadpool(aliyun_phone.get_mobile, body.access_token)
     except aliyun_phone.PhoneServiceUnavailable as exc:
@@ -59,40 +66,65 @@ async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db)
     return _guardian_token(phone, body.nickname, db)
 
 
-def _guardian_token(phone: str, nickname: str, db: Session) -> TokenOut:
+def _require_phone_channel(channel: str):
+    if channel == "googleplay":
+        raise HTTPException(403, "Google Play 版本仅支持 Google 账号登录")
 
-    guardian = db.query(Guardian).filter_by(phone=phone).first()
+
+@router.post("/guardian/google", response_model=TokenOut)
+async def guardian_google(body: GuardianGoogleIn, db: Session = Depends(get_db),
+                          channel: str = Depends(current_channel)):
+    if channel != "googleplay":
+        raise HTTPException(403, "此渠道不支持 Google 登录")
+    claims = await run_in_threadpool(verify_google_identity, body.id_token)
+    return _guardian_token(None, "家长", db, google_sub=claims["sub"])
+
+
+def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub: str | None = None) -> TokenOut:
+    identity = {"google_sub": google_sub} if google_sub else {"phone": phone}
+    guardian = db.query(Guardian).filter_by(**identity).first()
     if not guardian:
-        # Initialize pricing before opening the family transaction.  If two
-        # first registrations race, a config-row conflict cannot roll back a
-        # partially created family.
-        from ..services import subscription
-        subscription.get_pricing_config(db)
-        family = Family()
-        db.add(family)
-        db.flush()
-        guardian = Guardian(family_id=family.id, phone=phone, nickname=nickname)
-        # 家庭设置从全局策略继承，家长后续仍可在端内覆盖。
-        db.add(FamilySettings(
-            family_id=family.id,
-            daily_message_cap=settings.fence_daily_message_cap,
-            quiet_enabled=settings.fence_quiet_enabled,
-            quiet_start=settings.fence_quiet_start,
-            quiet_end=settings.fence_quiet_end,
-        ))
-        db.add(guardian)
-        db.flush()
-        # P0 商业闭环：注册即开 30 天免费试用
-        subscription.ensure_subscription(family.id, db)
-        # 欢迎通知
-        from ..models import Notification
-        db.add(Notification(family_id=family.id, type="system",
-                            title="欢迎使用 AI 助学",
-                            body="已为您开启 30 天免费试用。请生成绑定码激活孩子端，开启受保护的学习之旅。"))
-        db.commit()
+        try:
+            return _create_guardian(phone, nickname, db, google_sub=google_sub)
+        except IntegrityError:
+            db.rollback()
+            guardian = db.query(Guardian).filter_by(**identity).first()
+            if not guardian:
+                raise HTTPException(409, "登录冲突，请重试") from None
     return TokenOut(token=make_token("guardian", guardian.id, guardian.family_id,
                                      guardian.token_version), role="guardian")
 
+
+def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_sub: str | None) -> TokenOut:
+    # Initialize pricing before opening the family transaction.  If two
+    # first registrations race, a config-row conflict cannot roll back a
+    # partially created family.
+    from ..services import subscription
+    subscription.get_pricing_config(db)
+    family = Family()
+    db.add(family)
+    db.flush()
+    guardian = Guardian(family_id=family.id, phone=phone, google_sub=google_sub, nickname=nickname)
+    # 家庭设置从全局策略继承，家长后续仍可在端内覆盖。
+    db.add(FamilySettings(
+        family_id=family.id,
+        daily_message_cap=settings.fence_daily_message_cap,
+        quiet_enabled=settings.fence_quiet_enabled,
+        quiet_start=settings.fence_quiet_start,
+        quiet_end=settings.fence_quiet_end,
+    ))
+    db.add(guardian)
+    db.flush()
+    # P0 商业闭环：注册即开 30 天免费试用
+    subscription.ensure_subscription(family.id, db)
+    # 欢迎通知
+    from ..models import Notification
+    db.add(Notification(family_id=family.id, type="system",
+                        title="欢迎使用 AI 助学",
+                        body="已为您开启 30 天免费试用。请生成绑定码激活孩子端，开启受保护的学习之旅。"))
+    db.commit()
+    return TokenOut(token=make_token("guardian", guardian.id, guardian.family_id,
+                                 guardian.token_version), role="guardian")
 
 @router.post("/logout")
 def logout(token: str = __import__("fastapi").Header(default="", alias="Authorization"),

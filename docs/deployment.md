@@ -87,7 +87,7 @@ JWT_SECRET=$(openssl rand -hex 32) LLM_KEY_SECRET=$(openssl rand -hex 32) \
 )
 ```
 
-家长端共享库 `app/app_parent` 不可直接打包。Android/iOS 分别使用渠道工程，完整命令见[渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)。构建必须从仓库外 `../credentials/` 加载对应 SDK Key：iOS 为 `aliyun-auth-ios.env`，Android 调试为 `aliyun-auth-android-debug.env`；正式 Android 需另配与各渠道包名及发布签名匹配的 env，不能复用调试 Key。签名文件与服务端 AccessKey 的取用见私有凭据说明。
+家长端共享库 `app/app_parent` 不可直接打包。Android/iOS 分别使用渠道工程，完整命令见[渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)。国内包构建从仓库外 `../credentials/` 加载对应号码认证 SDK Key：iOS 为 `aliyun-auth-ios.env`，Android 调试为 `aliyun-auth-android-debug.env`；正式 Android 需另配与各渠道包名及发布签名匹配的 env，不能复用调试 Key。Google Play 包仅支持 Google 登录，构建传入 `GOOGLE_SERVER_CLIENT_ID`，服务端配置相同的 `GOOGLE_LOGIN_CLIENT_ID`，不使用阿里云号码认证 Key。签名文件与服务端 AccessKey 的取用见私有凭据说明。
 
 ## 5. 生产 Checklist（骨架 → 上线）
 

@@ -27,6 +27,8 @@ router = APIRouter(prefix="/parent", tags=["parent"])
 @router.post("/identity/verify")
 async def verify_identity(body: GuardianIdentityIn, guardian: Guardian = Depends(current_guardian),
                           db: Session = Depends(get_db)):
+    if not guardian.phone:
+        raise HTTPException(400, "此账号未绑定手机号，暂不支持手机号实名认证")
     if settings.env == "prod" and settings.guardian_verify_provider == "mock":
         raise HTTPException(503, "实名认证服务尚未接入")
     try:

@@ -254,7 +254,13 @@
     "难过",
     "霸凌",
     "验证码发送太频繁，请稍后再试",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖"
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖",
+    "Google 登录凭证无效或已过期",
+    "Google 登录失败，请检查网络后重试",
+    "Google 登录尚未配置",
+    "Google 登录服务暂时不可用，请稍后重试",
+    "使用 Google 账号登录",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅"
   ],
   "zh-Hans": {
     " · 最近活跃 {0}": " · 最近活跃 {0}",
@@ -1080,7 +1086,13 @@
     "默认老师": "默认老师",
     "（没有收到内容）": "（没有收到内容）",
     "🎉 欢迎使用 AI 助学": "🎉 欢迎使用 AI 助学",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖"
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖",
+    "Google 登录凭证无效或已过期": "Google 登录凭证无效或已过期",
+    "Google 登录失败，请检查网络后重试": "Google 登录失败，请检查网络后重试",
+    "Google 登录尚未配置": "Google 登录尚未配置",
+    "Google 登录服务暂时不可用，请稍后重试": "Google 登录服务暂时不可用，请稍后重试",
+    "使用 Google 账号登录": "使用 Google 账号登录",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "使用 Google 账号登录，连接孩子设备并管理家庭订阅"
   },
   "zh-Hant": {
     " · 最近活跃 {0}": "· 最近活躍 {0}",
@@ -1906,7 +1918,13 @@
     "默认老师": "預設老師",
     "（没有收到内容）": "（沒有收到內容）",
     "🎉 欢迎使用 AI 助学": "🎉 歡迎使用 AI 助學",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "每天完成一次學習並提交任一種回饋，獲得1顆參與小行星，每天最多1顆；更新舊回答的回饋不會重複發獎"
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "每天完成一次學習並提交任一種回饋，獲得1顆參與小行星，每天最多1顆；更新舊回答的回饋不會重複發獎",
+    "Google 登录凭证无效或已过期": "Google 登入憑證無效或已過期",
+    "Google 登录失败，请检查网络后重试": "Google 登入失敗，請檢查網路後重試",
+    "Google 登录尚未配置": "Google 登入尚未設定",
+    "Google 登录服务暂时不可用，请稍后重试": "Google 登入服務暫時無法使用，請稍後重試",
+    "使用 Google 账号登录": "使用 Google 帳號登入",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "使用 Google 帳號登入，連接孩子裝置並管理家庭訂閱"
   },
   "en": {
     " · 最近活跃 {0}": "· Recently active {0}",
@@ -2732,7 +2750,13 @@
     "默认老师": "Default teacher",
     "（没有收到内容）": "(No content received)",
     "🎉 欢迎使用 AI 助学": "🎉 Welcome to AI learning assistance",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "Study and give any honest feedback to earn one participation asteroid each day, up to one per day. Updating feedback on an earlier answer earns no additional reward."
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "Study and give any honest feedback to earn one participation asteroid each day, up to one per day. Updating feedback on an earlier answer earns no additional reward.",
+    "Google 登录凭证无效或已过期": "Your Google sign-in has expired or is invalid. Please try again.",
+    "Google 登录失败，请检查网络后重试": "Google sign-in failed. Check your connection and try again.",
+    "Google 登录尚未配置": "Google sign-in is not configured yet",
+    "Google 登录服务暂时不可用，请稍后重试": "Google sign-in is temporarily unavailable. Please try again later.",
+    "使用 Google 账号登录": "Sign in with Google",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Sign in with Google to connect your child’s device and manage your family subscription"
   },
   "ja": {
     " · 最近活跃 {0}": "· 最近アクティブな {0}",
@@ -3558,7 +3582,13 @@
     "默认老师": "デフォルトの教師",
     "（没有收到内容）": "(コンテンツは受信しませんでした)",
     "🎉 欢迎使用 AI 助学": "🎉 AI学習支援へようこそ",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "学習し、どの種類でも感想を送ると、1日1個まで参加報酬の小惑星がもらえます。過去の回答への感想を更新しても、報酬は追加されません。"
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "学習し、どの種類でも感想を送ると、1日1個まで参加報酬の小惑星がもらえます。過去の回答への感想を更新しても、報酬は追加されません。",
+    "Google 登录凭证无效或已过期": "Google のログイン情報が無効か期限切れです。再試行してください。",
+    "Google 登录失败，请检查网络后重试": "Google ログインに失敗しました。接続を確認して再試行してください。",
+    "Google 登录尚未配置": "Google ログインはまだ設定されていません",
+    "Google 登录服务暂时不可用，请稍后重试": "Google ログインを一時的に利用できません。後ほど再試行してください。",
+    "使用 Google 账号登录": "Google アカウントでログイン",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Google アカウントでログインして、お子様の端末と家族のサブスクリプションを管理します"
   },
   "ko": {
     " · 最近活跃 {0}": "· 최근 활동 {0}",
@@ -4384,7 +4414,13 @@
     "默认老师": "Default teacher",
     "（没有收到内容）": "(No content received)",
     "🎉 欢迎使用 AI 助学": "🎉 AI 학습 지원에 오신 것을 환영합니다",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "학습하고 어떤 종류든 솔직한 피드백을 제출하면 하루 최대 1개의 참여 보상 소행성을 받아요. 이전 답변의 피드백을 수정해도 보상이 추가되지 않아요."
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "학습하고 어떤 종류든 솔직한 피드백을 제출하면 하루 최대 1개의 참여 보상 소행성을 받아요. 이전 답변의 피드백을 수정해도 보상이 추가되지 않아요.",
+    "Google 登录凭证无效或已过期": "Google 로그인 정보가 만료되었거나 유효하지 않습니다. 다시 시도하세요.",
+    "Google 登录失败，请检查网络后重试": "Google 로그인에 실패했습니다. 연결을 확인하고 다시 시도하세요.",
+    "Google 登录尚未配置": "Google 로그인이 아직 설정되지 않았습니다",
+    "Google 登录服务暂时不可用，请稍后重试": "Google 로그인을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
+    "使用 Google 账号登录": "Google 계정으로 로그인",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Google 계정으로 로그인하여 자녀 기기를 연결하고 가족 구독을 관리하세요"
   },
   "de": {
     " · 最近活跃 {0}": "· Kürzlich aktiv {0}",
@@ -5210,7 +5246,13 @@
     "默认老师": "Standardlehrer",
     "（没有收到内容）": "(Kein Inhalt erhalten)",
     "🎉 欢迎使用 AI 助学": "🎉 Willkommen bei der KI-Lernunterstützung",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "Lerne und gib ehrliches Feedback, um täglich einen Teilnahme-Asteroiden zu erhalten, höchstens einen pro Tag. Änderungen an früherem Feedback bringen keine zusätzliche Belohnung."
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "Lerne und gib ehrliches Feedback, um täglich einen Teilnahme-Asteroiden zu erhalten, höchstens einen pro Tag. Änderungen an früherem Feedback bringen keine zusätzliche Belohnung.",
+    "Google 登录凭证无效或已过期": "Deine Google-Anmeldung ist ungültig oder abgelaufen. Versuche es erneut.",
+    "Google 登录失败，请检查网络后重试": "Google-Anmeldung fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.",
+    "Google 登录尚未配置": "Google-Anmeldung ist noch nicht eingerichtet",
+    "Google 登录服务暂时不可用，请稍后重试": "Google-Anmeldung ist vorübergehend nicht verfügbar. Versuche es später erneut.",
+    "使用 Google 账号登录": "Mit Google anmelden",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Melde dich mit Google an, um das Gerät deines Kindes zu verbinden und dein Familienabo zu verwalten"
   },
   "es": {
     " · 最近活跃 {0}": "· Activo recientemente {0}",
@@ -6036,6 +6078,12 @@
     "默认老师": "Profesor predeterminado",
     "（没有收到内容）": "(No se recibió contenido)",
     "🎉 欢迎使用 AI 助学": "🎉 Bienvenido a la asistencia de aprendizaje de IA",
-    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "Estudia y envía cualquier valoración sincera para ganar un asteroide de participación al día, como máximo uno. Actualizar una valoración anterior no otorga otra recompensa."
+    "每天完成一次学习并提交任一种反馈，获得1颗参与小行星，每天最多1颗；更新旧回答反馈不会重复发奖": "Estudia y envía cualquier valoración sincera para ganar un asteroide de participación al día, como máximo uno. Actualizar una valoración anterior no otorga otra recompensa.",
+    "Google 登录凭证无效或已过期": "El inicio de sesión con Google no es válido o ha caducado. Inténtalo de nuevo.",
+    "Google 登录失败，请检查网络后重试": "No se pudo iniciar sesión con Google. Comprueba la conexión e inténtalo de nuevo.",
+    "Google 登录尚未配置": "El inicio de sesión con Google aún no está configurado",
+    "Google 登录服务暂时不可用，请稍后重试": "El inicio de sesión con Google no está disponible temporalmente. Inténtalo más tarde.",
+    "使用 Google 账号登录": "Iniciar sesión con Google",
+    "使用 Google 账号登录，连接孩子设备并管理家庭订阅": "Inicia sesión con Google para conectar el dispositivo de tu hijo y gestionar la suscripción familiar"
   }
 }
