@@ -6,14 +6,38 @@ import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
 import 'home_screen.dart';
 
-/// 家长优先使用本机号码登录，短信验证码作为回退；实名认证可在登录后完成。
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ParentLoginScope extends InheritedWidget {
+  const ParentLoginScope({
+    super.key,
+    required this.loginBuilder,
+    required super.child,
+  });
+  final WidgetBuilder? loginBuilder;
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  bool updateShouldNotify(ParentLoginScope oldWidget) =>
+      loginBuilder != oldWidget.loginBuilder;
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+/// Every return-to-login path resolves the login page supplied by its channel.
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final builder = context
+        .dependOnInheritedWidgetOfExactType<ParentLoginScope>()
+        ?.loginBuilder;
+    return builder != null ? builder(context) : const PhoneLoginScreen();
+  }
+}
+
+/// 家长优先使用本机号码登录，短信验证码作为回退；实名认证可在登录后完成。
+class PhoneLoginScreen extends StatefulWidget {
+  const PhoneLoginScreen({super.key});
+  @override
+  State<PhoneLoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<PhoneLoginScreen> {
   static const _oneTap = MethodChannel('ai.zhuxue/one_tap');
   static const _sdkKey = String.fromEnvironment('ALIYUN_AUTH_SDK_KEY');
   final _phone = TextEditingController();

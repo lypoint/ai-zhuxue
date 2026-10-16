@@ -26,6 +26,12 @@ def check(channel):
             text = source.read_text()
             assert all(f"package:{sdk}/" not in text for sdk in payment_sdks), f"Shared library imports a payment SDK: {source}"
     assert (package / "pubspec.lock").is_file(), "Commit each channel's dependency lockfile"
+    if channel == "googleplay":
+        assert "google_sign_in" in names, "Google Play requires Google sign-in"
+        assert "com.mobile.auth" not in (package / "android/app/src/main/AndroidManifest.xml").read_text()
+        assert "fileTree" not in (package / "android/app/build.gradle.kts").read_text(), "Do not bundle phone SDK AARs"
+    else:
+        assert "google_sign_in" not in names, "Google login SDK must stay in its channel shell"
     if channel == "appstore":
         data = plistlib.loads((package / "ios/Runner/Info.plist").read_bytes())
         assert "weixin" not in repr(data).lower(), "App Store Info.plist contains WeChat routing"
@@ -38,7 +44,7 @@ def check(channel):
 def artifact(channel, path):
     forbidden = {
         "wechat": (b"io/flutter/plugins/inapppurchase", b"io.flutter.plugins.inapppurchase", b"com/android/billingclient"),
-        "googleplay": (b"com/jarvanmo/fluwx", b"com.jarvanmo.fluwx", b"com/tencent/mm/opensdk"),
+        "googleplay": (b"com/jarvanmo/fluwx", b"com.jarvanmo.fluwx", b"com/tencent/mm/opensdk", b"com/mobile/auth", b"com.mobile.auth"),
         "appstore": (b"fluwx", b"WechatOpenSDK", b"WXApi"),
     }[channel]
     def inspect(name, data):
@@ -70,8 +76,12 @@ def main():
     run([flutter, "pub", "get", "--enforce-lockfile"], package)
     check(channel)
     options = []
-    for name in ("API_BASE", "ALIYUN_AUTH_SDK_KEY", "PRIVACY_URL", "TERMS_URL"):
+    auth_key = "GOOGLE_SERVER_CLIENT_ID" if channel == "googleplay" else "ALIYUN_AUTH_SDK_KEY"
+    for name in ("API_BASE", "PRIVACY_URL", "TERMS_URL", auth_key):
         if os.environ.get(name): options.append(f"--dart-define={name}={os.environ[name]}")
+    if channel == "googleplay" and not args.debug:
+        if not os.environ.get("GOOGLE_SERVER_CLIENT_ID", "").endswith(".apps.googleusercontent.com"):
+            raise SystemExit("Set GOOGLE_SERVER_CLIENT_ID to the Google OAuth Web client ID")
     if channel == "wechat":
         app_id = os.environ.get("WECHAT_APP_ID", "")
         if not args.debug and (not app_id.startswith("wx") or "demo" in app_id):

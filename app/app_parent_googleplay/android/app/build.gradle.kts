@@ -64,7 +64,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    implementation(fileTree("libs") { include("*.aar") })
-}

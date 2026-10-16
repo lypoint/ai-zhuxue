@@ -30,6 +30,10 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 注册和登录不要求实名认证；号码认证服务未配置或不可用时返回 503。
 副作用：新监护人自动创建 Family + FamilySettings（审查 default-on，每日上限 200）。
 
+### POST /auth/guardian/google — Google Play 账号登录
+
+请求体 `{"id_token":"Google ID token"}`，须携带 `X-App-Channel: googleplay`。验证 Google 签名、发行者、OAuth Web 客户端 audience、有效期及已验证邮箱后返回现有 `TokenOut`。按 Google `sub` 创建或复用家庭，不按邮箱合并账号。凭证无效返回401，未配置或上游连接失败返回503。Google Play 渠道的短信发送、短信登录和本机号码接口返回403；其他渠道调用 Google 登录返回403。Google 家长没有手机号时，家庭信息中 `phone` 为 null。
+
 ### POST /auth/student/login — 学生端登录（凭绑定码）
 ```json
 {"bind_code": "6E629AC5", "installation_id": "uuid-from-keychain", "nickname": "小明"}
