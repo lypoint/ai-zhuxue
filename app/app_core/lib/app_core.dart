@@ -9,3 +9,5 @@ export 'src/theme.dart';
 export 'src/trend_chart.dart';
 
 export 'src/learning_screen.dart';
+
+export 'src/telemetry.dart';

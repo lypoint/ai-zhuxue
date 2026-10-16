@@ -122,8 +122,12 @@ class StoreBilling extends ParentBilling with WidgetsBindingObserver {
       await adapter.platform.restorePurchases(
         applicationUserName: account['account_token'] as String,
       );
+      Telemetry.event(AppEvent.restorePurchases);
       message = tr("已请求恢复购买，核对结果后将更新权益");
       notifyListeners();
+    } catch (_) {
+      Telemetry.event(AppEvent.restorePurchases, result: EventResult.failure);
+      rethrow;
     } finally {
       _restoring = false;
     }

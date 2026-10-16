@@ -7,6 +7,7 @@ from pathlib import Path
 import plistlib
 import subprocess
 import zipfile
+from check_telemetry import check as check_telemetry
 
 ROOT = Path(__file__).resolve().parents[1]
 SDK = {"wechat": "fluwx", "appstore": "in_app_purchase_storekit", "googleplay": "in_app_purchase_android"}
@@ -18,6 +19,7 @@ def run(args, cwd):
 
 def check(channel):
     package = ROOT / "app" / f"app_parent_{channel}"
+    check_telemetry(package)
     names = {p["name"] for p in json.loads((package / ".dart_tool/package_config.json").read_text())["packages"]}
     payment_sdks = set(SDK.values()) | {"in_app_purchase"}
     assert names & payment_sdks == {SDK[channel]}, f"{channel}: leaked payment dependencies {names & payment_sdks}"
@@ -42,6 +44,8 @@ def check(channel):
 
 
 def artifact(channel, path):
+    if channel != "appstore":
+        check_telemetry(ROOT / "app" / f"app_parent_{channel}", path)
     forbidden = {
         "wechat": (b"io/flutter/plugins/inapppurchase", b"io.flutter.plugins.inapppurchase", b"com/android/billingclient"),
         "googleplay": (b"com/jarvanmo/fluwx", b"com.jarvanmo.fluwx", b"com/tencent/mm/opensdk", b"com/mobile/auth", b"com.mobile.auth"),
