@@ -377,7 +377,7 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 - `POST /payments/appstore/notify`：验签的 Apple V2 通知。
 - `POST /payments/googleplay/notify`：经 Google OIDC 认证的 Pub/Sub RTDN。
 
-新订阅必须先登录家庭并绑定购买；恢复交易不能迁给其他家庭。商店到期时间、退款与宽限期由商店决定；订阅状态增加 auto_renew 字段。客户端 SDK 回调不能发放权益。服务端来源与交易记录独立存储，不与国内累计收款混算。配置、即时升级与错误恢复详见 [渠道订阅接入](store-subscriptions.md)。
+新订阅必须先登录家庭并绑定购买；恢复交易不能迁给其他家庭。商店到期时间、退款与宽限期由商店决定；订阅状态增加 auto_renew 字段。客户端 SDK 回调不能发放权益。服务端来源与交易记录独立存储，不与国内累计收款混算。配置、即时升级与错误恢复详见 [渠道订阅接入](../../credentials/store-subscriptions.md)。
 
 ## 聊天语种
 
