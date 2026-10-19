@@ -88,6 +88,19 @@ JWT_SECRET=$(openssl rand -hex 32) LLM_KEY_SECRET=$(openssl rand -hex 32) \
 
 家长端共享库 `app/app_parent` 不可直接打包。Android/iOS 分别使用渠道工程，完整命令见[渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)。国内包构建从仓库外 `../credentials/` 加载对应号码认证 SDK Key：iOS 为 `aliyun-auth-ios.env`，Android 调试为 `aliyun-auth-android-debug.env`；正式 Android 需另配与各渠道包名及发布签名匹配的 env，不能复用调试 Key。Google Play 包仅支持 Google 登录，构建传入 `GOOGLE_SERVER_CLIENT_ID`，服务端配置相同的 `GOOGLE_LOGIN_CLIENT_ID`，不使用阿里云号码认证 Key。签名文件与服务端 AccessKey 的取用见私有凭据说明。
 
+### 4.1 国内 Android APK 发布
+
+国内学生端和家长端的 APK 统一上传七牛对象存储，经 CDN 分发；国内官网的所有 APK 按钮直接使用对应版本的 CDN HTTPS 地址，不再把 APK 上传到官网服务器。国内官网首页与“家庭使用”区域的按钮须同时更新。Google Play 渠道沿用独立发布流程。
+
+发布顺序：
+
+1. 构建使用正式签名及生产配置的国内 APK，记录包名、版本、文件大小、签名指纹与 SHA-256。
+2. 使用私有 Qshell 账户上传至七牛，按渠道和版本保存新对象；不覆盖旧版本文件，也不在仓库保存七牛密钥。
+3. 校验对象与本地产物一致，并通过 CDN HTTPS 完整下载核对 SHA-256、大小及 Range 206；检查官网 Referer 可访问。验收失败时保持原官网链接。
+4. 备份线上页面，更新并部署官网所有学生端、家长端下载链接，再检查公网页面实际链接和下载响应。回滚时恢复上一版本页面链接，保留旧对象供回退。
+
+生产空间、CDN 地址、Qshell 命令与证书续期步骤见私有[七牛发布说明](../../credentials/qiniu-release-20261019/README.md)。生产服务器的 `qiniu-cert-renew.timer` 每天两次检查续期；服务负责 HTTP-01 验证、上传证书、更新 CDN 绑定并核验公网证书。部署或验证失败时任务返回失败，下次运行重试；检查 `systemctl status qiniu-cert-renew.timer qiniu-cert-renew.service` 和对应 journal。证书、ACME 账户、七牛密钥与部署状态只保存在服务器私有目录，具体路径和恢复方法见私有说明。
+
 ## 5. 生产 Checklist（骨架 → 上线）
 
 **工程**
