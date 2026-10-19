@@ -143,12 +143,12 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('我的孩子'), findsOneWidget);
     expect(find.text('绑定设备'), findsOneWidget);
-    for (final label in ['对话', '收藏', '成绩', '资料与设备']) {
+    for (final label in ['学习内容', '查看孩子的提问与老师解答', '收藏', '成绩', '资料与设备']) {
       expect(find.text(label), findsOneWidget);
     }
     expect(
       tester.getSize(find.byType(StudentReviewCard)).height,
-      lessThan(280),
+      lessThan(360),
     );
     await tester.tap(find.text('绑定设备'));
     expect(bindRequested, isTrue);

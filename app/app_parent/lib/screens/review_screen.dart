@@ -114,10 +114,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
         return;
       }
       if (_conversations == null) {
-        setState(() => _loadError = tr("对话记录加载失败，请重试"));
+        setState(() => _loadError = tr("学习记录加载失败，请检查网络后重试"));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(tr("刷新对话记录失败：{0}", [e.message]))),
+          SnackBar(content: Text(tr("刷新学习记录失败：{0}", [e.message]))),
         );
       }
     } catch (_) {
@@ -125,11 +125,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
         return;
       }
       if (_conversations == null) {
-        setState(() => _loadError = tr("对话记录加载失败，请检查网络后重试"));
+        setState(() => _loadError = tr("学习记录加载失败，请检查网络后重试"));
       } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(tr("刷新对话记录失败，请检查网络后重试"))));
+        ).showSnackBar(SnackBar(content: Text(tr("刷新学习记录失败，请检查网络后重试"))));
       }
     } finally {
       if (mounted && generation == _loadGeneration) {
@@ -163,10 +163,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
     AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr("{0} 的全部对话", [widget.studentName])),
+        title: Text(tr("{0} · 学习记录", [widget.studentName])),
         actions: [
           IconButton(
-            tooltip: tr("刷新对话记录"),
+            tooltip: tr("刷新学习记录"),
             onPressed: _refreshing ? null : () => _load(reportRetry: true),
             icon: _refreshing
                 ? const SizedBox(
@@ -220,7 +220,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 if (_conversations!.isEmpty)
                   Padding(
                     padding: EdgeInsets.all(32),
-                    child: Center(child: Text(tr("还没有对话记录"))),
+                    child: Center(child: Text(tr("暂无学习内容"))),
                   ),
                 ..._conversations!.map((c) {
                   final conv = c as Map<String, dynamic>;
@@ -311,7 +311,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         decoration: InputDecoration(
           isDense: true,
           prefixIcon: const Icon(Icons.search, size: 20),
-          hintText: tr("搜索消息内容（至少 2 字）"),
+          hintText: tr("搜索学习内容（至少 2 字）"),
           border: const OutlineInputBorder(),
           suffixIcon: IconButton(
             icon: _searching
@@ -362,7 +362,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               style: const TextStyle(fontSize: 13),
             ),
             subtitle: Text(
-              tr("会话: {0}", [h['title']]),
+              tr("学习主题：{0}", [h['title']]),
               style: const TextStyle(fontSize: 11),
             ),
             onTap: () => _openConversation(

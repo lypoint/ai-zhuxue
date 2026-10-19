@@ -56,7 +56,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
     } on ApiException catch (e) {
       if (mounted) setState(() => _loadError = e.message);
     } catch (_) {
-      if (mounted) setState(() => _loadError = tr("对话加载失败，请检查网络后重试"));
+      if (mounted) setState(() => _loadError = tr("学习记录加载失败，请检查网络后重试"));
     }
   }
 
@@ -117,7 +117,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                     color: const Color(0xFFFFF4E5),
                     child: ListTile(
                       leading: const Icon(Icons.delete_outline),
-                      title: Text(tr("孩子已删除此会话")),
+                      title: Text(tr("孩子已删除此学习记录")),
                       subtitle: Text(
                         tr("删除时间：{0} · 内容仍按家庭审查规则保留", [
                           widget.studentDeletedAt ?? tr("未知"),

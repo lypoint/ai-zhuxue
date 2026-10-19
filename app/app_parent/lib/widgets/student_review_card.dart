@@ -55,24 +55,6 @@ class StudentReviewCard extends StatelessWidget {
                 device == null ? tr("待绑定设备") : device['name'] ?? tr("设备已绑定"),
               ]),
             ),
-            trailing: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 20,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  tr("对话"),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ReviewScreen(
@@ -86,6 +68,31 @@ class StudentReviewCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    icon: const Icon(Icons.menu_book_outlined),
+                    label: Text(tr("学习内容")),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ReviewScreen(
+                          studentId: student['id'] as int,
+                          studentName: name,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 12),
+                  child: Text(
+                    tr("查看孩子的提问与老师解答"),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final columns =

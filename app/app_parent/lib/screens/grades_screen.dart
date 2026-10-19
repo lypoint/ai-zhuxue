@@ -545,7 +545,7 @@ class _GradesScreenState extends State<GradesScreen> {
         .map((s) {
           final item = s as Map;
           final ids = (item['evidence_conversation_ids'] as List?) ?? const [];
-          return tr("{0}（会话 {1}）", [
+          return tr("{0}（学习记录 {1}）", [
             trMessage(item['subject'].toString()),
             ids.join(', '),
           ]);
@@ -567,7 +567,7 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
             if (evidence.isNotEmpty)
               Text(
-                tr("证据会话：{0}", [evidence]),
+                tr("参考学习记录：{0}", [evidence]),
                 style: const TextStyle(fontSize: 12),
               ),
             Text(

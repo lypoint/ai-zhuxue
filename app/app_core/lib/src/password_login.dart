@@ -81,43 +81,82 @@ class _PasswordLoginScreenState extends State<_PasswordLoginScreen> {
         title: Text(tr('账号密码登录')),
         actions: const [LanguageButton()],
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(24),
-            children: [
-              TextField(
-                controller: _username,
-                autocorrect: false,
-                enableSuggestions: false,
-                keyboardType: TextInputType.visiblePassword,
-                autofillHints: const [AutofillHints.username],
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(labelText: tr('账号')),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _password,
-                obscureText: true,
-                autocorrect: false,
-                enableSuggestions: false,
-                autofillHints: const [AutofillHints.password],
-                onSubmitted: (_) => _login(),
-                decoration: InputDecoration(labelText: tr('密码')),
-              ),
-              const SizedBox(height: 20),
-              if (_error != null)
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(24),
+              children: [
+                Center(
+                  child: Container(
+                    width: 68,
+                    height: 68,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Image.asset(
+                      'assets/logo-mark.png',
+                      package: 'app_core',
+                      color: Colors.white,
+                      semanticLabel: tr('AI 助学'),
+                    ),
+                  ),
                 ),
-              FilledButton(
-                onPressed: _loading ? null : _login,
-                child: Text(_loading ? tr('登录中…') : tr('登录')),
-              ),
-            ],
+                const SizedBox(height: 18),
+                Text(
+                  widget.student ? tr('AI 助学·学生版') : tr('AI 助学·家长版'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.student ? tr('和 AI 一起，把问题学会') : tr('登录后即可生成绑定码连接孩子设备'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                TextField(
+                  controller: _username,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  keyboardType: TextInputType.visiblePassword,
+                  autofillHints: const [AutofillHints.username],
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(labelText: tr('账号')),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _password,
+                  obscureText: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  autofillHints: const [AutofillHints.password],
+                  onSubmitted: (_) => _login(),
+                  decoration: InputDecoration(labelText: tr('密码')),
+                ),
+                const SizedBox(height: 20),
+                if (_error != null)
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                FilledButton(
+                  onPressed: _loading ? null : _login,
+                  child: Text(_loading ? tr('登录中…') : tr('登录')),
+                ),
+              ],
+            ),
           ),
         ),
       ),
