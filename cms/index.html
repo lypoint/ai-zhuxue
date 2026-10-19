@@ -83,6 +83,13 @@
     <table id="reportTable"><thead><tr><th>时间</th><th>学生</th><th>消息内容</th><th>举报原因</th><th>状态</th><th>回复</th><th>操作</th></tr></thead><tbody></tbody></table>
   </section>
 
+  <section data-admin-only>
+    <h2>家长账号删除记录</h2>
+    <div class="row"><button class="ghost" onclick="loadAccountDeletions()">刷新记录</button><span id="deletionStatus" aria-live="polite"></span></div>
+    <table id="deletionTable"><thead><tr><th>申请编号</th><th>原家庭</th><th>原家长</th><th>申请时间</th><th>处理状态</th><th>完成时间</th></tr></thead><tbody></tbody></table>
+    <div class="row"><button class="ghost" id="deletionPrev" onclick="loadAccountDeletions(deletionPage-1)">上一页</button><span id="deletionPage"></span><button class="ghost" id="deletionNext" onclick="loadAccountDeletions(deletionPage+1)">下一页</button></div>
+  </section>
+
   <section>
     <h2>家族列表</h2>
     <table id="famTable"><thead><tr><th>ID</th><th>监护人</th><th>学生</th><th>消息数</th><th>标签</th><th>协助/会员操作</th><th>创建</th></tr></thead><tbody></tbody></table>
@@ -267,7 +274,7 @@ function boot() {
     }
     if (ROLE === 'support') $('fenceTable').querySelector('tbody').innerHTML = '<tr><td colspan="4">客服角色不显示围栏详情</td></tr>';
     else loadFence();
-    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadFeedback(); loadReports(); loadAssessmentAudits(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
+    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadFeedback(); loadReports(); loadAssessmentAudits(); loadAccountDeletions(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
   }).catch(e => { if (e.message !== 'reauth') $('lerr').textContent = e.message; });
 }
 
@@ -615,6 +622,19 @@ function logDetail(detail) {
       `${LOG_FIELDS[field] || field}: ${value.from ?? '无'} → ${value.to ?? '无'}`).join('；');
   } catch (_) {}
   return detail;
+}
+let deletionPage = 1;
+async function loadAccountDeletions(page = 1) {
+  try {
+    const d = await api('/admin/account-deletions?page='+page+'&size=30');
+    deletionPage = page;
+    $('deletionTable').querySelector('tbody').innerHTML = d.items.map(r =>
+      `<tr><td>${esc(r.request_id)}</td><td>${esc(r.family_id)}</td><td>${esc(r.guardian_id)}</td><td>${esc(r.created_at)}</td><td>${r.status==='completed'?'已完成':'待清理（已停用，可重新注册）'}</td><td>${esc(r.completed_at||'—')}</td></tr>`).join('') || '<tr><td colspan="6">暂无删除记录</td></tr>';
+    $('deletionPage').textContent = `第 ${page} 页 · 共 ${d.total} 条`;
+    $('deletionPrev').disabled = page <= 1;
+    $('deletionNext').disabled = page * 30 >= d.total;
+    $('deletionStatus').textContent = '';
+  } catch (e) { $('deletionStatus').textContent = '加载失败：'+e.message; }
 }
 async function loadLogs() {
   try {

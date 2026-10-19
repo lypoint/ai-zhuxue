@@ -1042,6 +1042,24 @@ def revoke_membership(family_id: int, body: RevokeIn,
     return {"ok": True, **get_status(family_id, db)}
 
 
+@router.get("/account-deletions")
+def account_deletions(page: int = 1, size: int = 30,
+                      principal: AdminPrincipal = Depends(require_admin),
+                      db: Session = Depends(get_db)):
+    require_operate(principal)
+    from ..models import AccountDeletionRequest
+    size = max(1, min(size, 100))
+    q = db.query(AccountDeletionRequest)
+    rows = q.order_by(AccountDeletionRequest.created_at.desc(), AccountDeletionRequest.family_id.desc()).offset(
+        (max(1, page) - 1) * size).limit(size).all()
+    return {"total": q.count(), "items": [
+        {"request_id": f"AD-{r.family_id}", "family_id": r.family_id,
+         "guardian_id": r.guardian_id, "status": "completed" if r.completed_at else "pending",
+         "created_at": r.created_at.isoformat(),
+         "completed_at": r.completed_at.isoformat() if r.completed_at else None}
+        for r in rows]}
+
+
 @router.get("/logs")
 def admin_logs(page: int = 1, size: int = 30,
                principal: AdminPrincipal = Depends(require_admin),

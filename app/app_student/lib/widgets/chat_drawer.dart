@@ -16,6 +16,7 @@ class ChatDrawer extends StatelessWidget {
   final VoidCallback onOpenReports;
   final VoidCallback onOpenGrades;
   final VoidCallback onLogout;
+  final VoidCallback? onDeleteAccount;
   final ValueChanged<int> onOpenSession;
   final ValueChanged<Map<String, dynamic>> onSessionMenu;
   final VoidCallback onRetrySessions;
@@ -34,6 +35,7 @@ class ChatDrawer extends StatelessWidget {
     required this.onOpenReports,
     required this.onOpenGrades,
     required this.onLogout,
+    this.onDeleteAccount,
     required this.onOpenSession,
     required this.onSessionMenu,
     required this.onRetrySessions,
@@ -177,6 +179,16 @@ class ChatDrawer extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
+            if (onDeleteAccount != null)
+              ListTile(
+                leading: Icon(
+                  Icons.person_remove_outlined,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                title: Text(tr("删除账号")),
+                onTap: onDeleteAccount,
+              ),
             ListTile(
               leading: const Icon(Icons.logout, size: 20),
               title: Text(tr("退出登录")),

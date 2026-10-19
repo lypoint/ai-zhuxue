@@ -19,7 +19,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Map<String, dynamic>? _family;
   String? _loadError;
   String? _partialLoadError;
@@ -34,11 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _showOnboarding = false;
   Map<String, dynamic>? _subscription;
   int _unread = 0;
+  List<dynamic> _studentDeletionNotices = [];
   int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context
@@ -75,7 +77,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _billing?.removeListener(_billingChanged);
     super.dispose();
   }
@@ -312,6 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     Map<String, dynamic>? sub;
     var unread = _unread;
+    var deletionNotices = _studentDeletionNotices;
     final unavailable = <String>[];
     try {
       sub = await Api.I.subscription();
@@ -319,7 +328,11 @@ class _HomeScreenState extends State<HomeScreen> {
       unavailable.add(tr("订阅信息"));
     }
     try {
-      unread = (await Api.I.notifications(unreadOnly: true))['unread'] as int;
+      final notices = await Api.I.notifications(unreadOnly: true);
+      unread = notices['unread'] as int;
+      deletionNotices = (notices['items'] as List? ?? [])
+          .where((n) => n['type'] == 'student_deleted')
+          .toList();
     } catch (_) {
       unavailable.add(tr("通知数量"));
     }
@@ -334,6 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadError = null;
       _subscription = sub;
       _unread = unread;
+      _studentDeletionNotices = deletionNotices;
       _partialLoadError = unavailable.isEmpty
           ? null
           : tr("{0}暂不可用，请刷新重试", [unavailable.join('、')]);
@@ -701,6 +715,22 @@ class _HomeScreenState extends State<HomeScreen> {
               index: _selectedTab,
               children: [
                 _tabList('family', [
+                  for (final notice in _studentDeletionNotices)
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.person_remove_outlined),
+                        title: Text(trMessage(notice['title'] as String)),
+                        subtitle: Text(trMessage(notice['body'] as String)),
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsScreen(),
+                            ),
+                          );
+                          if (mounted) _refresh();
+                        },
+                      ),
+                    ),
                   if (_showOnboarding) ...[
                     _onboardingCard(),
                     const SizedBox(height: 16),

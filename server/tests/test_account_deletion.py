@@ -9,7 +9,7 @@ from app import models as m
 from app.db import Base, SessionLocal
 from app.security import parse_token
 from app.services.account_deletion import complete_deletion, request_deletion
-from .conftest import h, make_family
+from .conftest import h, make_family, make_admin
 
 
 URL = '/parent/account/deletion-request'
@@ -30,7 +30,15 @@ def test_request_is_authenticated_confirmed_idempotent_and_family_scoped(client)
     assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).json() == response.json()
     assert client.get('/parent/family', headers=h(parent)).status_code == 401
     assert client.get('/chat/learning', headers=h(student)).status_code == 401
-    assert client.post('/auth/guardian/register', json={'phone': phone, 'sms_code': '123456'}).status_code == 401
+    fresh = client.post('/auth/guardian/register', json={'phone': phone, 'sms_code': '123456'})
+    assert fresh.status_code == 200
+    assert parse_token(fresh.json()['token'])['family_id'] != fid
+    assert client.get('/parent/family', headers=h(fresh.json()['token'])).json()['students'] == []
+    records = client.get('/admin/account-deletions', headers=make_admin(client, 'admin'))
+    assert records.status_code == 200
+    record = next(r for r in records.json()['items'] if r['family_id'] == fid)
+    assert record['status'] == 'pending' and record['guardian_id'] == guardian.id
+    assert client.get('/admin/account-deletions', headers=make_admin(client, 'support')).status_code == 403
     assert client.get('/parent/family', headers=h(other)).status_code == 200
     with SessionLocal() as db:
         assert db.query(m.AccountDeletionRequest).filter_by(family_id=fid).count() == 1
@@ -40,6 +48,8 @@ def test_request_is_authenticated_confirmed_idempotent_and_family_scoped(client)
     with SessionLocal.begin() as db:
         complete_deletion(db, fid)
     assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 401
+    records = client.get('/admin/account-deletions', headers=make_admin(client))
+    assert next(r for r in records.json()['items'] if r['family_id'] == fid)['status'] == 'completed'
     fresh = client.post('/auth/guardian/register', json={'phone': phone, 'sms_code': '123456'})
     assert fresh.status_code == 200
     assert parse_token(fresh.json()['token'])['sub'] != parse_token(parent)['sub']
@@ -136,3 +146,60 @@ def test_complete_erases_personal_data_with_real_foreign_keys_and_preserves_fina
         for model in (m.StoreAccount, m.StoreSubscription, m.StoreTransaction, m.SubscriptionOrder):
             assert db.query(model).count() == 1
     engine.dispose()
+
+
+def test_student_deletes_only_own_account_notifies_parent_and_releases_device(client):
+    parent, token = make_family(client)
+    other_parent, other_student = make_family(client)
+    student_id = client.get('/parent/family', headers=h(parent)).json()['students'][0]['id']
+    with SessionLocal() as db:
+        installation = db.get(m.Student, student_id).installation_id
+    code = client.post(f'/parent/students/{student_id}/rebind-code', headers=h(parent)).json()['bind_code']
+    url = '/auth/student/account/delete'
+    assert client.post(url, json={'confirmation': 'DELETE'}).status_code == 422
+    assert client.post(url, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 403
+    assert client.post(url, headers=h(token), json={}).status_code == 422
+    assert client.get('/chat/sessions', headers=h(token)).status_code == 200
+    assert client.post(url, headers=h(token), json={'confirmation': 'DELETE'}).status_code == 200
+    assert client.get('/chat/sessions', headers=h(token)).status_code == 401
+    assert client.post(url, headers=h(token), json={'confirmation': 'DELETE'}).status_code == 401
+    child = client.get('/parent/family', headers=h(parent)).json()['students'][0]
+    assert child['active'] is False and child['current_device'] is None
+    notices = client.get('/parent/notifications', headers=h(parent)).json()['items']
+    assert len([n for n in notices if n['type'] == 'student_deleted']) == 1
+    assert not any(n['type'] == 'student_deleted' for n in client.get('/parent/notifications', headers=h(other_parent)).json()['items'])
+    assert client.get('/chat/sessions', headers=h(other_student)).status_code == 200
+    assert client.post('/auth/student/login', json={'bind_code': code, 'installation_id': installation}).status_code == 400
+    new_code = client.post('/parent/students', headers=h(parent), json={'nickname': '新孩子'}).json()['bind_code']
+    assert client.post('/auth/student/login', json={'bind_code': new_code, 'installation_id': installation}).status_code == 200
+    with SessionLocal() as db:
+        assert db.query(m.AdminLog).filter_by(action='student.account_deleted', admin=f'student:{student_id}').count() == 1
+
+
+def test_google_identity_can_register_a_new_family_while_old_deletion_is_pending(client):
+    from app.api.auth import _guardian_token
+    with SessionLocal() as db:
+        original = _guardian_token(None, 'Google parent', db, google_sub='deletion-google-sub')
+    assert client.post(URL, headers=h(original.token), json={'confirmation': 'DELETE'}).status_code == 202
+    with SessionLocal() as db:
+        fresh = _guardian_token(None, 'Google parent', db, google_sub='deletion-google-sub')
+    assert parse_token(fresh.token)['family_id'] != parse_token(original.token)['family_id']
+    assert client.get('/parent/family', headers=h(original.token)).status_code == 401
+    assert client.get('/parent/family', headers=h(fresh.token)).json()['students'] == []
+
+
+def test_parent_reregistration_can_bind_the_same_physical_device(client):
+    parent, token = make_family(client)
+    with SessionLocal() as db:
+        guardian = db.get(m.Guardian, int(parse_token(parent)['sub']))
+        phone = guardian.phone
+        student = db.query(m.Student).filter_by(family_id=guardian.family_id).one()
+        installation = student.installation_id
+    assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 202
+    fresh = client.post('/auth/guardian/register', json={'phone': phone, 'sms_code': '123456'}).json()['token']
+    child = client.post('/parent/students', headers=h(fresh), json={'nickname': '新家庭孩子'})
+    assert child.status_code == 200
+    login = client.post('/auth/student/login', json={'bind_code': child.json()['bind_code'], 'installation_id': installation})
+    assert login.status_code == 200
+    assert client.get('/chat/sessions', headers=h(token)).status_code == 401
+    assert client.get('/chat/sessions', headers=h(login.json()['token'])).json() == []

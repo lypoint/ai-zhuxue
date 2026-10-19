@@ -320,7 +320,6 @@ def delete_student(student_id: int, purge: bool = False,
     purge=true：连同对话、消息、围栏流水一并硬删除（监护人明确要求时使用）。
     """
     from ..models import Student as S
-    import uuid
 
     # Use the same lock order as binding so a concurrent login cannot restore a deleted device.
     db.query(Family).filter_by(id=guardian.family_id).with_for_update().first()
@@ -367,21 +366,8 @@ def delete_student(student_id: int, purge: bool = False,
         db.query(S).filter_by(id=student.id).delete()
         db.commit()
         return {"ok": True, "mode": "purged"}
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
-    student.active = False
-    student.nickname = "已注销"
-    student.device_id = f"deleted-{uuid.uuid4().hex}"
-    student.installation_id = None
-    student.token_version = (student.token_version or 1) + 1
-    # Release installation IDs so the physical device can bind a new child later.
-    for device in db.query(StudentDevice).filter_by(student_id=student.id).all():
-        device.is_current = False
-        device.revoked_at = device.revoked_at or now
-        device.installation_id = f"deleted-{uuid.uuid4().hex}"
-    db.query(BindCode).filter_by(target_student_id=student.id, revoked_at=None).update({
-        BindCode.revoked_at: now,
-    }, synchronize_session=False)
+    from ..services.account_deletion import deactivate_student
+    deactivate_student(db, student)
     db.add(AdminLog(admin=f"guardian:{guardian.id}", action="student.delete",
                     detail=f"student={student.id} mode=anonymized"))
     db.commit()

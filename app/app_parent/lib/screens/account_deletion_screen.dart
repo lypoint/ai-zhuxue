@@ -70,7 +70,9 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
               SelectableText(tr("申请编号：{0}", [_requestId!])),
               const SizedBox(height: 12),
               Text(
-                tr("账号及关联学生端已停用。我们将在 30 天内处理删除申请；如需查询进度，请联系 support@gker.net。"),
+                tr(
+                  "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。",
+                ),
               ),
               const SizedBox(height: 24),
               FilledButton(
@@ -88,7 +90,7 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
               const SizedBox(height: 12),
               Text(
                 tr(
-                  "提交后，当前家长账号和所有关联学生端将立即停用。账号资料、孩子档案、聊天、成绩、评估、奖励和家庭设置将进入删除流程，完成后无法恢复。",
+                  "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。",
                 ),
               ),
               const SizedBox(height: 12),

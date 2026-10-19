@@ -9,6 +9,22 @@ from .. import models as m
 from ..api.deps import require_family_access
 
 
+def deactivate_student(db: Session, student: m.Student) -> None:
+    """Caller holds the family lock; keep learning records available to guardians."""
+    now = datetime.now(timezone.utc)
+    student.active = False
+    student.nickname = "已注销"
+    student.device_id = f"deleted-{uuid.uuid4().hex}"
+    student.installation_id = None
+    student.token_version = (student.token_version or 1) + 1
+    for device in db.query(m.StudentDevice).filter_by(student_id=student.id).all():
+        device.is_current = False
+        device.revoked_at = device.revoked_at or now
+        device.installation_id = f"deleted-{uuid.uuid4().hex}"
+    db.query(m.BindCode).filter_by(target_student_id=student.id, revoked_at=None).update(
+        {m.BindCode.revoked_at: now}, synchronize_session=False)
+
+
 def request_deletion(db: Session, guardian: m.Guardian) -> m.AccountDeletionRequest:
     family = db.query(m.Family).filter_by(id=guardian.family_id).populate_existing().with_for_update().one()
     existing = db.get(m.AccountDeletionRequest, family.id)
@@ -23,11 +39,11 @@ def request_deletion(db: Session, guardian: m.Guardian) -> m.AccountDeletionRequ
     row = m.AccountDeletionRequest(family_id=family.id, guardian_id=guardian.id)
     db.add(row)
     family.access_disabled = True
+    # Release unique identities immediately; a new registration gets a separate family.
+    guardian.phone = guardian.google_sub = guardian.username = guardian.password_hash = None
     now = datetime.now(timezone.utc)
-    ids = db.query(m.Student.id).filter_by(family_id=family.id)
-    db.query(m.Student).filter_by(family_id=family.id).update({m.Student.active: False}, synchronize_session=False)
-    db.query(m.StudentDevice).filter(m.StudentDevice.student_id.in_(ids)).update(
-        {m.StudentDevice.is_current: False, m.StudentDevice.revoked_at: now}, synchronize_session=False)
+    for student in db.query(m.Student).filter_by(family_id=family.id).all():
+        deactivate_student(db, student)
     db.query(m.BindCode).filter_by(family_id=family.id, revoked_at=None).update(
         {m.BindCode.revoked_at: now}, synchronize_session=False)
     # Family access blocks all normal sessions; retain the token version only

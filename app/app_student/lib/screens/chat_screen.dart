@@ -1110,6 +1110,52 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     ).push(MaterialPageRoute(builder: (_) => const GradesScreen()));
   }
 
+  Future<void> _deleteAccount() async {
+    if (_loggingOut) return;
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(tr("删除学生账号？")),
+        content: Text(
+          tr("删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(tr("取消")),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(tr("删除账号")),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _loggingOut = true);
+    try {
+      await Api.I.deleteStudentAccount();
+      if (!mounted) return;
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const BindScreen()),
+        (_) => false,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr("删除失败，请检查网络后重试"))));
+      }
+    } finally {
+      if (mounted) setState(() => _loggingOut = false);
+    }
+  }
+
   Future<void> _logout() async {
     if (_loggingOut) return;
     final navigator = Navigator.of(context);
@@ -1252,6 +1298,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onOpenReports: _openReports,
         onOpenGrades: _openGrades,
         onLogout: _logout,
+        onDeleteAccount: _deleteAccount,
         onOpenSession: _openSession,
         onSessionMenu: _sessionMenu,
         onRetrySessions: _loadSessions,

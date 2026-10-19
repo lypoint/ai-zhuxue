@@ -99,4 +99,48 @@ void main() {
       }, () => client);
     });
   }
+  testWidgets('学生主动删除后家庭页展示通知并隐藏已停用的孩子', (tester) async {
+    SharedPreferences.setMockInitialValues({'app_language': 'zh-Hans'});
+    final client = MockClient((request) async {
+      final data = switch (request.url.path) {
+        '/parent/family' => {
+          'guardian': {'nickname': '家长'},
+          'students': [
+            {'id': 7, 'nickname': '已注销', 'active': false, 'grade_band': '8-12'},
+          ],
+          'settings': {'daily_message_cap': 200, 'daily_minutes_cap': 60},
+        },
+        '/parent/subscription' => {
+          'active': true,
+          'plan': 'monthly',
+          'seat_count': 1,
+        },
+        '/parent/notifications' => {
+          'unread': 1,
+          'items': [
+            {
+              'type': 'student_deleted',
+              'title': '学生账号已删除',
+              'body': '小明 已删除学生账号，设备已解绑，学习记录仍由家长保留。',
+            },
+          ],
+        },
+        _ => throw StateError('Unexpected request: ${request.url}'),
+      };
+      return http.Response(
+        jsonEncode(data),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    addTearDown(client.close);
+    await http.runWithClient(() async {
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpAndSettle();
+      expect(find.text('学生账号已删除'), findsOneWidget);
+      expect(find.textContaining('小明 已删除学生账号'), findsOneWidget);
+      expect(find.byType(StudentReviewCard), findsNothing);
+      expect(tester.takeException(), isNull);
+    }, () => client);
+  });
 }

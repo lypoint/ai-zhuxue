@@ -30,3 +30,11 @@ Google Play 壳独立依赖 `google_sign_in`。构建传入 `GOOGLE_SERVER_CLIEN
 客户端仅向 `POST /auth/guardian/google` 发送 Google ID token，携带 `X-App-Channel: googleplay`。服务端验证 Google RS256 签名、issuer、audience、有效期及已验证邮箱，以稳定的 `sub` 识别家长；邮箱改变不会新建家庭，也不会按邮箱合并手机号账号。Google-only 家长的 `phone` 为 null，家庭与订阅功能照常使用。
 
 迁移 `d6e7f8a9b0c1` 保留原手机号账号，新增唯一 Google 身份。Google Play 使用独立登录缓存，升级后原手机号会话需要重新用 Google 登录。渠道头用于产品入口约束，不是可信设备证明。Google 公钥可通过已配置的受限 HTTPS 中继获取，仍由主 API 验签。真实 Google 登录需完成 OAuth 配置和签名真机测试。
+
+## 账号删除与重新注册
+
+家长在“我的 → 删除账号”提交确认后，原家庭和关联学生端立即停用，手机号、Google 身份和审核登录凭据解除占用，可再次登录注册为独立的新家庭。新注册不会恢复原家庭数据。旧令牌不能访问原家庭；删除申请重试仍返回原申请编号。原家庭数据继续按删除流程清理，支付、退款与必要审计记录保留。
+
+学生在聊天侧边栏选择“删除账号”，确认后停用本学生身份、撤销全部设备登录并释放设备标识；学习记录仍由家长保留，确认页明确说明此范围。家长家庭页刷新或恢复前台时显示未读删除通知，通知中心保留记录；原孩子不再出现在有效孩子卡片中。如需删除学习数据，由家长另行申请。
+
+CMS 管理员在“家长账号删除记录”查看申请编号、原家庭/家长 ID、申请时间、待清理/已完成状态及完成时间，支持分页。`GET /admin/account-deletions` 仅运营管理员及超级管理员可读，不返回原手机号、Google 身份或密码。学生主动删除也写入操作审计 `student.account_deleted`。后台仍使用现有 `python -m app.account_deletion complete` 流程执行数据清理，不能将停用状态当作清理已完成。

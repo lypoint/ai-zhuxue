@@ -12,7 +12,7 @@ from ..models import BindCode, Family, FamilySettings, Guardian, Student, Studen
 from ..ratelimit import _hit
 from ..schemas import GuardianGoogleIn, GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, PasswordLoginIn, StudentPasswordLoginIn, StudentLoginIn, TokenOut
 from ..security import make_token, hash_password, verify_password
-from .deps import require_family_access
+from .deps import current_student, require_family_access
 from ..services import aliyun_phone
 from ..services.google_login import verify_google_identity
 from ..services.teacher_channels import current_channel
@@ -63,6 +63,30 @@ def student_password(body: StudentPasswordLoginIn, db: Session = Depends(get_db)
                      target_student_id=existing.id if existing else None)
     return student_login(StudentLoginIn(bind_code=bind.code, installation_id=body.installation_id,
                                         nickname="审核学生"), db)
+
+
+@router.post("/student/account/delete")
+def student_delete_account(body: dict, student: Student = Depends(current_student),
+                           db: Session = Depends(get_db)):
+    if body.get("confirmation") != "DELETE":
+        raise HTTPException(422, "请输入 DELETE 确认删除申请")
+    from ..models import AdminLog, Notification
+    from ..services.account_deletion import deactivate_student
+    version = student.token_version
+    db.query(Family).filter_by(id=student.family_id).with_for_update().one()
+    require_family_access(student.family_id, db)
+    student = db.query(Student).filter_by(id=student.id).populate_existing().with_for_update().one()
+    if not student.active or student.token_version != version:
+        raise HTTPException(401, "student not found or inactive")
+    nickname = student.nickname
+    deactivate_student(db, student)
+    db.add(Notification(family_id=student.family_id, type="student_deleted",
+                        title="学生账号已删除",
+                        body=f"{nickname} 已删除学生账号，设备已解绑，学习记录仍由家长保留。"))
+    db.add(AdminLog(admin=f"student:{student.id}", action="student.account_deleted",
+                    detail=f"student={student.id} family_id={student.family_id} mode=anonymized"))
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/guardian/sms/send")

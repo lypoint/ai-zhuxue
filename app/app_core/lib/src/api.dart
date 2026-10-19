@@ -709,6 +709,15 @@ class Api {
     body: {'status': status},
   );
 
+  Future<void> deleteStudentAccount() async {
+    await _send(
+      'POST',
+      '/auth/student/account/delete',
+      body: {'confirmation': 'DELETE'},
+    );
+    await _saveToken(null);
+  }
+
   /// 服务端确认接收删除申请后才清除本机凭证；失败时保留登录以便重试。
   Future<String> requestAccountDeletion() async {
     final result = await _send(

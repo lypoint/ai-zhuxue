@@ -283,7 +283,14 @@
     "参考学习记录：{0}",
     "刷新学习记录",
     "刷新学习记录失败：{0}",
-    "刷新学习记录失败，请检查网络后重试"
+    "刷新学习记录失败，请检查网络后重试",
+    "删除学生账号？",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。",
+    "删除失败，请检查网络后重试",
+    "学生账号已删除",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。"
   ],
   "zh-Hans": {
     " · 最近活跃 {0}": " · 最近活跃 {0}",
@@ -1148,7 +1155,14 @@
     "参考学习记录：{0}": "参考学习记录：{0}",
     "刷新学习记录": "刷新学习记录",
     "刷新学习记录失败：{0}": "刷新学习记录失败：{0}",
-    "刷新学习记录失败，请检查网络后重试": "刷新学习记录失败，请检查网络后重试"
+    "刷新学习记录失败，请检查网络后重试": "刷新学习记录失败，请检查网络后重试",
+    "删除学生账号？": "删除学生账号？",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。",
+    "删除失败，请检查网络后重试": "删除失败，请检查网络后重试",
+    "学生账号已删除": "学生账号已删除",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。"
   },
   "zh-Hant": {
     " · 最近活跃 {0}": "· 最近活躍 {0}",
@@ -2013,7 +2027,14 @@
     "参考学习记录：{0}": "參考學習記錄：{0}",
     "刷新学习记录": "重新整理學習記錄",
     "刷新学习记录失败：{0}": "重新整理學習記錄失敗：{0}",
-    "刷新学习记录失败，请检查网络后重试": "重新整理學習記錄失敗，請檢查網路後重試"
+    "刷新学习记录失败，请检查网络后重试": "重新整理學習記錄失敗，請檢查網路後重試",
+    "删除学生账号？": "刪除學生帳號？",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "刪除後將立即登出並解除裝置綁定，家長會收到通知。學習紀錄仍由家長保留；如需刪除學習資料，請聯絡家長。繼續使用需重新綁定。",
+    "删除失败，请检查网络后重试": "刪除失敗，請檢查網路後重試",
+    "学生账号已删除": "學生帳號已刪除",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} 已刪除學生帳號，裝置已解除綁定，學習紀錄仍由家長保留。",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "帳號及關聯學生端已停用，可使用原登入方式重新註冊。新帳號不會恢復原家庭資料。我們將在 30 天內處理原帳號的刪除申請。",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "提交後，目前家長帳號和所有關聯學生端將立即停用，可重新註冊新帳號。新帳號不會恢復原家庭資料或繼承原家庭權益。原帳號資料和關聯學習資料將進入刪除流程，完成後無法恢復。"
   },
   "en": {
     " · 最近活跃 {0}": "· Recently active {0}",
@@ -2878,7 +2899,14 @@
     "参考学习记录：{0}": "Supporting learning records: {0}",
     "刷新学习记录": "Refresh learning records",
     "刷新学习记录失败：{0}": "Could not refresh learning records: {0}",
-    "刷新学习记录失败，请检查网络后重试": "Could not refresh learning records. Check your connection and try again."
+    "刷新学习记录失败，请检查网络后重试": "Could not refresh learning records. Check your connection and try again.",
+    "删除学生账号？": "Delete student account?",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "You will be signed out and your device unpaired. Your parent will be notified and will retain your learning records. Ask your parent to delete learning data. You must pair the device again to continue.",
+    "删除失败，请检查网络后重试": "Deletion failed. Check your connection and try again.",
+    "学生账号已删除": "Student account deleted",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} deleted their student account. The device is unpaired; learning records remain available to the parent.",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "Your account and linked student access are disabled. You may register again using the same sign-in method. The new account will not restore the old family’s data. We will process the original deletion request within 30 days.",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "Submitting immediately disables this parent account and all linked student access. You can register a new account, which will not restore the old family’s data or inherit its benefits. The old account and linked learning data will enter the deletion process and cannot be recovered once erased."
   },
   "ja": {
     " · 最近活跃 {0}": "· 最近アクティブな {0}",
@@ -3743,7 +3771,14 @@
     "参考学习记录：{0}": "参考学習記録：{0}",
     "刷新学习记录": "学習記録を更新",
     "刷新学习记录失败：{0}": "学習記録を更新できませんでした：{0}",
-    "刷新学习记录失败，请检查网络后重试": "学習記録を更新できませんでした。接続を確認して再試行してください"
+    "刷新学习记录失败，请检查网络后重试": "学習記録を更新できませんでした。接続を確認して再試行してください",
+    "删除学生账号？": "生徒アカウントを削除しますか？",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "削除するとログアウトし、端末の連携を解除します。保護者に通知され、学習記録は保護者のもとに残ります。学習データの削除は保護者に相談してください。再利用には端末の再連携が必要です。",
+    "删除失败，请检查网络后重试": "削除できませんでした。接続を確認して再試行してください。",
+    "学生账号已删除": "生徒アカウントが削除されました",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} が生徒アカウントを削除しました。端末の連携は解除されましたが、学習記録は保護者が引き続き閲覧できます。",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "アカウントと連携する生徒のアクセスを停止しました。同じログイン方法で再登録できます。新しいアカウントに元の家庭データは復元されません。元の削除申請は30日以内に処理します。",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "送信すると保護者アカウントと連携する全生徒のアクセスを直ちに停止します。新規登録できますが、元の家庭データや特典は引き継がれません。元のアカウント情報と学習データは削除処理に入り、削除完了後は復元できません。"
   },
   "ko": {
     " · 最近活跃 {0}": "· 최근 활동 {0}",
@@ -4608,7 +4643,14 @@
     "参考学习记录：{0}": "참고 학습 기록: {0}",
     "刷新学习记录": "학습 기록 새로 고침",
     "刷新学习记录失败：{0}": "학습 기록을 새로 고치지 못했습니다: {0}",
-    "刷新学习记录失败，请检查网络后重试": "학습 기록을 새로 고치지 못했습니다. 연결을 확인하고 다시 시도하세요"
+    "刷新学习记录失败，请检查网络后重试": "학습 기록을 새로 고치지 못했습니다. 연결을 확인하고 다시 시도하세요",
+    "删除学生账号？": "학생 계정을 삭제할까요?",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "삭제하면 즉시 로그아웃되고 기기 연결이 해제되며 보호자에게 알림이 전송됩니다. 학습 기록은 보호자가 보관합니다. 학습 데이터 삭제는 보호자에게 요청하세요. 다시 이용하려면 기기를 다시 연결해야 합니다.",
+    "删除失败，请检查网络后重试": "삭제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    "学生账号已删除": "학생 계정이 삭제되었습니다",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} 님이 학생 계정을 삭제했습니다. 기기 연결은 해제되었으며 학습 기록은 보호자가 계속 볼 수 있습니다.",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "계정과 연결된 학생의 접근이 중지되었습니다. 같은 로그인 방식으로 다시 가입할 수 있지만 기존 가족 데이터는 복원되지 않습니다. 기존 계정의 삭제 요청은 30일 이내에 처리합니다.",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "제출하면 현재 보호자 계정과 연결된 모든 학생의 접근이 즉시 중지됩니다. 새 계정으로 다시 가입할 수 있지만 기존 가족 데이터나 혜택은 이전되지 않습니다. 기존 계정 정보와 연결된 학습 데이터는 삭제 절차에 들어가며 삭제 완료 후 복구할 수 없습니다."
   },
   "de": {
     " · 最近活跃 {0}": "· Kürzlich aktiv {0}",
@@ -5473,7 +5515,14 @@
     "参考学习记录：{0}": "Zugehörige Lerneinträge: {0}",
     "刷新学习记录": "Lerneinträge aktualisieren",
     "刷新学习记录失败：{0}": "Lerneinträge konnten nicht aktualisiert werden: {0}",
-    "刷新学习记录失败，请检查网络后重试": "Lerneinträge konnten nicht aktualisiert werden. Verbindung prüfen und erneut versuchen."
+    "刷新学习记录失败，请检查网络后重试": "Lerneinträge konnten nicht aktualisiert werden. Verbindung prüfen und erneut versuchen.",
+    "删除学生账号？": "Schülerkonto löschen?",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "Du wirst abgemeldet und dein Gerät wird getrennt. Deine Eltern werden benachrichtigt und behalten deine Lernaufzeichnungen. Bitte sie, Lerndaten zu löschen. Zur weiteren Nutzung musst du das Gerät erneut koppeln.",
+    "删除失败，请检查网络后重试": "Löschen fehlgeschlagen. Verbindung prüfen und erneut versuchen.",
+    "学生账号已删除": "Schülerkonto gelöscht",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} hat das Schülerkonto gelöscht. Das Gerät wurde getrennt; die Lernaufzeichnungen bleiben für die Eltern verfügbar.",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "Ihr Konto und der verknüpfte Schülerzugang sind deaktiviert. Sie können sich mit derselben Anmeldemethode neu registrieren. Die bisherigen Familiendaten werden nicht wiederhergestellt. Den ursprünglichen Löschantrag bearbeiten wir innerhalb von 30 Tagen.",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "Nach dem Absenden werden dieses Elternkonto und alle verknüpften Schülerzugänge sofort deaktiviert. Eine Neuregistrierung ist möglich, übernimmt jedoch weder Daten noch Vorteile der bisherigen Familie. Die bisherigen Konto- und Lerndaten werden zur Löschung vorgemerkt und können nach dem Löschen nicht wiederhergestellt werden."
   },
   "es": {
     " · 最近活跃 {0}": "· Activo recientemente {0}",
@@ -6338,6 +6387,13 @@
     "参考学习记录：{0}": "Registros de aprendizaje de referencia: {0}",
     "刷新学习记录": "Actualizar registros de aprendizaje",
     "刷新学习记录失败：{0}": "No se pudieron actualizar los registros de aprendizaje: {0}",
-    "刷新学习记录失败，请检查网络后重试": "No se pudieron actualizar los registros de aprendizaje. Comprueba la conexión e inténtalo de nuevo."
+    "刷新学习记录失败，请检查网络后重试": "No se pudieron actualizar los registros de aprendizaje. Comprueba la conexión e inténtalo de nuevo.",
+    "删除学生账号？": "¿Eliminar la cuenta del estudiante?",
+    "删除后将立即退出并解绑设备，家长会收到通知。学习记录仍由家长保留；如需删除学习数据，请联系家长。继续使用需重新绑定。": "Se cerrará tu sesión y se desvinculará el dispositivo. Tu familia recibirá una notificación y conservará tus registros de aprendizaje. Pídele que elimine los datos de aprendizaje si lo necesitas. Para continuar, deberás vincular el dispositivo de nuevo.",
+    "删除失败，请检查网络后重试": "No se pudo eliminar. Comprueba la conexión e inténtalo de nuevo.",
+    "学生账号已删除": "Cuenta del estudiante eliminada",
+    "{0} 已删除学生账号，设备已解绑，学习记录仍由家长保留。": "{0} ha eliminado su cuenta de estudiante. El dispositivo se ha desvinculado; la familia conserva los registros de aprendizaje.",
+    "账号及关联学生端已停用，可使用原登录方式重新注册。新账号不会恢复原家庭数据。我们将在 30 天内处理原账号的删除申请。": "Tu cuenta y el acceso de los estudiantes vinculados están desactivados. Puedes registrarte de nuevo con el mismo método de acceso. La nueva cuenta no recuperará los datos de la familia anterior. Procesaremos la solicitud original de eliminación en un plazo de 30 días.",
+    "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。": "Al enviar la solicitud, esta cuenta familiar y el acceso de todos los estudiantes vinculados se desactivarán de inmediato. Puedes registrar una nueva cuenta, pero no recuperará los datos ni las ventajas de la familia anterior. Los datos de la cuenta anterior y del aprendizaje entrarán en el proceso de eliminación y no se podrán recuperar una vez borrados."
   }
 }
