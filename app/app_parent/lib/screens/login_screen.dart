@@ -98,9 +98,7 @@ class _LoginScreenState extends State<PhoneLoginScreen> {
       _error = null;
     });
     try {
-      final token = await _oneTap
-          .invokeMethod<String>('getLoginToken')
-          .timeout(const Duration(seconds: 15));
+      final token = await _oneTap.invokeMethod<String>('getLoginToken');
       if (token == null || token.isEmpty) {
         throw PlatformException(code: 'NO_TOKEN');
       }
