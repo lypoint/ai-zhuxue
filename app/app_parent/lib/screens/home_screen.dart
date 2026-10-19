@@ -327,7 +327,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _overviewLoadFailed = false;
     // P2 新用户引导：试用期内且还没有孩子绑定时展示
     final showGuide =
-        (data['students'] as List).isEmpty && (sub?['plan'] == 'free_trial');
+        (data['students'] as List).every((s) => s['active'] == false) &&
+        (sub?['plan'] == 'free_trial');
     setState(() {
       _family = data;
       _loadError = null;
@@ -408,6 +409,42 @@ class _HomeScreenState extends State<HomeScreen> {
       () => Api.I.setStudentNickname(s['id'] as int, name),
       tr("正在保存昵称…"),
       tr("已改名为 {0}", [name]),
+    );
+  }
+
+  Future<void> _deleteStudent(Map<String, dynamic> student) async {
+    final name = student['nickname'] as String? ?? tr("这个孩子");
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(tr("删除孩子")),
+        content: Text(
+          tr("确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。", [name]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(tr("取消")),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(tr("删除")),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _updateStudent(
+      student['id'] as int,
+      () async {
+        await Api.I.deleteStudent(student['id'] as int);
+      },
+      tr("正在删除孩子…"),
+      tr("已删除 {0}，学生端登录已失效", [name]),
     );
   }
 
@@ -556,7 +593,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-    final students = (family['students'] as List).cast<Map<String, dynamic>>();
+    final students = (family['students'] as List)
+        .cast<Map<String, dynamic>>()
+        .where((student) => student['active'] != false)
+        .toList();
     final sub = _subscription;
     return Scaffold(
       appBar: AppBar(
@@ -699,6 +739,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? () => _rebindStudent(s)
                             : null,
                         bindingInProgress: _bindingStudentId == s['id'],
+                        onDelete: () => _deleteStudent(s),
                         onManageDevices: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => DeviceManageScreen(

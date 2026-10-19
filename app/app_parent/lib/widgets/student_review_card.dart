@@ -11,6 +11,7 @@ class StudentReviewCard extends StatelessWidget {
   final VoidCallback? onRebind;
   final bool bindingInProgress;
   final VoidCallback onManageDevices;
+  final VoidCallback? onDelete;
   final Future<void> Function(String band) onGradeBandChanged;
   final bool updatesDisabled;
   const StudentReviewCard({
@@ -20,6 +21,7 @@ class StudentReviewCard extends StatelessWidget {
     required this.onRebind,
     this.bindingInProgress = false,
     required this.onManageDevices,
+    this.onDelete,
     required this.onGradeBandChanged,
     this.updatesDisabled = false,
   });
@@ -231,11 +233,27 @@ class StudentReviewCard extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.devices_other, size: 20),
-                  label: Text(tr("设备")),
-                  style: actionStyle,
-                  onPressed: onManageDevices,
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton.icon(
+                      icon: const Icon(Icons.devices_other, size: 20),
+                      label: Text(tr("设备")),
+                      style: actionStyle,
+                      onPressed: onManageDevices,
+                    ),
+                    if (onDelete != null)
+                      TextButton.icon(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        label: Text(tr("删除孩子")),
+                        style: actionStyle.copyWith(
+                          foregroundColor: WidgetStatePropertyAll(
+                            Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                        onPressed: updatesDisabled ? null : onDelete,
+                      ),
+                  ],
                 ),
               ),
               Padding(

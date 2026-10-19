@@ -197,8 +197,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(tr("设备已重新绑定")),
-        content: Text(tr("此孩子账号已在另一台设备重新绑定，历史记录已保留，请输入新的绑定码继续。")),
+        title: Text(tr("登录已失效")),
+        content: Text(tr("孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。")),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(),

@@ -322,6 +322,8 @@ def delete_student(student_id: int, purge: bool = False,
     from ..models import Student as S
     import uuid
 
+    # Use the same lock order as binding so a concurrent login cannot restore a deleted device.
+    db.query(Family).filter_by(id=guardian.family_id).with_for_update().first()
     student = _own_student(guardian, student_id, db)
     if purge:
         from ..models import ActiveTime, Favorite, UsageLog
@@ -365,13 +367,21 @@ def delete_student(student_id: int, purge: bool = False,
         db.query(S).filter_by(id=student.id).delete()
         db.commit()
         return {"ok": True, "mode": "purged"}
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
     student.active = False
     student.nickname = "已注销"
-    student.device_id = f"deleted-{uuid.uuid4().hex[:12]}"
+    student.device_id = f"deleted-{uuid.uuid4().hex}"
+    student.installation_id = None
     student.token_version = (student.token_version or 1) + 1
-    db.query(StudentDevice).filter_by(student_id=student.id, is_current=True).update({
-        StudentDevice.is_current: False, StudentDevice.revoked_at: __import__('datetime').datetime.utcnow(),
-    })
+    # Release installation IDs so the physical device can bind a new child later.
+    for device in db.query(StudentDevice).filter_by(student_id=student.id).all():
+        device.is_current = False
+        device.revoked_at = device.revoked_at or now
+        device.installation_id = f"deleted-{uuid.uuid4().hex}"
+    db.query(BindCode).filter_by(target_student_id=student.id, revoked_at=None).update({
+        BindCode.revoked_at: now,
+    }, synchronize_session=False)
     db.add(AdminLog(admin=f"guardian:{guardian.id}", action="student.delete",
                     detail=f"student={student.id} mode=anonymized"))
     db.commit()

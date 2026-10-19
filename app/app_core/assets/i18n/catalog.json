@@ -265,7 +265,14 @@
     "永久会员无需购买订阅或名额",
     "Google Play 版本不支持手机号登录",
     "请输入 DELETE 确认删除申请",
-    "请联系 support@gker.net 处理共同家庭的删除申请"
+    "请联系 support@gker.net 处理共同家庭的删除申请",
+    "这个孩子",
+    "删除孩子",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。",
+    "正在删除孩子…",
+    "已删除 {0}，学生端登录已失效",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。",
+    "登录已失效"
   ],
   "zh-Hans": {
     " · 最近活跃 {0}": " · 最近活跃 {0}",
@@ -1112,7 +1119,14 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "请联系 support@gker.net 处理共同家庭的删除申请",
     "请输入 DELETE 确认删除申请": "请输入 DELETE 确认删除申请",
     "管理订阅": "管理订阅",
-    "申请编号：{0}": "申请编号：{0}"
+    "申请编号：{0}": "申请编号：{0}",
+    "这个孩子": "这个孩子",
+    "删除孩子": "删除孩子",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。",
+    "正在删除孩子…": "正在删除孩子…",
+    "已删除 {0}，学生端登录已失效": "已删除 {0}，学生端登录已失效",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。",
+    "登录已失效": "登录已失效"
   },
   "zh-Hant": {
     " · 最近活跃 {0}": "· 最近活躍 {0}",
@@ -1959,7 +1973,14 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "請聯絡 support@gker.net 處理共同家庭的刪除申請",
     "请输入 DELETE 确认删除申请": "請輸入 DELETE 確認刪除申請",
     "管理订阅": "管理訂閱",
-    "申请编号：{0}": "申請編號：{0}"
+    "申请编号：{0}": "申請編號：{0}",
+    "这个孩子": "這個孩子",
+    "删除孩子": "刪除孩子",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "確定刪除 {0} 嗎？刪除後學生端將無法繼續使用，連線後會登出，學習紀錄仍會保留。",
+    "正在删除孩子…": "正在刪除孩子…",
+    "已删除 {0}，学生端登录已失效": "已刪除 {0}，學生端登入已失效",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "孩子已被刪除、裝置已解除綁定或登入已失效。請聯絡家長取得新的綁定碼。",
+    "登录已失效": "登入已失效"
   },
   "en": {
     " · 最近活跃 {0}": "· Recently active {0}",
@@ -2806,7 +2827,14 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "Contact support@gker.net to delete an account in a shared family.",
     "请输入 DELETE 确认删除申请": "Type DELETE to confirm the deletion request.",
     "管理订阅": "Manage subscription",
-    "申请编号：{0}": "Request reference: {0}"
+    "申请编号：{0}": "Request reference: {0}",
+    "这个孩子": "this child",
+    "删除孩子": "Delete child",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "Delete {0}? The student app will lose access and sign out when online. Learning records will be kept.",
+    "正在删除孩子…": "Deleting child…",
+    "已删除 {0}，学生端登录已失效": "Deleted {0}. The student session has been revoked.",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "This child was deleted, the device was unbound, or the session expired. Ask your parent for a new binding code.",
+    "登录已失效": "Session expired"
   },
   "ja": {
     " · 最近活跃 {0}": "· 最近アクティブな {0}",
@@ -3653,7 +3681,14 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "共有家庭の削除申請は support@gker.net へご連絡ください。",
     "请输入 DELETE 确认删除申请": "削除申請を確認するには DELETE と入力してください。",
     "管理订阅": "定期購入を管理",
-    "申请编号：{0}": "申請番号：{0}"
+    "申请编号：{0}": "申請番号：{0}",
+    "这个孩子": "この子ども",
+    "删除孩子": "子どもを削除",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "{0} を削除しますか？学生アプリは利用できなくなり、オンライン時にログアウトします。学習記録は保持されます。",
+    "正在删除孩子…": "子どもを削除中…",
+    "已删除 {0}，学生端登录已失效": "{0} を削除し、学生のログインを無効にしました",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "子どもが削除されたか、端末の連携が解除されたか、ログインが無効になりました。保護者に新しい連携コードを確認してください。",
+    "登录已失效": "ログインが無効になりました"
   },
   "ko": {
     " · 最近活跃 {0}": "· 최근 활동 {0}",
@@ -4500,7 +4535,14 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "공유 가족 계정 삭제는 support@gker.net으로 문의하세요.",
     "请输入 DELETE 确认删除申请": "삭제 요청을 확인하려면 DELETE를 입력하세요.",
     "管理订阅": "구독 관리",
-    "申请编号：{0}": "요청 번호: {0}"
+    "申请编号：{0}": "요청 번호: {0}",
+    "这个孩子": "이 자녀",
+    "删除孩子": "자녀 삭제",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "{0} 자녀를 삭제할까요? 학생 앱을 사용할 수 없으며 온라인 상태에서 로그아웃됩니다. 학습 기록은 보관됩니다.",
+    "正在删除孩子…": "자녀 삭제 중…",
+    "已删除 {0}，学生端登录已失效": "{0} 자녀를 삭제하고 학생 로그인을 무효화했습니다",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "자녀가 삭제되었거나 기기 연결이 해제되었거나 로그인이 만료되었습니다. 보호자에게 새 연결 코드를 요청하세요.",
+    "登录已失效": "로그인이 만료되었습니다"
   },
   "de": {
     " · 最近活跃 {0}": "· Kürzlich aktiv {0}",
@@ -5347,7 +5389,14 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "Für Löschanträge gemeinsam genutzter Familien kontaktieren Sie support@gker.net.",
     "请输入 DELETE 确认删除申请": "Geben Sie DELETE ein, um den Löschantrag zu bestätigen.",
     "管理订阅": "Abonnement verwalten",
-    "申请编号：{0}": "Antragsnummer: {0}"
+    "申请编号：{0}": "Antragsnummer: {0}",
+    "这个孩子": "dieses Kind",
+    "删除孩子": "Kind löschen",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "{0} löschen? Die Schüler-App verliert den Zugriff und meldet sich ab, sobald sie online ist. Lernaufzeichnungen bleiben erhalten.",
+    "正在删除孩子…": "Kind wird gelöscht…",
+    "已删除 {0}，学生端登录已失效": "{0} gelöscht. Die Schülersitzung wurde widerrufen.",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "Das Kind wurde gelöscht, das Gerät wurde getrennt oder die Sitzung ist abgelaufen. Bitte die Eltern um einen neuen Verbindungscode bitten.",
+    "登录已失效": "Sitzung abgelaufen"
   },
   "es": {
     " · 最近活跃 {0}": "· Activo recientemente {0}",
@@ -6194,6 +6243,13 @@
     "请联系 support@gker.net 处理共同家庭的删除申请": "Contacta con support@gker.net para eliminar una cuenta familiar compartida.",
     "请输入 DELETE 确认删除申请": "Escribe DELETE para confirmar la solicitud de eliminación.",
     "管理订阅": "Gestionar suscripción",
-    "申请编号：{0}": "Referencia de solicitud: {0}"
+    "申请编号：{0}": "Referencia de solicitud: {0}",
+    "这个孩子": "este hijo",
+    "删除孩子": "Eliminar hijo",
+    "确定删除 {0} 吗？删除后该学生端将无法继续使用，联网后会退出登录，学习记录仍会保留。": "¿Eliminar a {0}? La app del estudiante perderá el acceso y cerrará la sesión al conectarse. Se conservarán los registros de aprendizaje.",
+    "正在删除孩子…": "Eliminando hijo…",
+    "已删除 {0}，学生端登录已失效": "Se eliminó a {0} y se revocó la sesión del estudiante.",
+    "孩子已被删除、设备已被解绑或登录已失效。请联系家长获取新的绑定码。": "Se eliminó al hijo, se desvinculó el dispositivo o caducó la sesión. Pide a tus padres un nuevo código de vinculación.",
+    "登录已失效": "La sesión ha caducado"
   }
 }

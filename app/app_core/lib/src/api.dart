@@ -308,6 +308,8 @@ class Api {
 
   Future<Map<String, dynamic>> rebindCode(int studentId) =>
       createBindCode(purpose: 'rebind', targetStudentId: studentId);
+  Future<Map<String, dynamic>> deleteStudent(int studentId) =>
+      _send('DELETE', '/parent/students/$studentId');
   Future<List<dynamic>> studentDevices(int studentId) async =>
       (await _sendRaw('GET', '/parent/students/$studentId/devices'))
           as List<dynamic>;

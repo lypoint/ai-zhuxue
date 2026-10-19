@@ -40,3 +40,34 @@ def test_direct_new_student_bind_code_respects_seat_limit(client):
         'bind_code': code, 'installation_id': 'new-seat-device-0001',
     })
     assert denied.status_code == 409
+
+
+def test_delete_child_revokes_sessions_codes_and_releases_installation(client):
+    from app.db import SessionLocal
+    from app.models import Student
+
+    guardian, token = make_family(client)
+    other, other_token = make_family(client)
+    sid = client.get('/parent/family', headers=h(guardian)).json()['students'][0]['id']
+    with SessionLocal() as db:
+        installation = db.get(Student, sid).installation_id
+    code = client.post(f'/parent/students/{sid}/rebind-code', headers=h(guardian)).json()['bind_code']
+    assert client.delete(f'/parent/students/{sid}', headers=h(other)).status_code == 404
+    assert client.post('/chat/heartbeat', headers=h(token), json={'seconds': 1}).status_code == 200
+
+    assert client.delete(f'/parent/students/{sid}', headers=h(guardian)).status_code == 200
+    assert client.post('/chat/heartbeat', headers=h(token), json={'seconds': 1}).status_code == 401
+    assert client.get('/chat/sessions', headers=h(token)).status_code == 401
+    assert client.post('/chat/heartbeat', headers=h(other_token), json={'seconds': 1}).status_code == 200
+    assert client.post('/auth/student/login', json={
+        'bind_code': code, 'installation_id': installation,
+    }).status_code == 400
+    created = client.post('/parent/students', headers=h(guardian), json={'nickname': '新的孩子'})
+    assert created.status_code == 200
+    new_login = client.post('/auth/student/login', json={
+        'bind_code': created.json()['bind_code'], 'installation_id': installation,
+    })
+    assert new_login.status_code == 200
+    assert new_login.json()['student_id'] != sid
+    assert client.get('/chat/sessions', headers=h(new_login.json()['token'])).status_code == 200
+    assert client.get('/chat/sessions', headers=h(token)).status_code == 401
