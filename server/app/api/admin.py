@@ -690,6 +690,8 @@ def list_groups(principal: AdminPrincipal = Depends(require_admin),db: Session =
                        "teacher_channel": g.teacher_channel,
                        "teacher_enabled": g.teacher_enabled, "teacher_sort_order": g.teacher_sort_order,
                        "post_trial_daily_free_count": g.post_trial_daily_free_count,
+                       "image_settings": {field: getattr(g, field) for field in (
+                           "image_input_mode", "vision_config_id", "image_config_id", "diagram_enabled", "auto_diagram", "image_daily_cap")},
                        "tagged_families": tag_counts.get(g.tag, 0) if g.tag else 0}
                       for g in groups]
     return {"active": active if principal.role != "support" else None, "items": items}

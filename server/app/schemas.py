@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class GuardianRegisterIn(BaseModel):
@@ -57,10 +57,19 @@ class BindCodeOut(BaseModel):
 
 class ChatIn(BaseModel):
     conversation_id: int | None = None
-    content: str = Field(min_length=1, max_length=4000)
+    content: str = Field(default="", max_length=4000)
+    asset_ids: list[str] = Field(default_factory=list, max_length=3)
     teacher_id: int | None = None
     retry_message_id: int | None = None
     locale: Literal["zh-Hans", "zh-Hant", "en", "ja", "ko", "de", "es"] = "zh-Hans"
+
+    @model_validator(mode="after")
+    def valid_message(self):
+        if not self.content.strip() and not self.asset_ids:
+            raise ValueError("请输入问题或选择图片")
+        if len(set(self.asset_ids)) != len(self.asset_ids) or any(len(a) != 32 for a in self.asset_ids):
+            raise ValueError("图片 ID 无效或重复")
+        return self
 
     @field_validator("locale", mode="before")
     @classmethod
@@ -72,6 +81,8 @@ class ChatIn(BaseModel):
 
 
 class MessageOut(BaseModel):
+    content_blocks: list[dict] = Field(default_factory=list)
+    image_job: dict | None = None
     id: int
     role: str
     content: str

@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -26,6 +27,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _inputFocus = FocusNode();
   final _scrollCtrl = ScrollController();
   final List<Bubble> _bubbles = [];
+  final List<_DraftImage> _draftImages = [];
+  Map<String, dynamic> _imageCapabilities = {};
+  bool _uploadingImage = false;
+  Timer? _imagePollTimer;
+  bool _pollingImages = false;
+  final Set<int> _diagramRequests = {};
+
   int? _conversationId;
   int _chatRevision = 0;
   bool _restoringLatest = true;
@@ -163,6 +171,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _imagePollTimer?.cancel();
     if (Api.onUnauthorized == _onSessionExpired) Api.onUnauthorized = null;
     WidgetsBinding.instance.removeObserver(this);
     _heartbeat.stop();
@@ -231,6 +240,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ));
             _teacherName = teacher['name'] as String? ?? 'AI 学习助手';
             _teacherAvatarUrl = teacher['avatar_url'] as String? ?? '';
+            _imageCapabilities = Map<String, dynamic>.from(
+              teacher['capabilities'] as Map? ?? {},
+            );
           }
         });
       }
@@ -247,7 +259,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _chooseTeacher() async {
-    if (_sending || _openingSession) {
+    if (_draftImages.isNotEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr("请先发送或移除待发送的图片"))));
+      return;
+    }
+    if (_sending || _uploadingImage || _openingSession) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(tr("请等待当前操作完成后再切换老师"))));
@@ -302,7 +320,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
     if (selected == null || !mounted) return;
-    if (_sending || _openingSession) {
+    if (_sending || _uploadingImage || _openingSession) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(tr("请等待当前操作完成后再切换老师"))));
@@ -338,7 +356,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
       );
       if (startNew != true || !mounted) return;
-      if (_sending || _openingSession) {
+      if (_sending || _uploadingImage || _openingSession) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(tr("请等待当前操作完成后再切换老师"))));
@@ -415,6 +433,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _teacherName = data['teacher_name'] as String? ?? _teacherName;
           _teacherAvatarUrl = data['teacher_avatar_url'] as String? ?? '';
           _replaceBubbles(msgs);
+          unawaited(_loadImageCapabilities());
         });
       }
     } catch (_) {
@@ -457,8 +476,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   /// 新建对话：清空当前气泡（历史仍在抽屉里，随时切回）
   void _newChat() {
+    if (_draftImages.isNotEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr("请先发送或移除待发送的图片"))));
+      return;
+    }
     Navigator.of(context).pop(); // 关抽屉
-    if (_sending || _openingSession || _selectingTeacher) {
+    if (_sending || _uploadingImage || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(tr("请等待当前回复或会话加载完成"))));
@@ -469,6 +494,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _restoringLatest = false;
       _conversationId = null;
       _bubbles.clear();
+      _draftImages.clear();
+      _imageCapabilities = {};
     });
     _loadTeachers();
     _loadSessions();
@@ -476,8 +503,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   /// 从抽屉载入历史会话
   Future<void> _openSession(int conversationId) async {
+    if (_draftImages.isNotEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr("请先发送或移除待发送的图片"))));
+      return;
+    }
     Navigator.of(context).pop();
-    if (_sending || _openingSession || _selectingTeacher) {
+    if (_sending || _uploadingImage || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(tr("请等待当前回复或会话加载完成"))));
@@ -509,6 +542,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _teacherName = session?['teacher_name'] as String? ?? _teacherName;
         _teacherAvatarUrl = session?['teacher_avatar_url'] as String? ?? '';
         _replaceBubbles(msgs);
+        unawaited(_loadImageCapabilities());
       });
       messenger.hideCurrentSnackBar();
       _scrollToBottom();
@@ -536,6 +570,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           m['role'] as String,
           m['content'] as String,
           messageId: m['id'] as int?,
+          contentBlocks: m['content_blocks'] as List? ?? const [],
+          imageJob: m['image_job'] as Map<String, dynamic>?,
         ),
       );
     }
@@ -544,6 +580,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         messages.last['fence_action'] == 'failed') {
       _bubbles.add(Bubble('assistant', tr("⚠️ 老师回复失败，请重试"), failed: true));
     }
+    _startImagePolling();
   }
 
   Future<void> _refreshCurrentConversation() async {
@@ -867,8 +904,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   /// 会话管理请求统一包裹：显示进度、结果，并在成功后刷新列表。
   Future<bool> _guard(Future<void> Function() action, String success) async {
+    if (_draftImages.isNotEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr("请先发送或移除待发送的图片"))));
+      return false;
+    }
     if (_sessionActionPending) return false;
-    if (_sending || _openingSession || _selectingTeacher) {
+    if (_sending || _uploadingImage || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(tr("请等待当前回复或会话加载完成"))));
@@ -921,13 +964,241 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _loadImageCapabilities() async {
+    final id = _conversationId;
+    final revision = _chatRevision;
+    if (id == null) return;
+    try {
+      final value = await Api.I.conversationCapabilities(id);
+      if (mounted && id == _conversationId && revision == _chatRevision) {
+        setState(() => _imageCapabilities = value);
+      }
+    } catch (_) {
+      if (mounted && id == _conversationId) {
+        setState(() => _imageCapabilities = {});
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    if (_uploadingImage || _sending || _draftImages.length >= 3) return;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: Text(tr('拍摄题目')),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(tr('从相册选择')),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    setState(() => _uploadingImage = true);
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 2400,
+        maxHeight: 2400,
+        imageQuality: 90,
+      );
+      if (picked == null || !mounted) return;
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      final draft = _DraftImage(bytes);
+      setState(() => _draftImages.add(draft));
+      await _uploadDraft(draft);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr('无法读取图片，请检查相机或相册权限'))));
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingImage = false);
+    }
+  }
+
+  Future<void> _uploadDraft(_DraftImage draft) async {
+    setState(() {
+      _uploadingImage = true;
+      draft.error = false;
+    });
+    try {
+      final block = await Api.I.uploadChatImage(
+        draft.bytes,
+        conversationId: _conversationId,
+      );
+      if (mounted) setState(() => draft.block = block);
+    } catch (_) {
+      if (mounted) setState(() => draft.error = true);
+    } finally {
+      if (mounted) setState(() => _uploadingImage = false);
+    }
+  }
+
+  Future<void> _requestDiagram(Bubble bubble) async {
+    final id = bubble.messageId;
+    if (id == null || !_diagramRequests.add(id)) return;
+    setState(() {});
+    try {
+      final job = await Api.I.requestDiagram(id);
+      if (!mounted) return;
+      final index = _bubbles.indexWhere((b) => b.messageId == id);
+      if (index >= 0) {
+        setState(
+          () => _bubbles[index] = Bubble(
+            bubble.role,
+            bubble.text,
+            messageId: id,
+            contentBlocks: bubble.contentBlocks,
+            imageJob: job,
+          ),
+        );
+      }
+      _startImagePolling();
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr('配图请求失败，请重试'))));
+      }
+    } finally {
+      _diagramRequests.remove(id);
+      if (mounted) setState(() {});
+    }
+  }
+
+  void _startImagePolling() {
+    _imagePollTimer?.cancel();
+    if (!_bubbles.any(
+      (b) => const ['queued', 'running'].contains(b.imageJob?['state']),
+    )) {
+      return;
+    }
+    _imagePollTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _pollImages(),
+    );
+  }
+
+  Future<void> _pollImages() async {
+    if (_pollingImages || !mounted) return;
+    _pollingImages = true;
+    final revision = _chatRevision;
+    try {
+      final pending = _bubbles
+          .where(
+            (b) => const ['queued', 'running'].contains(b.imageJob?['state']),
+          )
+          .toList();
+      for (final bubble in pending) {
+        final job = await Api.I.imageJob(bubble.imageJob!['id'] as int);
+        if (!mounted || revision != _chatRevision) return;
+        final index = _bubbles.indexWhere(
+          (b) => b.messageId == bubble.messageId,
+        );
+        if (index >= 0) {
+          setState(
+            () => _bubbles[index] = Bubble(
+              bubble.role,
+              bubble.text,
+              messageId: bubble.messageId,
+              contentBlocks:
+                  job['content_blocks'] as List? ?? bubble.contentBlocks,
+              imageJob: job,
+            ),
+          );
+        }
+      }
+      _startImagePolling();
+    } catch (_) {
+      // Keep pending state across network failures; reopening also restores it.
+    } finally {
+      _pollingImages = false;
+    }
+  }
+
+  Widget _imageDrafts() => Wrap(
+    spacing: 8,
+    children: [
+      for (final draft in _draftImages)
+        SizedBox(
+          width: 104,
+          child: Column(
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(
+                      draft.bytes,
+                      width: 100,
+                      height: 80,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: IconButton(
+                      tooltip: tr('移除图片'),
+                      onPressed: _sending || _uploadingImage
+                          ? null
+                          : () => setState(() => _draftImages.remove(draft)),
+                      icon: const Icon(Icons.cancel),
+                    ),
+                  ),
+                ],
+              ),
+              if (draft.error)
+                TextButton(
+                  onPressed: _uploadingImage ? null : () => _uploadDraft(draft),
+                  child: Text(tr('重试上传')),
+                )
+              else if (draft.block == null)
+                const LinearProgressIndicator(),
+            ],
+          ),
+        ),
+    ],
+  );
+
   Future<void> _send({int? retryUserIndex, String? followUp}) async {
     final retrying = retryUserIndex != null;
     final text = retrying
         ? _bubbles[retryUserIndex].text
         : followUp ?? _inputCtrl.text.trim();
-    if (text.isEmpty ||
+    final imageBlocks = retrying
+        ? _bubbles[retryUserIndex].contentBlocks
+        : followUp == null
+        ? _draftImages
+              .where((d) => d.block != null)
+              .map((d) => d.block!)
+              .toList()
+        : <dynamic>[];
+    final drafts = !retrying && followUp == null
+        ? List<_DraftImage>.from(_draftImages)
+        : <_DraftImage>[];
+    if ((text.isEmpty && imageBlocks.isEmpty) ||
+        (!retrying && _draftImages.any((d) => d.block == null)) ||
         _sending ||
+        _uploadingImage ||
         _openingSession ||
         _selectingTeacher ||
         _sessionActionPending) {
@@ -939,7 +1210,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     final retryMessageId = retrying ? _bubbles[retryUserIndex].messageId : null;
     if (retrying && retryMessageId == null) return;
-    if (!retrying && followUp == null) _inputCtrl.clear();
+    if (!retrying && followUp == null) {
+      _inputCtrl.clear();
+      _draftImages.clear();
+    }
     final userIndex = retryUserIndex ?? _bubbles.length;
     setState(() {
       _chatRevision++;
@@ -948,7 +1222,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (retrying) {
         _bubbles[_bubbles.length - 1] = Bubble('assistant', '');
       } else {
-        _bubbles.add(Bubble('user', text));
+        _bubbles.add(Bubble('user', text, contentBlocks: imageBlocks));
         _bubbles.add(Bubble('assistant', '')); // 流式占位，逐段填充
       }
     });
@@ -968,6 +1242,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (!retrying && _bubbles[userIndex].messageId == null) {
         setState(() => _bubbles.removeRange(userIndex, _bubbles.length));
         _inputCtrl.text = text;
+        _draftImages.addAll(drafts);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(tr("发送失败，问题已保留在输入框，请重试"))));
@@ -1006,6 +1281,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _conversationId,
         text,
         retryMessageId: retryMessageId,
+        assetIds: imageBlocks
+            .whereType<Map>()
+            .where((b) => b['type'] == 'image')
+            .map((b) => b['asset_id'] as String)
+            .toList(),
         onMeta: (meta) {
           if (mounted) {
             _conversationId =
@@ -1013,7 +1293,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             final id = meta['user_message_id'] as int?;
             if (id != null) {
               setState(
-                () => _bubbles[userIndex] = Bubble('user', text, messageId: id),
+                () => _bubbles[userIndex] = Bubble(
+                  'user',
+                  text,
+                  messageId: id,
+                  contentBlocks: imageBlocks,
+                ),
               );
             }
           }
@@ -1047,7 +1332,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         'assistant',
         _bubbles.last.text.isEmpty ? tr("（没有收到内容）") : _bubbles.last.text,
         messageId: mid,
+        imageJob: done['image_job'] as Map<String, dynamic>?,
       );
+      _startImagePolling();
       _loadSessions();
     } on ApiException catch (e) {
       // 401 已由全局 _onSessionExpired 统一处理（清会话回绑定页）
@@ -1320,6 +1607,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ],
           Expanded(child: _bubbles.isEmpty ? _emptyState() : _messageList()),
+          if (_draftImages.isNotEmpty)
+            Padding(padding: const EdgeInsets.all(8), child: _imageDrafts()),
+          if (_uploadingImage) const LinearProgressIndicator(minHeight: 2),
           _inputBar(),
         ],
       ),
@@ -1415,9 +1705,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       itemCount: _bubbles.length,
       itemBuilder: (_, i) => MessageBubble(
         bubble: _bubbles[i],
+        onDiagram:
+            _imageCapabilities['image_output'] == true &&
+                !_sending &&
+                !_diagramRequests.contains(_bubbles[i].messageId)
+            ? () => _requestDiagram(_bubbles[i])
+            : null,
         feedback: _learningSelections['${_bubbles[i].messageId}'] as String?,
         onFeedback:
             _sending ||
+                _uploadingImage ||
                 _openingSession ||
                 _selectingTeacher ||
                 _sessionActionPending ||
@@ -1451,6 +1748,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ),
           child: Row(
             children: [
+              if (_imageCapabilities['image_input'] == true)
+                IconButton(
+                  tooltip: tr('添加题目图片'),
+                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  onPressed:
+                      _sending ||
+                          _uploadingImage ||
+                          _openingSession ||
+                          _selectingTeacher ||
+                          _draftImages.length >= 3
+                      ? null
+                      : _pickImage,
+                ),
               Expanded(
                 child: TextField(
                   controller: _inputCtrl,
@@ -1477,6 +1787,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 child: IconButton.filled(
                   onPressed:
                       _sending ||
+                          _uploadingImage ||
                           _openingSession ||
                           _selectingTeacher ||
                           _sessionActionPending
@@ -1492,4 +1803,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+class _DraftImage {
+  final Uint8List bytes;
+  Map<String, dynamic>? block;
+  bool error = false;
+  _DraftImage(this.bytes);
 }

@@ -4,5 +4,14 @@ class Bubble {
   final String text;
   final int? messageId;
   final bool failed;
-  Bubble(this.role, this.text, {this.messageId, this.failed = false});
+  final List<dynamic> contentBlocks;
+  final Map<String, dynamic>? imageJob;
+  Bubble(
+    this.role,
+    this.text, {
+    this.messageId,
+    this.failed = false,
+    this.contentBlocks = const [],
+    this.imageJob,
+  });
 }

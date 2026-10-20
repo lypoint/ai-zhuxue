@@ -1,2 +1,4 @@
 "CFBundleDisplayName" = "AI 助学·学生版";
-"NSCameraUsageDescription" = "用于扫描家长端的绑定二维码";
+"NSCameraUsageDescription" = "用于扫描家长端绑定二维码和拍摄学习题目";
+
+"NSPhotoLibraryUsageDescription" = "用于选择学习题目图片发送给老师";

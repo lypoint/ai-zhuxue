@@ -1,5 +1,6 @@
 """数据模型。命名与评审材料口径一致：Family（家庭）/Guardian（监护人）/Student（学生）。"""
 from datetime import datetime, timezone
+import json
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -170,6 +171,19 @@ class Message(TimestampMixin, Base):
         ForeignKey("conversations.id"), index=True)  # 会话消息查询高频
     role: Mapped[str] = mapped_column(String(10))                  # user | assistant
     content: Mapped[str] = mapped_column(Text)
+    blocks_json: Mapped[str] = mapped_column(Text, default="[]", server_default="[]")
+
+    @property
+    def content_blocks(self) -> list[dict]:
+        return json.loads(self.blocks_json or "[]")
+
+    @property
+    def image_job(self) -> dict | None:
+        from sqlalchemy.orm import object_session
+        db = object_session(self)
+        job = db.query(ImageJob).filter_by(message_id=self.id).first() if db else None
+        return ({"id": job.id, "state": job.state, "error": job.error} if job else None)
+
     fence_action: Mapped[str | None] = mapped_column(String(10), nullable=True)  # pending|failed|allow|rewrite|reject
     tokens_in: Mapped[int] = mapped_column(Integer, default=0)
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
@@ -363,6 +377,61 @@ class LLMGroup(TimestampMixin, Base):
     teacher_sort_order: Mapped[int] = mapped_column(Integer, default=0)
     post_trial_free_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     post_trial_daily_free_count: Mapped[int] = mapped_column(Integer, default=0)
+    image_input_mode: Mapped[str] = mapped_column(String(12), default="off", server_default="off")
+    vision_test_signature: Mapped[str] = mapped_column(String(64), default="", server_default="")
+    vision_config_id: Mapped[int | None] = mapped_column(ForeignKey("image_model_configs.id"), nullable=True)
+    image_config_id: Mapped[int | None] = mapped_column(ForeignKey("image_model_configs.id"), nullable=True)
+    diagram_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    auto_diagram: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    image_daily_cap: Mapped[int] = mapped_column(Integer, default=10, server_default="10")
+
+
+class ImageModelConfig(TimestampMixin, Base):
+    __tablename__ = "image_model_configs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), unique=True)
+    kind: Mapped[str] = mapped_column(String(12))  # vision | generation
+    protocol: Mapped[str] = mapped_column(String(24))  # openai | dashscope | dashscope-wan
+    base_url: Mapped[str] = mapped_column(String(500))
+    model_id: Mapped[str] = mapped_column(String(120))
+    api_key: Mapped[str] = mapped_column(Text)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    supports_edit: Mapped[bool] = mapped_column(Boolean, default=False)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    tested_revision: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    price_in: Mapped[float] = mapped_column(Float, default=0)
+    price_out: Mapped[float] = mapped_column(Float, default=0)
+
+
+class MediaAsset(TimestampMixin, Base):
+    __tablename__ = "media_assets"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    student_id: Mapped[int | None] = mapped_column(ForeignKey("students.id"), nullable=True, index=True)
+    message_id: Mapped[int | None] = mapped_column(ForeignKey("messages.id"), nullable=True, index=True)
+    object_key: Mapped[str] = mapped_column(String(300), unique=True)
+    upload_key: Mapped[str] = mapped_column(String(300), default="")
+    status: Mapped[str] = mapped_column(String(16), default="uploading")
+    mime_type: Mapped[str] = mapped_column(String(40), default="image/jpeg")
+    byte_size: Mapped[int] = mapped_column(Integer, default=0)
+    width: Mapped[int] = mapped_column(Integer, default=0)
+    height: Mapped[int] = mapped_column(Integer, default=0)
+    analysis_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class ImageJob(TimestampMixin, Base):
+    __tablename__ = "image_jobs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[int] = mapped_column(ForeignKey("messages.id"), unique=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    teacher_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    state: Mapped[str] = mapped_column(String(16), default="queued", index=True)
+    snapshot_json: Mapped[str] = mapped_column(Text)
+    plan_json: Mapped[str] = mapped_column(Text, default="{}")
+    asset_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    error: Mapped[str] = mapped_column(String(200), default="")
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class UsageLog(TimestampMixin, Base):

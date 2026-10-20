@@ -51,7 +51,8 @@ def test_family_list_masks_phone(client, admin):
     d = client.get("/admin/families", headers=admin).json()
     assert d["total"] >= 1
     phones = [gd["phone"] for f in d["items"] for gd in f["guardians"]]
-    assert all("****" in p for p in phones)  # 运营视角脱敏
+    assert "139****2222" in phones
+    assert all(p is None or "****" in p for p in phones)  # 无手机号账号允许空值；存在的号码必须脱敏
 
 
 def test_llm_group_crud_and_hot_switch(client, admin, student_token):

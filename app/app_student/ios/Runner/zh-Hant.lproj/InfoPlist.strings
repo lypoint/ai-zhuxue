@@ -1,2 +1,4 @@
 "CFBundleDisplayName" = "AI 助學學生版";
-"NSCameraUsageDescription" = "用於掃描家長端的綁定二維碼";
+"NSCameraUsageDescription" = "用於掃描家長端綁定二維碼和拍攝學習題目";
+
+"NSPhotoLibraryUsageDescription" = "用於選擇學習題目圖片傳送給老師";

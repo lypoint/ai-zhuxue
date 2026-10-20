@@ -83,6 +83,9 @@ def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
     for model in (m.Favorite, m.LearningFeedback, m.LearningFeedbackEvent, m.RewardRedemption,
                   m.RewardAgreement, m.LearningDayReward, m.FenceFeedback, m.FenceEvent):
         db.query(model).filter(model.student_id.in_(ids)).delete(synchronize_session=False)
+    from .media import detach_student
+    for student_id in ids:
+        detach_student(db, student_id)
     db.query(m.Message).filter(m.Message.conversation_id.in_(convs)).delete(synchronize_session=False)
     db.query(m.Conversation).filter(m.Conversation.student_id.in_(ids)).delete(synchronize_session=False)
     for model in (m.StudentGrade, m.AcademicAssessment, m.WellbeingAssessment,

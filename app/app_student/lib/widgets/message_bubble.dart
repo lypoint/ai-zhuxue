@@ -11,6 +11,7 @@ class MessageBubble extends StatelessWidget {
   final bool isLoading;
   final void Function(String)? onFeedback;
   final String? feedback;
+  final VoidCallback? onDiagram;
   const MessageBubble({
     super.key,
     required this.bubble,
@@ -19,6 +20,7 @@ class MessageBubble extends StatelessWidget {
     this.isLoading = false,
     this.onFeedback,
     this.feedback,
+    this.onDiagram,
   });
 
   @override
@@ -63,9 +65,19 @@ class MessageBubble extends StatelessWidget {
                       : Border.all(color: const Color(0xFFE3EBE6)),
                 ),
                 child: isUser
-                    ? Text(
-                        bubble.text,
-                        style: TextStyle(color: scheme.onPrimary, height: 1.5),
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MessageImages(blocks: bubble.contentBlocks),
+                          if (bubble.text.isNotEmpty)
+                            Text(
+                              bubble.text,
+                              style: TextStyle(
+                                color: scheme.onPrimary,
+                                height: 1.5,
+                              ),
+                            ),
+                        ],
                       )
                     : isLoading
                     ? Row(
@@ -115,6 +127,44 @@ class MessageBubble extends StatelessWidget {
                             ),
                             useDollarSignsForLatex: true,
                           ),
+                          MessageImages(blocks: bubble.contentBlocks),
+                          if (!bubble.failed &&
+                              bubble.messageId != null &&
+                              (onDiagram != null || bubble.imageJob != null))
+                            if (const [
+                              'queued',
+                              'running',
+                            ].contains(bubble.imageJob?['state']))
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(tr('图示生成中…')),
+                                  ],
+                                ),
+                              )
+                            else if (bubble.imageJob?['state'] != 'ready')
+                              TextButton.icon(
+                                onPressed: onDiagram,
+                                icon: const Icon(Icons.image_outlined),
+                                label: Text(
+                                  tr(
+                                    bubble.imageJob?['state'] == 'failed'
+                                        ? '图示生成失败，点击重试'
+                                        : '配图讲解',
+                                  ),
+                                ),
+                              ),
                           if (!bubble.failed && bubble.messageId != null) ...[
                             const SizedBox(height: 12),
                             const Divider(),

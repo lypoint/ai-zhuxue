@@ -13,3 +13,4 @@ export 'src/learning_screen.dart';
 export 'src/telemetry.dart';
 
 export 'src/password_login.dart';
+export 'src/message_images.dart';

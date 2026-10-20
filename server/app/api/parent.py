@@ -178,6 +178,7 @@ def conversation_messages(conversation_id: int, guardian: Guardian = Depends(cur
     if not conv or conv.student.family_id != guardian.family_id:
         raise HTTPException(404, "conversation not found")
     return [{"id": message.id, "role": message.role, "content": message.content,
+             "content_blocks": message.content_blocks, "image_job": message.image_job,
              "fence_action": message.fence_action, "created_at": message.created_at,
              "teacher_id": conv.teacher_group_id,
              "teacher_name": conv.teacher_name_snapshot,
@@ -298,7 +299,7 @@ def export_student_data(student_id: int, guardian: Guardian = Depends(current_gu
             "teacher_id": conv.teacher_group_id,
             "teacher_name": conv.teacher_name_snapshot,
             "teacher_avatar_url": conv.teacher_avatar_snapshot,
-            "messages": [{"role": m.role, "content": m.content,
+            "messages": [{"role": m.role, "content": m.content, "content_blocks": m.content_blocks,
                           "fence_action": m.fence_action, "created_at": m.created_at.isoformat()}
                          for m in msgs],
             "fence_events": [{"stage": e.stage, "decision": e.decision, "category": e.category,
@@ -326,6 +327,8 @@ def delete_student(student_id: int, purge: bool = False,
     student = _own_student(guardian, student_id, db)
     if purge:
         from ..models import ActiveTime, Favorite, UsageLog
+        from ..services.media import detach_student
+        detach_student(db, student.id)
         # Clear dependent rows before removing the student so PostgreSQL's
         # foreign-key checks behave the same as SQLite's test database.
         db.query(BindCode).filter(
@@ -465,6 +468,7 @@ def student_favorites(student_id: int, guardian: Guardian = Depends(current_guar
     rows = (db.query(Favorite).filter_by(student_id=student_id)
             .order_by(Favorite.id.desc()).limit(200).all())
     return [{"id": f.id, "role": f.role, "content": f.content,
+             "content_blocks": (db.get(Message, f.message_id).content_blocks if f.message_id and db.get(Message, f.message_id) else []),
              "conversation_id": f.conversation_id,
              "created_at": f.created_at.isoformat() if f.created_at else None}
             for f in rows]

@@ -13,6 +13,16 @@ class Settings(BaseSettings):
     llm_key_secret: str = ""  # LLM api_key 落库加密密钥；空则回落 jwt_secret
     cors_origins: str = ""  # 生产后台页面的完整 Origin，多个用逗号分隔
     upload_dir: str = "./uploads"  # CMS 老师头像
+    image_features_enabled: bool = False  # 紧急关闭后不接收上传、不执行配图；历史已审核图片仍可查看
+    qiniu_access_key: str = ""
+    qiniu_secret_key: str = ""
+    qiniu_bucket: str = ""
+    qiniu_domain: str = ""  # 私有空间 HTTPS 下载域名
+    qiniu_upload_url: str = "https://upload.qiniup.com"  # 按 Bucket 地域设置
+    qiniu_censor_url: str = "https://ai.qiniuapi.com/v3/image/censor"
+    image_max_bytes: int = 8 * 1024 * 1024
+    image_max_pixels: int = 20_000_000
+    image_font_path: str = ""  # 绘图中文标签所需的部署字体路径
 
     # LLM 提供商：glm | deepseek | kimi（均 OpenAI 兼容协议）
     llm_provider: str = "glm"

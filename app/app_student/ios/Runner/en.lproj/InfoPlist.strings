@@ -1,2 +1,4 @@
 "CFBundleDisplayName" = "AI Learning · Student";
-"NSCameraUsageDescription" = "Scan the pairing QR code from the parent app.";
+"NSCameraUsageDescription" = "Scan parent pairing codes and photograph study questions.";
+
+"NSPhotoLibraryUsageDescription" = "Select study question images to send to your teacher.";

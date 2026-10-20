@@ -64,6 +64,9 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      MessageImages(
+                        blocks: f['content_blocks'] as List? ?? const [],
+                      ),
                       GptMarkdown(
                         f['content'] as String? ?? '',
                         style: const TextStyle(

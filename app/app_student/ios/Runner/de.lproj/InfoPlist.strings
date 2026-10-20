@@ -1,2 +1,4 @@
 "CFBundleDisplayName" = "KI-Lernen · Schüler";
-"NSCameraUsageDescription" = "Zum Scannen des Kopplungs-QR-Codes aus der Eltern-App.";
+"NSCameraUsageDescription" = "Zum Scannen von Kopplungscodes und Fotografieren von Lernaufgaben.";
+
+"NSPhotoLibraryUsageDescription" = "Lernaufgaben als Bild auswählen und an die Lehrkraft senden.";

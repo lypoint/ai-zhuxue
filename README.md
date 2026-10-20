@@ -106,3 +106,5 @@ FENCE_MODE=llm OPENROUTER_API_KEY=sk-… python -m tools.eval_fence --check
 - 代码以 **AGPL-3.0** 许可发布（见 [LICENSE](LICENSE)）——任何衍生服务（含云托管）须同样开源；
 - 本项目调用第三方大模型 API（GLM/DeepSeek/Kimi/OpenRouter 等，OpenAI 兼容协议），模型的生成内容质量、合规性由使用者自行评估并遵守所在司法辖区要求；面向未成年人提供服务前，请完成所在地区的核验、备案等合规流程；
 - 本仓库不含数据库文件与真实用户数据；示例中的手机号/短信码均为测试值。
+
+图片一期：[执行计划](docs/image-feature-plan.md) · [部署与联调](docs/image-feature-deployment.md)。

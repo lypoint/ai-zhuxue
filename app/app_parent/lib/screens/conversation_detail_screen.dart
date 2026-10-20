@@ -152,16 +152,25 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
               color: isUser ? const Color(0xFF1B2A4A) : Colors.grey.shade200,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: isUser
-                ? Text(
-                    m['content'] as String? ?? '',
-                    style: const TextStyle(color: Colors.white),
-                  )
-                : GptMarkdown(
-                    m['content'] as String? ?? '',
-                    style: const TextStyle(color: Colors.black87, height: 1.4),
-                    useDollarSignsForLatex: true,
-                  ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                isUser
+                    ? Text(
+                        m['content'] as String? ?? '',
+                        style: const TextStyle(color: Colors.white),
+                      )
+                    : GptMarkdown(
+                        m['content'] as String? ?? '',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          height: 1.4,
+                        ),
+                        useDollarSignsForLatex: true,
+                      ),
+                MessageImages(blocks: m['content_blocks'] as List? ?? const []),
+              ],
+            ),
           ),
         ),
         if (action != null && action != 'allow')

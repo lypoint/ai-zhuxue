@@ -122,7 +122,7 @@ def test_llm_group_api_key_is_encrypted_at_rest(client):
     assert r.status_code == 200
     with SessionLocal() as db:
         grp = db.query(LLMGroup).filter_by(name=name).one()
-        assert grp.api_key.startswith("encv1:")          # 落库为密文
+        assert grp.api_key.startswith("encv2:")          # 落库为密文
         assert "sk-plain-secret-123" not in grp.api_key
         from app.services.keyvault import decrypt_api_key
         assert decrypt_api_key(grp.api_key) == "sk-plain-secret-123"  # 读取端还原

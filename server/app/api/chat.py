@@ -21,7 +21,7 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       FenceEvent, FenceFeedback, LLMGroup, Message, Student, StudentGrade,
                       StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
-from ..services import fence, llm
+from ..services import fence, llm, image_chat, image_jobs
 from ..services.teacher_channels import current_channel, channel_teachers
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -103,6 +103,7 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
     return [{"teacher_id": g.id, "name": g.teacher_name,
              "avatar_url": g.teacher_avatar_url, "sort_order": g.teacher_sort_order,
              "selected": g.id == selected.id, "is_default": g.is_active,
+             "capabilities": image_chat.capabilities(db, g),
              "access": ("available" if active or g.post_trial_daily_free_count > 0 and
                         subscription.post_trial_free_remaining(
                             student.id, db, g.id, g.post_trial_daily_free_count) > 0
@@ -218,7 +219,7 @@ def _today_seconds(student_id: int, db: Session) -> int:
 
 
 def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
-                  channel: str = "wechat"):
+                  channel: str = "wechat", *, check_message_quota: bool = True):
     """服务端未成年人模式：订阅权益 + 时段禁用 + 每日消息上限 + 每日时长上限。
 
     created_at 统一存 UTC（naive）；本地日界与时段均按 TZ_OFFSET_HOURS 换算，
@@ -241,37 +242,38 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
         or (start_minutes > end_minutes and (now_minutes >= start_minutes or now_minutes < end_minutes))
     if quiet_on and quiet:
         raise HTTPException(423, f"现在是休息时间（{q_start}:00-{q_end}:00），明天再学吧")
-    cap = settings.fence_daily_message_cap
-    if fs:
-        cap = fs.daily_message_cap
-    local_midnight_utc = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
-    # 已失败的请求不占次数；进行中的预留仅保留 30 分钟，避免服务中断后一直占额。
-    counted_message = or_(
-        Message.fence_action.is_(None),
-        and_(Message.fence_action != "failed", Message.fence_action != "pending"),
-        and_(Message.fence_action == "pending",
-             Message.created_at >= dt.datetime.utcnow() - dt.timedelta(minutes=30)),
-    )
-    count = (db.query(Message)
-             .join(Conversation, Message.conversation_id == Conversation.id)
-             .filter(Conversation.student_id == student.id,
-                     Message.role == "user", Message.created_at >= local_midnight_utc,
-                     counted_message)
-             .count())
-    if count >= cap:
-        _notify(student.family_id, "quota", "今日学习次数已用完",
-                f"{student.nickname}今天的对话次数已用完，明天再来吧。（每日上限可在家长端调整）",
-                once_per_day=True, db=db)
-        raise HTTPException(429, "今天的对话次数用完了，明天再来吧")
-    group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student, channel=channel)
-    if group and group.daily_message_cap:
-        group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
-                       .filter(Conversation.student_id == student.id,
-                               Conversation.teacher_group_id == group.id,
-                               Message.role == "user", Message.created_at >= local_midnight_utc,
-                               counted_message).count())
-        if group_count >= group.daily_message_cap:
-            raise HTTPException(429, "该老师今日对话次数已用完")
+    if check_message_quota:
+        cap = settings.fence_daily_message_cap
+        if fs:
+            cap = fs.daily_message_cap
+        local_midnight_utc = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
+        # 已失败的请求不占次数；进行中的预留仅保留 30 分钟，避免服务中断后一直占额。
+        counted_message = or_(
+            Message.fence_action.is_(None),
+            and_(Message.fence_action != "failed", Message.fence_action != "pending"),
+            and_(Message.fence_action == "pending",
+                 Message.created_at >= dt.datetime.utcnow() - dt.timedelta(minutes=30)),
+        )
+        count = (db.query(Message)
+                 .join(Conversation, Message.conversation_id == Conversation.id)
+                 .filter(Conversation.student_id == student.id,
+                         Message.role == "user", Message.created_at >= local_midnight_utc,
+                         counted_message)
+                 .count())
+        if count >= cap:
+            _notify(student.family_id, "quota", "今日学习次数已用完",
+                    f"{student.nickname}今天的对话次数已用完，明天再来吧。（每日上限可在家长端调整）",
+                    once_per_day=True, db=db)
+            raise HTTPException(429, "今天的对话次数用完了，明天再来吧")
+        group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student, channel=channel)
+        if group and group.daily_message_cap:
+            group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
+                           .filter(Conversation.student_id == student.id,
+                                   Conversation.teacher_group_id == group.id,
+                                   Message.role == "user", Message.created_at >= local_midnight_utc,
+                                   counted_message).count())
+            if group_count >= group.daily_message_cap:
+                raise HTTPException(429, "该老师今日对话次数已用完")
     # P1 完整时长管控：真实使用时长上限（端侧心跳累计；0=家长不限时）
     if fs and fs.daily_minutes_cap > 0:
         used = _today_seconds(student.id, db)
@@ -332,6 +334,31 @@ async def _output_check(content: str, student: Student, conversation_id: int,
     return message
 
 
+async def _prepare_images(body, student, conv, user_msg, db):
+    try:
+        route = llm._provider("chat", student.family_id, conv.teacher_group_id) if body.asset_ids else None
+        snapshot = ({"id": None, "revision": 0, "protocol": "openai", "base_url": route[1]["base_url"],
+                     "api_key": route[2], "model_id": route[3], "native": True, "price_in": 0, "price_out": 0} if route else None)
+        content = await image_chat.prepare(db, student, conv, user_msg, body.asset_ids, body.content, snapshot)
+        return content, route
+    except Exception as error:
+        db.rollback()
+        db.get(Message, user_msg.id).fence_action = "failed"
+        db.commit()
+        raise HTTPException(error.status_code if isinstance(error, HTTPException) else 503,
+            error.detail if isinstance(error, HTTPException) else "图片识别失败，请重试或更换清晰图片",
+            headers={"X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
+
+
+def _auto_image(db, student, conv, reply, locale):
+    teacher = db.get(LLMGroup, conv.teacher_group_id) if conv.teacher_group_id else None
+    if teacher and teacher.auto_diagram and reply.fence_action != "reject":
+        try:
+            image_jobs.enqueue(db, student, conv, reply, locale)
+        except Exception:
+            db.rollback()  # Optional illustration failure must not discard the approved answer.
+
+
 @router.post("", response_model=MessageOut)
 async def send_message(body: ChatIn, student: Student = Depends(current_student),
                        db: Session = Depends(get_db), channel: Annotated[str, Depends(current_channel)] = "wechat"):
@@ -365,19 +392,23 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
 
     # 围栏判定（带最近用户消息作上下文：多轮铺垫防御）
+    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db)
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
                .filter(Conversation.student_id == student.id, Message.role == "user",
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
-        verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
+        verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
                                        forbidden_words=_forbidden_words(db, student.family_id),
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
         user_msg.fence_action = "failed"
         db.commit()
+        if body.asset_ids:
+            raise HTTPException(503, "图片问题审核暂不可用，请重试", headers={
+                "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
         raise
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
@@ -404,20 +435,21 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                .order_by(Message.id.desc()).limit(12).all())
     history.reverse()
     messages = [{"role": "system", "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(student.grade_band, "8-12岁")) + "\n" + language.instruction(body.locale)}]
+    messages[0]["content"] += image_chat.output_instruction(db, conv.teacher_group_id)
     for m in history[:-1]:
         if m.role == "assistant" and not m.content.strip():
             continue
-        messages.append({"role": m.role, "content": m.content})
+        messages.append({"role": m.role, "content": image_chat.history_content(db, conv.teacher_group_id, m)})
     if verdict["decision"] == "rewrite":
         messages.append({"role": "system",
                          "content": f"{fence.GUIDANCE_PREFIX}学生刚才说：「{body.content}」。"
                                     f"请温和地把话题引导回学习，并主动问一个相关的学科问题。"})
     else:
-        messages.append({"role": "user", "content": body.content})
+        messages.append({"role": "user", "content": image_chat.model_content(db, conv.teacher_group_id, user_msg, effective_content)})
 
     try:
         result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
-                                group_id=conv.teacher_group_id)
+                                group_id=conv.teacher_group_id, **({"route": image_route} if image_route else {}))
     except llm.LLMUnavailable as e:
         user_msg.fence_action = "failed"
         db.commit()
@@ -425,6 +457,9 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     except Exception:
         user_msg.fence_action = "failed"
         db.commit()
+        if body.asset_ids:
+            raise HTTPException(503, "图片问题审核暂不可用，请重试", headers={
+                "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
         raise
 
     if not (result["content"] or "").strip():
@@ -455,6 +490,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         db.get(Message, user_msg.id).fence_action = "failed"
         db.commit()
         raise
+    _auto_image(db, student, conv, reply, body.locale)
     return reply
 
 
@@ -477,7 +513,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
             raise HTTPException(404, "message not found")
         conv = _student_conversation(db, retry.conversation_id, student)
         if (body.conversation_id != conv.id or retry.role != "user" or
-                retry.content != body.content):
+                retry.content != body.content or
+                [b["asset_id"] for b in retry.content_blocks if b.get("type") == "image"] != body.asset_ids):
             raise HTTPException(409, "retry message does not match")
         if db.query(func.max(Message.id)).filter_by(conversation_id=conv.id).scalar() != retry.id:
             raise HTTPException(409, "conversation has newer messages")
@@ -521,19 +558,23 @@ async def send_message_stream(body: ChatIn, live: bool = False,
         db.flush()
     db.commit()  # 与普通聊天共用同一预留时点。
 
+    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db)
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
                .filter(Conversation.student_id == student.id, Message.role == "user",
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
-        verdict = await fence.evaluate(body.content, student.grade_band, student.family_id,
+        verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
                                        forbidden_words=_forbidden_words(db, student.family_id),
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
         user_msg.fence_action = "failed"
         db.commit()
+        if body.asset_ids:
+            raise HTTPException(503, "图片问题审核暂不可用，请重试", headers={
+                "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
         raise
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
@@ -583,23 +624,26 @@ async def send_message_stream(body: ChatIn, live: bool = False,
             history.reverse()
             messages = [{"role": "system",
                          "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(grade_band, "8-12岁")) + "\n" + language.instruction(body.locale)}]
+            messages[0]["content"] += image_chat.output_instruction(sdb, teacher_group_id)
             for m in history[:-1]:
                 if m.role == "assistant" and not m.content.strip():
                     continue
-                messages.append({"role": m.role, "content": m.content})
+                messages.append({"role": m.role, "content": image_chat.history_content(sdb, teacher_group_id, m)})
             if fence_action == "rewrite":
                 messages.append({"role": "system",
                                  "content": f"{fence.GUIDANCE_PREFIX}学生刚才说：「{body.content}」。"
                                             f"请温和地把话题引导回学习，并主动问一个相关的学科问题。"})
             else:
-                messages.append({"role": "user", "content": body.content})
+                messages.append({"role": "user", "content": image_chat.model_content(sdb, teacher_group_id, sdb.get(Message, user_msg_id), effective_content)})
 
             try:
                 collected, usage, provider_model = [], None, {}
-                realtime = live or not settings.stream_recheck_first
+                realtime = (live or not settings.stream_recheck_first) and not body.asset_ids
                 stream_kwargs = {"purpose": "chat", "family_id": family_id}
                 if teacher_group_id is not None:
                     stream_kwargs["group_id"] = teacher_group_id
+                if image_route:
+                    stream_kwargs["route"] = image_route
                 async for chunk in llm.chat_stream(messages, **stream_kwargs):
                     if "delta" in chunk:
                         collected.append(chunk["delta"])
@@ -648,7 +692,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                       if provider_model else {"provider": "unknown", "model": "unknown"}))
                     sdb.add(row)
                 sdb.commit()
-                yield sse("done", {"message_id": reply.id,
+                _auto_image(sdb, sdb.get(Student, student_id), sdb.get(Conversation, conv_id), reply, body.locale)
+                yield sse("done", {"message_id": reply.id, "image_job": reply.image_job,
                                    "tokens_in": usage["tokens_in"] if usage else 0,
                                    "tokens_out": usage["tokens_out"] if usage else 0})
             except llm.LLMUnavailable as e:
@@ -754,7 +799,9 @@ def latest_conversation(student: Student = Depends(current_student), db: Session
             "teacher_id": conv.teacher_group_id,
             "teacher_name": conv.teacher_name_snapshot,
             "teacher_avatar_url": conv.teacher_avatar_snapshot,
+            "capabilities": image_chat.capabilities(db, db.get(LLMGroup, conv.teacher_group_id) if conv.teacher_group_id else None),
             "messages": [{"id": m.id, "role": m.role, "content": m.content,
+                          "content_blocks": m.content_blocks, "image_job": m.image_job,
                           "fence_action": m.fence_action, "created_at": m.created_at}
                          for m in msgs]}
 
@@ -1006,6 +1053,7 @@ def my_favorites(student: Student = Depends(current_student), db: Session = Depe
     rows = (db.query(Favorite).filter_by(student_id=student.id)
             .order_by(Favorite.id.desc()).limit(200).all())
     return [{"id": f.id, "role": f.role, "content": f.content,
+             "content_blocks": (db.get(Message, f.message_id).content_blocks if f.message_id and db.get(Message, f.message_id) else []),
              "conversation_id": f.conversation_id,
              "created_at": f.created_at.isoformat() if f.created_at else None}
             for f in rows]

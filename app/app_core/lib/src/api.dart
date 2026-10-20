@@ -741,17 +741,67 @@ class Api {
     }
   }
 
-  /// 发消息（非流式）：返回 assistant 消息。fence 429/423 等业务码由 ApiException 抛出。
+  Future<Map<String, dynamic>> mediaImage(String assetId) =>
+      _send('GET', '/media/$assetId');
+
+  Future<Map<String, dynamic>> conversationCapabilities(int id) =>
+      _send('GET', '/chat/sessions/$id/capabilities');
+
+  Future<Map<String, dynamic>> requestDiagram(int id) => _send(
+    'POST',
+    '/chat/messages/$id/diagram',
+    body: {'locale': AppLanguage.I.tag},
+  );
+
+  Future<Map<String, dynamic>> imageJob(int id) =>
+      _send('GET', '/chat/image-jobs/$id');
+
+  Future<Map<String, dynamic>> uploadChatImage(
+    Uint8List bytes, {
+    int? conversationId,
+    int? teacherId,
+  }) async {
+    final upload = await _send(
+      'POST',
+      '/media/uploads',
+      body: {
+        if (conversationId != null) 'conversation_id': conversationId,
+        if (teacherId != null) 'teacher_id': teacherId,
+      },
+    );
+    if (bytes.length > (upload['max_bytes'] as int)) {
+      throw ApiException(422, '图片超过大小限制，请选择较小的图片');
+    }
+    final request =
+        http.MultipartRequest('POST', Uri.parse(upload['upload_url'] as String))
+          ..fields['key'] = upload['key'] as String
+          ..fields['token'] = upload['token'] as String
+          ..files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              bytes,
+              filename: 'question.jpg',
+            ),
+          );
+    final response = await request.send().timeout(const Duration(seconds: 60));
+    await response.stream.drain<void>().timeout(const Duration(seconds: 60));
+    if (response.statusCode != 200) throw ApiException(503, '图片上传失败，请重试');
+    return _send('POST', '/media/${upload['asset_id']}/complete');
+  }
+
+  /// 发消息（非流式）：返回 assistant 消息。
   Future<Map<String, dynamic>> sendChat(
     int? conversationId,
     String content, {
     int? teacherId,
+    List<String> assetIds = const [],
   }) => _send(
     'POST',
     '/chat',
     body: {
       'conversation_id': conversationId,
       'content': content,
+      'asset_ids': assetIds,
       'locale': AppLanguage.I.tag,
       if (teacherId != null) 'teacher_id': teacherId,
     },
@@ -763,6 +813,7 @@ class Api {
   Future<Map<String, dynamic>> sendChatStream(
     int? conversationId,
     String content, {
+    List<String> assetIds = const [],
     int? teacherId,
     int? retryMessageId,
     void Function(String text)? onDelta,
@@ -772,7 +823,12 @@ class Api {
     final client = http.Client();
     try {
       final req =
-          http.Request('POST', Uri.parse('$apiBase/chat/stream?live=true'))
+          http.Request(
+              'POST',
+              Uri.parse(
+                '$apiBase/chat/stream${assetIds.isEmpty ? '?live=true' : ''}',
+              ),
+            )
             ..headers['Content-Type'] = 'application/json'
             ..headers['Accept-Language'] = AppLanguage.I.tag
             ..headers['X-App-Channel'] = appChannel
@@ -780,12 +836,24 @@ class Api {
             ..body = jsonEncode({
               'conversation_id': conversationId,
               'content': content,
+              'asset_ids': assetIds,
               'locale': AppLanguage.I.tag,
               if (teacherId != null) 'teacher_id': teacherId,
               if (retryMessageId != null) 'retry_message_id': retryMessageId,
             });
       final resp = await client.send(req);
       if (resp.statusCode >= 400) {
+        final reservedId = int.tryParse(
+          resp.headers['x-user-message-id'] ?? '',
+        );
+        if (reservedId != null) {
+          onMeta?.call({
+            'user_message_id': reservedId,
+            'conversation_id': int.tryParse(
+              resp.headers['x-conversation-id'] ?? '',
+            ),
+          });
+        }
         final body = await resp.stream.bytesToString();
         final data = jsonDecode(body);
         if (resp.statusCode == 401) {

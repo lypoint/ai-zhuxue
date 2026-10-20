@@ -157,6 +157,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ),
                     childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                     children: [
+                      MessageImages(
+                        blocks: f['content_blocks'] as List? ?? const [],
+                      ),
                       GptMarkdown(
                         content,
                         style: const TextStyle(height: 1.6),

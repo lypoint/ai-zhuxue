@@ -1,10 +1,9 @@
-"""LLM api_key 落库加密：密文带 encv1: 前缀，复用 PyJWT HS256 封装，不新增依赖。
+"""Fernet 加密新凭据；兼容读取旧签名 JWT 和开发明文，修改时升级格式。"""
+import base64
+import hashlib
 
-读取端自动识别前缀：不带前缀的存量明文/空值原样返回（兼容开发库与旧数据）。
-威胁模型：拖库者拿到 llm_groups 表也拿不到可用 key（封装密钥在环境变量里，
-与 JWT_SECRET 分开配置 LLM_KEY_SECRET，未配置时回落 JWT_SECRET）。
-"""
 import jwt
+from cryptography.fernet import Fernet
 
 from ..config import settings
 
@@ -16,12 +15,18 @@ def _secret() -> str:
 
 
 def encrypt_api_key(plain: str) -> str:
-    if not plain or plain.startswith(_PREFIX):
+    if not plain or plain.startswith((_PREFIX, "encv2:")):
         return plain
-    return _PREFIX + jwt.encode({"k": plain}, _secret(), algorithm="HS256")
+    return "encv2:" + _cipher().encrypt(plain.encode()).decode()
+
+
+def _cipher() -> Fernet:
+    return Fernet(base64.urlsafe_b64encode(hashlib.sha256(_secret().encode()).digest()))
 
 
 def decrypt_api_key(stored: str) -> str:
+    if stored and stored.startswith("encv2:"):
+        return _cipher().decrypt(stored[6:].encode()).decode()
     if not stored or not stored.startswith(_PREFIX):
         return stored or ""
     payload = jwt.decode(stored[len(_PREFIX):], _secret(), algorithms=["HS256"])

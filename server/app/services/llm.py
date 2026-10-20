@@ -4,6 +4,7 @@
   GLM-5.3-Flash 0.8/2.8（基准档） | DeepSeek V4.1-Flash 高峰 2/8 | Kimi K2 档 4/16
 """
 import json
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -112,6 +113,8 @@ def _group_payload(grp, routed_by: str) -> dict:
 
 
 def _provider(purpose: str = "chat", family_id: int | None = None, group_id: int | None = None):
+    if purpose not in ("chat", "fence_classify", "fence_second"):
+        raise LLMUnavailable("unsupported LLM purpose; image models use an explicit adapter")
     grp = resolve_active_group(family_id, group_id)
     if purpose != "chat" and grp.get("fence_config"):
         fence = grp["fence_config"]
@@ -132,11 +135,20 @@ def _provider(purpose: str = "chat", family_id: int | None = None, group_id: int
     return name, p, key, model
 
 
+def _output_limit(base_url: str, model: str, requested: int) -> int:
+    # These DashScope models reject the application's 40960-token default.
+    if (urlsplit(base_url).hostname == "dashscope.aliyuncs.com"
+            and model in {"qwen-plus", "qwen3-vl-plus"}):
+        return min(requested, 32768)
+    return requested
+
+
 async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 40960,
                temperature: float = 0.7, family_id: int | None = None,
-               group_id: int | None = None) -> dict:
+               group_id: int | None = None, route: tuple | None = None) -> dict:
     """返回 {"content", "tokens_in", "tokens_out", "provider", "model"}；无 Key 时抛 LLMUnavailable。"""
-    name, p, key, model = _provider(purpose, family_id, group_id)
+    name, p, key, model = route or _provider(purpose, family_id, group_id)
+    max_tokens = _output_limit(p["base_url"], model, max_tokens)
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(
             f"{p['base_url']}/chat/completions",
@@ -167,10 +179,11 @@ async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 40
 
 async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: int = 40960,
                       temperature: float = 0.7, family_id: int | None = None,
-                      group_id: int | None = None):
+                      group_id: int | None = None, route: tuple | None = None):
     """流式对话（OpenAI 兼容 SSE）。逐段 yield 文本增量；结束时 yield
     {"usage": {...}, "provider": ..., "model": ...} 汇总。无 Key 抛 LLMUnavailable。"""
-    name, p, key, model = _provider(purpose, family_id, group_id)
+    name, p, key, model = route or _provider(purpose, family_id, group_id)
+    max_tokens = _output_limit(p["base_url"], model, max_tokens)
     has_content = False
     finish_reason = None
     async with httpx.AsyncClient(timeout=120) as client:

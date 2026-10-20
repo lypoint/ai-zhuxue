@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .api import admin, auth, bind, chat, parent, learning, payments, store_payments
+from .api import admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
@@ -27,9 +27,15 @@ async def lifespan(_: FastAPI):
         command.upgrade(cfg, "head")              # 生产启动即迁移到最新
     from .services.store_billing import reconcile_forever
     task = asyncio.create_task(reconcile_forever()) if settings.env != "test" else None
+    from .services.image_jobs import run_forever
+    image_task = asyncio.create_task(run_forever()) if settings.env != "test" else None
     try:
         yield
     finally:
+        if image_task:
+            image_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await image_task
         if task:
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
@@ -42,6 +48,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if settings.env != "prod" else [x.strip() for x in settings.cors_origins.split(",") if x.strip()],
     allow_methods=["*"], allow_headers=["*"],
+    expose_headers=["X-User-Message-Id", "X-Conversation-Id"],
 )
 app.add_middleware(RateLimitMiddleware)
 app.include_router(auth.router)
@@ -52,6 +59,8 @@ app.include_router(payments.router)
 app.include_router(store_payments.router)
 app.include_router(learning.router)
 app.include_router(admin.router)
+app.include_router(images.router)
+app.include_router(image_admin.router)
 
 
 @app.get("/web", response_class=HTMLResponse, include_in_schema=False)

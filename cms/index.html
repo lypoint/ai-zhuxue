@@ -128,6 +128,43 @@
         <div id="fe_err" class="err"></div>
       </div>
     </div>
+    <div data-admin-only>
+      <h2>图片模型配置</h2>
+      <p>读图与生图独立配置，可供多位老师共用。修改后须重新测试并启用；生图测试会实际调用并可能产生费用。</p>
+      <div id="imageModels"></div>
+      <div data-super-only>
+        <h3 id="im_title">新建图片模型</h3>
+        <div class="row">
+          <input id="im_name" placeholder="配置名称" aria-label="图片配置名称">
+          <select id="im_kind" aria-label="图片模型类型"><option value="vision">读图</option><option value="generation">生图</option></select>
+          <select id="im_protocol" aria-label="图片接口协议"><option value="openai">OpenAI 兼容</option><option value="dashscope">DashScope 多模态生图/编辑</option><option value="dashscope-wan">DashScope 万相异步生图</option></select>
+          <input id="im_base" placeholder="API baseUrl（HTTPS）" style="width:300px">
+          <input id="im_model" placeholder="模型 ID">
+          <input id="im_key" type="password" placeholder="apiKey（编辑时留空保留）">
+          <label><input id="im_edit" type="checkbox">支持参考图编辑（DashScope）</label>
+          <input id="im_pin" type="number" min="0" step="0.001" value="0" aria-label="图片模型输入单价" placeholder="输入单价">
+          <input id="im_pout" type="number" min="0" step="0.001" value="0" aria-label="图片模型输出单价" placeholder="输出单价">
+          <button onclick="saveImageModel()">保存为待测试</button><button class="ghost" onclick="resetImageModel()">清空</button>
+        </div>
+        <p style="font-size:12px">读图价格：元/百万 Token；生图价格：元/输入张、元/输出张。协议地址为 API 根路径，不含具体方法。</p>
+        <div id="im_error" class="err"></div>
+        <div id="teacherImages" style="display:none">
+          <h3>老师图片能力：<span id="ti_name"></span></h3>
+          <div class="row">
+            <select id="ti_mode" aria-label="老师读图模式"><option value="off">关闭图片输入</option><option value="native">主模型直接读图</option><option value="assisted">独立模型辅助读图</option></select>
+            <select id="ti_vision" aria-label="辅助读图及图片复核模型"></select>
+            <select id="ti_generation" aria-label="老师生图模型"></select>
+            <label><input id="ti_drawing" type="checkbox">启用程序绘图</label>
+            <label><input id="ti_auto" type="checkbox">老师按需自动配图</label>
+            <input id="ti_cap" type="number" min="0" max="1000" value="10" aria-label="每学生每日配图次数">
+            <button onclick="saveTeacherImages()">保存图片能力</button>
+            <button class="ghost" onclick="testTeacherVision()">测试主模型读图（可能计费）</button>
+          </div>
+          <p style="font-size:12px">输出图片需要读图模型复核。主模型不能读图时请选择独立读图配置；程序绘图中文字体须部署 IMAGE_FONT_PATH。</p>
+          <div id="ti_error" class="err"></div>
+        </div>
+      </div>
+    </div>
     <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（可激活多位老师；仅一位默认）</span></h2>
     <div id="groups"></div>
     <div data-super-only>
@@ -274,7 +311,7 @@ function boot() {
     }
     if (ROLE === 'support') $('fenceTable').querySelector('tbody').innerHTML = '<tr><td colspan="4">客服角色不显示围栏详情</td></tr>';
     else loadFence();
-    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadFeedback(); loadReports(); loadAssessmentAudits(); loadAccountDeletions(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
+    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadImageModels(); loadFeedback(); loadReports(); loadAssessmentAudits(); loadAccountDeletions(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
   }).catch(e => { if (e.message !== 'reauth') $('lerr').textContent = e.message; });
 }
 
@@ -454,7 +491,7 @@ async function loadGroups() {
       <span style="font-size:12px;color:#8C8A84">${esc(g.base_url||g.provider)} · 模型:${esc(g.chat_model)} · 围栏:${esc(g.fence_name||g.fence_model||'未配置')} · key:${g.has_key?'已配':'沿用环境'} · 老师:${esc(g.teacher_name||'AI 老师')} · 到期后每学生每日免费回复:${g.post_trial_daily_free_count||0} 次</span>
       ${ROLE==='super'?(g.teacher_enabled?'<button class="ghost" onclick="deactivate('+g.id+')">停用</button>':'<button class="ghost" onclick="activate('+g.id+')">激活</button>'):''}
       ${ROLE==='super'&&g.teacher_enabled&&!g.is_active?'<button class="ghost" onclick="setDefaultTeacher('+g.id+')">设为默认</button>':''}
-      ${ROLE==='super'?'<button class="ghost" onclick="editGroup('+g.id+')">编辑分组</button>':''}
+      ${ROLE==='super'?'<button class="ghost" onclick="editGroup('+g.id+')">编辑分组</button> <button class="ghost" onclick="editTeacherImages('+g.id+')">图片能力</button>':''}
       <button class="ghost" onclick="editTeacher(${g.id},decodeURIComponent('${attr(g.teacher_name||'AI 老师')}'),${g.post_trial_daily_free_count||0},${g.teacher_enabled},${g.teacher_sort_order||0})">老师配置</button>
       <input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp" style="width:160px;font-size:11px">
       <button class="ghost" onclick="changeAvatar(${g.id})">上传头像</button>
@@ -655,6 +692,66 @@ async function loadAssessmentAudits() {
 }
 
 if (TOK) boot();
+
+let IMAGE_MODELS = [], editingImageModel = null, editingImageTeacher = null;
+async function loadImageModels() {
+  try {
+    IMAGE_MODELS = await api('/admin/image-models');
+    $('imageModels').innerHTML = IMAGE_MODELS.map(m=>`<div class="row"><b>${esc(m.name)}</b><span>${m.kind==='vision'?'读图':'生图'} · ${esc(m.protocol)} · ${esc(m.model_id)} · v${m.revision} · ${m.enabled?'已启用':m.tested_revision===m.revision?'已测试待启用':'待测试'}</span>${ROLE==='super'?`<button class="ghost" onclick="editImageModel(${m.id})">编辑</button><button class="ghost" onclick="testImageModel(${m.id})">测试（可能计费）</button><button class="ghost" onclick="enableImageModel(${m.id},${!m.enabled})">${m.enabled?'停用':'启用'}</button><button class="ghost" onclick="deleteImageModel(${m.id})">删除</button>`:''}</div>`).join('') || '<p>暂无图片模型配置</p>';
+  } catch(e) { $('im_error').textContent=e.message; }
+}
+function resetImageModel() {
+  editingImageModel=null; $('im_title').textContent='新建图片模型';
+  ['im_name','im_base','im_model','im_key'].forEach(id=>$(id).value='');
+  $('im_kind').disabled=false; $('im_edit').checked=false;
+}
+function editImageModel(id) {
+  const m=IMAGE_MODELS.find(x=>x.id===id); if(!m)return;
+  editingImageModel=id; $('im_title').textContent='编辑图片配置：'+m.name;
+  for(const [id,key] of Object.entries({im_name:'name',im_kind:'kind',im_protocol:'protocol',im_base:'base_url',im_model:'model_id',im_pin:'price_in',im_pout:'price_out'}))$(id).value=m[key];
+  $('im_key').value=''; $('im_edit').checked=m.supports_edit; $('im_kind').disabled=true;
+}
+async function saveImageModel() {
+  $('im_error').textContent='';
+  const body={name:$('im_name').value.trim(),kind:$('im_kind').value,protocol:$('im_protocol').value,base_url:$('im_base').value.trim(),model_id:$('im_model').value.trim(),api_key:$('im_key').value.trim(),supports_edit:$('im_edit').checked,price_in:Number($('im_pin').value),price_out:Number($('im_pout').value)};
+  try {await api('/admin/image-models'+(editingImageModel?'/'+editingImageModel:''),{method:editingImageModel?'PUT':'POST',body:JSON.stringify(body)}); resetImageModel(); await loadImageModels(); await loadLogs();}
+  catch(e){$('im_error').textContent=e.message;}
+}
+async function testImageModel(id) {
+  $('im_error').textContent='正在测试模型…';
+  try{await api('/admin/image-models/'+id+'/test',{method:'POST'});await loadImageModels();$('im_error').textContent='测试通过，请启用配置';}
+  catch(e){$('im_error').textContent=e.message;}
+}
+async function enableImageModel(id,enabled) {
+  try{await api('/admin/image-models/'+id+'/enabled',{method:'PUT',body:JSON.stringify({enabled})});await loadImageModels();}
+  catch(e){$('im_error').textContent=e.message;}
+}
+async function deleteImageModel(id) {
+  if(!confirm('删除这条图片模型配置？已被老师引用时无法删除。'))return;
+  try{await api('/admin/image-models/'+id,{method:'DELETE'});await loadImageModels();}
+  catch(e){$('im_error').textContent=e.message;}
+}
+async function editTeacherImages(id) {
+  await loadImageModels();const g=GROUPS.find(x=>x.id===id);if(!g)return;
+  editingImageTeacher=id;const v=g.image_settings||{};
+  $('teacherImages').style.display='';$('ti_name').textContent=g.teacher_name;
+  $('ti_mode').value=v.image_input_mode||'off';
+  for(const [el,kind,key] of [['ti_vision','vision','vision_config_id'],['ti_generation','generation','image_config_id']]){
+    $(el).innerHTML='<option value="">不配置</option>'+IMAGE_MODELS.filter(m=>m.kind===kind).map(m=>`<option value="${m.id}">${esc(m.name)}${m.enabled?'':'（未启用）'}</option>`).join('');$(el).value=v[key]||'';
+  }
+  $('ti_drawing').checked=!!v.diagram_enabled;$('ti_auto').checked=!!v.auto_diagram;$('ti_cap').value=v.image_daily_cap??10;$('ti_error').textContent='';
+  $('teacherImages').scrollIntoView({block:'center'});
+}
+async function saveTeacherImages() {
+  try{await api('/admin/llm-groups/'+editingImageTeacher+'/images',{method:'PUT',body:JSON.stringify({image_input_mode:$('ti_mode').value,vision_config_id:Number($('ti_vision').value)||null,image_config_id:Number($('ti_generation').value)||null,diagram_enabled:$('ti_drawing').checked,auto_diagram:$('ti_auto').checked,image_daily_cap:Number($('ti_cap').value)})});await loadGroups();$('ti_error').textContent='已保存';}
+  catch(e){$('ti_error').textContent=e.message;}
+}
+async function testTeacherVision() {
+  $('ti_error').textContent='正在测试主模型读图…';
+  try{await api('/admin/llm-groups/'+editingImageTeacher+'/test-vision',{method:'POST'});$('ti_error').textContent='读图测试通过，可保存主模型读图模式';}
+  catch(e){$('ti_error').textContent=e.message;}
+}
+
 </script>
 </body>
 </html>

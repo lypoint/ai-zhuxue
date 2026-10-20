@@ -1,2 +1,4 @@
 "CFBundleDisplayName" = "AI 학습 · 학생";
-"NSCameraUsageDescription" = "보호자 앱의 연결용 QR 코드를 스캔합니다.";
+"NSCameraUsageDescription" = "보호자 연결 QR 코드를 스캔하고 학습 문제를 촬영합니다.";
+
+"NSPhotoLibraryUsageDescription" = "선생님께 보낼 학습 문제 이미지를 선택합니다.";
