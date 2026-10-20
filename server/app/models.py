@@ -353,7 +353,7 @@ class LLMGroup(TimestampMixin, Base):
     """LLM 分组：CMS 可配置的模型分组（provider+模型+Key 引用），支持灰度/切换/降级。
 
     api_key 存明文仅限开发环境骨架；生产应存密管引用（key_ref），此处保留字段双轨。
-    is_active: 同一时刻只有一个分组生效（chat 端点读取该分组）。
+    is_active 保留旧接口兼容；学生端默认老师按 ChannelTeacherDefault 的渠道配置选择。
     """
     __tablename__ = "llm_groups"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -367,7 +367,7 @@ class LLMGroup(TimestampMixin, Base):
     fence_config: Mapped["FenceConfig | None"] = relationship()
     daily_message_cap: Mapped[int] = mapped_column(Integer, default=0)  # 0=用全局
     note: Mapped[str] = mapped_column(String(200), default="")
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False)  # 唯一默认老师
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)  # 旧接口的全局默认
     # 标签绑定（唯一）：设置后，持此标签的家庭路由到本分组（优先级高于全局 is_active）
     tag: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
     teacher_name: Mapped[str] = mapped_column(String(50), default="AI 老师")
@@ -384,6 +384,13 @@ class LLMGroup(TimestampMixin, Base):
     diagram_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     auto_diagram: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     image_daily_cap: Mapped[int] = mapped_column(Integer, default=10, server_default="10")
+
+
+class ChannelTeacherDefault(Base):
+    __tablename__ = "channel_teacher_defaults"
+    channel: Mapped[str] = mapped_column(String(20), primary_key=True)
+    teacher_group_id: Mapped[int | None] = mapped_column(
+        ForeignKey("llm_groups.id", ondelete="SET NULL"), nullable=True)
 
 
 class ImageModelConfig(TimestampMixin, Base):

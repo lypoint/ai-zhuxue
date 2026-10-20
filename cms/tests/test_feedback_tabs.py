@@ -11,7 +11,7 @@ def test_queue_switching_pagination_and_processed_actions():
     if not node:
         pytest.skip('JavaScript queue check needs Node.js')
     html = (Path(__file__).resolve().parents[1] / 'index.html').read_text()
-    script = html[html.index('const feedbackQueue ='):html.index('async function replyReport(')]
+    script = html[html.index('const feedbackQueue ='):html.index('function replyReport(')]
     harness = r'''
 const assert=require('node:assert/strict');
 const elements=new Map();
@@ -22,6 +22,7 @@ const $=id=>{
 };
 const esc=value=>String(value??'');
 const attr=encodeURIComponent;
+const textPreview=value=>esc(value);
 let requests=[];
 let pending=true;
 const api=async(url,options)=>{

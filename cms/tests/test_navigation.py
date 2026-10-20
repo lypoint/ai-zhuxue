@@ -75,7 +75,7 @@ const elements = {
     remove: key => classes.delete(key),
     toggle(key) { if (classes.delete(key)) return false; classes.add(key); return true; }
   }},
-  pageTitle: {focus() {}}, menuToggle: makeElement({})
+  pageDescription: {}, pageTitle: {focus() {}}, menuToggle: makeElement({})
 };
 const $ = id => elements[id];
 const document = {querySelectorAll: selector => selector === '[data-nav]' ? buttons : panels};

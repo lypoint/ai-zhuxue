@@ -13,10 +13,10 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ..services.teacher_channels import TeacherChannel
+from ..services.teacher_channels import Channel, TeacherChannel, default_teacher, clear_unavailable_defaults
 from ..config import settings
 from ..db import get_db
-from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode, Conversation, Family,
+from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode, ChannelTeacherDefault, Conversation, Family,
                       FenceConfig, FenceEvent, FenceFeedback, Guardian, LLMGroup, Message, Student,
                       PricingConfig, RateLimitWindow, Subscription, SubscriptionOrder, UsageLog)
 from ..ratelimit import _hit
@@ -697,7 +697,44 @@ def list_groups(principal: AdminPrincipal = Depends(require_admin),db: Session =
                            "image_input_mode", "vision_config_id", "image_config_id", "diagram_enabled", "auto_diagram", "image_daily_cap")},
                        "tagged_families": tag_counts.get(g.tag, 0) if g.tag else 0}
                       for g in groups]
-    return {"active": active if principal.role != "support" else None, "items": items}
+    defaults = {}
+    for channel in ("wechat", "appstore", "googleplay"):
+        teacher = default_teacher(db, channel)
+        defaults[channel] = teacher.id if teacher else None
+    for item in items:
+        item["default_channels"] = [channel for channel, teacher_id in defaults.items() if teacher_id == item["id"]]
+    return {"active": active if principal.role != "support" else None, "items": items,
+            "channel_defaults": defaults}
+
+
+class ChannelDefaultIn(BaseModel):
+    teacher_id: int | None = Field(gt=0)
+
+
+@router.put("/teacher-defaults/{channel}")
+def set_channel_default(channel: Channel, body: ChannelDefaultIn,
+                        principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
+    require_manage(principal)
+    if body.teacher_id is not None:
+        teacher = db.query(LLMGroup).filter_by(id=body.teacher_id).with_for_update().first()
+        if not teacher:
+            raise HTTPException(404, "老师不存在")
+        if not teacher.teacher_enabled or teacher.teacher_channel not in ("all", channel):
+            raise HTTPException(422, "请选择已激活且适用于该渠道的老师")
+    row = db.get(ChannelTeacherDefault, channel)
+    before = default_teacher(db, channel)
+    previous_id = before.id if before else None
+    if row is None:
+        row = ChannelTeacherDefault(channel=channel)
+        db.add(row)
+    row.teacher_group_id = body.teacher_id
+    try:
+        log(db, principal, "teacher.channel_default", json.dumps({
+            "channel": channel, "from": previous_id, "to": body.teacher_id}, ensure_ascii=False))
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "渠道配置已变化，请刷新后重试")
+    return {"ok": True, "channel": channel, "teacher_id": body.teacher_id}
 
 
 @router.post("/llm-groups")
@@ -771,7 +808,7 @@ def update_group(group_id: int, body: GroupUpdateIn,
                  principal: AdminPrincipal = Depends(require_admin),
                  db: Session = Depends(get_db)):
     require_manage(principal)
-    grp = db.get(LLMGroup, group_id)
+    grp = db.query(LLMGroup).filter_by(id=group_id).with_for_update().first()
     if not grp:
         raise HTTPException(404, "group not found")
     values = body.model_dump(exclude_unset=True)
@@ -817,6 +854,9 @@ def update_group(group_id: int, body: GroupUpdateIn,
                 grp.post_trial_free_enabled = value > 0
     if not grp.teacher_enabled and grp.is_active:
         set_field("is_active", False, "is_default")
+    cleared = clear_unavailable_defaults(db, grp)
+    if cleared:
+        changes["cleared_default_channels"] = {"from": cleared, "to": []}
     key = values.get("api_key", "").strip()
     if key and key != decrypt_api_key(grp.api_key or ""):
         had_key = bool(grp.api_key)
@@ -839,7 +879,7 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
                            principal: AdminPrincipal = Depends(require_admin),
                            db: Session = Depends(get_db)):
     require_operate(principal)
-    grp = db.get(LLMGroup, group_id)
+    grp = db.query(LLMGroup).filter_by(id=group_id).with_for_update().first()
     if not grp:
         raise HTTPException(404, "group not found")
     changes = body.model_dump(exclude_unset=True)
@@ -863,6 +903,9 @@ def update_teacher_profile(group_id: int, body: TeacherProfileIn,
     if not grp.teacher_enabled and grp.is_active:
         audit["is_default"] = {"from": True, "to": False}
         grp.is_active = False
+    cleared = clear_unavailable_defaults(db, grp)
+    if cleared:
+        audit["cleared_default_channels"] = {"from": cleared, "to": []}
     log_changes(db, principal, "teacher_profile.update", group_id, audit)
     return {"ok": True, "teacher_id": grp.id, "teacher_name": grp.teacher_name,
             "teacher_avatar_url": grp.teacher_avatar_url,
@@ -890,7 +933,7 @@ def activate_group(group_id: int, principal: AdminPrincipal = Depends(require_ad
 def deactivate_group(group_id: int, principal: AdminPrincipal = Depends(require_admin),
                      db: Session = Depends(get_db)):
     require_manage(principal)
-    grp = db.get(LLMGroup, group_id)
+    grp = db.query(LLMGroup).filter_by(id=group_id).with_for_update().first()
     if not grp:
         raise HTTPException(404, "group not found")
     changes = {}
@@ -900,6 +943,9 @@ def deactivate_group(group_id: int, principal: AdminPrincipal = Depends(require_
     if grp.is_active:
         changes["is_default"] = {"from": True, "to": False}
         grp.is_active = False
+    cleared = clear_unavailable_defaults(db, grp)
+    if cleared:
+        changes["cleared_default_channels"] = {"from": cleared, "to": []}
     log_changes(db, principal, "llm_group.deactivate", group_id, changes)
     return {"ok": True, "active": False}
 
@@ -922,7 +968,15 @@ def default_group(group_id: int, principal: AdminPrincipal = Depends(require_adm
     if not grp.teacher_enabled:
         changes["teacher_enabled"] = {"from": False, "to": True}
         grp.teacher_enabled = True
-    log_changes(db, principal, "llm_group.default", group_id, changes)
+    # Legacy clients set defaults for every channel this teacher can serve.
+    for channel in ("wechat", "appstore", "googleplay"):
+        if grp.teacher_channel in ("all", channel):
+            row = db.get(ChannelTeacherDefault, channel)
+            if row is None:
+                row = ChannelTeacherDefault(channel=channel)
+                db.add(row)
+            row.teacher_group_id = grp.id
+    log(db, principal, "llm_group.default", json.dumps({"id": group_id, "changes": changes}, ensure_ascii=False))
     return {"ok": True, "default": grp.name}
 
 
@@ -930,7 +984,7 @@ def default_group(group_id: int, principal: AdminPrincipal = Depends(require_adm
 def delete_group(group_id: int, principal: AdminPrincipal = Depends(require_admin),
                  db: Session = Depends(get_db)):
     require_manage(principal)
-    grp = db.get(LLMGroup, group_id)
+    grp = db.query(LLMGroup).filter_by(id=group_id).with_for_update().first()
     if not grp:
         raise HTTPException(404, "group not found")
     # Conversations keep their teacher snapshots; detach the optional FK so
@@ -939,6 +993,8 @@ def delete_group(group_id: int, principal: AdminPrincipal = Depends(require_admi
         {Conversation.teacher_group_id: None}, synchronize_session=False)
     db.query(Student).filter(Student.last_teacher_group_id == group_id).update(
         {Student.last_teacher_group_id: None}, synchronize_session=False)
+    db.query(ChannelTeacherDefault).filter_by(teacher_group_id=group_id).update(
+        {ChannelTeacherDefault.teacher_group_id: None}, synchronize_session=False)
     db.delete(grp)
     log(db, principal, "llm_group.delete", f"id={group_id} name={grp.name}")
     return {"ok": True}

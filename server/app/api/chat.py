@@ -22,7 +22,7 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
 from ..services import fence, llm, image_chat, image_jobs
-from ..services.teacher_channels import current_channel, channel_teachers
+from ..services.teacher_channels import current_channel, channel_teachers, default_teacher
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -98,11 +98,13 @@ def available_teachers(student: Student = Depends(current_student), db: Session 
                  "sort_order": 0, "selected": True, "is_default": True,
                  "access": "available" if active else "subscription_required"}]
     selected = _teacher(db, student, channel=channel)
-    groups.sort(key=lambda g: (0 if g.id == selected.id else 1 if g.is_active else 2,
+    default = default_teacher(db, channel)
+    default_id = default.id if default else None
+    groups.sort(key=lambda g: (0 if g.id == selected.id else 1 if g.id == default_id else 2,
                                g.teacher_sort_order, g.id))
     return [{"teacher_id": g.id, "name": g.teacher_name,
              "avatar_url": g.teacher_avatar_url, "sort_order": g.teacher_sort_order,
-             "selected": g.id == selected.id, "is_default": g.is_active,
+             "selected": g.id == selected.id, "is_default": g.id == default_id,
              "capabilities": image_chat.capabilities(db, g),
              "access": ("available" if active or g.post_trial_daily_free_count > 0 and
                         subscription.post_trial_free_remaining(
@@ -123,7 +125,7 @@ def _teacher(db: Session, student: Student, teacher_id: int | None = None,
         group = db.get(LLMGroup, student.last_teacher_group_id)
         if group and group.teacher_enabled and group.teacher_channel in ("all", channel):
             return group
-    group = channel_teachers(db, channel).filter_by(is_active=True).first()
+    group = default_teacher(db, channel)
     if group:
         return group
     tag = db.query(Family.tag).filter_by(id=student.family_id).scalar()

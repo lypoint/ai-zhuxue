@@ -6,79 +6,171 @@
 <title>AI 助学 CMS</title>
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 <style>
-  :root { --primary:#253A68; --accent:#2F8B7D; --line:#E2E8EF; --ink:#172334; --muted:#71808E; }
-  * { box-sizing:border-box; margin:0; font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif; }
-  body { min-height:100vh; background:linear-gradient(180deg,#F0F4FF 0,#F7FAFC 32%,#F7FAFC 100%); color:var(--ink); }
-  header { background:rgba(37,58,104,.96); color:#fff; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 8px 24px rgba(37,58,104,.18); }
-  header b { font-size:18px; letter-spacing:.2px; display:flex; align-items:center; gap:8px; } header span { font-size:12px; opacity:.75; }
-  .brand-mark { width:28px; height:28px; flex:none; } header .brand-mark { filter:brightness(0) invert(1); }
-  [hidden] { display:none !important; }
-  .sidebar { position:fixed; inset:0 auto 0 0; width:224px; padding:26px 16px; background:#fff; border-right:1px solid var(--line); overflow-y:auto; }
-  .sidebar-brand { display:flex; align-items:center; gap:10px; padding:0 10px 24px; font-size:18px; color:var(--primary); }
-  .sidebar-brand b { display:flex; align-items:center; gap:8px; }
-  .sidebar nav { display:grid; gap:6px; }
-  .nav-label { color:var(--muted); font-size:11px; padding:18px 14px 6px; letter-spacing:1px; }
-  .nav-button { width:100%; text-align:left; padding:12px 14px; color:var(--muted); background:transparent; border:1px solid transparent; }
-  .nav-button[aria-current="page"] { background:#EAF5F2; color:#216D62; border-color:#D5EAE4; }
-  button:focus-visible { outline:3px solid rgba(47,139,125,.4); outline-offset:2px; }
+  :root { --primary:#203a40; --accent:#23776a; --line:#e2e8e8; --ink:#263b40; --muted:#657b80; --soft:#f5f8f8; --danger:#b44444; }
+  * { box-sizing:border-box; margin:0; font-family:Inter,system-ui,"PingFang SC","Microsoft YaHei",sans-serif; }
+  body { min-height:100vh; background:#f3f6f7; color:var(--ink); font-size:14px; line-height:1.6; }
+  [hidden] { display:none!important; }
+  button,input,select,textarea { font:inherit; }
+  button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:38px; padding:8px 15px; border:1px solid transparent; border-radius:8px; background:var(--accent); color:white; font-weight:600; cursor:pointer; transition:background .15s,border-color .15s; }
+  button:hover { background:#1b6257; }
+  button.ghost { background:white; border-color:#d6e1e1; color:#3c5b61; }
+  button.ghost:hover { background:#f0f6f5; border-color:#a5c6bf; }
+  button.danger { color:var(--danger); background:#fff; border-color:#edd3d3; }
+  button.danger:hover { background:#fff1f1; }
+  button:disabled { cursor:not-allowed; opacity:.45; }
+  :is(button,input,select,textarea,summary,[tabindex]):focus-visible { outline:3px solid #89c7b7; outline-offset:3px; }
+  input,select,textarea { min-width:0; min-height:40px; padding:9px 12px; border:1px solid #d6e0e2; border-radius:8px; background:white; color:var(--ink); }
+  input::placeholder,textarea::placeholder { color:#839499; font-size:12px; }
+  input[type=checkbox] { min-height:0; width:16px; height:16px; accent-color:var(--accent); flex:none; }
+  input[type=file] { font-size:12px; padding:7px; }
+  textarea { resize:vertical; line-height:1.7; }
+  input:disabled,select:disabled { background:#f3f6f7; color:var(--muted); }
+  .brand-mark { width:29px; height:29px; flex:none; }
+  .sidebar { position:fixed; inset:0 auto 0 0; width:224px; background:white; padding:28px 16px; border-right:1px solid var(--line); overflow-y:auto; }
+  .sidebar-brand { display:flex; justify-content:space-between; padding:0 12px 24px; }
+  .sidebar-brand b { display:flex; align-items:center; gap:10px; font-size:19px; letter-spacing:.5px; }
+  .sidebar nav { display:grid; gap:4px; }
+  .nav-label { padding:22px 14px 7px; font-size:16px; font-weight:500; color:#7a898f; cursor:default; }
+  .nav-button { text-align:left; justify-content:flex-start; background:transparent; color:#304a50; font-size:13px; padding:11px 14px; border-radius:9px; min-height:44px; font-weight:600; }
+  .nav-button:hover { background:#f3f7f7; }
+  .nav-button[aria-current=page] { color:#206556; background:#e7f3ef; font-weight:650; box-shadow:inset 3px 0 #2c8d75; }
   .menu-toggle { display:none; }
-  .queue-tabs [aria-selected="true"] { background:var(--accent); color:#fff; border-color:var(--accent); }
   .workspace { margin-left:224px; min-width:0; }
-  main { max-width:1340px; margin:24px auto; padding:0 24px 32px; }
-  .page-heading { margin:26px 0 20px; }
-  .page-heading h1 { font-size:26px; color:var(--primary); }
-  .page-heading p { color:var(--muted); font-size:13px; margin-top:8px; }
-  section { overflow-x:auto; }
-  #teacherImages { border-top:1px solid var(--line); padding-top:18px; }
-  #teacherImages h3 { margin-bottom:14px; }
-  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
-  .card { background:rgba(255,255,255,.94); border-radius:16px; padding:17px 18px; border:1px solid var(--line); box-shadow:0 8px 24px rgba(34,58,90,.06); }
-  .card .k { font-size:12px; color:var(--muted); } .card .v { font-size:24px; font-weight:800; color:var(--primary); margin-top:5px; }
-  .card .v.small { font-size:15px; }
-  section { background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:16px; padding:18px; margin-top:18px; box-shadow:0 8px 24px rgba(34,58,90,.05); }
-  h2 { font-size:15px; margin-bottom:12px; color:var(--primary); }
-  table { width:100%; border-collapse:collapse; font-size:13px; }
-  th { text-align:left; color:var(--muted); font-weight:600; padding:8px; border-bottom:1px solid var(--line); }
-  td { padding:9px 8px; border-bottom:1px solid #F0F3F6; }
-  tr:hover td { background:#F8FBFD; }
-  .tag { display:inline-block; padding:4px 9px; border-radius:999px; font-size:12px; font-weight:650; }
-  .beta-tag { background:#E8F0FE; color:#1A56A0; }
-  .allow { background:#E8F5E9; color:#1B7D46; } .rewrite { background:#FEF9E7; color:#D4820A; }
-  .reject { background:#FDEDEC; color:#C0392B; } .active { background:#E8F5E9; color:#1B7D46; }
-  input, select, button { font-size:13px; padding:9px 11px; border-radius:10px; border:1px solid #D8E0E8; background:#fff; }
-  input:focus, select:focus { outline:3px solid rgba(47,139,125,.13); border-color:var(--accent); }
-  button { background:var(--accent); color:#fff; border:none; cursor:pointer; font-weight:700; }
-  button:hover { filter:brightness(.95); }
-  button.ghost { background:#fff; color:var(--accent); border:1px solid #A9D2CA; }
-  .row { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; align-items:center; }
-  #login { max-width:360px; margin:16vh auto; text-align:center; background:rgba(255,255,255,.96); padding:32px; border-radius:20px; border:1px solid var(--line); box-shadow:0 18px 50px rgba(37,58,104,.12); }
-  #login h3 { font-size:22px; margin-bottom:14px; display:flex; justify-content:center; align-items:center; gap:8px; }
-  #login input { width:100%; margin:8px 0; }
-  .err { color:#C0392B; font-size:12px; }
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  @media (max-width:720px){
-    .grid2 { grid-template-columns:1fr; }
-    .sidebar { position:sticky; top:0; z-index:10; width:100%; padding:12px 16px; border-right:0; border-bottom:1px solid var(--line); max-height:80vh; }
-    .sidebar-brand { padding:0; justify-content:space-between; }
-    .menu-toggle { display:block; }
-    .sidebar nav { display:none; padding-top:12px; }
-    .sidebar.nav-open nav { display:grid; grid-template-columns:1fr 1fr; }
-    .nav-label { grid-column:1 / -1; padding-top:10px; }
-    .workspace { margin-left:0; }
-    header { padding:14px 16px; gap:12px; flex-wrap:wrap; }
-    header b { font-size:15px; }
-    main { padding:0 16px 24px; margin-top:16px; }
-    .page-heading h1 { font-size:22px; }
-    input, select { max-width:100%; }
-    section { padding:16px; }
+  header { height:70px; padding:0 32px; display:flex; justify-content:space-between; align-items:center; gap:16px; background:white; border-bottom:1px solid var(--line); }
+  header b { font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; color:#536c73; }
+  header .brand-mark { display:none; }
+  header span { font-size:12px; color:#48635f; background:#edf5f2; border:1px solid #dbeae3; border-radius:24px; padding:5px 12px; white-space:nowrap; }
+  main { max-width:1480px; margin:0 auto; padding:30px 32px 56px; }
+  .page-heading { margin-bottom:26px; }
+  .page-heading h1 { font-size:27px; font-weight:700; color:var(--primary); letter-spacing:-.5px; }
+  .page-heading p { color:var(--muted); font-size:13px; margin-top:6px; }
+  section { background:white; border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:22px; min-width:0; box-shadow:0 3px 8px #213d4810; }
+  h2 { font-size:16px; font-weight:650; margin-bottom:16px; color:var(--primary); }
+  h3 { font-size:15px; font-weight:650; margin-bottom:14px; }
+  p { margin-bottom:16px; }
+  .section-note { color:var(--muted); font-size:13px; max-width:920px; }
+  .row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  .row:empty { display:none; }
+  .grid2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.6fr); gap:22px; }
+  .grid2>section { height:fit-content; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:16px; margin-bottom:20px; }
+  .card { border:1px solid var(--line); border-radius:10px; padding:20px; background:linear-gradient(135deg,#fff,#f9fbfb); }
+  .card .k { font-size:12px; color:var(--muted); }
+  .card .v { font-size:29px; font-weight:700; color:var(--primary); margin-top:8px; line-height:1.3; font-variant-numeric:tabular-nums; letter-spacing:-.7px; overflow-wrap:anywhere; }
+  .card .v.small { font-size:21px; }
+  .table-wrap { max-width:100%; overflow:auto; border:1px solid var(--line); border-radius:9px; margin:16px 0; max-height:620px; }
+  table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; font-variant-numeric:tabular-nums; }
+  th { position:sticky; top:0; z-index:1; text-align:left; font-size:12px; color:#627a82; background:#f4f7f8; padding:12px 14px; font-weight:600; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td { padding:15px 14px; border-bottom:1px solid #edf1f2; vertical-align:top; overflow-wrap:anywhere; min-width:75px; }
+  tr:last-child td { border-bottom:0; }
+  tr:hover td { background:#fafcfc; }
+  td[colspan] { text-align:center; padding:36px 20px; color:var(--muted); }
+  td button { min-height:32px; padding:5px 10px; font-size:12px; margin-bottom:5px; }
+  td:last-child:has(button) { min-width:150px; }
+  #famTable td:nth-child(6) { min-width:185px; }
+  .family-tag-select { width:170px; min-height:36px; padding:7px 10px; font-size:12px; color:var(--muted); background:#f7f9fa; }
+  .family-tag-select.is-set { color:#42629b; background:#f0f4fc; border-color:#d7e1f2; font-weight:600; }
+  #reportTable td:nth-child(3),#reportTable td:nth-child(4),#reportTable td:nth-child(6),#logTable td:last-child { min-width:180px; max-width:360px; }
+  #feedbackTable td:nth-child(4) { min-width:210px; }
+  .tag { display:inline-flex; align-items:center; padding:3px 9px; font-size:11px; font-weight:600; border-radius:6px; line-height:1.8; background:#edf1f3; color:#657780; white-space:nowrap; }
+  .tag.active,.tag.allow { background:#e9f5ef; color:#26734e; }
+  .tag.beta-tag { background:#edf2fb; color:#4b69a3; }
+  .tag.reject { background:#fbeeed; color:#ad4d49; }
+  .tag.rewrite { background:#fff4de; color:#946421; }
+  .queue-tabs { width:fit-content; gap:4px; background:#f1f5f5; padding:4px; border-radius:9px; }
+  .queue-tabs button.ghost { border-color:transparent; background:transparent; min-height:32px; padding:6px 18px; color:var(--muted); }
+  .queue-tabs [aria-selected=true].ghost { background:white; color:var(--accent); box-shadow:0 1px 4px #233f4920; }
+  [role=status],[aria-live] { color:var(--muted); font-size:12px; }
+  .err { color:var(--danger); font-size:13px; margin-top:8px; white-space:pre-wrap; }
+  .err:empty { display:none; }
+  .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 22px; margin:18px 0; align-items:start; }
+  .field { display:flex; flex-direction:column; gap:7px; font-size:12px; font-weight:600; color:#526c73; min-width:0; }
+  .field>input,.field>select,.field>textarea { width:100%!important; max-width:100%; font-weight:400; font-size:13px; }
+  .field small { font-size:12px; font-weight:400; color:var(--muted); }
+  .field-wide { grid-column:1/-1; }
+  .check-field { display:flex; gap:9px; align-items:center; padding:10px 0; font-size:13px!important; font-weight:400; }
+  .form-actions { display:flex; gap:10px; flex-wrap:wrap; grid-column:1/-1; padding-top:12px; border-top:1px solid var(--line); }
+  .editor { border:1px solid var(--line); border-radius:10px; background:#fbfcfc; margin-top:22px; }
+  .editor>summary { list-style-position:inside; cursor:pointer; padding:16px 20px; font-weight:600; color:var(--accent); font-size:14px; }
+  .editor[open]>summary { border-bottom:1px solid var(--line); }
+  .editor-body { padding:4px 20px 20px; }
+  .edit-panel { padding:22px!important; background:#f6faf8; border:1px solid #cee4da!important; border-radius:10px; margin:24px 0; scroll-margin-top:24px; }
+  .edit-panel h3 { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .config-list { display:grid; gap:16px; margin:20px 0; }
+  .config-card { border:1px solid var(--line); border-radius:11px; background:white; padding:20px; min-width:0; }
+  .config-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .identity { display:flex; gap:12px; align-items:center; min-width:0; }
+  .identity h3 { margin:0 0 3px; font-size:16px; overflow-wrap:anywhere; }
+  .identity small { display:block; color:var(--muted); font-size:12px; }
+  .avatar { width:42px; height:42px; border-radius:11px; object-fit:cover; background:#edf4f2; color:#408374; display:grid; place-items:center; font-size:18px; font-weight:650; flex:none; }
+  .badges { display:flex; flex-wrap:wrap; gap:6px; }
+  .config-meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; margin:0 0 18px; }
+  .config-meta dt { font-size:11px; color:var(--muted); margin-bottom:3px; }
+  .config-meta dd { font-size:13px; overflow-wrap:anywhere; }
+  .config-meta .wide { grid-column:1/-1; }
+  .config-meta code { font-family:ui-monospace,SFMono-Regular,monospace; font-size:12px; color:#425d64; }
+  .config-actions { display:flex; gap:8px; flex-wrap:wrap; border-top:1px solid #edf1f2; padding-top:15px; }
+  .config-actions button { font-size:12px; padding:7px 11px; min-height:34px; }
+  .secondary-tools { margin-top:12px; font-size:12px; color:var(--muted); }
+  .secondary-tools summary { cursor:pointer; }
+  .secondary-tools .row { margin-bottom:0; }
+  #imageModels,#fences { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #channelDefaults { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:20px 0; }
+  .channel-card { padding:18px; border:1px solid #dce9e3; border-radius:10px; background:#f7fbf9; display:flex; flex-direction:column; gap:12px; min-width:0; }
+  .channel-card label { font-size:13px; font-weight:650; }
+  .channel-card select { width:100%; font-size:12px; }
+  .channel-card button { align-self:flex-start; }
+  .text-preview { min-width:140px; font-size:13px; }
+  .text-preview summary { cursor:pointer; color:#38595e; white-space:normal; }
+  .text-preview .full-text { white-space:pre-wrap; margin-top:12px; max-height:340px; overflow:auto; border-left:2px solid #b7d7ce; padding-left:12px; }
+  .pagination { justify-content:flex-end; padding-top:8px; color:var(--muted); font-size:12px; }
+  .pagination button { font-size:12px; min-height:32px; }
+  .empty-state { padding:30px 16px; color:var(--muted); text-align:center; background:#f8fafb; border:1px dashed #dce5e7; border-radius:10px; grid-column:1/-1; }
+  .distribution { display:grid; gap:18px; }
+  .distribution-row .row { justify-content:space-between; margin:0 0 8px; font-size:12px; }
+  .distribution-bar { height:7px; background:#edf2f2; border-radius:9px; overflow:hidden; }
+  .distribution-bar span { display:block; height:100%; background:#4e9e89; border-radius:9px; }
+  .distribution-bar .reject { background:#ce847b; }.distribution-bar .rewrite { background:#dbb361; }
+  #login { max-width:410px; margin:14vh auto; background:white; padding:36px; border:1px solid var(--line); border-radius:16px; box-shadow:0 20px 70px #173c4a12; }
+  #login h3 { display:flex; align-items:center; gap:10px; justify-content:center; font-size:22px; margin-bottom:8px; }
+  #login>p { text-align:center; color:var(--muted); font-size:13px; margin-bottom:26px; }
+  #login .field { margin:18px 0; }
+
+  #cards { display:block; }
+  .metric-group + .metric-group { margin-top:28px; }
+  .metric-group h3 { color:var(--muted); font-size:14px; }
+  .toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .toolbar .row { margin:0; }
+  .success { color:#26734e; }
+  #pricingSection .form-grid { max-width:860px; }
+  .pricing-note { background:var(--soft); border-radius:9px; padding:16px; }
+  .role-help { color:var(--muted); font-size:13px; }
+  th,.field,.config-meta dt,.tag,.family-tag-select { font-size:13px; }
+  td button,.config-actions button,.pagination button { font-size:13px; min-height:38px; }
+  #groups { grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); }
+  .config-actions .danger { margin-left:auto; }
+  @media(max-width:1100px) { #groups,#imageModels,#fences { grid-template-columns:1fr; } .grid2 { grid-template-columns:1fr; } }
+  @media(max-width:800px) { #channelDefaults { grid-template-columns:1fr; } .form-grid { grid-template-columns:1fr; } }
+  @media(max-width:720px) {
+    .sidebar { position:sticky; top:0; z-index:20; width:100%; padding:12px 16px; border-bottom:1px solid var(--line); max-height:80vh; }
+    .sidebar-brand { padding:0; align-items:center; }.sidebar-brand b { font-size:16px; }
+    .menu-toggle { display:inline-flex; min-height:34px; }
+    .sidebar nav { display:none; padding-top:12px; }.sidebar.nav-open nav { display:grid; grid-template-columns:1fr 1fr; }
+    .nav-label { grid-column:1/-1; padding-top:8px; }
+    .workspace { margin-left:0; } header { height:auto; min-height:56px; padding:12px 16px; } header b { font-size:12px; }
+    main { padding:22px 16px 36px; }.page-heading { margin-bottom:20px; }.page-heading h1 { font-size:24px; }
+    section { padding:18px; }.card { padding:16px; }.cards { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .card .v { font-size:25px; }.config-card { padding:16px; }.config-meta { gap:12px; }.editor-body { padding:4px 14px 16px; }
+    .edit-panel { padding:16px!important; }.pagination { justify-content:flex-start; } input,select,textarea { max-width:100%; }
+    #login { margin:8vh 16px; padding:28px; }.table-wrap { max-height:500px; }
   }
 </style>
 </head>
 <body>
 <div id="login">
-  <h3><img class="brand-mark" src="/logo.svg" alt="">AI 助学 CMS</h3>
-  <input id="user" placeholder="用户名">
-  <input id="pass" type="password" placeholder="密码">
+  <h3><img class="brand-mark" src="/logo.svg" alt="">AI 助学 CMS</h3><p class="section-note">运营管理工作台</p>
+  <label class="field" for="user"><span>用户名</span><input autocomplete="username" id="user" placeholder="用户名"></label>
+  <label class="field" for="pass"><span>密码</span><input autocomplete="current-password" id="pass" type="password" placeholder="密码"></label>
   <button style="width:100%" onclick="loginDb()">登录</button>
   <div id="lerr" class="err"></div>
 </div>
@@ -102,9 +194,9 @@
   </nav>
 </aside>
 <div class="workspace">
-<header><b><img class="brand-mark" src="/logo.svg" alt="">AI 助学 CMS · 运营管理</b><span id="grp"></span></header>
+<header><b><img class="brand-mark" src="/logo.svg" alt="">AI 助学 CMS · 运营管理</b><span id="adminRole"></span></header>
 <main>
-  <div class="page-heading"><h1 id="pageTitle" tabindex="-1">概览</h1><p>AI 助学运营控制台 · 按分类管理内容与配置</p></div>
+  <div class="page-heading"><h1 id="pageTitle" tabindex="-1">概览</h1><p id="pageDescription">了解平台运行概况与使用情况。</p></div>
   <section id="overviewPage" data-page="overview">
     <h2>核心指标</h2>
     <div class="cards" id="cards"></div>
@@ -112,76 +204,91 @@
 
   <div class="grid2" data-page="safety" data-admin-only hidden>
     <section>
-      <h2>围栏处置分布（policy 阶段）</h2>
+      <h2>围栏处置分布</h2><p class="section-note">按最终处置结果统计安全围栏的运行情况。</p>
       <div id="fenceDist"></div>
     </section>
     <section>
       <h2>最近围栏事件</h2>
-      <div class="row"><select id="fdec"><option value="">全部</option><option value="allow">放行</option><option value="rewrite">改写</option><option value="reject">拦截</option></select>
-      <button class="ghost" onclick="loadFence()">筛选</button></div>
-      <table id="fenceTable"><thead><tr><th>时间</th><th>阶段</th><th>处置</th><th>类别</th></tr></thead><tbody></tbody></table>
+      <div class="row"><select id="fdec" aria-label="围栏处置筛选" onchange="loadFence()"><option value="">全部</option><option value="allow">放行</option><option value="rewrite">改写</option><option value="reject">拦截</option></select>
+      <button class="ghost" onclick="loadFence()">刷新</button><button class="ghost" onclick="$('fdec').value='';loadFence()">清除筛选</button><span id="fenceStatus" role="status"></span></div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="围栏事件"><table id="fenceTable"><thead><tr><th>时间</th><th>阶段</th><th>处置</th><th>类别</th></tr></thead><tbody></tbody></table></div>
     </section>
   </div>
 
   <section id="feedbackPage" data-page="feedback" data-admin-only hidden>
     <h2>误判反馈 / 失效样本</h2>
+    <div class="toolbar">
     <div class="row queue-tabs" role="tablist" aria-label="反馈处理状态">
       <button class="ghost" id="feedbackOpenTab" role="tab" aria-selected="true" aria-controls="feedbackPanel" onclick="switchQueue('feedback','open')">待处理</button>
       <button class="ghost" id="feedbackHandledTab" role="tab" aria-selected="false" aria-controls="feedbackPanel" onclick="switchQueue('feedback','handled')">已处理</button>
     </div>
-    <div id="feedbackPanel" role="tabpanel" aria-labelledby="feedbackOpenTab">
     <div class="row"><button class="ghost" onclick="loadFeedback()">刷新反馈</button><span id="feedbackStatus" aria-live="polite"></span></div>
-    <table id="feedbackTable"><thead><tr><th>时间</th><th>会话</th><th>原处置</th><th>内容</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table>
-    <div class="row"><button class="ghost" id="feedbackPrev" onclick="loadFeedback(feedbackQueue.page-1)" disabled>上一页</button><span id="feedbackPagination"></span><button class="ghost" id="feedbackNext" onclick="loadFeedback(feedbackQueue.page+1)" disabled>下一页</button></div>
+    </div>
+    <div id="feedbackPanel" role="tabpanel" aria-labelledby="feedbackOpenTab">
+
+    <div class="table-wrap" tabindex="0" role="region" aria-label="反馈记录"><table id="feedbackTable"><thead><tr><th>时间</th><th>会话</th><th>原处置</th><th>内容</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table></div>
+    <div class="row pagination"><button class="ghost" id="feedbackPrev" onclick="loadFeedback(feedbackQueue.page-1)" disabled>上一页</button><span id="feedbackPagination"></span><button class="ghost" id="feedbackNext" onclick="loadFeedback(feedbackQueue.page+1)" disabled>下一页</button></div>
     </div>
   </section>
 
   <section data-page="feedback" data-admin-only hidden>
     <h2>学生消息举报</h2>
+    <div class="toolbar">
     <div class="row queue-tabs" role="tablist" aria-label="举报处理状态">
       <button class="ghost" id="reportOpenTab" role="tab" aria-selected="true" aria-controls="reportPanel" onclick="switchQueue('report','open')">待处理</button>
       <button class="ghost" id="reportHandledTab" role="tab" aria-selected="false" aria-controls="reportPanel" onclick="switchQueue('report','handled')">已处理</button>
     </div>
-    <div id="reportPanel" role="tabpanel" aria-labelledby="reportOpenTab">
     <div class="row"><button class="ghost" onclick="loadReports()">刷新举报</button><span id="reportStatus" aria-live="polite"></span></div>
-    <table id="reportTable"><thead><tr><th>时间</th><th>学生</th><th>消息内容</th><th>举报原因</th><th>状态</th><th>回复</th><th>操作</th></tr></thead><tbody></tbody></table>
-    <div class="row"><button class="ghost" id="reportPrev" onclick="loadReports(reportQueue.page-1)" disabled>上一页</button><span id="reportPagination"></span><button class="ghost" id="reportNext" onclick="loadReports(reportQueue.page+1)" disabled>下一页</button></div>
     </div>
+    <div id="reportPanel" role="tabpanel" aria-labelledby="reportOpenTab">
+
+    <div class="table-wrap" tabindex="0" role="region" aria-label="举报记录"><table id="reportTable"><thead><tr><th>时间</th><th>学生</th><th>消息内容</th><th>举报原因</th><th>状态</th><th>回复</th><th>操作</th></tr></thead><tbody></tbody></table></div>
+    <div id="reportEditor" class="edit-panel" hidden>
+      <h3>回复学生举报</h3><details class="text-preview"><summary>查看举报对应的消息</summary><div id="reportContext" class="full-text"></div></details>
+      <label class="field" for="reportReply" style="margin-top:18px"><span>回复内容</span><textarea id="reportReply" rows="5" maxlength="1000" placeholder="填写核查结果及处理说明，学生将看到此回复。"></textarea><small>最多 1000 字，保存后该举报进入“已处理”。</small></label>
+      <div class="row"><button id="saveReportReplyButton" onclick="saveReportReply()">保存回复并标记已处理</button><button class="ghost" onclick="$('reportEditor').hidden=true">取消</button></div><div id="reportReplyError" class="err" role="status"></div>
+    </div>
+    <div class="row pagination"><button class="ghost" id="reportPrev" onclick="loadReports(reportQueue.page-1)" disabled>上一页</button><span id="reportPagination"></span><button class="ghost" id="reportNext" onclick="loadReports(reportQueue.page+1)" disabled>下一页</button></div>
+    </div>
+  </section>
+
+
+
+  <section id="familiesPage" data-page="families" hidden>
+    <h2>家庭与学生</h2>
+    <div class="row"><button class="ghost" onclick="loadFamilies()">刷新列表</button><span id="familyStatus" role="status"></span></div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="家庭与学生列表"><table id="famTable"><thead><tr><th>ID</th><th>监护人</th><th>学生</th><th>消息数</th><th>标签</th><th>协助/会员操作</th><th>创建</th></tr></thead><tbody></tbody></table></div>
+    <div class="row pagination"><button class="ghost" id="familyPrev" onclick="loadFamilies(familyPage-1)" disabled>上一页</button><span id="familyPagination"></span><button class="ghost" id="familyNext" onclick="loadFamilies(familyPage+1)" disabled>下一页</button></div>
   </section>
 
   <section data-page="families" data-admin-only hidden>
     <h2>家长账号删除记录</h2>
     <div class="row"><button class="ghost" onclick="loadAccountDeletions()">刷新记录</button><span id="deletionStatus" aria-live="polite"></span></div>
-    <table id="deletionTable"><thead><tr><th>申请编号</th><th>原家庭</th><th>原家长</th><th>申请时间</th><th>处理状态</th><th>完成时间</th></tr></thead><tbody></tbody></table>
-    <div class="row"><button class="ghost" id="deletionPrev" onclick="loadAccountDeletions(deletionPage-1)">上一页</button><span id="deletionPage"></span><button class="ghost" id="deletionNext" onclick="loadAccountDeletions(deletionPage+1)">下一页</button></div>
-  </section>
-
-  <section id="familiesPage" data-page="families" hidden>
-    <h2>家庭与学生</h2>
-    <table id="famTable"><thead><tr><th>ID</th><th>监护人</th><th>学生</th><th>消息数</th><th>标签</th><th>协助/会员操作</th><th>创建</th></tr></thead><tbody></tbody></table>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="账号删除记录"><table id="deletionTable"><thead><tr><th>申请编号</th><th>原家庭</th><th>原家长</th><th>申请时间</th><th>处理状态</th><th>完成时间</th></tr></thead><tbody></tbody></table></div>
+    <div class="row pagination"><button class="ghost" id="deletionPrev" onclick="loadAccountDeletions(deletionPage-1)">上一页</button><span id="deletionPage"></span><button class="ghost" id="deletionNext" onclick="loadAccountDeletions(deletionPage+1)">下一页</button></div>
   </section>
 
   <section id="safetyPage" data-page="safety" data-admin-only hidden>
     <h2>围栏模型</h2>
-    <div id="fences"></div>
-    <div data-super-only>
-      <div class="row">
-        <input id="f_name" placeholder="围栏名称（不可重复）" style="width:160px">
-        <input id="f_base" placeholder="baseUrl（HTTPS）" style="width:260px">
-        <input id="f_key" placeholder="apiKey" type="password" style="width:180px">
-        <input id="f_model" placeholder="模型 ID" style="width:180px">
-        <button onclick="addFence()">新建围栏</button>
+    <div id="fences" class="config-list"></div>
+    <div data-super-only><details class="editor"><summary>＋ 新建围栏配置</summary><div class="editor-body">
+      <div class="form-grid">
+        <label class="field" for="f_name"><span>围栏名称</span><input id="f_name" placeholder="围栏名称（不可重复）"></label>
+        <label class="field" for="f_base"><span>接口地址 · HTTPS</span><input id="f_base" placeholder="baseUrl（HTTPS）"></label>
+        <label class="field" for="f_key"><span>API 密钥</span><input id="f_key" placeholder="apiKey" type="password"></label>
+        <label class="field" for="f_model"><span>模型 ID</span><input id="f_model" placeholder="模型 ID"></label>
+        <div class="form-actions"><button onclick="addFence()">新建围栏</button></div>
       </div>
-      <div id="ferr" class="err"></div>
-      <div id="f_edit" style="display:none;border-top:1px solid var(--line);padding-top:12px">
+      <div id="ferr" class="err"></div></div></details>
+      <div id="f_edit" class="edit-panel" style="display:none">
         <h2>编辑围栏：<span id="fe_title"></span></h2>
-        <div class="row">
-          <input id="fe_name" placeholder="围栏名称" style="width:160px">
-          <input id="fe_base" placeholder="完整接口地址（HTTPS）" style="width:300px">
-          <input id="fe_key" placeholder="新 apiKey（留空则不修改）" type="password" style="width:220px">
-          <input id="fe_model" placeholder="模型 ID" style="width:180px">
-          <button onclick="saveFenceEdit()">保存修改</button>
-          <button class="ghost" onclick="cancelFenceEdit()">取消</button>
+        <div class="form-grid">
+          <label class="field" for="fe_name"><span>围栏名称</span><input id="fe_name" placeholder="围栏名称"></label>
+          <label class="field" for="fe_base"><span>接口地址 · HTTPS</span><input id="fe_base" placeholder="完整接口地址（HTTPS）"></label>
+          <label class="field" for="fe_key"><span>更换 API 密钥</span><input id="fe_key" placeholder="新 apiKey（留空则不修改）" type="password"><small>留空则保留当前密钥</small></label>
+          <label class="field" for="fe_model"><span>模型 ID</span><input id="fe_model" placeholder="模型 ID"></label>
+          <div class="form-actions"><button onclick="saveFenceEdit()">保存修改</button>
+          <button class="ghost" onclick="cancelFenceEdit()">取消</button></div>
         </div>
         <div id="fe_err" class="err"></div>
       </div>
@@ -189,90 +296,106 @@
   </section>
 
   <section id="imagesPage" data-page="images" data-admin-only hidden>
+      <h2>图片模型配置</h2>
+      <p class="section-note">读图与生图独立配置，可供多位老师共用。修改后须重新测试并启用；生图测试会实际调用并可能产生费用。</p>
+      <div id="im_error" class="err" role="status"></div><div id="imageModels" class="config-list"></div>
+      <details id="imageModelEditor" class="editor" data-super-only><summary id="im_title">＋ 新建图片模型</summary><div class="editor-body">
+        <div class="form-grid">
+          <label class="field" for="im_name"><span>配置名称</span><input id="im_name" placeholder="配置名称"></label>
+          <label class="field" for="im_kind"><span>模型用途</span><select id="im_kind"><option value="vision">读图</option><option value="generation">生图</option></select></label>
+          <label class="field" for="im_protocol"><span>接口协议</span><select id="im_protocol"><option value="openai">OpenAI 兼容</option><option value="dashscope">DashScope 多模态生图/编辑</option><option value="dashscope-wan">DashScope 万相异步生图</option></select></label>
+          <label class="field" for="im_base"><span>接口根地址 · HTTPS</span><input id="im_base" placeholder="API baseUrl（HTTPS）"></label>
+          <label class="field" for="im_model"><span>模型 ID</span><input id="im_model" placeholder="模型 ID"></label>
+          <label class="field" for="im_key"><span>API 密钥</span><input id="im_key" type="password" placeholder="apiKey（编辑时留空保留）"><small>编辑时留空则保留当前密钥</small></label>
+          <label class="check-field"><input id="im_edit" type="checkbox">支持参考图编辑（DashScope）</label>
+          <label class="field" for="im_pin"><span>输入单价</span><input id="im_pin" type="number" min="0" step="0.001" value="0" placeholder="输入单价"></label>
+          <label class="field" for="im_pout"><span>输出单价</span><input id="im_pout" type="number" min="0" step="0.001" value="0" placeholder="输出单价"></label>
+          <div class="form-actions"><button onclick="saveImageModel()">保存为待测试</button><button class="ghost" onclick="resetImageModel()">清空</button></div>
+        </div>
+        <p class="section-note">读图价格：元/百万 Token；生图价格：元/输入张、元/输出张。协议地址为 API 根路径，不含具体方法。</p>
+
+
+      </div></details>
+  </section>
+
+  <section data-page="images" data-admin-only hidden>
       <h2>图片使用统计</h2>
       <div class="row"><select id="imageUsagePeriod" aria-label="图片统计时段" onchange="loadImageUsage()"><option value="today">今日</option><option value="all">累计</option></select><button class="ghost" onclick="loadImageUsage()">刷新统计</button><span id="imageUsageStatus" role="status"></span></div>
       <div id="imageUsageCards" class="cards"></div>
-      <table id="imageUsageTable"><thead><tr><th>用途</th><th>模型</th><th>调用次数</th><th>输入 Token</th><th>输出 Token</th><th>记录费用（元）</th></tr></thead><tbody></tbody></table>
-      <p style="font-size:12px;color:var(--muted)">按业务时区统计已记录的模型调用，包含读图、配图规划、生图和复核；程序绘图不调用生图模型。费用按配置单价估算，未配置单价及模型测试费用不计入，不能替代供应商账单。</p>
-      <h2 style="margin-top:24px">图片模型配置</h2>
-      <p>读图与生图独立配置，可供多位老师共用。修改后须重新测试并启用；生图测试会实际调用并可能产生费用。</p>
-      <div id="imageModels"></div>
-      <div data-super-only>
-        <h3 id="im_title">新建图片模型</h3>
-        <div class="row">
-          <input id="im_name" placeholder="配置名称" aria-label="图片配置名称">
-          <select id="im_kind" aria-label="图片模型类型"><option value="vision">读图</option><option value="generation">生图</option></select>
-          <select id="im_protocol" aria-label="图片接口协议"><option value="openai">OpenAI 兼容</option><option value="dashscope">DashScope 多模态生图/编辑</option><option value="dashscope-wan">DashScope 万相异步生图</option></select>
-          <input id="im_base" placeholder="API baseUrl（HTTPS）" style="width:300px">
-          <input id="im_model" placeholder="模型 ID">
-          <input id="im_key" type="password" placeholder="apiKey（编辑时留空保留）">
-          <label><input id="im_edit" type="checkbox">支持参考图编辑（DashScope）</label>
-          <input id="im_pin" type="number" min="0" step="0.001" value="0" aria-label="图片模型输入单价" placeholder="输入单价">
-          <input id="im_pout" type="number" min="0" step="0.001" value="0" aria-label="图片模型输出单价" placeholder="输出单价">
-          <button onclick="saveImageModel()">保存为待测试</button><button class="ghost" onclick="resetImageModel()">清空</button>
-        </div>
-        <p style="font-size:12px">读图价格：元/百万 Token；生图价格：元/输入张、元/输出张。协议地址为 API 根路径，不含具体方法。</p>
-        <div id="im_error" class="err"></div>
-
-      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="图片使用明细"><table id="imageUsageTable"><thead><tr><th>用途</th><th>模型</th><th>调用次数</th><th>输入 Token</th><th>输出 Token</th><th>记录费用（元）</th></tr></thead><tbody></tbody></table></div>
+      <p class="section-note">按业务时区统计已记录的模型调用，包含读图、配图规划、生图和复核；程序绘图不调用生图模型。费用按配置单价估算，未配置单价及模型测试费用不计入，不能替代供应商账单。</p>
   </section>
 
   <section id="teachersPage" data-page="teachers" data-admin-only hidden>
-    <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（可激活多位老师；仅一位默认）</span></h2>
-    <div id="groups"></div>
+    <h2>各渠道默认老师</h2>
+    <p class="section-note">学生未选过老师时使用该渠道默认老师；已选择的老师优先保留。未指定默认时按家庭标签、老师排序选择。停用、删除或调整适用渠道后，不再适用的默认设置会自动清除。</p>
+    <div id="channelDefaults"></div>
+    <div id="channelDefaultStatus" role="status"></div>
+    <h2 style="margin-top:28px">老师列表</h2><p class="section-note">查看老师的模型与能力，或打开配置进行调整。</p>
+    <div id="groups" class="config-list"></div>
+    <div id="teacherProfile" class="edit-panel" hidden>
+      <h3>老师配置：<span id="tp_title"></span></h3>
+      <div class="form-grid">
+        <label class="field" for="tp_name"><span>老师名称</span><input id="tp_name" maxlength="50"></label>
+        <label class="field" for="tp_sort"><span>展示排序</span><input id="tp_sort" type="number" step="1"><small>数字越小，展示越靠前。</small></label>
+        <label class="field" for="tp_free"><span>到期后每学生每日免费回复次数</span><input id="tp_free" type="number" min="0" step="1"><small>填写 0 表示不提供免费回复。</small></label>
+        <label class="check-field"><input id="tp_enabled" type="checkbox">激活老师，供学生选择</label>
+        <div class="form-actions"><button onclick="saveTeacherProfile()">保存老师配置</button><button class="ghost" onclick="$('teacherProfile').hidden=true">取消</button></div>
+      </div><div id="tp_error" class="err" role="status"></div>
+    </div>
     <div data-super-only>
-        <div id="teacherImages" style="display:none">
-          <h3>老师图片能力：<span id="ti_name"></span></h3>
-          <div class="row">
-            <select id="ti_mode" aria-label="老师读图模式"><option value="off">关闭图片输入</option><option value="native">主模型直接读图</option><option value="assisted">独立模型辅助读图</option></select>
-            <select id="ti_vision" aria-label="辅助读图及图片复核模型"></select>
-            <select id="ti_generation" aria-label="老师生图模型"></select>
-            <label><input id="ti_drawing" type="checkbox">启用程序绘图</label>
-            <label><input id="ti_auto" type="checkbox">老师按需自动配图</label>
-            <input id="ti_cap" type="number" min="0" max="1000" value="10" aria-label="每学生每日配图次数">
-            <button onclick="saveTeacherImages()">保存图片能力</button>
-            <button class="ghost" onclick="testTeacherVision()">测试主模型读图（可能计费）</button>
+        <div id="teacherImages" class="edit-panel" style="display:none">
+          <h3><span>老师图片能力：<span id="ti_name"></span></span><button class="ghost" onclick="$('teacherImages').style.display='none'">关闭</button></h3>
+          <div class="form-grid">
+            <label class="field" for="ti_mode"><span>图片输入方式</span><select id="ti_mode"><option value="off">关闭图片输入</option><option value="native">主模型直接读图</option><option value="assisted">独立模型辅助读图</option></select></label>
+            <label class="field" for="ti_vision"><span>辅助读图 / 图片复核模型</span><select id="ti_vision"></select></label>
+            <label class="field" for="ti_generation"><span>生图模型</span><select id="ti_generation"></select></label>
+            <label class="check-field"><input id="ti_drawing" type="checkbox">启用程序绘图</label>
+            <label class="check-field"><input id="ti_auto" type="checkbox">老师按需自动配图</label>
+            <label class="field" for="ti_cap"><span>每学生每日配图次数</span><input id="ti_cap" type="number" min="0" max="1000" value="10"><small>每位学生每天可使用的配图次数，上限 1000</small></label>
+            <div class="form-actions"><button onclick="saveTeacherImages()">保存图片能力</button>
+            <button class="ghost" onclick="testTeacherVision()">测试主模型读图（可能计费）</button></div>
           </div>
-          <p style="font-size:12px">输出图片需要读图模型复核。主模型不能读图时请选择独立读图配置；程序绘图中文字体须部署 IMAGE_FONT_PATH。</p>
+          <p class="section-note">输出图片需要读图模型复核。主模型不能读图时请选择独立读图配置；程序绘图需要服务器配置中文字体。</p>
           <div id="ti_error" class="err"></div>
         </div>
-      <h2 style="margin-top:14px">新建分组</h2>
-      <div class="row">
-        <input id="g_name" placeholder="名称" style="width:110px">
-        <input id="g_base" placeholder="baseUrl（HTTPS）" style="width:250px">
-        <input id="g_key" placeholder="apiKey" style="width:190px" type="password">
-        <input id="g_model" placeholder="模型 ID" style="width:180px">
-        <select id="g_fence"><option value="">选择围栏配置</option></select>
-        <input id="g_tag" placeholder="家庭标签" style="width:110px">
-        <select id="g_channel" aria-label="老师适用渠道"><option value="all">全部渠道</option><option value="wechat">微信</option><option value="appstore">App Store</option><option value="googleplay">Google Play</option></select>
-        <input id="g_teacher" placeholder="老师名字" style="width:110px">
-        <label style="font-size:12px">老师头像 <input id="g_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
-        <input id="g_free" placeholder="到期后每个学生每日免费回复次数（≤0不免费）" style="width:310px" type="number">
-        <label style="font-size:12px"><input id="g_enabled" type="checkbox" checked> 创建后激活</label>
-        <button onclick="addGroup()">创建</button>
+<details id="groupCreator" class="editor"><summary>＋ 新建老师分组</summary><div class="editor-body">
+      <div class="form-grid">
+        <label class="field" for="g_name"><span>分组名称</span><input id="g_name" placeholder="名称"></label>
+        <label class="field" for="g_base"><span>接口地址 · HTTPS</span><input id="g_base" placeholder="baseUrl（HTTPS）"></label>
+        <label class="field" for="g_key"><span>API 密钥</span><input id="g_key" placeholder="apiKey" type="password"></label>
+        <label class="field" for="g_model"><span>主模型 ID</span><input id="g_model" placeholder="模型 ID"></label>
+        <label class="field" for="g_fence"><span>安全围栏</span><select id="g_fence"><option value="">选择围栏配置</option></select></label>
+        <label class="field" for="g_tag"><span>家庭标签（选填）</span><input id="g_tag" placeholder="家庭标签"><small>用于匹配指定家庭，可留空</small></label>
+        <label class="field" for="g_channel"><span>适用渠道</span><select id="g_channel"><option value="all">全部渠道</option><option value="wechat">微信</option><option value="appstore">App Store</option><option value="googleplay">Google Play</option></select></label>
+        <label class="field" for="g_teacher"><span>老师名字</span><input id="g_teacher" placeholder="老师名字"></label>
+        <label class="field">老师头像 <input id="g_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
+        <label class="field" for="g_free"><span>到期后每学生每日免费回复次数</span><input id="g_free" placeholder="到期后每个学生每日免费回复次数（≤0不免费）" type="number"><small>填写 0 表示到期后不提供免费回复</small></label>
+        <label class="check-field"><input id="g_enabled" type="checkbox" checked> 创建后激活</label>
+        <div class="form-actions"><button onclick="addGroup()">创建</button></div>
       </div>
-      <div style="font-size:12px;color:#8C8A84">学生未选过老师时使用默认老师，选过后沿用上次选择；没有默认老师时才按家庭标签匹配。家庭标签可在“家庭与学生”中配置。</div>
-      <div id="gerr" class="err"></div>
-      <div id="g_edit" style="display:none;border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
+      <div style="font-size:12px;color:#8C8A84">学生未选过老师时使用对应渠道的默认老师，选过后沿用上次选择；没有默认老师时才按家庭标签匹配。家庭标签可在“家庭与学生”中配置。</div>
+      <div id="gerr" class="err"></div></div></details>
+      <div id="g_edit" class="edit-panel" style="display:none">
         <h2>编辑分组：<span id="ge_title"></span></h2>
-        <div class="row">
-          <input id="ge_name" placeholder="名称" style="width:110px">
-          <input id="ge_base" placeholder="baseUrl（HTTPS）" style="width:250px">
-          <input id="ge_key" placeholder="新 apiKey（留空则不修改）" type="password" style="width:220px">
-          <input id="ge_model" placeholder="模型 ID" style="width:180px">
-          <select id="ge_fence"><option value="">选择围栏配置</option></select>
-          <input id="ge_tag" placeholder="家庭标签（留空清除）" style="width:150px">
+        <div class="form-grid">
+          <label class="field" for="ge_name"><span>分组名称</span><input id="ge_name" placeholder="名称"></label>
+          <label class="field" for="ge_base"><span>接口地址 · HTTPS</span><input id="ge_base" placeholder="baseUrl（HTTPS）"></label>
+          <label class="field" for="ge_key"><span>更换 API 密钥</span><input id="ge_key" placeholder="新 apiKey（留空则不修改）" type="password"><small>留空则保留当前密钥</small></label>
+          <label class="field" for="ge_model"><span>主模型 ID</span><input id="ge_model" placeholder="模型 ID"></label>
+          <label class="field" for="ge_fence"><span>安全围栏</span><select id="ge_fence"><option value="">选择围栏配置</option></select></label>
+          <label class="field" for="ge_tag"><span>家庭标签（选填）</span><input id="ge_tag" placeholder="家庭标签（留空清除）"></label>
         </div>
-        <div class="row">
-          <select id="ge_channel" aria-label="老师适用渠道"><option value="all">全部渠道</option><option value="wechat">微信</option><option value="appstore">App Store</option><option value="googleplay">Google Play</option></select>
-          <input id="ge_teacher" placeholder="老师名字" style="width:130px">
+        <div class="form-grid">
+          <label class="field" for="ge_channel"><span>适用渠道</span><select id="ge_channel"><option value="all">全部渠道</option><option value="wechat">微信</option><option value="appstore">App Store</option><option value="googleplay">Google Play</option></select></label>
+          <label class="field" for="ge_teacher"><span>老师名字</span><input id="ge_teacher" placeholder="老师名字"></label>
           <img id="ge_avatar_preview" alt="当前老师头像" style="display:none;width:36px;height:36px;border-radius:50%;object-fit:cover">
-          <label style="font-size:12px">更换头像 <input id="ge_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
-          <input id="ge_free" type="number" placeholder="每日免费回复次数" style="width:160px">
-          <input id="ge_sort" type="number" placeholder="展示排序" style="width:110px">
-          <label style="font-size:12px"><input id="ge_enabled" type="checkbox"> 已激活</label>
-          <button onclick="saveGroupEdit()">保存修改</button>
-          <button class="ghost" onclick="cancelGroupEdit()">取消</button>
+          <label class="field">更换头像 <input id="ge_avatar" type="file" accept="image/png,image/jpeg,image/webp" style="width:190px"></label>
+          <label class="field" for="ge_free"><span>每日免费回复次数</span><input id="ge_free" type="number" placeholder="每日免费回复次数"><small>填写 0 表示到期后不提供免费回复</small></label>
+          <label class="field" for="ge_sort"><span>展示排序 · 越小越靠前</span><input id="ge_sort" type="number" placeholder="展示排序"></label>
+          <label class="check-field"><input id="ge_enabled" type="checkbox"> 已激活</label>
+          <div class="form-actions"><button onclick="saveGroupEdit()">保存修改</button>
+          <button class="ghost" onclick="cancelGroupEdit()">取消</button></div>
         </div>
         <div id="ge_err" class="err"></div>
       </div>
@@ -280,38 +403,47 @@
   </section>
 
   <section id="pricingSection" data-page="pricing" data-super-only hidden>
-    <h2>订阅策略</h2>
-    <p style="font-size:12px">固定套餐：10 个名额 ¥300/月、100 个名额 ¥3000/月，不随基础及增量月费调整。</p>
-    <div class="row">
-      <input id="p_base" type="number" step="0.01" placeholder="基础月费">
-      <input id="p_seat" type="number" step="0.01" placeholder="每个额外名额月费">
-      <input id="p_trial" type="number" placeholder="试用天数">
-      <input id="p_reason" placeholder="修改原因" style="width:220px">
-      <button onclick="savePricing()">保存策略</button>
-      <button class="ghost" onclick="resetPricing()">恢复默认</button>
+    <h2>订阅定价与试用</h2>
+    <div class="pricing-note"><b>固定套餐</b><div>10 个名额 · ¥300/月　｜　100 个名额 · ¥3,000/月</div><small>固定套餐价格不随下面的基础及额外名额月费调整。</small></div>
+    <div class="form-grid">
+      <label class="field" for="p_base"><span>基础月费 · 元/月</span><input id="p_base" type="number" step="0.01" placeholder="基础月费"></label>
+      <label class="field" for="p_seat"><span>额外名额月费 · 元/人/月</span><input id="p_seat" type="number" step="0.01" placeholder="每个额外名额月费"></label>
+      <label class="field" for="p_trial"><span>试用天数 · 天</span><input id="p_trial" type="number" placeholder="试用天数"></label>
+      <label class="field" for="p_reason"><span>修改原因</span><input id="p_reason" placeholder="修改原因"></label>
+      <div class="form-actions"><button onclick="savePricing()">保存策略</button>
+      <button class="ghost" onclick="resetPricing()">恢复默认</button></div>
     </div>
-    <div id="perr" class="err"></div>
+    <div id="pricingStatus" class="success" role="status"></div><div id="perr" class="err" role="alert"></div>
     <div id="pmeta" style="font-size:12px;color:#8C8A84"></div>
   </section>
   <section id="usersSection" data-page="users" data-super-only hidden>
-    <h2>权限管理</h2>
-    <div class="row">
-      <input id="u_name" placeholder="用户名" style="width:130px">
-      <input id="u_password" placeholder="初始密码（至少8位）" type="password" style="width:180px">
-      <select id="u_role"><option value="admin">管理员</option><option value="support">客服</option><option value="super">超级管理员</option></select>
-      <input id="u_note" placeholder="备注" style="width:180px">
-      <button onclick="createUser()">创建账号</button>
+    <h2>权限管理</h2><p class="role-help">超级管理员：全部后台权限；管理员：运营处理与老师基础配置；客服：查看基础数据、生成家庭绑定码。</p><div id="userStatus" role="status"></div>
+<details class="editor"><summary>＋ 新建管理员账号</summary><div class="editor-body">    <div class="form-grid">
+      <label class="field" for="u_name"><span>用户名</span><input id="u_name" placeholder="用户名"></label>
+      <label class="field" for="u_password"><span>初始密码</span><input id="u_password" placeholder="初始密码（至少8位）" type="password"><small>至少 8 位字符</small></label>
+      <label class="field" for="u_role"><span>账号角色</span><select id="u_role"><option value="admin">管理员</option><option value="support">客服</option><option value="super">超级管理员</option></select></label>
+      <label class="field" for="u_note"><span>备注（选填）</span><input id="u_note" placeholder="备注"></label>
+      <div class="form-actions"><button onclick="createUser()">创建账号</button></div>
     </div>
-    <table id="userTable"><thead><tr><th>用户名</th><th>角色</th><th>备注</th><th>创建时间</th><th>操作</th></tr></thead><tbody></tbody></table>
+</div></details>    <div class="table-wrap" tabindex="0" role="region" aria-label="管理员账号"><table id="userTable"><thead><tr><th>用户名</th><th>角色</th><th>备注</th><th>创建时间</th><th>操作</th></tr></thead><tbody></tbody></table></div>
+    <div id="userEditor" class="edit-panel" hidden>
+      <h3>编辑账号：<span id="ue_title"></span></h3>
+      <div class="form-grid">
+        <label class="field" for="ue_role"><span>角色</span><select id="ue_role"><option value="admin">管理员</option><option value="support">客服</option><option value="super">超级管理员</option></select></label>
+        <label class="field" for="ue_password"><span>更换密码（选填）</span><input id="ue_password" type="password" autocomplete="new-password" maxlength="128"><small>留空保留原密码；新密码须为 8–128 位。</small></label>
+        <label class="field field-wide" for="ue_note"><span>备注</span><input id="ue_note" maxlength="100"></label>
+        <div class="form-actions"><button id="saveUserButton" onclick="saveUser()">保存修改</button><button class="ghost" onclick="$('userEditor').hidden=true;$('ue_password').value=''">取消</button></div>
+      </div><div id="ue_error" class="err" role="status"></div>
+    </div>
   </section>
   <section id="auditPage" data-page="audit" hidden>
-    <h2>操作日志</h2>
-    <table id="logTable"><thead><tr><th>时间</th><th>管理员</th><th>操作</th><th>详情</th></tr></thead><tbody></tbody></table>
+    <h2>操作日志</h2><div class="row"><button class="ghost" onclick="loadLogs()">刷新日志</button><span id="logStatus" role="status"></span></div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="操作日志"><table id="logTable"><thead><tr><th>时间</th><th>管理员</th><th>操作</th><th>详情</th></tr></thead><tbody></tbody></table></div>
   </section>
   <section data-page="audit" data-admin-only hidden>
     <h2>评估审计</h2>
-    <div class="row"><button class="ghost" onclick="loadAssessmentAudits()">刷新评估审计</button></div>
-    <table id="assessmentTable"><thead><tr><th>时间</th><th>类型</th><th>评估</th><th>操作者</th><th>动作</th></tr></thead><tbody></tbody></table>
+    <div class="row"><button class="ghost" onclick="loadAssessmentAudits()">刷新评估审计</button><span id="assessmentStatus" role="status"></span></div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="评估审计"><table id="assessmentTable"><thead><tr><th>时间</th><th>类型</th><th>评估</th><th>操作者</th><th>动作</th></tr></thead><tbody></tbody></table></div>
   </section>
 </main>
 </div>
@@ -325,6 +457,12 @@ let TOK = sessionStorage.getItem('cms_tok') || '';
 let ROLE = sessionStorage.getItem('cms_role') || 'ops';
 let FENCES = [], GROUPS = [], editingFenceId = null, editingGroupId = null;
 
+function textPreview(value, limit=90) {
+  const text=String(value??'');
+  if (!text) return '—';
+  if (text.length<=limit) return esc(text);
+  return `<details class="text-preview"><summary>${esc(text.slice(0,limit))}… <span class="tag">展开全文</span></summary><div class="full-text">${esc(text)}</div></details>`;
+}
 function H() { return {'Content-Type':'application/json','Authorization':'Bearer '+TOK}; }
 function attr(value) { return esc(encodeURIComponent(String(value ?? '')).replace(/'/g, '%27')); }
 async function api(path, opts={}) {
@@ -355,8 +493,7 @@ const STAGE = {whitelist:'白名单',classifier:'分类',second_pass:'复核',po
 function boot() {
   api('/admin/overview').then(d => {
     $('login').style.display='none'; $('app').style.display='block';
-    $('grp').textContent = (ROLE==='super'?'[超级管理员] ':ROLE==='admin'?'[管理员] ':'[客服·只读] ') +
-      (d.llm_group ? '当前分组: '+d.llm_group.name : '基础工单视图');
+    $('adminRole').textContent = ROLE==='super'?'超级管理员':ROLE==='admin'?'管理员':'客服·只读';
     // RBAC：ops 隐藏写操作区块
     document.querySelectorAll('[data-super-only]').forEach(el => {
       el.hidden = ROLE !== 'super';
@@ -366,18 +503,16 @@ function boot() {
     });
     showPage(sessionStorage.getItem('cms_page') || 'overview', false);
     const s=d.scale, a=d.activity, c=d.cost, f=d.fence;
-    const cards = [
-      ['家庭', s.families],['监护人', s.guardians],['学生', s.students],['对话', s.conversations],['消息', s.messages],
-      ['今日消息', a.messages_today],['昨日消息', a.messages_yesterday],
-    ];
-    if (c) cards.push(['成本(累计)', '¥'+c.total_cny], ['成本(今日)', '¥'+c.today_cny]);
-    $('cards').innerHTML = cards.map(([k,v]) => `<div class="card"><div class="k">${k}</div><div class="v ${String(v).length>8?'small':''}">${v}</div></div>`).join('');
+    const metricGroups=[['用户规模',[['家庭',s.families],['监护人',s.guardians],['学生',s.students],['对话',s.conversations],['消息',s.messages]]],
+      ['使用活跃',[['今日消息',a.messages_today],['昨日消息',a.messages_yesterday]]]];
+    if(c) metricGroups.push(['模型成本',[['累计成本',Number(c.total_cny).toLocaleString('zh-CN',{style:'currency',currency:'CNY'})],['今日成本',Number(c.today_cny).toLocaleString('zh-CN',{style:'currency',currency:'CNY'})]]]);
+    $('cards').innerHTML=metricGroups.map(([title,items])=>`<div class="metric-group"><h3>${title}</h3><div class="cards">${items.map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v ${String(v).length>8?'small':''}">${esc(typeof v==='number'?v.toLocaleString('zh-CN'):v)}</div></div>`).join('')}</div></div>`).join('');
     if (!f) $('fenceDist').textContent = '客服角色仅显示基础工单指标';
     else {
       const total = Object.values(f.by_decision).reduce((x,y)=>x+y,0) || 1;
-      $('fenceDist').innerHTML = Object.entries(f.by_decision).map(([k,v]) =>
-        `<div style="margin:6px 0"><span class="tag ${k}">${DEC[k]||k}</span> ${v} (${(v/total*100).toFixed(0)}%)</div>`).join('')
-        + '<div style="margin-top:8px;font-size:12px;color:#8C8A84">类别: '+Object.entries(f.by_category).map(([k,v])=>(CAT[k]||k)+' '+v).join(' · ')+'</div>';
+      $('fenceDist').innerHTML = '<div class="distribution">'+Object.entries(f.by_decision).map(([k,v]) =>
+        `<div class="distribution-row"><div class="row"><span class="tag ${esc(k)}">${esc(DEC[k]||k)}</span><span>${v} 次 · ${(v/total*100).toFixed(0)}%</span></div><div class="distribution-bar"><span class="${esc(k)}" style="width:${v/total*100}%"></span></div></div>`).join('')+'</div>'
+        + '<p class="section-note" style="margin-top:24px">类别分布 · '+Object.entries(f.by_category).map(([k,v])=>esc(CAT[k]||k)+' '+v).join(' · ')+'</p>';
     }
     if (ROLE === 'support') $('fenceTable').querySelector('tbody').innerHTML = '<tr><td colspan="4">客服角色不显示围栏详情</td></tr>';
     else loadFence();
@@ -385,31 +520,59 @@ function boot() {
   }).catch(e => { if (e.message !== 'reauth') $('lerr').textContent = e.message; });
 }
 
+let fenceRequest=0;
 async function loadFence() {
+  const request=++fenceRequest;
   const dec = $('fdec').value;
-  const d = await api('/admin/fence-events?size=12'+(dec?'&decision='+dec:''));
-  $('fenceTable').querySelector('tbody').innerHTML = d.items.map(e =>
-    `<tr><td>${esc((e.created_at||'').slice(5,16).replace('T',' '))}</td><td>${esc(STAGE[e.stage]||e.stage)}</td>
-     <td><span class="tag ${esc(e.decision)}">${esc(DEC[e.decision]||e.decision)}</span></td>
-     <td>${esc(CAT[e.category]||e.category)}</td></tr>`).join('');
+  $('fenceStatus').textContent='加载中…';
+  try {
+    const d = await api('/admin/fence-events?size=12'+(dec?'&decision='+dec:''));
+    if(request!==fenceRequest) return;
+    $('fenceTable').querySelector('tbody').innerHTML = d.items.map(e =>
+      `<tr><td>${esc((e.created_at||'').slice(5,16).replace('T',' '))}</td><td>${esc(STAGE[e.stage]||e.stage)}</td>
+       <td><span class="tag ${esc(e.decision)}">${esc(DEC[e.decision]||e.decision)}</span></td>
+       <td>${esc(CAT[e.category]||e.category)}</td></tr>`).join('') || '<tr><td colspan="4">当前筛选下暂无围栏事件，可尝试清除筛选</td></tr>';
+    $('fenceStatus').textContent=(DEC[dec]||'全部处置')+' · 本页 '+d.items.length+' 条';
+  } catch(e) { if(request!==fenceRequest) return; $('fenceStatus').textContent='加载失败：'+e.message; $('fenceTable').querySelector('tbody').innerHTML=''; }
 }
 
-async function loadFamilies() {
-  const gd0 = await api('/admin/llm-groups');
-  const tags = [...new Set(gd0.items.filter(g=>g.tag).map(g=>g.tag))];
-  const d = await api('/admin/families?size=10');
-  $('famTable').querySelector('tbody').innerHTML = d.items.map(f => {
-    const constTag = ROLE==='support' ? (f.tag ? `<span class="tag beta-tag">${esc(f.tag)}</span>` : '—')
-      : `<span class="tag beta-tag">${esc(f.tag||'')}</span> <select onchange="setTag(${f.family_id},this.value)">
-        <option value="">清除</option>${tags.map(t=>`<option value="${esc(t)}" ${f.tag===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
-    return `<tr><td>${f.family_id}</td>
-     <td>${esc(f.guardians.map(g=>g.nickname||g.phone).join(', ')||'—')}</td>
-     <td>${esc(f.students.map(s=>s.nickname+(s.active?'':'(注销)')).join(', ')||'—')}</td>
-     <td>${f.message_count}</td>
-     <td>${constTag}</td>
-     <td><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?` <button class="ghost" onclick="grantMembership(${f.family_id})">赠送</button> <button class="ghost" onclick="revokeMembership(${f.family_id})">扣除</button>`:''}</td>
-     <td>${(f.created_at||'').slice(0,10)}</td></tr>`;
-  }).join('');
+let familyPage=1, familyRequest=0;
+async function loadFamilies(page=familyPage) {
+  page=Math.max(1,page);
+  const request=++familyRequest;
+  familyPage=page;
+  $('familyStatus').textContent='加载中…';
+  $('familyPrev').disabled=true; $('familyNext').disabled=true;
+  try {
+    const gd0 = await api('/admin/llm-groups');
+    const tags = [...new Set(gd0.items.filter(g=>g.tag).map(g=>g.tag))];
+    const d = await api(`/admin/families?size=10&page=${page}`);
+    if(request!==familyRequest) return;
+    if(!d.items.length && page>1) return loadFamilies(Math.max(1,Math.ceil(d.total/10)));
+
+    $('famTable').querySelector('tbody').innerHTML = d.items.map(f => {
+      const familyTags = f.tag && !tags.includes(f.tag) ? [f.tag,...tags] : tags;
+      const constTag = ROLE==='support' ? `<span class="tag ${f.tag?'beta-tag':''}">${esc(f.tag||'未设置标签')}</span>`
+        : `<select class="family-tag-select ${f.tag?'is-set':''}" aria-label="家庭 ${f.family_id} 标签" ${familyTags.length?'':'disabled'} onchange="setTag(${f.family_id},this.value)">
+          <option value="" ${f.tag?'':'selected'}>${f.tag?'移除标签':'未设置标签'}</option>${familyTags.map(t=>`<option value="${esc(t)}" ${f.tag===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
+      return `<tr><td>${f.family_id}</td>
+       <td>${esc(f.guardians.map(g=>g.nickname||g.phone).join(', ')||'—')}</td>
+       <td>${esc(f.students.map(s=>s.nickname+(s.active?'':'(注销)')).join(', ')||'—')}</td>
+       <td>${f.message_count}</td>
+       <td>${constTag}</td>
+       <td><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?` <button class="ghost" onclick="grantMembership(${f.family_id})">赠送会员</button> <button class="ghost" onclick="revokeMembership(${f.family_id})">扣除会员</button>`:''}</td>
+       <td>${(f.created_at||'').slice(0,10)}</td></tr>`;
+    }).join('') || '<tr><td colspan="7">暂无家庭与学生</td></tr>';
+    $('familyPagination').textContent=`第 ${page} / ${Math.max(1,Math.ceil(d.total/10))} 页 · 共 ${d.total} 个家庭`;
+    $('familyPrev').disabled=page<=1; $('familyNext').disabled=page*10>=d.total;
+    $('familyStatus').textContent='';
+  } catch(e) {
+    if(request!==familyRequest) return;
+    $('familyStatus').textContent='加载失败：'+e.message;
+    $('familyPrev').disabled=page<=1;
+    $('familyPagination').textContent=`第 ${page} 页加载失败，请刷新重试`;
+    $('famTable').querySelector('tbody').innerHTML='';
+  }
 }
 
 async function assistBind(familyId) {
@@ -421,8 +584,10 @@ async function assistBind(familyId) {
 }
 
 const feedbackQueue = {status:'open',page:1}, reportQueue = {status:'open',page:1};
+let REPORTS=[], editingReport=null;
 function switchQueue(prefix, status) {
   const queue = prefix==='feedback' ? feedbackQueue : reportQueue;
+  if (prefix==='report') $('reportEditor').hidden=true;
   queue.status=status;
   for (const [suffix,value] of [['Open','open'],['Handled','handled']]) {
     $(prefix+suffix+'Tab').setAttribute('aria-selected',String(value===status));
@@ -435,7 +600,7 @@ function queuePage(prefix, queue, total) {
   $(prefix+'Pagination').textContent=`第 ${queue.page} / ${pages} 页 · 共 ${total} 条`;
   $(prefix+'Prev').disabled=queue.page<=1;
   $(prefix+'Next').disabled=queue.page>=pages;
-  $(prefix+'Status').textContent='';
+  $(prefix+'Status').textContent=`共 ${total} 条`;
 }
 const FEEDBACK_STATUS = {open:'待处理',reviewed:'已复核',dismissed:'已驳回'};
 async function loadFeedback(page=feedbackQueue.page) {
@@ -449,8 +614,8 @@ async function loadFeedback(page=feedbackQueue.page) {
     if (!d.items.length && page>1) return loadFeedback(page-1);
     $('feedbackTable').querySelector('tbody').innerHTML = d.items.map(f => `<tr>
       <td>${esc((f.created_at||'').slice(5,16).replace('T',' '))}</td><td>${f.conversation_id}</td>
-      <td>${esc(f.decision||'—')} / ${esc(f.category||'—')}</td><td>${esc((f.content||'').slice(0,80))}</td>
-      <td>${esc(FEEDBACK_STATUS[f.status]||f.status)}</td><td>${f.status==='open'?`<button class="ghost" onclick="closeFeedback(${f.id})">标记已复核</button>`:'—'}</td></tr>`).join('') || `<tr><td colspan="6">暂无${status==='open'?'待处理':'已处理'}反馈</td></tr>`;
+      <td>${esc(f.decision||'—')} / ${esc(f.category||'—')}</td><td>${textPreview(f.content)}</td>
+      <td><span class="tag ${f.status==='open'?'rewrite':f.status==='reviewed'?'active':''}">${esc(FEEDBACK_STATUS[f.status]||f.status)}</span></td><td>${f.status==='open'?`<button class="ghost" onclick="closeFeedback(${f.id})">标记已复核</button>`:'—'}</td></tr>`).join('') || `<tr><td colspan="6">暂无${status==='open'?'待处理':'已处理'}反馈</td></tr>`;
     queuePage('feedback',feedbackQueue,d.total);
   } catch(e) { if(status===feedbackQueue.status && page===feedbackQueue.page) $('feedbackStatus').textContent=e.message; }
 }
@@ -470,43 +635,68 @@ async function loadReports(page=reportQueue.page) {
     const d = await api(`/admin/fence-feedback?kind=message_report&status=${status}&size=30&page=${page}`);
     if (status!==reportQueue.status || page!==reportQueue.page) return;
     if (!d.items.length && page>1) return loadReports(page-1);
+    REPORTS=d.items;
     $('reportTable').querySelector('tbody').innerHTML = d.items.map(f => `<tr>
       <td>${esc((f.created_at||'').slice(0,16).replace('T',' '))}</td><td>${f.student_id}</td>
-      <td style="max-width:280px;white-space:pre-wrap">${esc((f.content||'').slice(0,500))}</td>
-      <td style="max-width:220px;white-space:pre-wrap">${esc(f.note||'')}</td>
-      <td>${esc(FEEDBACK_STATUS[f.status]||f.status)}</td><td>${esc(f.reply||'—')}</td>
+      <td>${textPreview(f.content)}</td>
+      <td>${textPreview(f.note,50)}</td>
+      <td><span class="tag ${f.status==='open'?'rewrite':f.status==='reviewed'?'active':''}">${esc(FEEDBACK_STATUS[f.status]||f.status)}</span></td><td>${textPreview(f.reply,60)}</td>
       <td><button class="ghost" onclick="replyReport(${f.id},decodeURIComponent('${attr(f.reply||'')}'))">${f.reply?'修改回复':'回复'}</button></td></tr>`).join('') || `<tr><td colspan="7">暂无${status==='open'?'待处理':'已处理'}举报</td></tr>`;
     queuePage('report',reportQueue,d.total);
   } catch(e) { if(status===reportQueue.status && page===reportQueue.page) $('reportStatus').textContent=e.message; }
 }
-async function replyReport(id, current) {
-  const reply = prompt('回复学生（最多 1000 字）：', current);
-  if (reply === null) return;
-  if (!reply.trim() || reply.length > 1000) { $('reportStatus').textContent = '请填写 1–1000 字回复'; return; }
-  $('reportStatus').textContent = '正在保存回复…';
+function replyReport(id, current) {
+  editingReport=id;
+  const report=REPORTS.find(row=>row.id===id);
+  $('reportContext').textContent=report?.content||'当前举报 #'+id;
+  $('reportReply').value=current||'';
+  $('reportReplyError').textContent='';
+  $('reportEditor').hidden=false;
+  $('reportEditor').scrollIntoView({block:'center',behavior:'smooth'});
+  $('reportReply').focus({preventScroll:true});
+}
+async function saveReportReply() {
+  const reply=$('reportReply').value.trim();
+  if (!reply || reply.length>1000) { $('reportReplyError').textContent='请填写 1–1000 字回复'; return; }
+  $('saveReportReplyButton').disabled=true;
   try {
-    await api('/admin/fence-feedback/' + id, {method:'PATCH', body:JSON.stringify({status:'reviewed',reply:reply.trim()})});
-    await loadReports(); $('reportStatus').textContent = '回复已保存，学生可在「我的举报」查看';
-  } catch(e) { $('reportStatus').textContent = e.message; }
+    await api('/admin/fence-feedback/'+editingReport,{method:'PATCH',body:JSON.stringify({status:'reviewed',reply})});
+    $('reportEditor').hidden=true;
+    await loadReports(); $('reportStatus').textContent='回复已保存，学生可在「我的举报」查看';
+  } catch(e) { $('reportReplyError').textContent=e.message; }
+  finally { $('saveReportReplyButton').disabled=false; }
 }
 
+const ADMIN_ROLES={super:'超级管理员',admin:'管理员',support:'客服'};
+let editingUser=null;
 async function loadUsers() {
-  const users = await api('/admin/users');
-  $('userTable').querySelector('tbody').innerHTML = users.map(u => `<tr><td>${esc(u.username)}</td><td>${esc(u.role)}</td><td>${esc(u.note||'—')}</td><td>${esc((u.created_at||'').slice(0,16).replace('T',' '))}</td>
-    <td><button class="ghost" onclick="editUser(${u.id},decodeURIComponent('${attr(u.role)}'),decodeURIComponent('${attr(u.note||'')}'))">编辑</button></td></tr>`).join('');
-}
-async function editUser(id, role, note) {
-  const newRole = prompt('角色（super/admin/support）：', role);
-  if (newRole === null) return;
-  if (!['super','admin','support'].includes(newRole)) { alert('角色无效，须为 super/admin/support'); return; }
-  const password = prompt('新密码（至少 8 位；直接确定 = 不修改密码）：', '') || '';
-  if (password && password.length < 8) { alert('密码长度须为 8-128 位'); return; }
-  const newNote = prompt('备注：', note);
-  if (newNote === null) return;
   try {
-    await api('/admin/users/' + id, {method:'PATCH', body: JSON.stringify({role: newRole, note: newNote, ...(password ? {password} : {})})});
-    loadUsers();
-  } catch(e) { alert(e.message); }
+    const users = await api('/admin/users');
+    $('userTable').querySelector('tbody').innerHTML = users.map(u => `<tr><td>${esc(u.username)}</td><td>${esc(ADMIN_ROLES[u.role]||u.role)}</td><td>${esc(u.note||'—')}</td><td>${esc((u.created_at||'').slice(0,16).replace('T',' '))}</td>
+      <td><button class="ghost" onclick="editUser(${u.id},decodeURIComponent('${attr(u.role)}'),decodeURIComponent('${attr(u.note||'')}'),decodeURIComponent('${attr(u.username)}'))">编辑</button></td></tr>`).join('') || '<tr><td colspan="5">暂无后台账号</td></tr>';
+  } catch(e) { $('userStatus').textContent='账号列表加载失败：'+e.message+'，请刷新页面重试'; }
+}
+function editUser(id,role,note,username) {
+  editingUser=id;
+  $('ue_title').textContent=username||'#'+id;
+  $('ue_role').value=role; $('ue_note').value=note; $('ue_password').value='';
+  $('ue_error').textContent=''; $('userEditor').hidden=false;
+  $('userEditor').scrollIntoView({block:'center',behavior:'smooth'});
+  $('ue_role').focus({preventScroll:true});
+}
+async function saveUser() {
+  const role=$('ue_role').value,password=$('ue_password').value,note=$('ue_note').value.trim();
+  if(!Object.hasOwn(ADMIN_ROLES,role)) { $('ue_error').textContent='请选择有效角色'; return; }
+  if(password && (password.length<8 || password.length>128)) { $('ue_error').textContent='密码长度须为 8–128 位'; return; }
+  if(note.length>100) { $('ue_error').textContent='备注最多 100 字'; return; }
+  $('saveUserButton').disabled=true;
+  try {
+    await api('/admin/users/'+editingUser,{method:'PATCH',body:JSON.stringify({role,note,...(password?{password}:{})})});
+    $('ue_password').value=''; $('userEditor').hidden=true;
+    $('userStatus').textContent='账号修改已保存';
+    await loadUsers();
+  } catch(e) { $('ue_error').textContent=e.message; }
+  finally { $('saveUserButton').disabled=false; }
 }
 function canView(element) {
   return (!element.hasAttribute('data-super-only') || ROLE === 'super') &&
@@ -529,6 +719,7 @@ function showPage(page, focus = true) {
     else button.removeAttribute('aria-current');
   });
   $('pageTitle').textContent = selected.textContent;
+  $('pageDescription').textContent = ({overview:'查看平台规模、消息活跃情况与使用成本。',families:'查看家庭与学生，管理标签、绑定与会员权益。',feedback:'集中处理误判反馈与学生举报，追踪历史处理结果。',teachers:'管理各渠道默认老师、模型配置与老师能力。',images:'管理共用图片模型，查看读图、生图与复核用量。',safety:'查看安全围栏的处置情况，维护老师共用的围栏配置。',pricing:'配置订阅价格、名额费用与试用期。',users:'管理后台账号及其操作权限。',audit:'追溯后台操作记录与评估审计。'})[page];
   sessionStorage.setItem('cms_page', page);
   $('sidebar').classList.remove('nav-open');
   $('menuToggle').setAttribute('aria-expanded', 'false');
@@ -548,10 +739,9 @@ async function createUser() {
 async function loadFences() {
   FENCES = await api('/admin/fence-configs');
   $('fences').innerHTML = FENCES.map(f => `
-    <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
-      <b>${esc(f.name)}</b><span style="font-size:12px;color:#8C8A84">${esc(f.base_url)} · ${esc(f.model_id)} · key:已配</span>
-      ${ROLE==='super'?'<button class="ghost" onclick="editFence('+f.id+')">编辑</button> <button class="ghost" onclick="delFence('+f.id+')">删除</button>':''}
-    </div>`).join('') || '<div style="color:#8C8A84;font-size:13px">暂无围栏配置</div>';
+    <article class="config-card"><div class="config-head"><div class="identity"><span class="avatar" aria-hidden="true">栏</span><div><h3>${esc(f.name)}</h3><small>安全围栏配置</small></div></div><span class="tag active">密钥已配置</span></div>
+    <dl class="config-meta"><div class="wide"><dt>模型 ID</dt><dd><code>${esc(f.model_id)}</code></dd></div><div class="wide"><dt>接口地址</dt><dd><code>${esc(f.base_url)}</code></dd></div></dl>
+    ${ROLE==='super'?`<div class="config-actions"><button class="ghost" onclick="editFence(${f.id})">编辑配置</button><button class="danger" onclick="delFence(${f.id})">删除</button></div>`:''}</article>`).join('') || '<div class="empty-state">暂无围栏配置，可新建一份供老师共用。</div>';
   const current = $('g_fence').value;
   $('g_fence').innerHTML = '<option value="">选择围栏配置</option>' +
     FENCES.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
@@ -571,6 +761,7 @@ function editFence(id) {
   $('fe_model').value = f.model_id; $('fe_key').value = '';
   $('fe_err').textContent = '';
   $('f_edit').style.display = '';
+  $('f_edit').scrollIntoView({block:'start',behavior:'smooth'});
 }
 function cancelFenceEdit() { editingFenceId = null; $('f_edit').style.display = 'none'; }
 async function saveFenceEdit() {
@@ -611,22 +802,30 @@ const CHANNELS = {all:'全部渠道',wechat:'微信',appstore:'App Store',google
 async function loadGroups() {
   const d = await api('/admin/llm-groups');
   GROUPS = d.items;
+  $('channelDefaults').innerHTML = ['wechat','appstore','googleplay'].map(channel=>`<div class="channel-card"><label for="default_${channel}">${CHANNELS[channel]}</label><select id="default_${channel}" aria-label="${CHANNELS[channel]}默认老师" ${ROLE==='super'?'':'disabled'}><option value="">未指定默认老师</option>${GROUPS.filter(g=>g.teacher_enabled && ['all',channel].includes(g.teacher_channel||'all')).map(g=>`<option value="${g.id}">${esc(g.teacher_name||g.name)}（${esc(g.name)}）</option>`).join('')}</select>${ROLE==='super'?`<button onclick="saveChannelDefault('${channel}')">保存</button>`:''}</div>`).join('');
+  for (const channel of ['wechat','appstore','googleplay']) $('default_'+channel).value=d.channel_defaults?.[channel]||'';
   $('groups').innerHTML = GROUPS.map(g => `
-    <div class="row" style="border-bottom:1px solid #F2F2F0;padding:8px 0">
-      ${g.teacher_avatar_url?`<img src="${esc(g.teacher_avatar_url)}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover">`:''}
-      <select aria-label="${esc(g.name)}适用渠道" onchange="changeTeacherChannel(${g.id},this.value)">${Object.entries(CHANNELS).map(([value,label])=>`<option value="${value}" ${value===(g.teacher_channel||'all')?'selected':''}>${label}</option>`).join('')}</select>
-      <b>${esc(g.name)}</b> ${g.teacher_enabled?'<span class="tag active">已激活</span>':'<span class="tag reject">已停用</span>'}
-      ${g.is_active?'<span class="tag beta-tag">默认老师</span>':''}
-      ${g.tag?`<span class="tag beta-tag">标签:${esc(g.tag)} (${g.tagged_families}家庭)</span>`:''}
-      <span style="font-size:12px;color:#8C8A84">${esc(g.base_url||g.provider)} · 模型:${esc(g.chat_model)} · 围栏:${esc(g.fence_name||g.fence_model||'未配置')} · key:${g.has_key?'已配':'沿用环境'} · 老师:${esc(g.teacher_name||'AI 老师')} · 到期后每学生每日免费回复:${g.post_trial_daily_free_count||0} 次</span>
-      ${ROLE==='super'?(g.teacher_enabled?'<button class="ghost" onclick="deactivate('+g.id+')">停用</button>':'<button class="ghost" onclick="activate('+g.id+')">激活</button>'):''}
-      ${ROLE==='super'&&g.teacher_enabled&&!g.is_active?'<button class="ghost" onclick="setDefaultTeacher('+g.id+')">设为默认</button>':''}
-      ${ROLE==='super'?'<button class="ghost" onclick="editGroup('+g.id+')">编辑分组</button> <button class="ghost" onclick="editTeacherImages('+g.id+')">图片能力</button>':''}
-      <button class="ghost" onclick="editTeacher(${g.id},decodeURIComponent('${attr(g.teacher_name||'AI 老师')}'),${g.post_trial_daily_free_count||0},${g.teacher_enabled},${g.teacher_sort_order||0})">老师配置</button>
-      <input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp" style="width:160px;font-size:11px">
-      <button class="ghost" onclick="changeAvatar(${g.id})">上传头像</button>
-      ${ROLE==='super'?'<button class="ghost" onclick="delGroup('+g.id+')">删除</button>':''}
-    </div>`).join('') || '<div style="color:#8C8A84;font-size:13px">暂无分组（使用环境变量配置）</div>';
+    <article class="config-card" aria-label="${esc(g.teacher_name||g.name)}老师配置">
+      <div class="config-head">
+        <div class="identity">${g.teacher_avatar_url?`<img class="avatar" src="${esc(g.teacher_avatar_url)}" alt="">`:`<span class="avatar" aria-hidden="true">${esc((g.teacher_name||g.name||'师').slice(0,1))}</span>`}
+          <div><h3>${esc(g.teacher_name||'AI 老师')}</h3><small>${esc(g.name)}</small></div></div>
+        <span class="tag ${g.teacher_enabled?'active':'reject'}">${g.teacher_enabled?'已激活':'已停用'}</span>
+      </div>
+      <div class="badges">${(g.default_channels||[]).map(channel=>`<span class="tag beta-tag">${CHANNELS[channel]}默认</span>`).join('')}${g.tag?`<span class="tag">${esc(g.tag)} · ${g.tagged_families||0} 个家庭</span>`:''}</div>
+      <dl class="config-meta" style="margin-top:16px">
+        <div><dt>主模型</dt><dd><code>${esc(g.chat_model||'沿用环境')}</code></dd></div>
+        <div><dt>安全围栏</dt><dd>${esc(g.fence_name||g.fence_model||'未配置')}</dd></div>
+        <div><dt>适用渠道</dt><dd><select aria-label="${esc(g.name)}适用渠道" onchange="changeTeacherChannel(${g.id},this.value)">${Object.entries(CHANNELS).map(([value,label])=>`<option value="${value}" ${value===(g.teacher_channel||'all')?'selected':''}>${label}</option>`).join('')}</select></dd></div>
+        <div><dt>到期后每日免费回复</dt><dd>${g.post_trial_daily_free_count>0?g.post_trial_daily_free_count+' 次 / 学生':'不提供免费回复'}</dd></div>
+        <div class="wide"><dt>图片能力</dt><dd>${({off:'读图关闭',native:'主模型读图',assisted:'辅助模型读图'})[g.image_settings?.image_input_mode]||'读图关闭'}${g.image_settings?.image_config_id?' · 支持生图':''}${g.image_settings?.diagram_enabled?' · 程序绘图':''}</dd></div>
+      </dl>
+      <div class="config-actions"><button onclick="editTeacher(${g.id})">老师配置</button>
+        ${ROLE==='super'?`<button class="ghost" onclick="editGroup(${g.id})">模型配置</button><button class="ghost" onclick="editTeacherImages(${g.id})">图片能力</button>`:''}
+      </div>
+      <details class="secondary-tools"><summary>接口、头像与更多操作</summary><dl class="config-meta" style="margin-top:16px"><div class="wide"><dt>接口地址</dt><dd><code>${esc(g.base_url||g.provider)}</code></dd></div><div><dt>API 密钥</dt><dd>${g.has_key?'已配置':'沿用环境配置'}</dd></div></dl><div class="row"><label class="field" for="avatar_${g.id}">更换老师头像<input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp"></label><button class="ghost" onclick="changeAvatar(${g.id})">上传头像</button>
+        ${ROLE==='super'?`<button class="ghost" onclick="${g.teacher_enabled?'deactivate':'activate'}(${g.id})">${g.teacher_enabled?'停用':'激活'}</button><button class="danger" onclick="delGroup(${g.id})">删除老师</button>`:''}
+      </div></details>
+    </article>`).join('') || '<div class="empty-state">暂无老师分组。创建后即可配置模型、渠道与图片能力。</div>';
 }
 
 async function editGroup(id) {
@@ -678,7 +877,14 @@ async function saveGroupEdit() {
 
 async function activate(id) { await api('/admin/llm-groups/'+id+'/activate', {method:'PUT'}); loadGroups(); loadLogs(); }
 async function deactivate(id) { await api('/admin/llm-groups/'+id+'/deactivate', {method:'PUT'}); loadGroups(); loadLogs(); }
-async function setDefaultTeacher(id) { await api('/admin/llm-groups/'+id+'/default', {method:'PUT'}); loadGroups(); loadLogs(); }
+async function saveChannelDefault(channel) {
+  $('channelDefaultStatus').textContent='正在保存…';
+  try {
+    await api('/admin/teacher-defaults/'+channel,{method:'PUT',body:JSON.stringify({teacher_id:Number($('default_'+channel).value)||null})});
+    await loadGroups(); await loadLogs();
+    $('channelDefaultStatus').textContent=CHANNELS[channel]+'默认老师已保存';
+  } catch(e) { $('channelDefaultStatus').textContent=e.message; }
+}
 async function delGroup(id) { if(!confirm('确认删除该分组？')) return; await api('/admin/llm-groups/'+id, {method:'DELETE'}); loadGroups(); }
 
 async function addGroup() {
@@ -718,32 +924,40 @@ async function changeTeacherChannel(id, channel) {
   } catch(e) { alert(e.message); loadGroups(); }
 }
 
-async function editTeacher(id, currentName, currentFree, currentEnabled, currentSort) {
-  const name = prompt('老师名称：', currentName); if (name === null) return;
-  const enabled = confirm(`激活此老师？\n当前设置：${currentEnabled ? '已激活' : '已停用'}（确定=激活，取消=停用）`);
-  const sortText = prompt('展示排序（数字越小越靠前）：', String(currentSort ?? 0));
-  if (sortText === null) return;
-  const sort = Number.parseInt(sortText, 10);
-  if (!Number.isInteger(sort)) { alert('排序必须是整数'); return; }
-  const freeText = prompt('试用到期后每个学生每日免费回复次数（≤0 为不免费）：', String(currentFree));
-  if (freeText === null) return;
-  const free = Number(freeText);
-  if (!Number.isInteger(free)) { alert('免费次数必须是整数'); return; }
-  try { await api('/admin/llm-groups/' + id + '/teacher-profile', {method:'PATCH', body: JSON.stringify({teacher_name:name.trim(), teacher_enabled:enabled, teacher_sort_order:sort, post_trial_daily_free_count:free})}); loadGroups(); }
-  catch(e) { alert(e.message); }
+let editingTeacherProfile=null;
+function editTeacher(id) {
+  const g=GROUPS.find(item=>item.id===id); if(!g)return;
+  editingTeacherProfile=id;
+  $('tp_title').textContent=g.teacher_name||g.name;
+  $('tp_name').value=g.teacher_name||''; $('tp_free').value=g.post_trial_daily_free_count||0;
+  $('tp_sort').value=g.teacher_sort_order||0; $('tp_enabled').checked=g.teacher_enabled;
+  $('tp_error').textContent=''; $('teacherProfile').hidden=false;
+  $('teacherProfile').scrollIntoView({block:'center',behavior:'smooth'});
+}
+async function saveTeacherProfile() {
+  const name=$('tp_name').value.trim(),free=Number($('tp_free').value),sort=Number($('tp_sort').value);
+  if(!name || !Number.isInteger(free) || free<0 || !Number.isInteger(sort)) {
+    $('tp_error').textContent='请填写老师名称，免费次数须为非负整数，排序须为整数'; return;
+  }
+  try {
+    await api('/admin/llm-groups/'+editingTeacherProfile+'/teacher-profile',{method:'PATCH',body:JSON.stringify({teacher_name:name,teacher_enabled:$('tp_enabled').checked,teacher_sort_order:sort,post_trial_daily_free_count:free})});
+    $('teacherProfile').hidden=true; await loadGroups(); await loadLogs();
+  } catch(e) { $('tp_error').textContent=e.message; }
 }
 
 async function loadPricing() {
-  try { const d=await api('/admin/pricing-config'); $('p_base').value=d.base_monthly_price; $('p_seat').value=d.additional_seat_price; $('p_trial').value=d.trial_days; $('pmeta').textContent=(d.last_modified_by ? `最近修改：${d.last_modified_by} · ${(d.last_modified_at||'').replace('T',' ').slice(0,16)} · ${d.last_reason||''}` : '当前为默认配置') + ` · ${d.effective_scope||''}`; } catch(e) { $('perr').textContent=e.message; }
+  try { const d=await api('/admin/pricing-config'); $('p_base').value=d.base_monthly_price; $('p_seat').value=d.additional_seat_price; $('p_trial').value=d.trial_days; $('pmeta').textContent=(d.last_modified_by ? `最近修改：${d.last_modified_by} · ${(d.last_modified_at||'').replace('T',' ').slice(0,16)} · ${d.last_reason||''}` : '当前为默认配置') + (d.effective_scope ? ` · ${d.effective_scope}` : ''); } catch(e) { $('perr').textContent=e.message; }
 }
 async function savePricing() {
-  try { await api('/admin/pricing-config', {method:'POST', body: JSON.stringify({base_monthly_price:parseFloat($('p_base').value), additional_seat_price:parseFloat($('p_seat').value), trial_days:parseInt($('p_trial').value), post_trial_daily_free_count:0, reason:$('p_reason').value})}); $('perr').textContent='已保存'; } catch(e) { $('perr').textContent=e.message; }
+  $('perr').textContent=''; $('pricingStatus').textContent='';
+  try { await api('/admin/pricing-config', {method:'POST', body: JSON.stringify({base_monthly_price:parseFloat($('p_base').value), additional_seat_price:parseFloat($('p_seat').value), trial_days:parseInt($('p_trial').value), post_trial_daily_free_count:0, reason:$('p_reason').value})}); await loadPricing(); $('pricingStatus').textContent='策略已保存'; } catch(e) { $('perr').textContent=e.message; }
 }
 async function resetPricing() {
   if (!confirm('恢复默认订阅策略？此操作会写入操作日志。')) return;
+  $('perr').textContent=''; $('pricingStatus').textContent='';
   try {
     await api('/admin/pricing-config', {method:'POST', body: JSON.stringify({base_monthly_price:66, additional_seat_price:33, trial_days:30, post_trial_daily_free_count:0, reason:'恢复默认值'})});
-    await loadPricing(); $('perr').textContent='已恢复默认';
+    await loadPricing(); $('pricingStatus').textContent='已恢复默认';
   } catch(e) { $('perr').textContent=e.message; }
 }
 
@@ -781,10 +995,11 @@ async function setTag(familyId, tag) {
 const LOG_FIELDS = {name:'名称',base_url:'baseUrl',model_id:'模型 ID',fence_config_id:'围栏',tag:'家庭标签',
   teacher_channel:'适用渠道',teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'激活状态',teacher_sort_order:'展示排序',
   post_trial_daily_free_count:'每日免费回复次数',post_trial_free_enabled:'到期后免费',api_key:'apiKey',provider:'服务类型',
-  is_default:'默认老师',default:'默认老师'};
+  is_default:'原默认老师',default:'原默认老师',cleared_default_channels:'清除渠道默认'};
 function logDetail(detail) {
   try {
     const data = JSON.parse(detail);
+    if (data.channel && 'to' in data) return `${CHANNELS[data.channel]||data.channel}默认老师: #${data.from ?? '未指定'} → #${data.to ?? '未指定'}`;
     if (data.changes) return `#${data.id} · ` + Object.entries(data.changes).map(([field, value]) =>
       `${LOG_FIELDS[field] || field}: ${value.from ?? '无'} → ${value.to ?? '无'}`).join('；');
   } catch (_) {}
@@ -804,21 +1019,31 @@ async function loadAccountDeletions(page = 1) {
   } catch (e) { $('deletionStatus').textContent = '加载失败：'+e.message; }
 }
 async function loadLogs() {
+  $('logStatus').textContent='加载中…';
   try {
     const d = await api('/admin/logs?size=15');
     document.querySelector('#logTable tbody').innerHTML = d.items.map(l =>
       `<tr><td>${esc(l.created_at ? new Date(l.created_at).toLocaleString('zh-CN',{hour12:false}) : '')}</td><td>${esc(l.admin)}</td>
-       <td>${esc(l.action)}</td><td style="font-size:12px;color:#666;overflow-wrap:anywhere">${esc(logDetail(l.detail))}</td></tr>`).join('');
-  } catch (_) {}
+       <td>${esc(l.action)}</td><td style="font-size:12px;color:#666;overflow-wrap:anywhere">${textPreview(logDetail(l.detail),120)}</td></tr>`).join('') || '<tr><td colspan="4">暂无操作日志</td></tr>';
+    $('logStatus').textContent='已更新';
+  } catch(e) {
+    $('logStatus').textContent='加载失败：'+e.message+'，请点击刷新重试';
+    $('logTable').querySelector('tbody').innerHTML='';
+  }
 }
 async function loadAssessmentAudits() {
+  $('assessmentStatus').textContent='加载中…';
   try {
     const d = await api('/admin/assessment-audits?size=50');
     $('assessmentTable').querySelector('tbody').innerHTML = d.items.map(a =>
       `<tr><td>${esc((a.created_at||'').slice(5,16).replace('T',' '))}</td><td>${esc(a.assessment_type)}</td>
        <td>${a.assessment_id}</td><td>${esc(a.actor_role)}:${a.actor_id}</td><td>${esc(a.action)}</td></tr>`).join('')
        || '<tr><td colspan="5">暂无评估审计</td></tr>';
-  } catch (_) {}
+    $('assessmentStatus').textContent='已更新';
+  } catch(e) {
+    $('assessmentStatus').textContent='加载失败：'+e.message+'，请点击刷新重试';
+    $('assessmentTable').querySelector('tbody').innerHTML='';
+  }
 }
 
 if (TOK) boot();
@@ -829,9 +1054,9 @@ async function loadImageUsage() {
   try {
     const d=await api('/admin/image-usage?period='+$('imageUsagePeriod').value);
     const totals=d.items.reduce((t,r)=>({calls:t.calls+r.calls,tokens:t.tokens+r.tokens_in+r.tokens_out,cost:t.cost+r.cost}),{calls:0,tokens:0,cost:0});
-    $('imageUsageCards').innerHTML=[['模型调用',totals.calls],['Token 总量',totals.tokens],['记录费用（元）',totals.cost.toFixed(4)]].map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+    $('imageUsageCards').innerHTML=[['模型调用',totals.calls.toLocaleString('zh-CN')],['Token 总量',totals.tokens.toLocaleString('zh-CN')],['记录费用（元）',totals.cost.toFixed(4)]].map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
     const purposes={vision:'读图',image_plan:'配图规划',image_generate:'生图',image_review:'图片复核'};
-    $('imageUsageTable').querySelector('tbody').innerHTML=d.items.map(r=>`<tr><td>${esc(purposes[r.purpose]||r.purpose)}</td><td>${esc(r.model)}</td><td>${r.calls}</td><td>${r.tokens_in}</td><td>${r.tokens_out}</td><td>${r.cost.toFixed(4)}</td></tr>`).join('')||'<tr><td colspan="6">暂无图片调用记录</td></tr>';
+    $('imageUsageTable').querySelector('tbody').innerHTML=d.items.map(r=>`<tr><td>${esc(purposes[r.purpose]||r.purpose)}</td><td>${esc(r.model)}</td><td>${r.calls.toLocaleString('zh-CN')}</td><td>${r.tokens_in.toLocaleString('zh-CN')}</td><td>${r.tokens_out.toLocaleString('zh-CN')}</td><td>${r.cost.toFixed(4)}</td></tr>`).join('')||'<tr><td colspan="6">暂无图片调用记录</td></tr>';
     $('imageUsageStatus').textContent='已更新';
   } catch(e) {
     $('imageUsageCards').innerHTML='';
@@ -842,7 +1067,10 @@ async function loadImageUsage() {
 async function loadImageModels() {
   try {
     IMAGE_MODELS = await api('/admin/image-models');
-    $('imageModels').innerHTML = IMAGE_MODELS.map(m=>`<div class="row"><b>${esc(m.name)}</b><span>${m.kind==='vision'?'读图':'生图'} · ${esc(m.protocol)} · ${esc(m.model_id)} · v${m.revision} · ${m.enabled?'已启用':m.tested_revision===m.revision?'已测试待启用':'待测试'}</span>${ROLE==='super'?`<button class="ghost" onclick="editImageModel(${m.id})">编辑</button><button class="ghost" onclick="testImageModel(${m.id})">测试（可能计费）</button><button class="ghost" onclick="enableImageModel(${m.id},${!m.enabled})">${m.enabled?'停用':'启用'}</button><button class="ghost" onclick="deleteImageModel(${m.id})">删除</button>`:''}</div>`).join('') || '<p>暂无图片模型配置</p>';
+    $('imageModels').innerHTML = IMAGE_MODELS.map(m=>`<article class="config-card">
+      <div class="config-head"><div class="identity"><span class="avatar" aria-hidden="true">${m.kind==='vision'?'读':'图'}</span><div><h3>${esc(m.name)}</h3><small>${m.kind==='vision'?'读图与复核模型':'图片生成模型'}</small></div></div><span class="tag ${m.enabled?'active':m.tested_revision===m.revision?'beta-tag':'rewrite'}">${m.enabled?'已启用':m.tested_revision===m.revision?'已测试 · 待启用':'待测试'}</span></div>
+      <dl class="config-meta"><div class="wide"><dt>模型 ID</dt><dd><code>${esc(m.model_id)}</code></dd></div><div><dt>接口协议</dt><dd>${esc(m.protocol)}</dd></div><div><dt>配置版本</dt><dd>v${m.revision}</dd></div><div><dt>输入单价</dt><dd>¥${m.price_in??0} / ${m.kind==='vision'?'百万 Token':'张'}</dd></div><div><dt>输出单价</dt><dd>¥${m.price_out??0} / ${m.kind==='vision'?'百万 Token':'张'}</dd></div></dl>
+      ${ROLE==='super'?`<div class="config-actions"><button class="ghost" onclick="editImageModel(${m.id})">编辑配置</button><button class="ghost" onclick="testImageModel(${m.id})">测试（可能计费）</button><button class="ghost" onclick="enableImageModel(${m.id},${!m.enabled})">${m.enabled?'停用':'启用'}</button><button class="danger" onclick="deleteImageModel(${m.id})">删除</button></div>`:''}</article>`).join('') || '<div class="empty-state">暂无图片模型，展开下方表单创建读图或生图配置。</div>';
   } catch(e) { $('im_error').textContent=e.message; }
 }
 function resetImageModel() {
@@ -853,6 +1081,7 @@ function resetImageModel() {
 function editImageModel(id) {
   const m=IMAGE_MODELS.find(x=>x.id===id); if(!m)return;
   editingImageModel=id; $('im_title').textContent='编辑图片配置：'+m.name;
+  $('imageModelEditor').open=true; $('imageModelEditor').scrollIntoView({block:'start',behavior:'smooth'});
   for(const [id,key] of Object.entries({im_name:'name',im_kind:'kind',im_protocol:'protocol',im_base:'base_url',im_model:'model_id',im_pin:'price_in',im_pout:'price_out'}))$(id).value=m[key];
   $('im_key').value=''; $('im_edit').checked=m.supports_edit; $('im_kind').disabled=true;
 }
