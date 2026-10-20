@@ -366,6 +366,7 @@ def delete_student(student_id: int, purge: bool = False,
         db.query(UsageLog).filter_by(student_id=student.id).delete()
         db.add(AdminLog(admin=f"guardian:{guardian.id}", action="student.delete",
                         detail=deletion_detail))
+        db.flush()  # autoflush=False: remove queued conversations before their student FK target.
         db.query(S).filter_by(id=student.id).delete()
         db.commit()
         return {"ok": True, "mode": "purged"}

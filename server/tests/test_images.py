@@ -514,3 +514,44 @@ def test_consistency_rejection_never_publishes_output(client, image_env, monkeyp
         db.get(LLMGroup, e['gid']).image_config_id = None
         db.flush()
         db.query(ImageModelConfig).filter_by(id=generation_id).delete()
+
+
+def test_purge_image_conversation_with_foreign_keys():
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+    from app.db import Base
+    from app.models import Family, Guardian
+    from app.api.parent import delete_student
+
+    engine = create_engine('sqlite://')
+    with engine.begin() as connection:
+        connection.exec_driver_sql('PRAGMA foreign_keys=ON')
+        Base.metadata.create_all(connection)
+    try:
+        with Session(engine, autoflush=False) as db:
+            family = Family()
+            db.add(family)
+            db.flush()
+            guardian = Guardian(family_id=family.id)
+            student = Student(family_id=family.id, device_id='purge-image-device')
+            db.add_all([guardian, student])
+            db.flush()
+            conversation = Conversation(student_id=student.id)
+            db.add(conversation)
+            db.flush()
+            message = Message(conversation_id=conversation.id, role='assistant', content='数学图示')
+            db.add(message)
+            db.flush()
+            aid = uuid.uuid4().hex
+            db.add(MediaAsset(id=aid, student_id=student.id, message_id=message.id,
+                              object_key='private/purge.jpg', status='ready'))
+            db.add(ImageJob(message_id=message.id, student_id=student.id, snapshot_json='{}'))
+            db.commit()
+            sid = student.id
+            assert delete_student(sid, True, guardian, db)['mode'] == 'purged'
+            assert db.get(Student, sid) is None
+            assert not db.query(Conversation).count()
+            assert not db.query(ImageJob).count()
+            assert db.get(MediaAsset, aid).status == 'deleting'
+    finally:
+        engine.dispose()
