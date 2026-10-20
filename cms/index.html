@@ -8,11 +8,29 @@
 <style>
   :root { --primary:#253A68; --accent:#2F8B7D; --line:#E2E8EF; --ink:#172334; --muted:#71808E; }
   * { box-sizing:border-box; margin:0; font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif; }
-  body { background:linear-gradient(180deg,#F0F4FF 0,#F7FAFC 32%,#F7FAFC 100%); color:var(--ink); }
+  body { min-height:100vh; background:linear-gradient(180deg,#F0F4FF 0,#F7FAFC 32%,#F7FAFC 100%); color:var(--ink); }
   header { background:rgba(37,58,104,.96); color:#fff; padding:18px 24px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 8px 24px rgba(37,58,104,.18); }
   header b { font-size:18px; letter-spacing:.2px; display:flex; align-items:center; gap:8px; } header span { font-size:12px; opacity:.75; }
   .brand-mark { width:28px; height:28px; flex:none; } header .brand-mark { filter:brightness(0) invert(1); }
-  main { max-width:1120px; margin:24px auto; padding:0 16px; }
+  [hidden] { display:none !important; }
+  .sidebar { position:fixed; inset:0 auto 0 0; width:224px; padding:26px 16px; background:#fff; border-right:1px solid var(--line); overflow-y:auto; }
+  .sidebar-brand { display:flex; align-items:center; gap:10px; padding:0 10px 24px; font-size:18px; color:var(--primary); }
+  .sidebar-brand b { display:flex; align-items:center; gap:8px; }
+  .sidebar nav { display:grid; gap:6px; }
+  .nav-label { color:var(--muted); font-size:11px; padding:18px 14px 6px; letter-spacing:1px; }
+  .nav-button { width:100%; text-align:left; padding:12px 14px; color:var(--muted); background:transparent; border:1px solid transparent; }
+  .nav-button[aria-current="page"] { background:#EAF5F2; color:#216D62; border-color:#D5EAE4; }
+  button:focus-visible { outline:3px solid rgba(47,139,125,.4); outline-offset:2px; }
+  .menu-toggle { display:none; }
+  .queue-tabs [aria-selected="true"] { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .workspace { margin-left:224px; min-width:0; }
+  main { max-width:1340px; margin:24px auto; padding:0 24px 32px; }
+  .page-heading { margin:26px 0 20px; }
+  .page-heading h1 { font-size:26px; color:var(--primary); }
+  .page-heading p { color:var(--muted); font-size:13px; margin-top:8px; }
+  section { overflow-x:auto; }
+  #teacherImages { border-top:1px solid var(--line); padding-top:18px; }
+  #teacherImages h3 { margin-bottom:14px; }
   .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
   .card { background:rgba(255,255,255,.94); border-radius:16px; padding:17px 18px; border:1px solid var(--line); box-shadow:0 8px 24px rgba(34,58,90,.06); }
   .card .k { font-size:12px; color:var(--muted); } .card .v { font-size:24px; font-weight:800; color:var(--primary); margin-top:5px; }
@@ -38,7 +56,22 @@
   #login input { width:100%; margin:8px 0; }
   .err { color:#C0392B; font-size:12px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  @media (max-width:720px){ .grid2{grid-template-columns:1fr;} }
+  @media (max-width:720px){
+    .grid2 { grid-template-columns:1fr; }
+    .sidebar { position:sticky; top:0; z-index:10; width:100%; padding:12px 16px; border-right:0; border-bottom:1px solid var(--line); max-height:80vh; }
+    .sidebar-brand { padding:0; justify-content:space-between; }
+    .menu-toggle { display:block; }
+    .sidebar nav { display:none; padding-top:12px; }
+    .sidebar.nav-open nav { display:grid; grid-template-columns:1fr 1fr; }
+    .nav-label { grid-column:1 / -1; padding-top:10px; }
+    .workspace { margin-left:0; }
+    header { padding:14px 16px; gap:12px; flex-wrap:wrap; }
+    header b { font-size:15px; }
+    main { padding:0 16px 24px; margin-top:16px; }
+    .page-heading h1 { font-size:22px; }
+    input, select { max-width:100%; }
+    section { padding:16px; }
+  }
 </style>
 </head>
 <body>
@@ -51,14 +84,33 @@
 </div>
 
 <div id="app" style="display:none">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand"><b><img class="brand-mark" src="/logo.svg" alt=""> AI 助学</b><button class="ghost menu-toggle" id="menuToggle" aria-controls="cmsNav" aria-expanded="false" onclick="toggleMenu()">菜单</button></div>
+  <nav id="cmsNav" aria-label="后台分类菜单">
+    <span class="nav-label">运营管理</span>
+    <button class="nav-button" data-nav="overview" aria-controls="overviewPage" onclick="showPage('overview')">概览</button>
+    <button class="nav-button" data-nav="families" aria-controls="familiesPage" onclick="showPage('families')">家庭与学生</button>
+    <button class="nav-button" data-nav="feedback" data-admin-only aria-controls="feedbackPage" onclick="showPage('feedback')">反馈与举报</button>
+    <span class="nav-label" data-admin-only>老师与模型</span>
+    <button class="nav-button" data-nav="teachers" data-admin-only aria-controls="teachersPage" onclick="showPage('teachers')">老师管理</button>
+    <button class="nav-button" data-nav="images" data-admin-only aria-controls="imagesPage" onclick="showPage('images')">图片能力</button>
+    <button class="nav-button" data-nav="safety" data-admin-only aria-controls="safetyPage" onclick="showPage('safety')">围栏管理</button>
+    <span class="nav-label">系统管理</span>
+    <button class="nav-button" data-nav="pricing" data-super-only aria-controls="pricingSection" onclick="showPage('pricing')">订阅策略</button>
+    <button class="nav-button" data-nav="users" data-super-only aria-controls="usersSection" onclick="showPage('users')">权限管理</button>
+    <button class="nav-button" data-nav="audit" aria-controls="auditPage" onclick="showPage('audit')">日志与审计</button>
+  </nav>
+</aside>
+<div class="workspace">
 <header><b><img class="brand-mark" src="/logo.svg" alt="">AI 助学 CMS · 运营管理</b><span id="grp"></span></header>
 <main>
-  <section>
+  <div class="page-heading"><h1 id="pageTitle" tabindex="-1">概览</h1><p>AI 助学运营控制台 · 按分类管理内容与配置</p></div>
+  <section id="overviewPage" data-page="overview">
     <h2>核心指标</h2>
     <div class="cards" id="cards"></div>
   </section>
 
-  <div class="grid2">
+  <div class="grid2" data-page="safety" data-admin-only hidden>
     <section>
       <h2>围栏处置分布（policy 阶段）</h2>
       <div id="fenceDist"></div>
@@ -71,39 +123,45 @@
     </section>
   </div>
 
-  <section data-admin-only>
+  <section id="feedbackPage" data-page="feedback" data-admin-only hidden>
     <h2>误判反馈 / 失效样本</h2>
-    <div class="row"><button class="ghost" onclick="loadFeedback()">刷新反馈</button></div>
+    <div class="row queue-tabs" role="tablist" aria-label="反馈处理状态">
+      <button class="ghost" id="feedbackOpenTab" role="tab" aria-selected="true" aria-controls="feedbackPanel" onclick="switchQueue('feedback','open')">待处理</button>
+      <button class="ghost" id="feedbackHandledTab" role="tab" aria-selected="false" aria-controls="feedbackPanel" onclick="switchQueue('feedback','handled')">已处理</button>
+    </div>
+    <div id="feedbackPanel" role="tabpanel" aria-labelledby="feedbackOpenTab">
+    <div class="row"><button class="ghost" onclick="loadFeedback()">刷新反馈</button><span id="feedbackStatus" aria-live="polite"></span></div>
     <table id="feedbackTable"><thead><tr><th>时间</th><th>会话</th><th>原处置</th><th>内容</th><th>状态</th><th>操作</th></tr></thead><tbody></tbody></table>
+    <div class="row"><button class="ghost" id="feedbackPrev" onclick="loadFeedback(feedbackQueue.page-1)" disabled>上一页</button><span id="feedbackPagination"></span><button class="ghost" id="feedbackNext" onclick="loadFeedback(feedbackQueue.page+1)" disabled>下一页</button></div>
+    </div>
   </section>
 
-  <section data-admin-only>
+  <section data-page="feedback" data-admin-only hidden>
     <h2>学生消息举报</h2>
+    <div class="row queue-tabs" role="tablist" aria-label="举报处理状态">
+      <button class="ghost" id="reportOpenTab" role="tab" aria-selected="true" aria-controls="reportPanel" onclick="switchQueue('report','open')">待处理</button>
+      <button class="ghost" id="reportHandledTab" role="tab" aria-selected="false" aria-controls="reportPanel" onclick="switchQueue('report','handled')">已处理</button>
+    </div>
+    <div id="reportPanel" role="tabpanel" aria-labelledby="reportOpenTab">
     <div class="row"><button class="ghost" onclick="loadReports()">刷新举报</button><span id="reportStatus" aria-live="polite"></span></div>
     <table id="reportTable"><thead><tr><th>时间</th><th>学生</th><th>消息内容</th><th>举报原因</th><th>状态</th><th>回复</th><th>操作</th></tr></thead><tbody></tbody></table>
+    <div class="row"><button class="ghost" id="reportPrev" onclick="loadReports(reportQueue.page-1)" disabled>上一页</button><span id="reportPagination"></span><button class="ghost" id="reportNext" onclick="loadReports(reportQueue.page+1)" disabled>下一页</button></div>
+    </div>
   </section>
 
-  <section data-admin-only>
+  <section data-page="families" data-admin-only hidden>
     <h2>家长账号删除记录</h2>
     <div class="row"><button class="ghost" onclick="loadAccountDeletions()">刷新记录</button><span id="deletionStatus" aria-live="polite"></span></div>
     <table id="deletionTable"><thead><tr><th>申请编号</th><th>原家庭</th><th>原家长</th><th>申请时间</th><th>处理状态</th><th>完成时间</th></tr></thead><tbody></tbody></table>
     <div class="row"><button class="ghost" id="deletionPrev" onclick="loadAccountDeletions(deletionPage-1)">上一页</button><span id="deletionPage"></span><button class="ghost" id="deletionNext" onclick="loadAccountDeletions(deletionPage+1)">下一页</button></div>
   </section>
 
-  <section>
-    <h2>家族列表</h2>
+  <section id="familiesPage" data-page="families" hidden>
+    <h2>家庭与学生</h2>
     <table id="famTable"><thead><tr><th>ID</th><th>监护人</th><th>学生</th><th>消息数</th><th>标签</th><th>协助/会员操作</th><th>创建</th></tr></thead><tbody></tbody></table>
   </section>
 
-  <section data-super-only>
-    <h2>配置页面</h2>
-    <div class="row">
-      <button class="ghost" onclick="showSettings('pricing')">订阅策略</button>
-      <button class="ghost" onclick="showSettings('users')">权限管理</button>
-    </div>
-  </section>
-
-  <section data-admin-only>
+  <section id="safetyPage" data-page="safety" data-admin-only hidden>
     <h2>围栏模型</h2>
     <div id="fences"></div>
     <div data-super-only>
@@ -128,8 +186,15 @@
         <div id="fe_err" class="err"></div>
       </div>
     </div>
-    <div data-admin-only>
-      <h2>图片模型配置</h2>
+  </section>
+
+  <section id="imagesPage" data-page="images" data-admin-only hidden>
+      <h2>图片使用统计</h2>
+      <div class="row"><select id="imageUsagePeriod" aria-label="图片统计时段" onchange="loadImageUsage()"><option value="today">今日</option><option value="all">累计</option></select><button class="ghost" onclick="loadImageUsage()">刷新统计</button><span id="imageUsageStatus" role="status"></span></div>
+      <div id="imageUsageCards" class="cards"></div>
+      <table id="imageUsageTable"><thead><tr><th>用途</th><th>模型</th><th>调用次数</th><th>输入 Token</th><th>输出 Token</th><th>记录费用（元）</th></tr></thead><tbody></tbody></table>
+      <p style="font-size:12px;color:var(--muted)">按业务时区统计已记录的模型调用，包含读图、配图规划、生图和复核；程序绘图不调用生图模型。费用按配置单价估算，未配置单价及模型测试费用不计入，不能替代供应商账单。</p>
+      <h2 style="margin-top:24px">图片模型配置</h2>
       <p>读图与生图独立配置，可供多位老师共用。修改后须重新测试并启用；生图测试会实际调用并可能产生费用。</p>
       <div id="imageModels"></div>
       <div data-super-only>
@@ -148,6 +213,14 @@
         </div>
         <p style="font-size:12px">读图价格：元/百万 Token；生图价格：元/输入张、元/输出张。协议地址为 API 根路径，不含具体方法。</p>
         <div id="im_error" class="err"></div>
+
+      </div>
+  </section>
+
+  <section id="teachersPage" data-page="teachers" data-admin-only hidden>
+    <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（可激活多位老师；仅一位默认）</span></h2>
+    <div id="groups"></div>
+    <div data-super-only>
         <div id="teacherImages" style="display:none">
           <h3>老师图片能力：<span id="ti_name"></span></h3>
           <div class="row">
@@ -163,11 +236,6 @@
           <p style="font-size:12px">输出图片需要读图模型复核。主模型不能读图时请选择独立读图配置；程序绘图中文字体须部署 IMAGE_FONT_PATH。</p>
           <div id="ti_error" class="err"></div>
         </div>
-      </div>
-    </div>
-    <h2>LLM 分组管理 <span style="font-weight:400;font-size:12px;color:#8C8A84">（可激活多位老师；仅一位默认）</span></h2>
-    <div id="groups"></div>
-    <div data-super-only>
       <h2 style="margin-top:14px">新建分组</h2>
       <div class="row">
         <input id="g_name" placeholder="名称" style="width:110px">
@@ -183,7 +251,7 @@
         <label style="font-size:12px"><input id="g_enabled" type="checkbox" checked> 创建后激活</label>
         <button onclick="addGroup()">创建</button>
       </div>
-      <div style="font-size:12px;color:#8C8A84">学生未选过老师时使用默认老师，选过后沿用上次选择；没有默认老师时才按家庭标签匹配。家庭标签可在下方家庭列表配置。</div>
+      <div style="font-size:12px;color:#8C8A84">学生未选过老师时使用默认老师，选过后沿用上次选择；没有默认老师时才按家庭标签匹配。家庭标签可在“家庭与学生”中配置。</div>
       <div id="gerr" class="err"></div>
       <div id="g_edit" style="display:none;border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
         <h2>编辑分组：<span id="ge_title"></span></h2>
@@ -211,7 +279,7 @@
     </div>
   </section>
 
-  <section id="pricingSection" data-super-only>
+  <section id="pricingSection" data-page="pricing" data-super-only hidden>
     <h2>订阅策略</h2>
     <p style="font-size:12px">固定套餐：10 个名额 ¥300/月、100 个名额 ¥3000/月，不随基础及增量月费调整。</p>
     <div class="row">
@@ -225,7 +293,7 @@
     <div id="perr" class="err"></div>
     <div id="pmeta" style="font-size:12px;color:#8C8A84"></div>
   </section>
-  <section id="usersSection" data-super-only style="display:none">
+  <section id="usersSection" data-page="users" data-super-only hidden>
     <h2>权限管理</h2>
     <div class="row">
       <input id="u_name" placeholder="用户名" style="width:130px">
@@ -236,16 +304,17 @@
     </div>
     <table id="userTable"><thead><tr><th>用户名</th><th>角色</th><th>备注</th><th>创建时间</th><th>操作</th></tr></thead><tbody></tbody></table>
   </section>
-  <section>
+  <section id="auditPage" data-page="audit" hidden>
     <h2>操作日志</h2>
     <table id="logTable"><thead><tr><th>时间</th><th>管理员</th><th>操作</th><th>详情</th></tr></thead><tbody></tbody></table>
   </section>
-  <section data-admin-only>
+  <section data-page="audit" data-admin-only hidden>
     <h2>评估审计</h2>
     <div class="row"><button class="ghost" onclick="loadAssessmentAudits()">刷新评估审计</button></div>
     <table id="assessmentTable"><thead><tr><th>时间</th><th>类型</th><th>评估</th><th>操作者</th><th>动作</th></tr></thead><tbody></tbody></table>
   </section>
 </main>
+</div>
 </div>
 
 <script>
@@ -290,11 +359,12 @@ function boot() {
       (d.llm_group ? '当前分组: '+d.llm_group.name : '基础工单视图');
     // RBAC：ops 隐藏写操作区块
     document.querySelectorAll('[data-super-only]').forEach(el => {
-      el.style.display = ROLE === 'super' ? '' : 'none';
+      el.hidden = ROLE !== 'super';
     });
     document.querySelectorAll('[data-admin-only]').forEach(el => {
-      el.style.display = (ROLE === 'super' || ROLE === 'admin') ? '' : 'none';
+      el.hidden = ROLE !== 'super' && ROLE !== 'admin';
     });
+    showPage(sessionStorage.getItem('cms_page') || 'overview', false);
     const s=d.scale, a=d.activity, c=d.cost, f=d.fence;
     const cards = [
       ['家庭', s.families],['监护人', s.guardians],['学生', s.students],['对话', s.conversations],['消息', s.messages],
@@ -311,7 +381,7 @@ function boot() {
     }
     if (ROLE === 'support') $('fenceTable').querySelector('tbody').innerHTML = '<tr><td colspan="4">客服角色不显示围栏详情</td></tr>';
     else loadFence();
-    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadImageModels(); loadFeedback(); loadReports(); loadAssessmentAudits(); loadAccountDeletions(); } if (ROLE === 'super') { loadPricing(); loadUsers(); showSettings('pricing'); } loadLogs();
+    loadFamilies(); if (ROLE === 'super' || ROLE === 'admin') { loadFences(); loadGroups(); loadImageModels(); loadImageUsage(); loadFeedback(); loadReports(); loadAssessmentAudits(); loadAccountDeletions(); } if (ROLE === 'super') { loadPricing(); loadUsers(); } loadLogs();
   }).catch(e => { if (e.message !== 'reauth') $('lerr').textContent = e.message; });
 }
 
@@ -350,29 +420,64 @@ async function assistBind(familyId) {
   } catch(e) { alert(e.message); }
 }
 
-async function loadFeedback() {
-  const d = await api('/admin/fence-feedback?status=open&size=30');
-  $('feedbackTable').querySelector('tbody').innerHTML = d.items.map(f => `<tr>
-    <td>${esc((f.created_at||'').slice(5,16).replace('T',' '))}</td><td>${f.conversation_id}</td>
-    <td>${esc(f.decision||'—')} / ${esc(f.category||'—')}</td><td>${esc((f.content||'').slice(0,80))}</td>
-    <td>${esc(f.status)}</td><td><button class="ghost" onclick="closeFeedback(${f.id})">标记已复核</button></td></tr>`).join('') || '<tr><td colspan="6">暂无开放反馈</td></tr>';
+const feedbackQueue = {status:'open',page:1}, reportQueue = {status:'open',page:1};
+function switchQueue(prefix, status) {
+  const queue = prefix==='feedback' ? feedbackQueue : reportQueue;
+  queue.status=status;
+  for (const [suffix,value] of [['Open','open'],['Handled','handled']]) {
+    $(prefix+suffix+'Tab').setAttribute('aria-selected',String(value===status));
+  }
+  $(prefix+'Panel').setAttribute('aria-labelledby',prefix+(status==='open'?'Open':'Handled')+'Tab');
+  return prefix==='feedback' ? loadFeedback(1) : loadReports(1);
+}
+function queuePage(prefix, queue, total) {
+  const pages=Math.max(1,Math.ceil(total/30));
+  $(prefix+'Pagination').textContent=`第 ${queue.page} / ${pages} 页 · 共 ${total} 条`;
+  $(prefix+'Prev').disabled=queue.page<=1;
+  $(prefix+'Next').disabled=queue.page>=pages;
+  $(prefix+'Status').textContent='';
+}
+const FEEDBACK_STATUS = {open:'待处理',reviewed:'已复核',dismissed:'已驳回'};
+async function loadFeedback(page=feedbackQueue.page) {
+  feedbackQueue.page=page;
+  const status=feedbackQueue.status;
+  $('feedbackTable').querySelector('tbody').innerHTML='';
+  $('feedbackStatus').textContent='加载中…';
+  try {
+    const d = await api(`/admin/fence-feedback?status=${status}&size=30&page=${page}`);
+    if (status!==feedbackQueue.status || page!==feedbackQueue.page) return;
+    if (!d.items.length && page>1) return loadFeedback(page-1);
+    $('feedbackTable').querySelector('tbody').innerHTML = d.items.map(f => `<tr>
+      <td>${esc((f.created_at||'').slice(5,16).replace('T',' '))}</td><td>${f.conversation_id}</td>
+      <td>${esc(f.decision||'—')} / ${esc(f.category||'—')}</td><td>${esc((f.content||'').slice(0,80))}</td>
+      <td>${esc(FEEDBACK_STATUS[f.status]||f.status)}</td><td>${f.status==='open'?`<button class="ghost" onclick="closeFeedback(${f.id})">标记已复核</button>`:'—'}</td></tr>`).join('') || `<tr><td colspan="6">暂无${status==='open'?'待处理':'已处理'}反馈</td></tr>`;
+    queuePage('feedback',feedbackQueue,d.total);
+  } catch(e) { if(status===feedbackQueue.status && page===feedbackQueue.page) $('feedbackStatus').textContent=e.message; }
 }
 async function closeFeedback(id) {
-  await api('/admin/fence-feedback/' + id, {method:'PATCH', body: JSON.stringify({status:'reviewed'})});
-  loadFeedback();
+  try {
+    await api('/admin/fence-feedback/' + id, {method:'PATCH', body: JSON.stringify({status:'reviewed'})});
+    await loadFeedback();
+  } catch(e) { $('feedbackStatus').textContent=e.message; }
 }
 
-async function loadReports() {
+async function loadReports(page=reportQueue.page) {
+  reportQueue.page=page;
+  const status=reportQueue.status;
+  $('reportTable').querySelector('tbody').innerHTML='';
+  $('reportStatus').textContent='加载中…';
   try {
-    const d = await api('/admin/fence-feedback?kind=message_report&size=100');
+    const d = await api(`/admin/fence-feedback?kind=message_report&status=${status}&size=30&page=${page}`);
+    if (status!==reportQueue.status || page!==reportQueue.page) return;
+    if (!d.items.length && page>1) return loadReports(page-1);
     $('reportTable').querySelector('tbody').innerHTML = d.items.map(f => `<tr>
       <td>${esc((f.created_at||'').slice(0,16).replace('T',' '))}</td><td>${f.student_id}</td>
       <td style="max-width:280px;white-space:pre-wrap">${esc((f.content||'').slice(0,500))}</td>
       <td style="max-width:220px;white-space:pre-wrap">${esc(f.note||'')}</td>
-      <td>${esc(f.status)}</td><td>${esc(f.reply||'—')}</td>
-      <td><button class="ghost" onclick="replyReport(${f.id},decodeURIComponent('${attr(f.reply||'')}'))">${f.reply?'修改回复':'回复'}</button></td></tr>`).join('') || '<tr><td colspan="7">暂无举报</td></tr>';
-    $('reportStatus').textContent = `共 ${d.total} 条举报`;
-  } catch(e) { $('reportStatus').textContent = e.message; }
+      <td>${esc(FEEDBACK_STATUS[f.status]||f.status)}</td><td>${esc(f.reply||'—')}</td>
+      <td><button class="ghost" onclick="replyReport(${f.id},decodeURIComponent('${attr(f.reply||'')}'))">${f.reply?'修改回复':'回复'}</button></td></tr>`).join('') || `<tr><td colspan="7">暂无${status==='open'?'待处理':'已处理'}举报</td></tr>`;
+    queuePage('report',reportQueue,d.total);
+  } catch(e) { if(status===reportQueue.status && page===reportQueue.page) $('reportStatus').textContent=e.message; }
 }
 async function replyReport(id, current) {
   const reply = prompt('回复学生（最多 1000 字）：', current);
@@ -403,9 +508,34 @@ async function editUser(id, role, note) {
     loadUsers();
   } catch(e) { alert(e.message); }
 }
-function showSettings(page) {
-  $('pricingSection').style.display = page === 'pricing' ? '' : 'none';
-  $('usersSection').style.display = page === 'users' ? '' : 'none';
+function canView(element) {
+  return (!element.hasAttribute('data-super-only') || ROLE === 'super') &&
+    (!element.hasAttribute('data-admin-only') || ROLE === 'super' || ROLE === 'admin');
+}
+function toggleMenu() {
+  const open = $('sidebar').classList.toggle('nav-open');
+  $('menuToggle').setAttribute('aria-expanded', String(open));
+}
+function showPage(page, focus = true) {
+  const buttons = [...document.querySelectorAll('[data-nav]')];
+  const selected = buttons.find(button => button.dataset.nav === page && canView(button)) || buttons[0];
+  page = selected.dataset.nav;
+  document.querySelectorAll('[data-page]').forEach(panel => {
+    panel.hidden = panel.dataset.page !== page || !canView(panel);
+  });
+  buttons.forEach(button => {
+    button.hidden = !canView(button);
+    if (button === selected) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+  $('pageTitle').textContent = selected.textContent;
+  sessionStorage.setItem('cms_page', page);
+  $('sidebar').classList.remove('nav-open');
+  $('menuToggle').setAttribute('aria-expanded', 'false');
+  if (focus) {
+    $('pageTitle').focus({preventScroll:true});
+    window.scrollTo({top:0});
+  }
 }
 async function createUser() {
   try {
@@ -694,6 +824,21 @@ async function loadAssessmentAudits() {
 if (TOK) boot();
 
 let IMAGE_MODELS = [], editingImageModel = null, editingImageTeacher = null;
+async function loadImageUsage() {
+  $('imageUsageStatus').textContent='加载中…';
+  try {
+    const d=await api('/admin/image-usage?period='+$('imageUsagePeriod').value);
+    const totals=d.items.reduce((t,r)=>({calls:t.calls+r.calls,tokens:t.tokens+r.tokens_in+r.tokens_out,cost:t.cost+r.cost}),{calls:0,tokens:0,cost:0});
+    $('imageUsageCards').innerHTML=[['模型调用',totals.calls],['Token 总量',totals.tokens],['记录费用（元）',totals.cost.toFixed(4)]].map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+    const purposes={vision:'读图',image_plan:'配图规划',image_generate:'生图',image_review:'图片复核'};
+    $('imageUsageTable').querySelector('tbody').innerHTML=d.items.map(r=>`<tr><td>${esc(purposes[r.purpose]||r.purpose)}</td><td>${esc(r.model)}</td><td>${r.calls}</td><td>${r.tokens_in}</td><td>${r.tokens_out}</td><td>${r.cost.toFixed(4)}</td></tr>`).join('')||'<tr><td colspan="6">暂无图片调用记录</td></tr>';
+    $('imageUsageStatus').textContent='已更新';
+  } catch(e) {
+    $('imageUsageCards').innerHTML='';
+    $('imageUsageTable').querySelector('tbody').innerHTML='';
+    $('imageUsageStatus').textContent=e.message;
+  }
+}
 async function loadImageModels() {
   try {
     IMAGE_MODELS = await api('/admin/image-models');
@@ -733,6 +878,7 @@ async function deleteImageModel(id) {
 }
 async function editTeacherImages(id) {
   await loadImageModels();const g=GROUPS.find(x=>x.id===id);if(!g)return;
+  showPage('teachers');
   editingImageTeacher=id;const v=g.image_settings||{};
   $('teacherImages').style.display='';$('ti_name').textContent=g.teacher_name;
   $('ti_mode').value=v.image_input_mode||'off';

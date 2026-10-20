@@ -3,12 +3,14 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, model_validator
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .admin import AdminPrincipal, _base_url, log, require_admin, require_manage, require_operate
 from ..db import get_db
-from ..models import ImageModelConfig, LLMGroup
+from ..local_time import local_now, utc_bounds
+from ..models import ImageModelConfig, LLMGroup, UsageLog
 from ..services import image_models
 from ..services.keyvault import encrypt_api_key
 
@@ -46,6 +48,22 @@ def public(config: ImageModelConfig):
 def list_configs(principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
     require_operate(principal)
     return [public(config) for config in db.query(ImageModelConfig).order_by(ImageModelConfig.id).all()]
+
+
+@router.get("/image-usage")
+def image_usage(period: Literal["today", "all"] = "today",
+                principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
+    require_operate(principal)
+    query = db.query(UsageLog.purpose, UsageLog.model, func.count(UsageLog.id).label("calls"),
+                     func.sum(UsageLog.tokens_in).label("tokens_in"),
+                     func.sum(UsageLog.tokens_out).label("tokens_out"), func.sum(UsageLog.cost).label("cost"))
+    query = query.filter(UsageLog.provider == "image", UsageLog.purpose.in_(
+        ["vision", "image_plan", "image_generate", "image_review"]))
+    if period == "today":
+        start, end = utc_bounds(local_now().date().isoformat())
+        query = query.filter(UsageLog.created_at >= start, UsageLog.created_at < end)
+    rows = query.group_by(UsageLog.purpose, UsageLog.model).order_by(UsageLog.purpose, UsageLog.model).all()
+    return {"items": [dict(row._mapping) for row in rows]}
 
 
 @router.post("/image-models")

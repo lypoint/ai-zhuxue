@@ -371,13 +371,15 @@ def fence_feedback(status: str | None = None, kind: str = "false_positive", page
                    principal: AdminPrincipal = Depends(require_admin),
                    db: Session = Depends(get_db)):
     """误判反馈/失效样本队列；客服只能看到脱敏摘要。"""
-    if status not in (None, "open", "reviewed", "dismissed"):
-        raise HTTPException(422, "status 须为 open、reviewed 或 dismissed")
+    if status not in (None, "open", "reviewed", "dismissed", "handled"):
+        raise HTTPException(422, "status 须为 open、reviewed、dismissed 或 handled")
     if kind not in ("false_positive", "message_report"):
         raise HTTPException(422, "kind 无效")
     size = min(max(size, 1), 100)
     q = db.query(FenceFeedback).filter_by(kind=kind)
-    if status:
+    if status == "handled":
+        q = q.filter(FenceFeedback.status.in_(["reviewed", "dismissed"]))
+    elif status:
         q = q.filter_by(status=status)
     total = q.count()
     rows = q.order_by(FenceFeedback.id.desc()).offset((page - 1) * size).limit(size).all()
