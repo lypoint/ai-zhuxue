@@ -274,7 +274,10 @@ def test_worker_draw_review_store_and_recover(client, image_env, monkeypatch):
             return {'content': '{"ok":true}'}
         return {'content': json.dumps({'kind': 'drawing', 'caption': '数学数轴', 'shapes': [
             {'kind': 'arrow', 'points': [[20, 500], [900, 500]]}]})}
-    async def allow(*args, **kwargs):
+    async def allow(text, *args, **kwargs):
+        assert '学生的学习题目：一元一次方程如何理解' in text
+        assert '老师的教学讲解：数学方程可以用天平理解' in text
+        assert '配图方案：\n数学数轴' in text
         return {'decision': 'allow'}
     stored = []
     async def store(key, data):

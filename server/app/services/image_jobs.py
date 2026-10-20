@@ -111,7 +111,12 @@ async def execute(job_id: int):
                 job.finished_at = dt.datetime.now(dt.timezone.utc)
                 db.commit()
                 return
-            verdict = await fence.evaluate(plan.caption + "\n" + plan.prompt + "\n" + " ".join(s.label for s in plan.shapes),
+            # Classify the plan in its lesson context; standalone drawing commands look off-topic.
+            review_text = ("学生的学习题目：" + snapshot["context"] +
+                           "\n老师的教学讲解：" + snapshot["content"] +
+                           "\n为上述题目制作的配图方案：\n" + plan.caption + "\n" + plan.prompt +
+                           "\n" + " ".join(s.label for s in plan.shapes))
+            verdict = await fence.evaluate(review_text,
                 snapshot["grade_band"], student.family_id, group_id=job.teacher_id)
             if verdict["decision"] != "allow":
                 raise ValueError("diagram plan rejected")
