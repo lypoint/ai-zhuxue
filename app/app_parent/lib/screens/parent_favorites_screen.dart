@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
+import 'conversation_detail_screen.dart';
 
 /// 孩子的收藏（P2 学习沉淀，家长可见以了解兴趣点）。
 class ParentFavoritesScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class ParentFavoritesScreen extends StatefulWidget {
 
 class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
   late Future<List<dynamic>> _favorites;
+  final Set<int> _expanded = {};
 
   @override
   void initState() {
@@ -52,12 +54,24 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final items = snap.data!;
-          if (items.isEmpty) return Center(child: Text(tr("还没有收藏内容")));
+          if (items.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  tr("孩子收藏的老师解答会显示在这里，方便一起回顾。"),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
           return ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: items.length,
             itemBuilder: (_, i) {
               final f = items[i] as Map<String, dynamic>;
+              final content = f['content'] as String? ?? '';
+              final expanded = _expanded.contains(f['id']);
               return Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -68,19 +82,42 @@ class _ParentFavoritesScreenState extends State<ParentFavoritesScreen> {
                         blocks: f['content_blocks'] as List? ?? const [],
                       ),
                       GptMarkdown(
-                        f['content'] as String? ?? '',
+                        content.length > 240 && !expanded
+                            ? '${content.substring(0, 240)}…'
+                            : content,
                         style: const TextStyle(
                           color: Colors.black87,
                           height: 1.4,
                         ),
                         useDollarSignsForLatex: true,
                       ),
-                      const SizedBox(height: 4),
+                      if (content.length > 240)
+                        TextButton(
+                          onPressed: () => setState(() {
+                            if (expanded) {
+                              _expanded.remove(f['id']);
+                            } else {
+                              _expanded.add(f['id'] as int);
+                            }
+                          }),
+                          child: Text(expanded ? tr("收起") : tr("展开全文")),
+                        ),
+                      if (f['conversation_id'] != null)
+                        TextButton.icon(
+                          icon: const Icon(Icons.forum_outlined, size: 18),
+                          label: Text(tr("查看来源对话")),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ConversationDetailScreen(
+                                conversationId: f['conversation_id'] as int,
+                                title: tr("相关对话"),
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
                       Text(
-                        (f['created_at'] ?? '')
-                            .toString()
-                            .replaceAll('T', ' ')
-                            .substring(0, 16),
+                        displayDate(f['created_at']),
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.grey,

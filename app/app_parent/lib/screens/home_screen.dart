@@ -6,6 +6,7 @@ import '../widgets/subscription_card.dart';
 import '../widgets/notification_badge.dart';
 import '../widgets/student_review_card.dart';
 import '../widgets/management_settings_card.dart';
+import '../widgets/guardian_name_dialog.dart';
 import 'notifications_screen.dart';
 import '../billing.dart';
 import 'login_screen.dart';
@@ -93,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() => _makingCode = true);
     try {
       final data = await Api.I.createBindCode();
-      _showBindCode(data['code'] as String, tr("学生端绑定码"));
+      _showBindCode(data['code'] as String, tr("新学生端绑定码"));
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -285,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       _showBindCode(
         data['code'] as String,
-        tr("{0} 的绑定码", [student['nickname']]),
+        tr("{0} · 重新绑定设备", [student['nickname']]),
       );
     } on ApiException catch (e) {
       if (mounted) {
@@ -782,18 +783,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ]),
-                _tabList('guard', [
-                  _sectionTitle(tr("学习守护"), tr("设置适合家庭的使用规则，保存后生效")),
-                  const SizedBox(height: 16),
-                  ManagementSettingsCard(
-                    settings: family['settings'] as Map<String, dynamic>,
-                    onSaved: _refresh,
-                  ),
-                ]),
+                ManagementSettingsCard(
+                  scrollable: true,
+                  settings: family['settings'] as Map<String, dynamic>,
+                  onSaved: _refresh,
+                ),
                 _tabList('account', [
-                  _sectionTitle(
-                    tr("家庭账户"),
-                    family['guardian']['nickname'] as String? ?? tr("家长"),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.person_outline),
+                      title: Text(tr("监护人名字")),
+                      subtitle: Text(
+                        family['guardian']['nickname'] as String? ?? tr("家长"),
+                      ),
+                      trailing: const Icon(Icons.edit_outlined),
+                      onTap: () async {
+                        final name = await showDialog<String>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => GuardianNameDialog(
+                            initialName:
+                                family['guardian']['nickname'] as String? ?? '',
+                          ),
+                        );
+                        if (name != null && mounted) {
+                          setState(() => family['guardian']['nickname'] = name);
+                        }
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
                   if (sub != null)
@@ -839,6 +856,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               ),
                             ),
                           ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
                     icon: const Icon(Icons.delete_outline),
                     label: Text(tr("删除账号")),
                   ),
@@ -930,6 +950,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _guardianCard(Map<String, dynamic> family, int childCount) {
     final scheme = Theme.of(context).colorScheme;
+    if (childCount > 0) {
+      return Card(
+        color: scheme.primaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr("{0}，你好", [family['guardian']['nickname'] ?? tr("家长")]),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(tr("一起陪伴 {0} 个孩子的学习与成长", [childCount])),
+                  TextButton.icon(
+                    onPressed: _addingStudent ? null : _addStudent,
+                    icon: const Icon(Icons.add),
+                    label: Text(_addingStudent ? tr("添加中…") : tr("添加孩子")),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(

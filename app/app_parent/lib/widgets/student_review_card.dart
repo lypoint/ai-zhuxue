@@ -238,48 +238,43 @@ class StudentReviewCard extends StatelessWidget {
                   ),
                 ],
               ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 8,
-                  children: [
-                    TextButton.icon(
-                      icon: const Icon(Icons.devices_other, size: 20),
-                      label: Text(tr("设备")),
-                      style: actionStyle,
-                      onPressed: onManageDevices,
-                    ),
-                    if (onDelete != null)
-                      TextButton.icon(
-                        icon: const Icon(Icons.delete_outline, size: 20),
-                        label: Text(tr("删除孩子")),
-                        style: actionStyle.copyWith(
-                          foregroundColor: WidgetStatePropertyAll(
-                            Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                        onPressed: updatesDisabled ? null : onDelete,
-                      ),
-                  ],
-                ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                leading: const Icon(Icons.devices_other),
+                title: Text(tr("设备")),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: onManageDevices,
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FilledButton.tonalIcon(
-                    onPressed: onRebind,
-                    icon: const Icon(Icons.qr_code_2, size: 18),
-                    label: Text(
-                      bindingInProgress
-                          ? tr("生成中…")
-                          : device == null
-                          ? tr("生成绑定码")
-                          : tr("重新绑定设备"),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                leading: const Icon(Icons.qr_code_2),
+                title: Text(
+                  bindingInProgress
+                      ? tr("生成中…")
+                      : device == null
+                      ? tr("生成绑定码")
+                      : tr("重新绑定设备"),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: onRebind,
+              ),
+              if (onDelete != null) ...[
+                const Divider(height: 24),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  leading: Icon(
+                    Icons.delete_outline,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(
+                    tr("删除孩子"),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
+                  onTap: updatesDisabled ? null : onDelete,
                 ),
-              ),
+              ],
             ],
           ),
         ],

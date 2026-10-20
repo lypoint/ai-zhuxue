@@ -1,6 +1,7 @@
 import 'language.dart';
 import 'package:flutter/material.dart';
 import 'api.dart';
+import 'display_date.dart';
 
 class LearningScreen extends StatefulWidget {
   final int? studentId;
@@ -59,71 +60,12 @@ class _LearningScreenState extends State<LearningScreen> {
   }
 
   Future<void> _propose() async {
-    final reward = TextEditingController(text: _proposal?[0]);
-    final stars = TextEditingController(text: _proposal?[1] ?? '1');
-    final fulfillment = TextEditingController(text: _proposal?[2]);
-    final confirmed = await showDialog<bool>(
+    final values = await showDialog<List<String>>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr("和孩子约定奖励")),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(tr("建议选择共同活动或周末安排。基本陪伴和生活需要不应作为兑换条件。保存后由孩子确认。")),
-              TextField(
-                controller: reward,
-                maxLength: 200,
-                decoration: InputDecoration(labelText: tr("奖励内容")),
-              ),
-              TextField(
-                controller: stars,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: tr("所需小行星")),
-              ),
-              TextField(
-                controller: fulfillment,
-                maxLength: 100,
-                decoration: InputDecoration(
-                  labelText: tr("兑现时间"),
-                  hintText: tr("例如：兑换后当周周末"),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr("取消")),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(tr("邀请孩子确认")),
-          ),
-        ],
-      ),
+      builder: (_) => _RewardProposalDialog(initialValues: _proposal),
     );
-    final values = [
-      reward.text.trim(),
-      stars.text.trim(),
-      fulfillment.text.trim(),
-    ];
-    reward.dispose();
-    stars.dispose();
-    fulfillment.dispose();
-    if (confirmed != true || !mounted) return;
-    final count = int.tryParse(values[1]);
-    if (values[0].isEmpty ||
-        values[2].isEmpty ||
-        count == null ||
-        count < 1 ||
-        count > 100000) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(tr("请填写奖励、兑现时间和有效的小行星数量"))));
-      return;
-    }
+    if (values == null || !mounted) return;
+    final count = int.parse(values[1]);
     if (_proposal?.join('\n') != values.join('\n')) _proposalRequest = null;
     _proposal = values;
     _proposalRequest ??= '${DateTime.now().microsecondsSinceEpoch}';
@@ -195,18 +137,53 @@ class _LearningScreenState extends State<LearningScreen> {
             if (_data == null && _error == null)
               const Center(child: CircularProgressIndicator()),
             if (_data != null) ...[
-              Text(
-                tr("小行星 {0} 颗", [_data!['balance']]),
-                style: Theme.of(context).textTheme.headlineSmall,
+              Card(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.auto_awesome, size: 32),
+                      const SizedBox(height: 12),
+                      Text(
+                        tr("小行星 {0} 颗", [_data!['balance']]),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        tr("累计获得 {0} · 已兑换 {1}", [
+                          _data!['earned'],
+                          _data!['spent'],
+                        ]),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              Text(
-                tr("累计获得 {0} · 已兑换 {1}", [_data!['earned'], _data!['spent']]),
+              const SizedBox(height: 12),
+              Card(
+                child: ExpansionTile(
+                  title: Text(tr("奖励规则")),
+                  childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(trMessage(_data!['rule'] as String)),
+                    const SizedBox(height: 8),
+                    Text(tr("这是参与奖励，不代表已经掌握知识。懂了、不懂、继续讲解都同样值得鼓励。")),
+                    const SizedBox(height: 8),
+                    Text(tr("反馈可以更新，变化会保留；懂了比例仅供了解学习过程，不用于评分。")),
+                  ],
+                ),
               ),
-              Text(trMessage(_data!['rule'] as String)),
-              Text(tr("这是参与奖励，不代表已经掌握知识。懂了、不懂、继续讲解都同样值得鼓励。")),
-              Text(tr("反馈可以更新，变化会保留；懂了比例仅供了解学习过程，不用于评分。")),
               const SizedBox(height: 16),
-              Text(tr("双方约定的奖励")),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  tr("双方约定的奖励"),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
               if (_isParent)
                 FilledButton(
                   onPressed: _saving ? null : _propose,
@@ -216,6 +193,7 @@ class _LearningScreenState extends State<LearningScreen> {
                 Text(tr("还没有约定，先一起商量想兑换什么吧。")),
               for (final agreement in _data!['agreements'] as List)
                 Card(
+                  margin: const EdgeInsets.only(bottom: 12),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -260,86 +238,229 @@ class _LearningScreenState extends State<LearningScreen> {
                     ),
                   ),
                 ),
-              const SizedBox(height: 16),
-              Text(tr("每日反馈分布（含反馈更新）")),
-              if ((_data!['days'] as List).isEmpty) Text(tr("还没有学习反馈")),
-              for (final day in _data!['days'] as List)
+              if ((_data!['days'] as List).isEmpty &&
+                  (_data!['history'] as List).isEmpty)
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tr("{0} · {1} 次反馈 · 参与奖励 {2} 颗", [
-                            day['date'],
-                            day['total'],
-                            day['stars'],
-                          ]),
-                        ),
-                        for (final entry in {
-                          'understood': tr("懂了"),
-                          'not_understood': tr("不懂"),
-                          'continue': tr("继续讲解"),
-                        }.entries)
+                    padding: const EdgeInsets.all(20),
+                    child: Text(tr("孩子在对话中反馈后，这里会显示学习反馈与小行星变化。")),
+                  ),
+                ),
+              if ((_data!['days'] as List).isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    tr("每日反馈分布（含反馈更新）"),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                for (final day in _data!['days'] as List)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            tr("{0}：{1} 次（{2}%）", [
-                              entry.value,
-                              day['counts'][entry.key],
-                              ((day['ratios'][entry.key] as num) * 100)
-                                  .toStringAsFixed(1),
+                            tr("{0} · {1} 次反馈 · 参与奖励 {2} 颗", [
+                              day['date'],
+                              day['total'],
+                              day['stars'],
                             ]),
                           ),
-                      ],
+                          for (final entry in {
+                            'understood': tr("懂了"),
+                            'not_understood': tr("不懂"),
+                            'continue': tr("继续讲解"),
+                          }.entries)
+                            Text(
+                              tr("{0}：{1} 次（{2}%）", [
+                                entry.value,
+                                day['counts'][entry.key],
+                                ((day['ratios'][entry.key] as num) * 100)
+                                    .toStringAsFixed(1),
+                              ]),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
+              ],
+              if ((_data!['redemptions'] as List).isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    tr("奖励兑换记录"),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-              const SizedBox(height: 16),
-              Text(tr("奖励兑换记录")),
-              for (final row in _data!['redemptions'] as List)
-                Card(
-                  child: ListTile(
-                    title: Text(
-                      tr("{0} · {1} 颗", [row['reward'], row['stars']]),
+                for (final row in _data!['redemptions'] as List)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ListTile(
+                      title: Text(
+                        tr("{0} · {1} 颗", [row['reward'], row['stars']]),
+                      ),
+                      subtitle: Text(
+                        tr("{0}\n兑现时间：{1}\n{2}", [
+                          displayDate(row['created_at']),
+                          row['fulfillment'],
+                          row['fulfilled'] == true ? tr("已兑现") : tr("待兑现"),
+                        ]),
+                      ),
+                      trailing: _isParent && row['fulfilled'] != true
+                          ? TextButton(
+                              onPressed: _saving
+                                  ? null
+                                  : () => _run(
+                                      () => Api.I.fulfillReward(
+                                        widget.studentId!,
+                                        row['id'] as int,
+                                      ),
+                                    ),
+                              child: Text(tr("已兑现")),
+                            )
+                          : null,
                     ),
-                    subtitle: Text(
-                      tr("{0}\n兑现时间：{1}\n{2}", [
-                        row['created_at'],
-                        row['fulfillment'],
-                        row['fulfilled'] == true ? tr("已兑现") : tr("待兑现"),
+                  ),
+              ],
+              if ((_data!['history'] as List).isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    tr("反馈变化记录"),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                for (final event in _data!['history'] as List)
+                  ListTile(
+                    title: Text(
+                      tr("回答 #{0} · {1}", [
+                        event['message_id'],
+                        trMessage(event['label'].toString()),
                       ]),
                     ),
-                    trailing: _isParent && row['fulfilled'] != true
-                        ? TextButton(
-                            onPressed: _saving
-                                ? null
-                                : () => _run(
-                                    () => Api.I.fulfillReward(
-                                      widget.studentId!,
-                                      row['id'] as int,
-                                    ),
-                                  ),
-                            child: Text(tr("已兑现")),
-                          )
-                        : null,
+                    subtitle: Text(displayDate(event['created_at'])),
                   ),
-                ),
-              const SizedBox(height: 16),
-              Text(tr("反馈变化记录")),
-              for (final event in _data!['history'] as List)
-                ListTile(
-                  title: Text(
-                    tr("回答 #{0} · {1}", [
-                      event['message_id'],
-                      trMessage(event['label'].toString()),
-                    ]),
-                  ),
-                  subtitle: Text('${event['created_at']}'),
-                ),
+              ],
             ],
           ],
         ),
       ),
     );
   }
+}
+
+class _RewardProposalDialog extends StatefulWidget {
+  const _RewardProposalDialog({this.initialValues});
+
+  final List<String>? initialValues;
+
+  @override
+  State<_RewardProposalDialog> createState() => _RewardProposalDialogState();
+}
+
+class _RewardProposalDialogState extends State<_RewardProposalDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final _reward = TextEditingController(text: widget.initialValues?[0]);
+  late final _stars = TextEditingController(
+    text: widget.initialValues?[1] ?? '1',
+  );
+  late final _fulfillment = TextEditingController(
+    text: widget.initialValues?[2],
+  );
+
+  @override
+  void dispose() {
+    _reward.dispose();
+    _stars.dispose();
+    _fulfillment.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.of(
+      context,
+    ).pop([_reward.text.trim(), _stars.text.trim(), _fulfillment.text.trim()]);
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(tr("和孩子约定奖励")),
+    content: SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(tr("建议选择共同活动或周末安排。基本陪伴和生活需要不应作为兑换条件。保存后由孩子确认。")),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _reward,
+              maxLength: 200,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: tr("奖励内容"),
+                hintText: tr("例如：周末一起去公园"),
+              ),
+              validator: (value) =>
+                  value == null || value.trim().isEmpty ? tr("请填写此项") : null,
+            ),
+            TextFormField(
+              controller: _stars,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: tr("所需小行星"),
+                errorMaxLines: 2,
+                prefixIcon: IconButton(
+                  tooltip: tr("减少"),
+                  icon: const Icon(Icons.remove),
+                  onPressed: () => _stars.text =
+                      '${((int.tryParse(_stars.text) ?? 1) - 1).clamp(1, 100000)}',
+                ),
+                suffixIcon: IconButton(
+                  tooltip: tr("增加"),
+                  icon: const Icon(Icons.add),
+                  onPressed: () => _stars.text =
+                      '${((int.tryParse(_stars.text) ?? 1) + 1).clamp(1, 100000)}',
+                ),
+              ),
+              validator: (value) {
+                final count = int.tryParse(value?.trim() ?? '');
+                return count == null || count < 1 || count > 100000
+                    ? tr("请输入 1–100000 的整数")
+                    : null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _fulfillment,
+              maxLength: 100,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _submit(),
+              decoration: InputDecoration(
+                labelText: tr("兑现时间"),
+                hintText: tr("例如：兑换后当周周末"),
+              ),
+              validator: (value) =>
+                  value == null || value.trim().isEmpty ? tr("请填写此项") : null,
+            ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text(tr("取消")),
+      ),
+      FilledButton(onPressed: _submit, child: Text(tr("邀请孩子确认"))),
+    ],
+  );
 }

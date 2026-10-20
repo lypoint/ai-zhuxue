@@ -2,6 +2,7 @@
 library;
 
 export 'src/api.dart';
+export 'src/display_date.dart';
 export 'src/language.dart';
 export 'src/assessment_range.dart';
 export 'src/grade_trend_card.dart';

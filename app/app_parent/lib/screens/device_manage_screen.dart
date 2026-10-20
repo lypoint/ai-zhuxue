@@ -77,6 +77,9 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
             child: Text(tr("取消")),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(tr("下线")),
           ),
@@ -171,16 +174,16 @@ class _DeviceManageScreenState extends State<DeviceManageScreen> {
                             : tr("历史设备"),
                         lastSeen.isEmpty
                             ? ''
-                            : tr(" · 最近活跃 {0}", [
-                                (lastSeen.length > 16
-                                        ? lastSeen.substring(0, 16)
-                                        : lastSeen)
-                                    .replaceFirst('T', ' '),
-                              ]),
+                            : tr("\n最近活跃 {0}", [displayDate(lastSeen)]),
                       ]),
                     ),
                     trailing: isCurrent
                         ? TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
+                            ),
                             onPressed: _revokingId == null
                                 ? () => _revoke(d)
                                 : null,

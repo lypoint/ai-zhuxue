@@ -95,6 +95,10 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
  "settings": {"daily_message_cap": 200, "review_enabled": true}}
 ```
 
+### PUT /parent/guardian/nickname — 修改当前监护人名字
+`{"nickname": "小明妈妈"}`（去除首尾空白后为 1–50 字符）→ `200 {"ok": true, "nickname": "小明妈妈"}`。
+仅修改登录监护人；家庭总览返回新名字，再次登录时保留。非法名字 → 422。
+
 ### GET /parent/students/{student_id}/conversations — 该学生全部对话
 → `200 [ConversationOut...]`（按 id 倒序，含老师姓名/头像快照和 `student_deleted` 标记）。
 支持 `status=all|active|deleted` 筛选；学生不属于本家庭 → 404。
@@ -122,8 +126,8 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 - `?purge=true`：连同对话、消息、围栏流水硬删除。
 → `200 {"ok": true, "mode": "anonymized"|"purged"}`
 
-### GET /parent/students/{student_id}/usage — 用量与成本估算
-→ `200 {total:{tokens_in,tokens_out,cost}, today:{…}, unit:"CNY, 按厂商现价估算"}`（价格见 `llm.py PRICE_PER_MTOK`）。
+### GET /parent/students/{student_id}/usage — 用量统计
+→ `200 {total:{tokens_in,tokens_out}, today:{…}}`。家长接口不返回平台成本金额；成本统计仅供 CMS 运营使用。
 
 ### POST /chat/heartbeat — 活跃心跳（student，P1 时长管控数据源）
 `{"seconds": 60}`（1–120，学生端聊天页前台每 60s 上报，进入后台时上报剩余秒数）→ `{"ok": true, "day", "total_seconds"}`。

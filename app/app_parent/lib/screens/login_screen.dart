@@ -217,7 +217,7 @@ class _LoginScreenState extends State<PhoneLoginScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFEFF2FF), Color(0xFFF6F8FB)],
+            colors: [Color(0xFFE2F1E9), Color(0xFFF5F7F4)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -241,7 +241,7 @@ class _LoginScreenState extends State<PhoneLoginScreen> {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFF253A68),
+            color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(15),
           ),
           child: Image.asset(
@@ -301,16 +301,6 @@ class _LoginScreenState extends State<PhoneLoginScreen> {
                   labelText: tr("手机号"),
                   counterText: '',
                   prefixIcon: const Icon(Icons.phone_outlined),
-                  suffixIcon: TextButton(
-                    onPressed: _sendingSms || _countdown > 0 ? null : _sendSms,
-                    child: Text(
-                      _sendingSms
-                          ? tr("发送中…")
-                          : _countdown > 0
-                          ? '${_countdown}s'
-                          : tr("发送验证码"),
-                    ),
-                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -323,6 +313,19 @@ class _LoginScreenState extends State<PhoneLoginScreen> {
                   labelText: tr("短信验证码"),
                   counterText: '',
                   prefixIcon: Icon(Icons.verified_user_outlined),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _sendingSms || _countdown > 0 ? null : _sendSms,
+                  child: Text(
+                    _sendingSms
+                        ? tr("发送中…")
+                        : _countdown > 0
+                        ? '${_countdown}s'
+                        : tr("发送验证码"),
+                  ),
                 ),
               ),
               const SizedBox(height: 18),

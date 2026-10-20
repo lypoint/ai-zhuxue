@@ -85,7 +85,9 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                '${localizedTeacherName(widget.teacherName)} · ${widget.title}',
+                localizedTeacherName(widget.teacherName),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -112,6 +114,13 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
           : ListView(
               padding: const EdgeInsets.all(12),
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 20),
+                  child: Text(
+                    widget.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
                 if (widget.studentDeleted)
                   Card(
                     color: const Color(0xFFFFF4E5),
@@ -120,7 +129,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
                       title: Text(tr("孩子已删除此学习记录")),
                       subtitle: Text(
                         tr("删除时间：{0} · 内容仍按家庭审查规则保留", [
-                          widget.studentDeletedAt ?? tr("未知"),
+                          displayDate(widget.studentDeletedAt),
                         ]),
                       ),
                     ),
@@ -155,6 +164,16 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  '${isUser ? tr("孩子") : localizedTeacherName(widget.teacherName)} · ${displayDate(m['created_at'])}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isUser
+                        ? Colors.white70
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 isUser
                     ? Text(
                         m['content'] as String? ?? '',

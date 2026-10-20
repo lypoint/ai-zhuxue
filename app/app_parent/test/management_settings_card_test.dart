@@ -21,6 +21,7 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextField).at(1), '600');
+    await tester.pump();
     await tester.ensureVisible(find.text('保存设置'));
     await tester.tap(find.text('保存设置'));
     await tester.pump();

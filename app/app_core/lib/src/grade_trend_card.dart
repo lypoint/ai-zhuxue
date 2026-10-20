@@ -53,7 +53,8 @@ class GradeTrendCard extends StatelessWidget {
         .map((e) => Map<String, dynamic>.from(e))
         .toList();
     final effectiveSubject = subjects.contains(subject) ? subject : null;
-    final direction = t['direction'] as String?;
+    final separateSubjects = effectiveSubject == null && subjects.length > 1;
+    final direction = separateSubjects ? null : t['direction'] as String?;
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
@@ -66,20 +67,21 @@ class GradeTrendCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(tr("成绩趋势"), style: TextStyle(fontWeight: FontWeight.bold)),
                 const Spacer(),
-                Text(
-                  direction == null || direction == 'insufficient'
-                      ? tr("数据不足")
-                      : _directionLabels[direction] ?? direction,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: direction == 'up'
-                        ? const Color(0xFF1B7D46)
-                        : direction == 'down'
-                        ? const Color(0xFFC0392B)
-                        : Colors.grey,
+                if (!separateSubjects)
+                  Text(
+                    direction == null || direction == 'insufficient'
+                        ? tr("数据不足")
+                        : _directionLabels[direction] ?? direction,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: direction == 'up'
+                          ? const Color(0xFF1B7D46)
+                          : direction == 'down'
+                          ? const Color(0xFFC0392B)
+                          : Colors.grey,
+                    ),
                   ),
-                ),
               ],
             ),
             Wrap(
@@ -126,16 +128,30 @@ class GradeTrendCard extends StatelessWidget {
                 ),
               ],
             ),
-            TrendChart(points: points),
+            if (separateSubjects)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(tr("请选择一个科目查看趋势，不同科目的成绩不混合比较。")),
+              )
+            else if (points.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(tr("添加成绩后即可查看趋势")),
+              )
+            else
+              TrendChart(points: points),
             const SizedBox(height: 4),
-            Text(
-              tr("最近 {0}% · 变化 {1} · 近三次平均 {2}%", [
-                t['latest'] ?? '-',
-                t['delta'] ?? '-',
-                t['average_last_3'] ?? '-',
-              ]),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            if (!separateSubjects && points.isNotEmpty)
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  if (t['latest'] != null) Text(tr("最近 {0}%", [t['latest']])),
+                  if (t['delta'] != null) Text(tr("变化 {0}", [t['delta']])),
+                  if (t['average_last_3'] != null)
+                    Text(tr("近三次平均 {0}%", [t['average_last_3']])),
+                ],
+              ),
           ],
         ),
       ),

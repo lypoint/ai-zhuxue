@@ -226,14 +226,17 @@ class _PaymentScreenState extends State<PaymentScreen>
                   ? tr(
                       "本次购买新档位的完整月订阅，支付确认后立即增加名额，不按剩余天数补差，已付旧档位费用不抵扣或退款。新周期从确认支付起计一个自然月，已有更晚的到期时间保留。",
                     )
-                  : tr("购买一个自然月的家庭订阅，不累加已有有效期。微信支付为单次购买，到期后需手动续订。"),
+                  : tr("支付确认后开通一个自然月；若原到期时间更晚则保留该日期。微信为单次购买，到期后需手动续订。"),
             ),
           ] else if (_order['kind'] == 'seat_add') ...[
             const SizedBox(height: 12),
             Text(tr("费用按当前订阅剩余天数折算，支付成功后增加名额。后续续费将包含新增名额费用。")),
           ],
           const SizedBox(height: 24),
-          SelectableText(tr("订单号：{0}", [_order['out_trade_no']])),
+          SelectableText(
+            tr("订单号：{0}", [_order['out_trade_no']]),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           if (_message != null) ...[
             const SizedBox(height: 16),
             Text(trMessage(_message!)),

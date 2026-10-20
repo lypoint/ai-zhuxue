@@ -160,7 +160,7 @@ void main() {
         }
 
         await switchTo('守护');
-        expect(find.text('学习守护'), findsOneWidget);
+        expect(find.text('每日使用'), findsOneWidget);
         await tester.enterText(find.byType(TextField).first, '180');
         final editingFocus = tester
             .widget<EditableText>(find.byType(EditableText).first)

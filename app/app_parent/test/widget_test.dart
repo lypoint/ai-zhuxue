@@ -174,7 +174,7 @@ void main() {
           ),
         ),
       );
-      expect(find.textContaining('¥99/月'), findsOneWidget);
+      expect(find.textContaining('¥99.00/月'), findsOneWidget);
       final button = tester.widget<FilledButton>(find.byType(FilledButton));
       expect(button.onPressed != null, hasPending);
       expect(find.text(hasPending ? '继续支付' : '订阅有效'), findsOneWidget);

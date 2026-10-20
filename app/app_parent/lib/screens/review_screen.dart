@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import 'conversation_detail_screen.dart';
 
-/// 家长审查入口：某个孩子的全部对话列表 + 学习摘要 + 用量估算 + 全文搜索。
+/// 家长审查入口：某个孩子的全部对话列表 + 学习摘要 + 用量统计 + 全文搜索。
 class ReviewScreen extends StatefulWidget {
   final int studentId;
   final String studentName;
@@ -215,12 +215,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     ),
                   ),
                 if (_searchHits != null) ..._searchResults(),
-                if (_summary != null) _summaryCard(),
+                if (_summary != null && _conversations!.isNotEmpty)
+                  _summaryCard(),
+                const SizedBox(height: 12),
                 if (_usage != null) _usageCard(),
+                const SizedBox(height: 12),
                 if (_conversations!.isEmpty)
                   Padding(
                     padding: EdgeInsets.all(32),
-                    child: Center(child: Text(tr("暂无学习内容"))),
+                    child: Center(
+                      child: Text(
+                        tr("孩子开始与老师对话后，学习内容会显示在这里。"),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ..._conversations!.map((c) {
                   final conv = c as Map<String, dynamic>;
@@ -242,10 +250,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     subtitle: Text(
                       tr("{0} · {1}", [
                         conv['teacher_name'] ?? tr("AI 老师"),
-                        (conv['created_at'] as String? ?? '').replaceAll(
-                          'T',
-                          ' ',
-                        ),
+                        displayDate(conv['created_at']),
                       ]),
                     ),
                     onTap: () => _openConversation(
@@ -388,25 +393,43 @@ class _ReviewScreenState extends State<ReviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(tr("学习摘要"), style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
-            Text(
-              tr("今日：提问 {0} 次 · 学习 {1} 次 · 引导 {2} 次 · 拦截 {3} 次 · 约 {4} 分钟", [
-                today['questions'],
-                today['study'],
-                today['guided'],
-                today['blocked'],
-                today['minutes'],
-              ]),
-              style: const TextStyle(fontSize: 12),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                Chip(label: Text(tr("今日提问 {0} 次", [today['questions'] ?? 0]))),
+                Chip(label: Text(tr("今日学习 {0} 分钟", [today['minutes'] ?? 0]))),
+                Chip(label: Text(tr("本周活跃 {0} 天", [week['active_days'] ?? 0]))),
+              ],
             ),
-            Text(
-              tr("本周：提问 {0} 次 · 活跃 {1} 天 · 拦截 {2} 次 · 约 {3} 分钟", [
-                week['questions'],
-                week['active_days'],
-                week['blocked'],
-                week['minutes'],
-              ]),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(tr("查看详情")),
+              children: [
+                Text(
+                  tr(
+                    "今日：提问 {0} 次 · 学习 {1} 次 · 引导 {2} 次 · 拦截 {3} 次 · 约 {4} 分钟",
+                    [
+                      today['questions'],
+                      today['study'],
+                      today['guided'],
+                      today['blocked'],
+                      today['minutes'],
+                    ],
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                Text(
+                  tr("本周：提问 {0} 次 · 活跃 {1} 天 · 拦截 {2} 次 · 约 {3} 分钟", [
+                    week['questions'],
+                    week['active_days'],
+                    week['blocked'],
+                    week['minutes'],
+                  ]),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
           ],
         ),
@@ -418,34 +441,26 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final today = _usage!['today'];
     final total = _usage!['total'];
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tr("AI 用量（估算成本）"),
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              tr("今日：tokens {0}+{1}，约 ¥{2}", [
-                today['tokens_in'],
-                today['tokens_out'],
-                today['cost'],
-              ]),
-              style: const TextStyle(fontSize: 12),
-            ),
-            Text(
-              tr("累计：tokens {0}+{1}，约 ¥{2}", [
-                total['tokens_in'],
-                total['tokens_out'],
-                total['cost'],
-              ]),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
+      child: ExpansionTile(
+        title: Text(tr("AI 用量")),
+        leading: const Icon(Icons.data_usage),
+        childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            tr("今日：输入 {0} / 输出 {1} Token", [
+              today['tokens_in'],
+              today['tokens_out'],
+            ]),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            tr("累计：输入 {0} / 输出 {1} Token", [
+              total['tokens_in'],
+              total['tokens_out'],
+            ]),
+          ),
+        ],
       ),
     );
   }

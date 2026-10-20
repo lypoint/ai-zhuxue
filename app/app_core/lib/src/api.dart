@@ -415,7 +415,7 @@ class Api {
     body: {'pinned': pinned},
   );
 
-  /// 家长端用量与成本估算：{total:{tokens_in,tokens_out,cost}, today:{...}, unit}
+  /// 家长端用量统计：{total:{tokens_in,tokens_out}, today:{...}}
   Future<Map<String, dynamic>> studentUsage(int studentId) =>
       _send('GET', '/parent/students/$studentId/usage');
 
@@ -424,6 +424,13 @@ class Api {
     'PUT',
     '/parent/students/$studentId/grade-band',
     body: {'grade_band': band},
+  );
+
+  /// 修改当前登录监护人的名字。
+  Future<void> setGuardianNickname(String nickname) => _send(
+    'PUT',
+    '/parent/guardian/nickname',
+    body: {'nickname': nickname},
   );
 
   /// 修改孩子昵称（P2 遗漏补齐）

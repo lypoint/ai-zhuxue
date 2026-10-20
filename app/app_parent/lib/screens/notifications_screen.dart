@@ -14,6 +14,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String? _error;
   bool _loading = false;
   bool _markingRead = false;
+  bool _unreadOnly = false;
 
   @override
   void initState() {
@@ -99,6 +100,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final d = _data;
+    final items = (d?['items'] as List? ?? [])
+        .where((n) => !_unreadOnly || n['is_read'] != true)
+        .toList();
     return Scaffold(
       appBar: AppBar(
         title: Text(tr("通知")),
@@ -134,27 +138,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ],
                     ),
             )
-          : d['total'] == 0
-          ? Center(child: Text(tr("暂无通知")))
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: (d['items'] as List).length,
-              itemBuilder: (_, i) =>
-                  _tile(d['items'][i] as Map<String, dynamic>),
+          : Column(
+              children: [
+                SwitchListTile(
+                  title: Text(tr("只看未读")),
+                  value: _unreadOnly,
+                  onChanged: (value) => setState(() => _unreadOnly = value),
+                ),
+                Expanded(
+                  child: items.isEmpty
+                      ? Center(child: Text(tr("暂无通知")))
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (_, i) =>
+                              _tile(items[i] as Map<String, dynamic>),
+                        ),
+                ),
+              ],
             ),
     );
   }
 
   Widget _tile(Map<String, dynamic> n) {
     final isSec = n['type'] == 'security';
-    final createdAt = (n['created_at'] ?? '').toString().replaceAll('T', ' ');
+    final createdAt = displayDate(n['created_at']);
     return Card(
       color: !n['is_read']
           ? (isSec ? const Color(0xFFFDEDEC) : const Color(0xFFF0F7F5))
           : null,
       child: ListTile(
         leading: Icon(
-          isSec ? Icons.gpp_maybe : Icons.chat_bubble_outline,
+          isSec
+              ? Icons.gpp_maybe
+              : n['type'] == 'system'
+              ? Icons.info_outline
+              : Icons.chat_bubble_outline,
           color: isSec ? Colors.red : const Color(0xFF15857A),
         ),
         title: Text(
@@ -167,7 +188,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
         subtitle: Text(
-          '${trMessage(n['body'] as String? ?? '')}\n${createdAt.length > 16 ? createdAt.substring(0, 16) : createdAt}',
+          '${trMessage(n['body'] as String? ?? '')}\n${n['is_read'] == true ? tr("已读") : tr("未读")} · $createdAt',
           style: const TextStyle(fontSize: 12),
         ),
         isThreeLine: true,

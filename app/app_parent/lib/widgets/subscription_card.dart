@@ -134,11 +134,22 @@ class SubscriptionCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               onManage == null
-                  ? tr("家庭月订阅 ¥{0}/月 · 不累加有效期", [
-                      sub['monthly_price_cny'] ?? 66,
+                  ? tr("家庭月订阅 ¥{0}/月 · 到期手动续订", [
+                      (sub['monthly_price_cny'] as num? ?? 66).toStringAsFixed(
+                        2,
+                      ),
                     ])
                   : tr("家庭月订阅 · 价格与扣款周期见商店确认页面"),
             ),
+            if (sub['expires_at'] != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  tr("有效期至 {0}", [
+                    displayDate(sub['expires_at'], dateOnly: true),
+                  ]),
+                ),
+              ),
             if (active && !trial)
               Text(
                 onManage == null

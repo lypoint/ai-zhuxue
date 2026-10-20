@@ -83,6 +83,12 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                 child: Text(tr("完成")),
               ),
             ] else ...[
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
               Text(
                 tr("删除账号及关联数据"),
                 style: Theme.of(context).textTheme.titleLarge,
@@ -93,16 +99,24 @@ class _AccountDeletionScreenState extends State<AccountDeletionScreen> {
                   "提交后，当前家长账号和所有关联学生端将立即停用，可重新注册新账号。新账号不会恢复原家庭数据或继承原家庭权益。原账号资料和关联学习数据将进入删除流程，完成后无法恢复。",
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                tr(
-                  "我们将在 30 天内处理。必要的支付、退款和安全记录依法保留；备份按轮换周期清除。Firebase 安装数据无法按家庭账号定位，相关请求请联系 support@gker.net。",
-                ),
+              const SizedBox(height: 20),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(tr("数据处理说明")),
+                children: [
+                  Text(
+                    tr(
+                      "我们将在 30 天内处理。必要的支付、退款和安全记录依法保留；备份按轮换周期清除。Firebase 安装数据无法按家庭账号定位，相关请求请联系 support@gker.net。",
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Text(
                 tr(
-                  "删除账号不会自动取消 Apple 或 Google Play 订阅。请先在商店取消自动续订，避免继续扣费；本操作不产生自动退款。",
+                  widget.onManageSubscription == null
+                      ? "微信支付为单次购买，无需取消自动续订；删除账号不产生自动退款。"
+                      : "删除账号不会自动取消 Apple 或 Google Play 订阅。请先在商店取消自动续订，避免继续扣费；本操作不产生自动退款。",
                 ),
               ),
               if (widget.onManageSubscription != null)

@@ -72,6 +72,17 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
     }
 
 
+@router.put("/guardian/nickname")
+def set_guardian_nickname(body: dict, guardian: Guardian = Depends(current_guardian),
+                          db: Session = Depends(get_db)):
+    nickname = body.get("nickname")
+    if not isinstance(nickname, str) or not 1 <= len(nickname.strip()) <= 50:
+        raise HTTPException(422, "昵称需为 1-50 字符")
+    guardian.nickname = nickname.strip()
+    db.commit()
+    return {"ok": True, "nickname": guardian.nickname}
+
+
 @router.get("/students")
 def list_students(guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     from ..services.subscription import get_status
@@ -381,32 +392,21 @@ def delete_student(student_id: int, purge: bool = False,
 @router.get("/students/{student_id}/usage")
 def student_usage(student_id: int, guardian: Guardian = Depends(current_guardian),
                   db: Session = Depends(get_db)):
-    """模型用量与估算成本（实价表 S50-S52）——对接 cost-model.xlsx 的人均 token 假设验证。"""
+    """家长可见的模型用量；平台成本仅供 CMS 运营统计。"""
     from ..models import UsageLog
-    from ..services.llm import PRICE_PER_MTOK
 
     _own_student(guardian, student_id, db)
     logs = db.query(UsageLog).filter_by(student_id=student_id).all()
     today_start_utc = utc_bounds(local_now().date().isoformat())[0]
-    total = {"tokens_in": 0, "tokens_out": 0, "cost": 0.0}
-    today = {"tokens_in": 0, "tokens_out": 0, "cost": 0.0}
+    total = {"tokens_in": 0, "tokens_out": 0}
+    today = {"tokens_in": 0, "tokens_out": 0}
     for log in logs:
-        # 优先用上游返回的真实 cost（openrouter accounting）；无则按已核实现价估算
-        cost = float(log.cost or 0.0)
-        if not cost:
-            price = PRICE_PER_MTOK.get(log.provider)
-            if price:
-                cost = log.tokens_in / 1e6 * price[0] + log.tokens_out / 1e6 * price[1]
         total["tokens_in"] += log.tokens_in
         total["tokens_out"] += log.tokens_out
-        total["cost"] += cost
         if log.created_at and log.created_at >= today_start_utc:
             today["tokens_in"] += log.tokens_in
             today["tokens_out"] += log.tokens_out
-            today["cost"] += cost
-    return {"total": {**total, "cost": round(total["cost"], 4)},
-            "today": {**today, "cost": round(today["cost"], 4)},
-            "unit": "CNY, 按已核实厂商现价估算"}
+    return {"total": total, "today": today}
 
 
 @router.put("/settings")

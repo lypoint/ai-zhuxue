@@ -6,8 +6,10 @@ import 'package:app_core/app_core.dart';
 class ManagementSettingsCard extends StatefulWidget {
   final Map<String, dynamic> settings;
   final VoidCallback onSaved;
+  final bool scrollable;
   const ManagementSettingsCard({
     super.key,
+    this.scrollable = false,
     required this.settings,
     required this.onSaved,
   });
@@ -25,6 +27,11 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   late int _quietEnd;
   late bool _notifyFence;
   bool _saving = false;
+  late String _savedValue;
+  String get _value =>
+      '${_capCtrl.text}|${_minutesCtrl.text}|${_forbiddenWordsCtrl.text}|$_quietEnabled|$_quietStart|$_quietEnd|$_notifyFence';
+  bool get _dirty => _value != _savedValue;
+  void _changed() => setState(() {});
 
   @override
   void initState() {
@@ -43,6 +50,10 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
     _quietStart = s['quiet_start'] as int? ?? 22;
     _quietEnd = s['quiet_end'] as int? ?? 6;
     _notifyFence = s['notify_fence'] as bool? ?? true;
+    _savedValue = _value;
+    for (final controller in [_capCtrl, _minutesCtrl, _forbiddenWordsCtrl]) {
+      controller.addListener(_changed);
+    }
   }
 
   @override
@@ -52,6 +63,12 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
     _forbiddenWordsCtrl.dispose();
     super.dispose();
   }
+
+  SnackBar _snackBar(String message) => SnackBar(
+    content: Text(message),
+    behavior: SnackBarBehavior.floating,
+    margin: EdgeInsets.fromLTRB(16, 0, 16, widget.scrollable ? 96 : 16),
+  );
 
   Future<void> _save() async {
     if (_saving) return;
@@ -66,9 +83,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
       final message = cap == null || cap < 10 || cap > 1000
           ? tr("每日对话消息上限需为 10–1000 条")
           : tr("每日使用时长上限需为 0–480 分钟");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(_snackBar(message));
       return;
     }
     setState(() => _saving = true);
@@ -89,19 +104,14 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
             .toList(),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(tr("已保存"))));
+      ScaffoldMessenger.of(context).showSnackBar(_snackBar(tr("已保存")));
+      setState(() => _savedValue = _value);
       widget.onSaved();
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.status == 422
-                  ? tr("保存失败，请检查输入的设置")
-                  : tr("保存失败：{0}", [e.message]),
-            ),
+          _snackBar(
+            e.status == 422 ? tr("保存失败，请检查输入的设置") : tr("保存失败：{0}", [e.message]),
           ),
         );
       }
@@ -109,7 +119,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(tr("保存失败，请检查网络后重试"))));
+        ).showSnackBar(_snackBar(tr("保存失败，请检查网络后重试")));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -119,7 +129,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Card(
+    final form = Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -150,7 +160,16 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                 helperMaxLines: 2,
               ),
             ),
-            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final minutes in [30, 60, 90])
+                  ActionChip(
+                    label: Text(tr("{0} 分钟", [minutes])),
+                    onPressed: () => _minutesCtrl.text = '$minutes',
+                  ),
+              ],
+            ),
             const Divider(height: 32),
             _section(
               context,
@@ -197,6 +216,24 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                   ),
                 ],
               ),
+            if (_quietEnabled)
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final hours in [(21, 7), (22, 6)])
+                    ChoiceChip(
+                      label: Text(
+                        '${hours.$1}:00 → ${hours.$2.toString().padLeft(2, '0')}:00',
+                      ),
+                      selected:
+                          _quietStart == hours.$1 && _quietEnd == hours.$2,
+                      onSelected: (_) => setState(() {
+                        _quietStart = hours.$1;
+                        _quietEnd = hours.$2;
+                      }),
+                    ),
+                ],
+              ),
             const Divider(height: 32),
             _section(
               context,
@@ -230,16 +267,63 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _saving ? null : _save,
-              child: Text(_saving ? tr("保存中…") : tr("保存设置")),
-            ),
+            if (!widget.scrollable) _saveBar(),
           ],
         ),
       ),
     );
+    if (!widget.scrollable) return form;
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: AbsorbPointer(absorbing: _saving, child: form),
+              ),
+            ),
+          ),
+        ),
+        Material(
+          color: Theme.of(context).colorScheme.surface,
+          elevation: 4,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: _saveBar(),
+            ),
+          ),
+        ),
+      ],
+    );
   }
+
+  Widget _saveBar() => Row(
+    children: [
+      Expanded(
+        child: Text(
+          _dirty ? tr("有未保存的修改") : tr("已保存"),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        flex: 2,
+        child: FilledButton(
+          onPressed: _saving || !_dirty ? null : _save,
+          child: Text(
+            _saving ? tr("保存中…") : tr("保存设置"),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    ],
+  );
 
   Widget _section(
     BuildContext context,

@@ -16,6 +16,16 @@ ThemeData parentTheme() {
   );
   return base.copyWith(
     colorScheme: scheme,
+    filledButtonTheme: FilledButtonThemeData(
+      style: base.filledButtonTheme.style?.copyWith(
+        minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: base.outlinedButtonTheme.style?.copyWith(
+        minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
+      ),
+    ),
     scaffoldBackgroundColor: const Color(0xFFF5F7F4),
     textTheme: base.textTheme.apply(
       bodyColor: scheme.onSurface,

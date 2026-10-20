@@ -69,7 +69,7 @@
 
 ### 2.4 成本可观测
 
-`GET /parent/students/{id}/usage`：按学生聚合 UsageLog，输出今日/累计 tokens 与**按厂商现价（`PRICE_PER_MTOK`）估算的成本**（优先上游真实 cost）。家长端审查页顶部展示。
+`GET /parent/students/{id}/usage`：按学生聚合 UsageLog，输出今日/累计 tokens，家长端审查页顶部展示普通用量。平台模型成本仅在 CMS 统计，家长接口不返回成本金额。
 
 ### 2.5 审查链路（家长行使查阅权）
 
