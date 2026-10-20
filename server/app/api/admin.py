@@ -242,6 +242,8 @@ def update_admin_user(user_id: int, body: dict, principal: AdminPrincipal = Depe
 @router.get("/overview")
 def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
     """核心运营面板：规模、活跃、围栏分布、成本。"""
+    from ..services.store_billing import effective, naive
+
     today_start_utc = (dt.datetime.utcnow() + dt.timedelta(hours=settings.tz_offset_hours)) \
         .replace(hour=0, minute=0, second=0, microsecond=0) - dt.timedelta(hours=settings.tz_offset_hours)
     yesterday_start = today_start_utc - dt.timedelta(days=1)
@@ -259,7 +261,7 @@ def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = D
             if price:
                 c = log.tokens_in / 1e6 * price[0] + log.tokens_out / 1e6 * price[1]
         cost_total += c
-        if log.created_at and log.created_at >= today_start_utc:
+        if log.created_at and naive(log.created_at) >= today_start_utc:
             cost_today += c
 
     fence_by_decision = dict(db.query(FenceEvent.decision, func.count(FenceEvent.id))
@@ -274,7 +276,6 @@ def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = D
     now = _dt.datetime.utcnow()
     subs = db.query(Subscription).all()
     sub_active = sub_trial = sub_expired = revenue = 0
-    from ..services.store_billing import effective
     for sub in subs:
         source = effective(sub.family_id, sub, db)
         expires = source.expires_at.replace(tzinfo=None)

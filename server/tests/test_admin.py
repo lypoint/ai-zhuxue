@@ -46,6 +46,34 @@ def test_overview_counts_real_data(client, admin):
     assert "cost" in d and d["cost"]["total_cny"] >= 0
 
 
+@pytest.mark.parametrize("offset", [None, 0, 8])
+def test_overview_cost_handles_database_timezones(client, monkeypatch, offset):
+    import datetime as dt
+    from types import SimpleNamespace
+
+    from app.api.admin import AdminPrincipal, overview
+    from app.config import settings
+    from app.db import SessionLocal
+    from app.models import UsageLog
+
+    start = (dt.datetime.utcnow() + dt.timedelta(hours=settings.tz_offset_hours)) \
+        .replace(hour=0, minute=0, second=0, microsecond=0) - dt.timedelta(hours=settings.tz_offset_hours)
+    logs = []
+    for seconds, cost in [(-1, 1), (0, 2), (1, 4)]:
+        created = start + dt.timedelta(seconds=seconds)
+        if offset is not None:
+            created = created.replace(tzinfo=dt.timezone.utc).astimezone(
+                dt.timezone(dt.timedelta(hours=offset)))
+        logs.append(SimpleNamespace(created_at=created, cost=cost))
+
+    with SessionLocal() as db:
+        query = db.query
+        monkeypatch.setattr(db, "query", lambda *entities: SimpleNamespace(all=lambda: logs)
+                            if len(entities) == 1 and entities[0] is UsageLog else query(*entities))
+        result = overview(AdminPrincipal("test", "super"), db)
+    assert result["cost"] == {"total_cny": 7, "today_cny": 6}
+
+
 def test_family_list_masks_phone(client, admin):
     make_family(client, "13911112222")
     d = client.get("/admin/families", headers=admin).json()
