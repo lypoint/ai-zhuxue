@@ -124,10 +124,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('记录成绩'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).at(0), '数学');
-      await tester.enterText(find.byType(TextField).at(1), '分数练习');
-      await tester.ensureVisible(find.byType(TextField).at(3));
-      await tester.enterText(find.byType(TextField).at(3), '90');
+      await tester.enterText(find.byKey(const ValueKey('subject')), '数学');
+      await tester.enterText(find.byKey(const ValueKey('score')), '90');
+      await tester.ensureVisible(find.text('更多信息（选填）'));
+      await tester.tap(find.text('更多信息（选填）'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('title')), '分数练习');
       final type = find.byType(DropdownButtonFormField<String>);
       await tester.ensureVisible(type);
       await tester.tap(type);

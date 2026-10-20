@@ -17,6 +17,7 @@ def test_student_report_cms_reply_and_ownership(client):
         db.add(message)
         db.flush()
         message_id = message.id
+        conversation_id = conv.id
 
     path = "/chat/reports"
     assert client.post(path, headers=h(other_token), json={"message_id": message_id,
@@ -42,3 +43,17 @@ def test_student_report_cms_reply_and_ownership(client):
     reports = client.get(path, headers=h(student_token)).json()
     assert reports[0]["reply"] == "已核实，感谢反馈"
     assert reports[0]["status"] == "reviewed"
+
+    assert reports[0]["conversation_id"] == conversation_id
+    assert reports[0]["created_at"]
+    assert reports[0]["reviewed_at"]
+    with SessionLocal.begin() as db:
+        from datetime import datetime, timezone
+        db.get(Conversation, conversation_id).student_deleted_at = datetime.now(timezone.utc)
+    assert client.get(path, headers=h(student_token)).json()[0]["conversation_id"] is None
+    with SessionLocal.begin() as db:
+        db.delete(db.get(Message, message_id))
+    missing = client.get(path, headers=h(student_token))
+    assert missing.status_code == 200
+    assert missing.json()[0]["content"] == ""
+    assert missing.json()[0]["conversation_id"] is None

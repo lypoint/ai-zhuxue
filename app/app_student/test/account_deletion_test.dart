@@ -49,6 +49,8 @@ void main() {
         Future<void> openDeletion() async {
           await tester.tap(find.byIcon(Icons.menu));
           await tester.pumpAndSettle();
+          await tester.tap(find.text('账号与设置'));
+          await tester.pumpAndSettle();
           await tester.tap(find.text('删除账号'));
           await tester.pumpAndSettle();
         }

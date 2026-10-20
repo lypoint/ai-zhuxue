@@ -62,14 +62,23 @@ def report_message(body: MessageReportIn, student: Student = Depends(current_stu
 
 @router.get("/reports")
 def my_reports(student: Student = Depends(current_student), db: Session = Depends(get_db)):
-    rows = db.query(FenceFeedback).filter_by(student_id=student.id,
-        reporter_role="student", reporter_id=student.id, kind="message_report").order_by(
-        FenceFeedback.id.desc()).limit(100).all()
+    rows = (db.query(FenceFeedback, Message, Conversation)
+            .outerjoin(Message, FenceFeedback.message_id == Message.id)
+            .outerjoin(Conversation, Message.conversation_id == Conversation.id)
+            .filter(FenceFeedback.student_id == student.id,
+                    FenceFeedback.reporter_role == "student",
+                    FenceFeedback.reporter_id == student.id,
+                    FenceFeedback.kind == "message_report")
+            .order_by(FenceFeedback.id.desc()).limit(100).all())
     return [{"id": row.id, "message_id": row.message_id,
-             "content": (db.get(Message, row.message_id).content if row.message_id else ""),
+             "content": message.content if message else "",
+             "conversation_id": (conversation.id if conversation
+                 and conversation.student_id == student.id
+                 and conversation.student_deleted_at is None else None),
              "reason": row.note, "status": row.status, "reply": row.reply_text,
-             "created_at": row.created_at.isoformat() if row.created_at else None}
-            for row in rows]
+             "created_at": row.created_at.isoformat() if row.created_at else None,
+             "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None}
+            for row, message, conversation in rows]
 
 SYSTEM_PROMPT = (
     "你是面向中小学生的AI学习辅导老师。只解答学科问题、学习方法与教育性讨论，"
@@ -1052,13 +1061,23 @@ def add_favorite(body: dict, student: Student = Depends(current_student),
 @router.get("/favorites")
 def my_favorites(student: Student = Depends(current_student), db: Session = Depends(get_db)):
     from ..models import Favorite
-    rows = (db.query(Favorite).filter_by(student_id=student.id)
+    rows = (db.query(Favorite, Message, Conversation)
+            .outerjoin(Message, Favorite.message_id == Message.id)
+            .outerjoin(Conversation, Favorite.conversation_id == Conversation.id)
+            .filter(Favorite.student_id == student.id)
             .order_by(Favorite.id.desc()).limit(200).all())
     return [{"id": f.id, "role": f.role, "content": f.content,
-             "content_blocks": (db.get(Message, f.message_id).content_blocks if f.message_id and db.get(Message, f.message_id) else []),
-             "conversation_id": f.conversation_id,
+             "message_id": message.id if message and conversation
+                 and message.conversation_id == conversation.id
+                 and conversation.student_id == student.id
+                 and conversation.student_deleted_at is None else None,
+             "content_blocks": message.content_blocks if message else [],
+             "teacher_name": conversation.teacher_name_snapshot if conversation else "",
+             "conversation_id": conversation.id if conversation
+                 and conversation.student_id == student.id
+                 and conversation.student_deleted_at is None else None,
              "created_at": f.created_at.isoformat() if f.created_at else None}
-            for f in rows]
+            for f, message, conversation in rows]
 
 
 @router.delete("/favorites/{favorite_id}")

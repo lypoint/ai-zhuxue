@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'chat_screen.dart';
@@ -19,6 +20,22 @@ class _BindScreenState extends State<BindScreen> {
   final _codeCtrl = TextEditingController();
   String? _error;
   bool _loading = false;
+
+  Future<void> _paste() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (!mounted) return;
+    final code = normalizeBindCode(data?.text);
+    setState(() {
+      _error = code == null ? tr('请输入有效的 8 位绑定码') : null;
+      if (code != null) _codeCtrl.text = code;
+    });
+  }
+
+  @override
+  void dispose() {
+    _codeCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _scan() async {
     final code = await Navigator.of(
@@ -131,6 +148,8 @@ class _BindScreenState extends State<BindScreen> {
                     const SizedBox(height: 18),
                     TextField(
                       controller: _codeCtrl,
+                      enabled: !_loading,
+                      maxLength: 8,
                       textAlign: TextAlign.center,
                       onSubmitted: _loading ? null : (_) => _bind(),
                       textCapitalization: TextCapitalization.characters,
@@ -148,6 +167,11 @@ class _BindScreenState extends State<BindScreen> {
                           letterSpacing: 0,
                         ),
                         prefixIcon: const Icon(Icons.qr_code_2),
+                        suffixIcon: IconButton(
+                          tooltip: tr('粘贴绑定码'),
+                          onPressed: _loading ? null : _paste,
+                          icon: const Icon(Icons.content_paste),
+                        ),
                         errorText: _error,
                         errorMaxLines: 3,
                       ),

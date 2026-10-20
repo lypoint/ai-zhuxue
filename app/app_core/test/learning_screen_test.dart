@@ -123,4 +123,47 @@ void main() {
       }, () => client);
     },
   );
+  testWidgets('student reward copy uses the student perspective', (
+    tester,
+  ) async {
+    final client = MockClient(
+      (_) async => http.Response(
+        jsonEncode({
+          ...emptySummary,
+          'agreements': [
+            {
+              'id': 1,
+              'reward': '公园',
+              'stars': 1,
+              'fulfillment': '周末',
+              'accepted': false,
+            },
+            {
+              'id': 2,
+              'reward': '读书',
+              'stars': 1,
+              'fulfillment': '周末',
+              'accepted': true,
+            },
+          ],
+        }),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      ),
+    );
+    addTearDown(client.close);
+    await http.runWithClient(() async {
+      await tester.pumpWidget(const MaterialApp(home: LearningScreen()));
+      await tester.pumpAndSettle();
+      expect(find.text('等待你确认'), findsOneWidget);
+      expect(find.text('你已确认'), findsOneWidget);
+      expect(find.text('等待孩子确认'), findsNothing);
+      await tester.scrollUntilVisible(
+        find.text('你在对话中反馈后，这里会显示学习反馈与小行星变化。'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(tester.takeException(), isNull);
+    }, () => client);
+  });
 }

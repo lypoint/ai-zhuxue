@@ -190,7 +190,11 @@ class _LearningScreenState extends State<LearningScreen> {
                   child: Text(tr("约定新奖励")),
                 ),
               if ((_data!['agreements'] as List).isEmpty)
-                Text(tr("还没有约定，先一起商量想兑换什么吧。")),
+                Text(
+                  (_isParent
+                      ? tr("还没有约定，先一起商量想兑换什么吧。")
+                      : tr("还没有约定，先和家长商量想兑换什么吧。")),
+                ),
               for (final agreement in _data!['agreements'] as List)
                 Card(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -208,8 +212,8 @@ class _LearningScreenState extends State<LearningScreen> {
                         Text(tr("兑现时间：{0}", [agreement['fulfillment']])),
                         Text(
                           agreement['accepted'] == true
-                              ? tr("孩子已确认")
-                              : tr("等待孩子确认"),
+                              ? (_isParent ? tr("孩子已确认") : tr("你已确认"))
+                              : (_isParent ? tr("等待孩子确认") : tr("等待你确认")),
                         ),
                         if (!_isParent && agreement['accepted'] != true)
                           TextButton(
@@ -243,7 +247,11 @@ class _LearningScreenState extends State<LearningScreen> {
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Text(tr("孩子在对话中反馈后，这里会显示学习反馈与小行星变化。")),
+                    child: Text(
+                      _isParent
+                          ? tr("孩子在对话中反馈后，这里会显示学习反馈与小行星变化。")
+                          : tr("你在对话中反馈后，这里会显示学习反馈与小行星变化。"),
+                    ),
                   ),
                 ),
               if ((_data!['days'] as List).isNotEmpty) ...[

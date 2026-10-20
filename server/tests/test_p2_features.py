@@ -41,6 +41,17 @@ def test_favorite_flow_idempotent_and_parent_visible(client):
     # 学生列表
     favs = client.get("/chat/favorites", headers=h(s)).json()
     assert len(favs) == 1 and favs[0]["content"]
+    assert favs[0]["message_id"] == mid
+    assert favs[0]["conversation_id"] == cid
+    assert "teacher_name" in favs[0]
+    from datetime import datetime, timezone
+    from app.db import SessionLocal
+    from app.models import Conversation
+    with SessionLocal.begin() as db:
+        db.get(Conversation, cid).student_deleted_at = datetime.now(timezone.utc)
+    hidden = client.get("/chat/favorites", headers=h(s)).json()[0]
+    assert hidden["conversation_id"] is None and hidden["message_id"] is None
+    assert hidden["content"] == favs[0]["content"]
     # 家长可见
     sid = client.get("/parent/family", headers=h(g)).json()["students"][0]["id"]
     pfav = client.get(f"/parent/students/{sid}/favorites", headers=h(g)).json()

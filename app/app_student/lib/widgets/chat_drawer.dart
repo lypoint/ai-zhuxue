@@ -108,7 +108,7 @@ class ChatDrawer extends StatelessWidget {
                                   ),
                                   (
                                     Icons.school_outlined,
-                                    tr("成绩与学习评估"),
+                                    tr("成绩与评估"),
                                     onOpenGrades,
                                   ),
                                   (
@@ -118,7 +118,7 @@ class ChatDrawer extends StatelessWidget {
                                   ),
                                 ])
                                   SizedBox(
-                                    width: (constraints.maxWidth - 8) / 2,
+                                    width: constraints.maxWidth,
                                     child: Material(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(16),
@@ -127,9 +127,7 @@ class ChatDrawer extends StatelessWidget {
                                         onTap: item.$3,
                                         child: Padding(
                                           padding: const EdgeInsets.all(12),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          child: Row(
                                             children: [
                                               Icon(
                                                 item.$1,
@@ -137,11 +135,13 @@ class ChatDrawer extends StatelessWidget {
                                                   context,
                                                 ).colorScheme.primary,
                                               ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                item.$2,
-                                                style: const TextStyle(
-                                                  fontSize: 13,
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  item.$2,
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -179,20 +179,38 @@ class ChatDrawer extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
-            if (onDeleteAccount != null)
-              ListTile(
-                leading: Icon(
-                  Icons.person_remove_outlined,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                title: Text(tr("删除账号")),
-                onTap: onDeleteAccount,
-              ),
             ListTile(
-              leading: const Icon(Icons.logout, size: 20),
-              title: Text(tr("退出登录")),
-              onTap: onLogout,
+              leading: const Icon(Icons.manage_accounts_outlined, size: 20),
+              title: Text(tr('账号与设置')),
+              trailing: const LanguageButton(),
+              onTap: () async {
+                final action = await showModalBottomSheet<String>(
+                  context: context,
+                  builder: (ctx) => SafeArea(
+                    child: Wrap(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.logout),
+                          title: Text(tr('退出登录')),
+                          onTap: () => Navigator.pop(ctx, 'logout'),
+                        ),
+                        if (onDeleteAccount != null)
+                          ListTile(
+                            leading: Icon(
+                              Icons.person_remove_outlined,
+                              color: Theme.of(ctx).colorScheme.error,
+                            ),
+                            title: Text(tr('删除账号')),
+                            onTap: () => Navigator.pop(ctx, 'delete'),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+                if (!context.mounted) return;
+                if (action == 'logout') onLogout();
+                if (action == 'delete') onDeleteAccount?.call();
+              },
             ),
           ],
         ),
@@ -237,10 +255,7 @@ class ChatDrawer extends StatelessWidget {
       itemBuilder: (_, i) {
         final c = filteredSessions[i] as Map<String, dynamic>;
         final selected = c['conversation_id'] == currentConversationId;
-        final lastTime = (c['last_time'] ?? '')
-            .toString()
-            .replaceAll('T', ' ')
-            .sliceSafe(0, 16);
+        final lastTime = displayDate(c['last_time']);
         return ListTile(
           selected: selected,
           leading: Icon(
@@ -272,9 +287,4 @@ class ChatDrawer extends StatelessWidget {
       },
     );
   }
-}
-
-extension _SliceSafe on String {
-  String sliceSafe(int start, int end) =>
-      length <= start ? '' : substring(start, end > length ? length : end);
 }

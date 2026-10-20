@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import '../widgets/student_page_state.dart';
+import 'favorites_screen.dart';
 
 /// 我的学习统计（P2）：学生自己可见，增强自我管理。
 class MyStatsScreen extends StatefulWidget {
@@ -122,7 +123,7 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          tr("今日被拦截 {0} 次", [d['today']['blocked']]),
+                          tr("今日学习引导 {0} 次", [d['today']['blocked']]),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(
@@ -152,7 +153,7 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                     tr("{0} 条", [d['favorites']]),
                   ],
                   [
-                    tr("被拦截"),
+                    tr("学习引导次数"),
                     tr("{0} 次", [d['week']['blocked']]),
                   ],
                 ]),
@@ -162,7 +163,7 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                     vertical: 12,
                   ),
                   child: Text(
-                    tr("把有帮助的讲解收藏起来，复习时再看一遍。"),
+                    tr('学习时长为估算值；学习引导次数指偏题或不合适的提问被引导回学习的次数。'),
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.5,
@@ -199,11 +200,32 @@ class _MyStatsScreenState extends State<MyStatsScreen> {
                     Expanded(child: Text(row[0])),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        row[1],
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
+                      child: row[0] == tr('收藏知识点')
+                          ? Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () async {
+                                  final cid = await Navigator.of(context)
+                                      .push<int>(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const FavoritesScreen(),
+                                        ),
+                                      );
+                                  if (mounted && cid != null) {
+                                    Navigator.pop(context, cid);
+                                  }
+                                },
+                                child: Text(row[1]),
+                              ),
+                            )
+                          : Text(
+                              row[1],
+                              textAlign: TextAlign.end,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                     ),
                   ],
                 ),

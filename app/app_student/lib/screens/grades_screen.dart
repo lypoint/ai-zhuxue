@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import '../widgets/student_page_state.dart';
+import '../widgets/student_grade_dialog.dart';
 
 Map<String, String> get _gradeTypes => {
   'exam': tr('考试'),
@@ -21,6 +22,7 @@ class _GradesScreenState extends State<GradesScreen> {
   Map<String, dynamic>? _assessment;
   List<dynamic>? _assessmentRows;
   bool _includeDeleted = false;
+  bool _defaultSubjectSelected = false;
   bool _changingGrade = false;
   bool _trendLoading = false;
   bool _assessing = false;
@@ -46,17 +48,30 @@ class _GradesScreenState extends State<GradesScreen> {
     try {
       final values = await Future.wait([
         Api.I.studentGrades(includeDeleted: _includeDeleted),
-        Api.I.studentGradeTrend(
-          subject: _subject,
-          from: trendFromDate(_rangeDays),
-        ),
         Api.I.studentAcademicAssessments(),
       ]);
+      final grades = values[0];
+      final active = grades.where((g) => g['deleted'] != true).toList()
+        ..sort(
+          (a, b) =>
+              (b['exam_date'] as String).compareTo(a['exam_date'] as String),
+        );
+      var subject = _subject;
+      if (!_defaultSubjectSelected ||
+          (subject != null && !active.any((g) => g['subject'] == subject))) {
+        subject = active.isEmpty ? null : active.first['subject'] as String?;
+      }
+      final trend = await Api.I.studentGradeTrend(
+        subject: subject,
+        from: trendFromDate(_rangeDays),
+      );
       if (mounted) {
         setState(() {
-          _grades = values[0] as List<dynamic>;
-          _trend = values[1] as Map<String, dynamic>;
-          _assessmentRows = values[2] as List<dynamic>;
+          _subject = subject;
+          _defaultSubjectSelected = true;
+          _grades = grades;
+          _trend = trend;
+          _assessmentRows = values[1];
           _loadError = null;
         });
       }
@@ -139,111 +154,25 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   Future<void> _edit([Map<String, dynamic>? current]) async {
-    final subject = TextEditingController(
-      text: current?['subject'] as String? ?? '',
-    );
-    final title = TextEditingController(
-      text: current?['title'] as String? ?? '',
-    );
-    final date = TextEditingController(
-      text:
-          current?['exam_date'] as String? ??
-          DateTime.now().toIso8601String().substring(0, 10),
-    );
-    final score = TextEditingController(
-      text: current?['score']?.toString() ?? '',
-    );
-    final max = TextEditingController(
-      text: current?['max_score']?.toString() ?? '100',
-    );
-    final gradeType = TextEditingController(
-      text: current?['grade_type'] as String? ?? 'exam',
-    );
-    final term = TextEditingController(text: current?['term'] as String? ?? '');
-    final note = TextEditingController(text: current?['note'] as String? ?? '');
-    final fields = [
-      (tr("科目"), subject, false),
-      (tr("考试/作业名称"), title, false),
-      (tr("日期 YYYY-MM-DD"), date, false),
-      (tr("得分"), score, true),
-      (tr("满分"), max, true),
-      (tr("成绩类型"), gradeType, false),
-      (tr("学期"), term, false),
-      (tr("备注"), note, false),
-    ];
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(current == null ? tr("新增成绩") : tr("编辑成绩")),
-        content: SizedBox(
-          width: 340,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                for (final f in fields)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: f.$2 == gradeType
-                        ? DropdownButtonFormField<String>(
-                            value: _gradeTypes.containsKey(gradeType.text)
-                                ? gradeType.text
-                                : 'other',
-                            decoration: InputDecoration(labelText: tr("成绩类型")),
-                            items: _gradeTypes.entries
-                                .map(
-                                  (entry) => DropdownMenuItem(
-                                    value: entry.key,
-                                    child: Text(entry.value),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              if (value != null) gradeType.text = value;
-                            },
-                          )
-                        : TextField(
-                            controller: f.$2,
-                            keyboardType: f.$3
-                                ? TextInputType.number
-                                : TextInputType.text,
-                            decoration: InputDecoration(labelText: f.$1),
-                          ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr("取消")),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(tr("保存")),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (_) => StudentGradeDialog(
+        current: current,
+        onSave: (body) async {
+          if (current == null) {
+            await Api.I.addStudentGrade(body);
+          } else {
+            await Api.I.editStudentGrade(current['id'] as int, body);
+          }
+        },
       ),
     );
     if (ok != true || !mounted) return;
-    final body = {
-      'subject': subject.text,
-      'title': title.text,
-      'exam_date': date.text,
-      'score': double.tryParse(score.text),
-      'max_score': double.tryParse(max.text),
-      'grade_type': gradeType.text,
-      'term': term.text,
-      'note': note.text,
-      'reason': current == null ? 'created' : 'edited',
-    };
-    await _changeGrade(() async {
-      if (current == null) {
-        await Api.I.addStudentGrade(body);
-      } else {
-        await Api.I.editStudentGrade(current['id'] as int, body);
-      }
-    }, current == null ? tr("成绩已添加") : tr("成绩已保存"));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(current == null ? tr('成绩已添加') : tr('成绩已保存'))),
+    );
+    await _load();
   }
 
   Future<void> _details(Map<String, dynamic> grade) async {
@@ -277,7 +206,7 @@ class _GradesScreenState extends State<GradesScreen> {
             else
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: Text(tr("逻辑删除")),
+                title: Text(tr("删除成绩")),
                 onTap: () => Navigator.pop(ctx, 'delete'),
               ),
           ],
@@ -396,8 +325,22 @@ class _GradesScreenState extends State<GradesScreen> {
     AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr("成绩与学习评估")),
+        title: Text(tr("成绩与评估")),
         actions: [
+          PopupMenuButton<bool>(
+            tooltip: tr('成绩显示选项'),
+            onSelected: (value) {
+              setState(() => _includeDeleted = value);
+              _load();
+            },
+            itemBuilder: (_) => [
+              CheckedPopupMenuItem(
+                value: !_includeDeleted,
+                checked: _includeDeleted,
+                child: Text(tr('显示已删除成绩')),
+              ),
+            ],
+          ),
           IconButton(
             onPressed: _assessing ? null : _assess,
             icon: _assessing
@@ -449,20 +392,8 @@ class _GradesScreenState extends State<GradesScreen> {
                     },
                   ),
                   if (_assessment != null) _assessmentCard(),
-                  if (_assessmentRows != null) _assessmentHistoryCard(),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(tr("显示已删除成绩")),
-                    value: _includeDeleted,
-                    onChanged: (value) {
-                      setState(() {
-                        _includeDeleted = value;
-                        _grades = null;
-                        _loadError = null;
-                      });
-                      _load();
-                    },
-                  ),
+                  if (_assessmentRows?.isNotEmpty == true)
+                    _assessmentHistoryCard(),
                   if (_grades!.isEmpty)
                     StudentPageState(
                       icon: Icons.school_outlined,

@@ -404,14 +404,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _loadSessions();
   }
 
-  Widget _teacherAvatar(String url) => CircleAvatar(
+  Widget _teacherAvatar(String url, {double radius = 20}) => CircleAvatar(
+    radius: radius,
     child: url.isEmpty
         ? const Icon(Icons.school)
         : ClipOval(
             child: Image.network(
               url,
-              width: 40,
-              height: 40,
+              width: radius * 2,
+              height: radius * 2,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const Icon(Icons.school),
             ),
@@ -502,14 +503,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   /// 从抽屉载入历史会话
-  Future<void> _openSession(int conversationId) async {
+  Future<void> _openSession(
+    int conversationId, {
+    bool closeDrawer = true,
+  }) async {
     if (_draftImages.isNotEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(tr("请先发送或移除待发送的图片"))));
       return;
     }
-    Navigator.of(context).pop();
+    if (closeDrawer) Navigator.of(context).pop();
     if (_sending || _uploadingImage || _openingSession || _selectingTeacher) {
       ScaffoldMessenger.of(
         context,
@@ -1371,23 +1375,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> _openStats() async {
     Navigator.of(context).pop();
-    await Navigator.of(
+    final cid = await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const MyStatsScreen()));
+    ).push<int>(MaterialPageRoute(builder: (_) => const MyStatsScreen()));
+    if (mounted && cid != null) await _openSession(cid, closeDrawer: false);
   }
 
   Future<void> _openFavorites() async {
     Navigator.of(context).pop();
-    await Navigator.of(
+    final cid = await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const FavoritesScreen()));
+    ).push<int>(MaterialPageRoute(builder: (_) => const FavoritesScreen()));
+    if (mounted && cid != null) await _openSession(cid, closeDrawer: false);
   }
 
   Future<void> _openReports() async {
     Navigator.of(context).pop();
-    await Navigator.of(
+    final cid = await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const MyReportsScreen()));
+    ).push<int>(MaterialPageRoute(builder: (_) => const MyReportsScreen()));
+    if (mounted && cid != null) await _openSession(cid, closeDrawer: false);
   }
 
   Future<void> _openGrades() async {
@@ -1495,7 +1502,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         toolbarHeight:
             64 * MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.5),
         actions: [
-          const LanguageButton(),
           IconButton(
             tooltip: tr("学习反馈与小行星"),
             icon: const Icon(Icons.auto_awesome),
@@ -1515,8 +1521,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 : _chooseTeacher,
             child: Row(
               children: [
-                _teacherAvatar(_teacherAvatarUrl),
-                const SizedBox(width: 10),
+                _teacherAvatar(_teacherAvatarUrl, radius: 16),
+                const SizedBox(width: 8),
                 Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1527,6 +1533,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           Flexible(
                             child: Text(
                               localizedTeacherName(_teacherName),
+                              style: const TextStyle(fontSize: 18),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1548,6 +1555,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       ),
                       Text(
                         tr("受保护学习空间"),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,

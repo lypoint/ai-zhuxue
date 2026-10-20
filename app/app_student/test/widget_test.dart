@@ -91,7 +91,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isNull);
-    expect(find.text('退出登录'), findsOneWidget);
+    expect(find.text('账号与设置'), findsOneWidget);
   });
 
   testWidgets('孩子开始提问后不再显示恢复提示', (tester) async {
@@ -236,6 +236,8 @@ void main() {
     scaffoldKey.currentState!.openDrawer();
     await tester.pumpAndSettle();
     expect(find.text('会话记录加载失败，请重试'), findsOneWidget);
+    await tester.ensureVisible(find.text('重试'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('重试'));
     expect(retried, isTrue);
   });
@@ -245,6 +247,9 @@ void main() {
     await Api.I.loadToken();
     await tester.pumpWidget(const MaterialApp(home: ChatScreen()));
     await tester.tap(find.byTooltip('聊天记录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('账号与设置'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('退出登录'));
@@ -258,6 +263,9 @@ void main() {
     expect(find.text('退出登录？'), findsNothing);
 
     await tester.tap(find.byTooltip('聊天记录'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('账号与设置'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('退出登录'));
