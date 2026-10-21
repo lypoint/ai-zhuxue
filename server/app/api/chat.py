@@ -229,6 +229,26 @@ def _today_seconds(student_id: int, db: Session) -> int:
     return row.seconds if row else 0
 
 
+def _rest_status(fs: FamilySettings | None, now: dt.datetime) -> dict:
+    enabled = fs.quiet_enabled if fs else settings.fence_quiet_enabled
+    start = fs.quiet_start if fs else settings.fence_quiet_start
+    end = fs.quiet_end if fs else settings.fence_quiet_end
+    seconds = now.hour * 3600 + now.minute * 60 + now.second
+    resting = enabled and ((start < end and start * 3600 <= seconds < end * 3600)
+                           or (start > end and (seconds >= start * 3600 or seconds < end * 3600)))
+    # Poll for parent changes, and refresh at the exact next time boundary.
+    refresh = min(30, *((hour * 3600 - seconds) % 86400 or 86400 for hour in (start, end)))
+    return {"resting": resting,
+            "message": f"现在是休息时间（{start}:00-{end}:00），明天再学吧" if resting else "",
+            "refresh_after_seconds": refresh}
+
+
+@router.get("/availability")
+def availability(student: Student = Depends(current_student), db: Session = Depends(get_db)):
+    fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
+    return _rest_status(fs, local_now())
+
+
 def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
                   channel: str = "wechat", *, check_message_quota: bool = True):
     """服务端未成年人模式：订阅权益 + 时段禁用 + 每日消息上限 + 每日时长上限。
@@ -242,17 +262,10 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
     quota_pending = _check_subscription(student, db, teacher_id, channel)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = local_now()
-    # P1：家长自定义禁用时段（覆盖全局 22-6；家长可整体关闭）
     fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
-    quiet_on = fs.quiet_enabled if fs else settings.fence_quiet_enabled
-    q_start = fs.quiet_start if fs else settings.fence_quiet_start
-    q_end = fs.quiet_end if fs else settings.fence_quiet_end
-    now_minutes = now_local.hour * 60 + now_local.minute
-    start_minutes, end_minutes = q_start * 60, q_end * 60
-    quiet = (start_minutes < end_minutes and start_minutes <= now_minutes < end_minutes) \
-        or (start_minutes > end_minutes and (now_minutes >= start_minutes or now_minutes < end_minutes))
-    if quiet_on and quiet:
-        raise HTTPException(423, f"现在是休息时间（{q_start}:00-{q_end}:00），明天再学吧")
+    rest = _rest_status(fs, now_local)
+    if rest["resting"]:
+        raise HTTPException(423, rest["message"])
     if check_message_quota:
         cap = settings.fence_daily_message_cap
         if fs:

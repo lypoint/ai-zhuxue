@@ -34,6 +34,60 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _pollingImages = false;
   final Set<int> _diagramRequests = {};
 
+  bool _resting = false;
+  Timer? _restTimer;
+  int _restRevision = 0;
+
+  bool get _canSend =>
+      !_resting &&
+      !_sending &&
+      !_uploadingImage &&
+      !_openingSession &&
+      !_selectingTeacher &&
+      !_sessionActionPending &&
+      !_draftImages.any((draft) => draft.block == null) &&
+      (_inputCtrl.text.trim().isNotEmpty || _draftImages.isNotEmpty);
+
+  void _inputChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _setResting(bool resting) {
+    if (!mounted) return;
+    setState(() => _resting = resting);
+    if (resting) _inputFocus.unfocus();
+  }
+
+  Future<void> _loadRestStatus() async {
+    final revision = ++_restRevision;
+    _restTimer?.cancel();
+    var seconds = 30;
+    try {
+      final data = await Api.I.chatAvailability().timeout(
+        const Duration(seconds: 10),
+      );
+      if (!mounted || revision != _restRevision) return;
+      _setResting(data['resting'] == true);
+      seconds = (data['refresh_after_seconds'] as int? ?? 30).clamp(1, 30);
+    } catch (_) {
+      // Keep the last known restriction while offline; the server remains authoritative.
+    } finally {
+      if (mounted && revision == _restRevision) {
+        _restTimer = Timer(Duration(seconds: seconds), _loadRestStatus);
+      }
+    }
+  }
+
+  void _handleRestRestriction(ApiException error) {
+    ++_restRevision;
+    _restTimer?.cancel();
+    _setResting(true);
+    _restTimer = Timer(const Duration(seconds: 1), _loadRestStatus);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error.message)));
+  }
+
   int? _conversationId;
   int _chatRevision = 0;
   bool _restoringLatest = true;
@@ -84,6 +138,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _feedback(Bubble bubble, String action) async {
+    if (_resting) return;
     final id = bubble.messageId!;
     final revision = _chatRevision;
     if (_feedbackPending.contains(id)) return;
@@ -163,14 +218,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _heartbeat.start();
+      _loadRestStatus();
       _loadDailyLearning();
     } else {
+      ++_restRevision;
+      _restTimer?.cancel();
       _heartbeat.stop();
     }
   }
 
   @override
   void dispose() {
+    ++_restRevision;
+    _restTimer?.cancel();
+    _inputCtrl.removeListener(_inputChanged);
+    _inputCtrl.dispose();
     _imagePollTimer?.cancel();
     if (Api.onUnauthorized == _onSessionExpired) Api.onUnauthorized = null;
     WidgetsBinding.instance.removeObserver(this);
@@ -183,6 +245,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _inputCtrl.addListener(_inputChanged);
+    _loadRestStatus();
     WidgetsBinding.instance.addObserver(this);
     // 全局 401 兜底：token 失效或孩子设备被重新绑定（规格 4.3），
     // 任何请求（会话列表/收藏/成绩等）收到 401 都回到重新绑定页。
@@ -985,7 +1049,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _pickImage() async {
-    if (_uploadingImage || _sending || _draftImages.length >= 3) return;
+    if (_resting || _uploadingImage || _sending || _draftImages.length >= 3) {
+      return;
+    }
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -1006,7 +1072,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ),
       ),
     );
-    if (source == null || !mounted) return;
+    if (source == null || !mounted || _resting) return;
     setState(() => _uploadingImage = true);
     try {
       final picked = await ImagePicker().pickImage(
@@ -1015,9 +1081,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         maxHeight: 2400,
         imageQuality: 90,
       );
-      if (picked == null || !mounted) return;
+      if (picked == null || !mounted || _resting) return;
       final bytes = await picked.readAsBytes();
-      if (!mounted) return;
+      if (!mounted || _resting) return;
       final draft = _DraftImage(bytes);
       setState(() => _draftImages.add(draft));
       await _uploadDraft(draft);
@@ -1033,6 +1099,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _uploadDraft(_DraftImage draft) async {
+    if (_resting) return;
     setState(() {
       _uploadingImage = true;
       draft.error = false;
@@ -1043,6 +1110,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         conversationId: _conversationId,
       );
       if (mounted) setState(() => draft.block = block);
+    } on ApiException catch (e) {
+      if (mounted) {
+        if (e.status == 423) _handleRestRestriction(e);
+        setState(() => draft.error = true);
+      }
     } catch (_) {
       if (mounted) setState(() => draft.error = true);
     } finally {
@@ -1051,6 +1123,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _requestDiagram(Bubble bubble) async {
+    if (_resting) return;
     final id = bubble.messageId;
     if (id == null || !_diagramRequests.add(id)) return;
     setState(() {});
@@ -1072,6 +1145,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _startImagePolling();
     } on ApiException catch (e) {
       if (mounted) {
+        if (e.status == 423) {
+          _handleRestRestriction(e);
+          return;
+        }
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
@@ -1172,11 +1249,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
               if (draft.error)
                 TextButton(
-                  onPressed: _uploadingImage ? null : () => _uploadDraft(draft),
-                  child: Text(tr('重试上传')),
+                  onPressed: _resting || _uploadingImage
+                      ? null
+                      : () => _uploadDraft(draft),
+                  child: Text(_resting ? tr('休息时间到啦') : tr('重试上传')),
                 )
               else if (draft.block == null)
-                const LinearProgressIndicator(),
+                if (_resting)
+                  Text(tr('休息时间到啦'))
+                else
+                  const LinearProgressIndicator(),
             ],
           ),
         ),
@@ -1184,6 +1266,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   );
 
   Future<void> _send({int? retryUserIndex, String? followUp}) async {
+    if (_resting) return;
     final retrying = retryUserIndex != null;
     final text = retrying
         ? _bubbles[retryUserIndex].text
@@ -1212,6 +1295,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         (retryUserIndex != _bubbles.length - 2 || !_bubbles.last.failed)) {
       return;
     }
+    final retryBubble = retrying ? _bubbles.last : null;
     final retryMessageId = retrying ? _bubbles[retryUserIndex].messageId : null;
     if (retrying && retryMessageId == null) return;
     if (!retrying && followUp == null) {
@@ -1342,7 +1426,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _loadSessions();
     } on ApiException catch (e) {
       // 401 已由全局 _onSessionExpired 统一处理（清会话回绑定页）
-      if (retrying && e.status == 409) {
+      if (e.status == 423) {
+        if (mounted) {
+          setState(() {
+            if (retrying) {
+              _bubbles[_bubbles.length - 1] = retryBubble!;
+            } else {
+              _bubbles.removeRange(userIndex, _bubbles.length);
+              if (followUp == null) {
+                _inputCtrl.text = text;
+                _draftImages.addAll(drafts);
+              }
+            }
+          });
+          _handleRestRestriction(e);
+        }
+      } else if (retrying && e.status == 409) {
         try {
           await _refreshCurrentConversation();
           if (mounted) {
@@ -1361,7 +1460,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               e.status == 503 && canRetry && !e.rawMessage.contains('请新开会话'),
         );
       }
-      if (e.status != 401 && e.status != 503 && e.status != 409 && mounted) {
+      if (e.status != 423 &&
+          e.status != 401 &&
+          e.status != 503 &&
+          e.status != 409 &&
+          mounted) {
         await _policyDialog(e);
       }
     } catch (_) {
@@ -1680,13 +1783,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       leading: Icon(suggestion.$1),
                       title: Text(suggestion.$2),
                       trailing: const Icon(Icons.north_west_rounded, size: 18),
-                      onTap: () {
-                        _inputCtrl.text = suggestion.$3;
-                        _inputCtrl.selection = TextSelection.collapsed(
-                          offset: _inputCtrl.text.length,
-                        );
-                        _inputFocus.requestFocus();
-                      },
+                      onTap: _resting
+                          ? null
+                          : () {
+                              _inputCtrl.text = suggestion.$3;
+                              _inputCtrl.selection = TextSelection.collapsed(
+                                offset: _inputCtrl.text.length,
+                              );
+                              _inputFocus.requestFocus();
+                            },
                     ),
                   ),
                 const SizedBox(height: 4),
@@ -1716,13 +1821,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         bubble: _bubbles[i],
         onDiagram:
             _imageCapabilities['image_output'] == true &&
+                !_resting &&
                 !_sending &&
                 !_diagramRequests.contains(_bubbles[i].messageId)
             ? () => _requestDiagram(_bubbles[i])
             : null,
         feedback: _learningSelections['${_bubbles[i].messageId}'] as String?,
         onFeedback:
-            _sending ||
+            _resting ||
+                _sending ||
                 _uploadingImage ||
                 _openingSession ||
                 _selectingTeacher ||
@@ -1732,7 +1839,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             : (action) => _feedback(_bubbles[i], action),
         onLongPress: () => _messageMenu(_bubbles[i]),
         onRetry:
-            _bubbles[i].failed && i == _bubbles.length - 1 && i > 0 && !_sending
+            _bubbles[i].failed &&
+                i == _bubbles.length - 1 &&
+                i > 0 &&
+                !_sending &&
+                !_resting
             ? () => _send(retryUserIndex: i - 1)
             : null,
         isLoading:
@@ -1762,7 +1873,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   tooltip: tr('添加题目图片'),
                   icon: const Icon(Icons.add_photo_alternate_outlined),
                   onPressed:
-                      _sending ||
+                      _resting ||
+                          _sending ||
                           _uploadingImage ||
                           _openingSession ||
                           _selectingTeacher ||
@@ -1772,6 +1884,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               Expanded(
                 child: TextField(
+                  enabled: !_resting,
                   controller: _inputCtrl,
                   focusNode: _inputFocus,
                   minLines: 1,
@@ -1779,7 +1892,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   textInputAction: TextInputAction.send,
                   onSubmitted: (_) => _send(),
                   decoration: InputDecoration(
-                    hintText: tr("问一个学习问题…"),
+                    hintText: _resting ? tr("休息时间到啦") : tr("问一个学习问题…"),
                     filled: false,
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -1794,14 +1907,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               Padding(
                 padding: const EdgeInsets.only(right: 5),
                 child: IconButton.filled(
-                  onPressed:
-                      _sending ||
-                          _uploadingImage ||
-                          _openingSession ||
-                          _selectingTeacher ||
-                          _sessionActionPending
-                      ? null
-                      : _send,
+                  onPressed: _canSend ? _send : null,
                   tooltip: tr("发送问题"),
                   icon: const Icon(Icons.arrow_upward),
                 ),

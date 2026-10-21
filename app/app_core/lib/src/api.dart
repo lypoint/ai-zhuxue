@@ -457,6 +457,9 @@ class Api {
   /// 我的学习统计（学生自己可见）：{today:{questions,blocked,minutes}, week:{...,active_days}, favorites}
   Future<Map<String, dynamic>> myStats() => _send('GET', '/chat/my-stats');
 
+  Future<Map<String, dynamic>> chatAvailability() =>
+      _send('GET', '/chat/availability');
+
   /// 端侧活跃心跳（每 60s，聊天页活跃时上报；防刷单次≤120）
   Future<void> heartbeat(int seconds) =>
       _send('POST', '/chat/heartbeat', body: {'seconds': seconds});

@@ -558,3 +558,22 @@ def test_purge_image_conversation_with_foreign_keys():
             assert db.get(MediaAsset, aid).status == 'deleting'
     finally:
         engine.dispose()
+
+
+def test_upload_and_diagram_share_rest_hint(client, image_env, monkeypatch):
+    from app.api import chat
+    e = image_env
+    _, message_id = messages(e)
+    with SessionLocal.begin() as db:
+        fs = db.query(FamilySettings).filter_by(family_id=db.get(Student, e['sid']).family_id).one()
+        fs.quiet_enabled, fs.quiet_start, fs.quiet_end = True, 22, 6
+    monkeypatch.setattr(chat, 'local_now', lambda: dt.datetime(2026, 10, 20, 22))
+    status = client.get('/chat/availability', headers=h(e['token'])).json()
+    assert status['resting'] is True
+    for url, body in [('/media/uploads', {'teacher_id': e['gid']}),
+                      (f'/chat/messages/{message_id}/diagram', {})]:
+        response = client.post(url, headers=h(e['token']), json=body)
+        assert response.status_code == 423
+        assert response.json()['detail'] == status['message']
+    with SessionLocal() as db:
+        assert db.query(MediaAsset).filter_by(student_id=e['sid']).count() == 0
