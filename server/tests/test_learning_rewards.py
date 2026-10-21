@@ -1,8 +1,23 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
+import pytest
+from app.api.learning import day_of
 from app.db import SessionLocal
 from app.models import Conversation, Message
 from app.local_time import local_now, utc_bounds
 from .conftest import make_family, h
+
+
+@pytest.mark.parametrize('timestamp, expected', [
+    ('2026-10-21T09:32:39', '2026-10-21'),
+    ('2026-10-21T09:32:39+00:00', '2026-10-21'),
+    ('2026-10-21T17:32:39+08:00', '2026-10-21'),
+    ('2026-10-21T16:00:00+00:00', '2026-10-22'),
+    ('2026-10-22T00:00:00+08:00', '2026-10-22'),
+    ('2026-10-21T23:59:59+08:00', '2026-10-21'),
+])
+def test_reward_day_normalizes_database_timezone(monkeypatch, timestamp, expected):
+    monkeypatch.setattr('app.api.learning.settings.tz_offset_hours', 8)
+    assert day_of(datetime.fromisoformat(timestamp)) == expected
 
 
 def answer_ids(sid, old=False):

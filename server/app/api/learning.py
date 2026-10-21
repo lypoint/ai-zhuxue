@@ -41,7 +41,10 @@ def lock_student(db, student_id):
 
 
 def day_of(timestamp):
-    return (timestamp + timedelta(hours=settings.tz_offset_hours)).date().isoformat()
+    # SQLite returns naive UTC; PostgreSQL may return an aware local timestamp.
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=timezone.utc)
+    return timestamp.astimezone(timezone(timedelta(hours=settings.tz_offset_hours))).date().isoformat()
 
 
 def summary(db, student_id):
