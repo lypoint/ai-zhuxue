@@ -203,6 +203,41 @@ void main() {
         }
         await tester.pumpAndSettle();
         expect(send().onPressed == null, uploadStatus != 200);
+        if (uploadStatus == 200) {
+          await tester.binding.setSurfaceSize(const Size(320, 640));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          for (var i = 0; i < 2; i++) {
+            await tester.tap(find.byTooltip('添加题目图片'));
+            await tester.pumpAndSettle();
+            await tester.tap(find.text('从相册选择'));
+            for (var j = 0; j < 10; j++) {
+              await tester.runAsync(() async {
+                await Future<void>.delayed(const Duration(milliseconds: 20));
+              });
+              await tester.pump();
+            }
+            await tester.pumpAndSettle();
+          }
+          final composer = find.byKey(const ValueKey('chat-composer'));
+          final thumbnails = find.descendant(
+            of: composer,
+            matching: find.byWidgetPredicate(
+              (w) => w is Image && w.image is MemoryImage,
+            ),
+          );
+          expect(thumbnails, findsNWidgets(3));
+          final bounds = tester.getRect(composer);
+          for (var i = 0; i < 3; i++) {
+            final thumbnail = tester.getRect(thumbnails.at(i));
+            expect(bounds.contains(thumbnail.topLeft), isTrue);
+            expect(bounds.contains(thumbnail.bottomRight), isTrue);
+            expect(
+              thumbnail.bottom,
+              lessThan(tester.getTopLeft(find.byType(TextField)).dy),
+            );
+          }
+          expect(tester.takeException(), isNull);
+        }
         if (uploadStatus == 423) {
           expect(
             tester.widget<TextField>(find.byType(TextField)).enabled,

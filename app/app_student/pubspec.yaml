@@ -1,7 +1,7 @@
 name: app_student
 description: "AI 助学 · 学生端：受学习围栏约束的 AI 学习聊天。"
 publish_to: 'none'
-version: 1.0.3+4
+version: 1.0.4+5
 
 environment:
   sdk: ^3.8.1

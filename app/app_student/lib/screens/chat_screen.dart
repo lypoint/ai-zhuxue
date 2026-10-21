@@ -500,6 +500,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           _replaceBubbles(msgs);
           unawaited(_loadImageCapabilities());
         });
+        _scrollToBottom(animate: false);
       }
     } catch (_) {
       if (mounted && revision == _chatRevision) {
@@ -613,7 +614,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         unawaited(_loadImageCapabilities());
       });
       messenger.hideCurrentSnackBar();
-      _scrollToBottom();
+      _scrollToBottom(animate: false);
     } on ApiException catch (e) {
       if (mounted) {
         messenger.hideCurrentSnackBar();
@@ -1018,7 +1019,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _scrollToBottom({bool animate = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
-        final bottom = _scrollCtrl.position.maxScrollExtent;
+        final bottom = _scrollCtrl.position.minScrollExtent;
         if (animate) {
           _scrollCtrl.animateTo(
             bottom,
@@ -1220,7 +1221,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     children: [
       for (final draft in _draftImages)
         SizedBox(
-          width: 104,
+          width: 80,
           child: Column(
             children: [
               Stack(
@@ -1229,8 +1230,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     borderRadius: BorderRadius.circular(8),
                     child: Image.memory(
                       draft.bytes,
-                      width: 100,
-                      height: 80,
+                      width: 80,
+                      height: 72,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -1719,9 +1720,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ],
           Expanded(child: _bubbles.isEmpty ? _emptyState() : _messageList()),
-          if (_draftImages.isNotEmpty)
-            Padding(padding: const EdgeInsets.all(8), child: _imageDrafts()),
-          if (_uploadingImage) const LinearProgressIndicator(minHeight: 2),
           _inputBar(),
         ],
       ),
@@ -1814,41 +1812,45 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Widget _messageList() {
     return ListView.builder(
       controller: _scrollCtrl,
+      reverse: true,
       padding: const EdgeInsets.symmetric(vertical: 12),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: _bubbles.length,
-      itemBuilder: (_, i) => MessageBubble(
-        bubble: _bubbles[i],
-        onDiagram:
-            _imageCapabilities['image_output'] == true &&
-                !_resting &&
-                !_sending &&
-                !_diagramRequests.contains(_bubbles[i].messageId)
-            ? () => _requestDiagram(_bubbles[i])
-            : null,
-        feedback: _learningSelections['${_bubbles[i].messageId}'] as String?,
-        onFeedback:
-            _resting ||
-                _sending ||
-                _uploadingImage ||
-                _openingSession ||
-                _selectingTeacher ||
-                _sessionActionPending ||
-                _feedbackPending.contains(_bubbles[i].messageId)
-            ? null
-            : (action) => _feedback(_bubbles[i], action),
-        onLongPress: () => _messageMenu(_bubbles[i]),
-        onRetry:
-            _bubbles[i].failed &&
-                i == _bubbles.length - 1 &&
-                i > 0 &&
-                !_sending &&
-                !_resting
-            ? () => _send(retryUserIndex: i - 1)
-            : null,
-        isLoading:
-            _sending && i == _bubbles.length - 1 && _bubbles[i].text.isEmpty,
-      ),
+      itemBuilder: (_, index) {
+        final i = _bubbles.length - 1 - index;
+        return MessageBubble(
+          bubble: _bubbles[i],
+          onDiagram:
+              _imageCapabilities['image_output'] == true &&
+                  !_resting &&
+                  !_sending &&
+                  !_diagramRequests.contains(_bubbles[i].messageId)
+              ? () => _requestDiagram(_bubbles[i])
+              : null,
+          feedback: _learningSelections['${_bubbles[i].messageId}'] as String?,
+          onFeedback:
+              _resting ||
+                  _sending ||
+                  _uploadingImage ||
+                  _openingSession ||
+                  _selectingTeacher ||
+                  _sessionActionPending ||
+                  _feedbackPending.contains(_bubbles[i].messageId)
+              ? null
+              : (action) => _feedback(_bubbles[i], action),
+          onLongPress: () => _messageMenu(_bubbles[i]),
+          onRetry:
+              _bubbles[i].failed &&
+                  i == _bubbles.length - 1 &&
+                  i > 0 &&
+                  !_sending &&
+                  !_resting
+              ? () => _send(retryUserIndex: i - 1)
+              : null,
+          isLoading:
+              _sending && i == _bubbles.length - 1 && _bubbles[i].text.isEmpty,
+        );
+      },
     );
   }
 
@@ -1857,6 +1859,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
         child: DecoratedBox(
+          key: const ValueKey('chat-composer'),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(28),
@@ -1866,51 +1869,68 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ).colorScheme.outlineVariant.withValues(alpha: .55),
             ),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_imageCapabilities['image_input'] == true)
-                IconButton(
-                  tooltip: tr('添加题目图片'),
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
-                  onPressed:
-                      _resting ||
-                          _sending ||
-                          _uploadingImage ||
-                          _openingSession ||
-                          _selectingTeacher ||
-                          _draftImages.length >= 3
-                      ? null
-                      : _pickImage,
+              if (_draftImages.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                  child: _imageDrafts(),
                 ),
-              Expanded(
-                child: TextField(
-                  enabled: !_resting,
-                  controller: _inputCtrl,
-                  focusNode: _inputFocus,
-                  minLines: 1,
-                  maxLines: 5,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _send(),
-                  decoration: InputDecoration(
-                    hintText: _resting ? tr("休息时间到啦") : tr("问一个学习问题…"),
-                    filled: false,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 14,
+              if (_uploadingImage && _draftImages.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (_imageCapabilities['image_input'] == true)
+                    IconButton(
+                      tooltip: tr('添加题目图片'),
+                      icon: const Icon(Icons.add_photo_alternate_outlined),
+                      onPressed:
+                          _resting ||
+                              _sending ||
+                              _uploadingImage ||
+                              _openingSession ||
+                              _selectingTeacher ||
+                              _draftImages.length >= 3
+                          ? null
+                          : _pickImage,
+                    ),
+                  Expanded(
+                    child: TextField(
+                      enabled: !_resting,
+                      controller: _inputCtrl,
+                      focusNode: _inputFocus,
+                      minLines: 1,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      decoration: InputDecoration(
+                        hintText: _resting ? tr("休息时间到啦") : tr("问一个学习问题…"),
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 5),
-                child: IconButton.filled(
-                  onPressed: _canSend ? _send : null,
-                  tooltip: tr("发送问题"),
-                  icon: const Icon(Icons.arrow_upward),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 5),
+                    child: IconButton.filled(
+                      onPressed: _canSend ? _send : null,
+                      tooltip: tr("发送问题"),
+                      icon: const Icon(Icons.arrow_upward),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
