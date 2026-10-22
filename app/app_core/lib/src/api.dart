@@ -7,11 +7,22 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// 默认连接线上 API；本地调试可用 --dart-define=API_BASE 覆盖。
+/// 默认连接本地开发 API；联调或生产可用 --dart-define=API_BASE 覆盖。
 const apiBase = String.fromEnvironment(
   'API_BASE',
-  defaultValue: 'https://api.gker.net',
+  defaultValue: 'http://127.0.0.1:8100',
 );
+
+void _assertValidApiBaseForRelease() {
+  if (kReleaseMode) {
+    final lower = apiBase.toLowerCase();
+    if (lower.contains('127.0.0.1') || lower.contains('localhost') || lower.contains('10.0.2.2')) {
+      throw StateError(
+        'Release builds must specify a valid remote HTTPS API_BASE via --dart-define=API_BASE=https://...',
+      );
+    }
+  }
+}
 
 class ApiException implements Exception {
   final int status;
@@ -111,6 +122,7 @@ class Api {
     String path, {
     Map<String, dynamic>? body,
   }) async {
+    _assertValidApiBaseForRelease();
     final uri = Uri.parse('$apiBase$path');
     final headers = {
       'Content-Type': 'application/json',
@@ -831,6 +843,7 @@ class Api {
     void Function(Map<String, dynamic> meta)? onMeta,
   }) async {
     final client = http.Client();
+    _assertValidApiBaseForRelease();
     try {
       final req =
           http.Request(

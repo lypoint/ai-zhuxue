@@ -83,6 +83,12 @@ def main():
     auth_key = "GOOGLE_SERVER_CLIENT_ID" if channel == "googleplay" else "ALIYUN_AUTH_SDK_KEY"
     for name in ("API_BASE", "PRIVACY_URL", "TERMS_URL", auth_key):
         if os.environ.get(name): options.append(f"--dart-define={name}={os.environ[name]}")
+    if not args.debug:
+        api_base = os.environ.get("API_BASE", "").strip()
+        if not api_base.startswith("https://"):
+            raise SystemExit("Set HTTPS API_BASE for store release (e.g. https://api.yourdomain.com)")
+        if any(h in api_base for h in ("127.0.0.1", "localhost", "10.0.2.2")):
+            raise SystemExit("API_BASE cannot point to loopback/local address for release build")
     if channel == "googleplay" and not args.debug:
         if not os.environ.get("GOOGLE_SERVER_CLIENT_ID", "").endswith(".apps.googleusercontent.com"):
             raise SystemExit("Set GOOGLE_SERVER_CLIENT_ID to the Google OAuth Web client ID")

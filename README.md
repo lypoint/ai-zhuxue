@@ -62,7 +62,7 @@ flutter run   # 需要真机/模拟器
 cd app/app_parent_wechat
 flutter pub get
 flutter run
-# 默认连接 https://api.gker.net；本地调试：--dart-define=API_BASE=http://<host>:8100
+# 默认连接本地 http://127.0.0.1:8100；联调或生产环境：--dart-define=API_BASE=https://<your-api-host>
 ```
 
 渠道商品、验单密钥、打包命令与验收步骤见 [渠道订阅接入](../credentials/store-subscriptions.md)。
