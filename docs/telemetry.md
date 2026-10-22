@@ -27,9 +27,9 @@
 
 ## 私有配置与构建
 
-实际 Firebase JSON 不放入开源仓库。Gradle 默认从仓库上级的 `credentials/firebase/parent-google-services.json`、`student-google-services.json` 读取；CI 可用 `FIREBASE_CONFIG` 指定绝对路径。文件必须与应用包名匹配。不需要 Firebase 管理员私钥。
+实际 Firebase Android 配置 JSON 不放入开源仓库。两个 Google Play 渠道的调试及正式构建均须准备配置：家长默认读取仓库上级 `credentials/firebase/parent-google-services.json`（`com.aizhuxue.parent.play`），学生默认读取 `credentials/firebase/student-google-services.json`（`com.aizhuxue.student.play`）。本地或 CI 可用 `FIREBASE_CONFIG` 指定对应 JSON 的绝对路径；它由 Gradle 读取，切换渠道时必须同步切换或清除该覆盖变量。发布前检查文件可读且 JSON 中的 Android 包名匹配。不需要 Firebase 管理员私钥，不能把后端 Google 服务账号 JSON 当作此配置。
 
-使用 Flutter 3.38.10。家长端沿用 `scripts/build_parent.py googleplay`，学生端在 `app/app_student_googleplay` 内运行 `flutter pub get --enforce-lockfile`、`flutter build apk --debug` 或 `flutter build appbundle --release`。学生端 release 也要求独立的 `android/key.properties` 和正式签名，禁止退回 debug 签名。API_BASE 等配置仍可用 `--dart-define` 传入。原有 `app_student` 构建命令继续产出国内包。
+使用 Flutter 3.38.10。完整构建参数见 [部署与运维](deployment.md#4-flutter-构建产物)：家长端沿用 `scripts/build_parent.py googleplay`，学生端在 `app/app_student_googleplay` 内严格解析依赖再构建。学生端 release 也要求独立的 `android/key.properties` 和正式签名，禁止退回 debug 签名；直接执行 Flutter 时必须显式传入生产 HTTPS `--dart-define=API_BASE=...` 及实际政策地址，不能依赖环境变量自动传入。原有 `app_student` 构建命令继续产出国内包。
 
 依赖及 APK/AAB 隔离检查（仓库根目录）：
 

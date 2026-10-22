@@ -90,7 +90,7 @@ CMS 页面仅使用服务端注入的 `CMS_API_BASE`，未配置时使用同源�
 - `server/tests/`：pytest 覆盖围栏规则、审计、RBAC、绑定、每日上限、用量成本、家长审查、老师角色和成绩评估；
 - `app/app_core/test/`、`app/app_student/test/`、`app/app_parent/test/`：共享库与 widget 测试；`flutter analyze` 零告警；
 - `tools/eval_fence.py`：围栏题库指标评测 + `--check` 阈值断言（CI 中 key 缺失自动跳过）；
-- CI：`.github/workflows/ci.yml`（pytest + flutter analyze/test + 围栏指标回归）。
+- CI：`.github/workflows/ci.yml`（pytest + flutter analyze/test + 围栏指标回归）。测试矩阵不等于正式发布矩阵，工具链与锁文件检查范围的差异见 [CI 与正式发布校验](docs/deployment.md#ci-与正式发布校验的区别)。
 
 ## 围栏题库扩展
 

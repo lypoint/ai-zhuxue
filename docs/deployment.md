@@ -88,7 +88,7 @@ JWT_SECRET=$(openssl rand -hex 32) LLM_KEY_SECRET=$(openssl rand -hex 32) \
 
 ### 工具链与依赖
 
-以下命令均从 `product/` 根目录开始。工具链必须与目标工程已提交的锁文件配套：家长微信 / 家长 App Store 使用 **Flutter 3.32.8**；三个学生入口与家长 Google Play 使用 **Flutter 3.38.10**（Dart 3.10）。锁文件中的 `flutter_test` 间接依赖也受 Flutter 版本约束，不能把所有渠道统一切到某一版本。CI 当前也分配不同版本，但没有覆盖所有学生渠道，发布应按下表逐个验证。
+以下命令均从 `product/` 根目录开始。工具链必须与目标工程已提交的锁文件配套：家长微信 / 家长 App Store 使用 **Flutter 3.32.8**；三个学生入口与家长 Google Play 使用 **Flutter 3.38.10**（Dart 3.10）。锁文件中的 `flutter_test` 间接依赖也受 Flutter 版本约束，不能把所有渠道统一切到某一版本。正式发布按下表逐个验证，不从 CI 的测试矩阵推导发布工具链。
 
 ```bash
 export FLUTTER=/path/to/flutter-3.38.10/bin/flutter  # 按目标渠道选择，见下表
@@ -107,6 +107,18 @@ xcodebuild -version
 
 正式包还需有效签名与对应渠道配置。CI 的 `--debug --no-codesign` 仅验证编译；无商业 SDK 的 iOS 调试包会降级为短信登录，不代表正式一键登录可用。
 
+### CI 与正式发布校验的区别
+
+以下为当前 `.github/workflows/ci.yml` 的实际检查范围，不是正式发布命令：
+
+| CI 任务 | 当前工具链与依赖解析 | 发布时仍需单独完成 |
+| --- | --- | --- |
+| `app` 测试矩阵 | 家长 Google Play 使用 3.38.10，其余矩阵工程（含国内 `app_student`）使用 3.32.8；运行普通 `flutter pub get` | 按发布渠道表使用对应 Flutter，对已提交锁文件执行 `--enforce-lockfile`；不得把 CI 中重新解析依赖当作发布锁文件已通过 |
+| `store-ios` | 家长 App Store 使用 3.32.8、严格依赖解析、Xcode 16 和无签名 debug 构建 | 正式签名、官方号码认证 SDK 注入及实际 IPA 验收 |
+| 学生 Google Play / 学生 App Store | 两个独立渠道壳尚未纳入上述矩阵 | 使用 3.38.10 分别严格解析依赖、构建及验收渠道产物 |
+
+国内学生端的 CI 测试工具链目前与发布工具链不同。CI 绿灯不能代替 Flutter 3.38.10 下的发布依赖验证；也不能为匹配 CI 而降级发布工具链、改写锁文件或跳过检查。此处只说明现有 CI 的边界，不表示 CI 已与全部发布渠道对齐。
+
 ### 渠道入口与正式构建
 
 | 目标 | 工程 | Flutter | 构建入口 |
@@ -119,6 +131,15 @@ xcodebuild -version
 | 家长 App Store | `app/app_parent_appstore` | 3.32.8 | `python3 scripts/build_parent.py appstore` |
 
 家长共享库 `app/app_parent` 不可直接打包。家长脚本读取并传入环境中的 `API_BASE`、`PRIVACY_URL`、`TERMS_URL` 及该渠道认证参数：国内为 `ALIYUN_AUTH_SDK_KEY`，Google Play 为 `GOOGLE_SERVER_CLIENT_ID`（须与服务端 `GOOGLE_LOGIN_CLIENT_ID` 配套）；微信还需 `WECHAT_APP_ID` 与工程配置一致。App Store / Google Play 正式家长包要求 HTTPS 政策地址。真实签名与密钥加载见 [渠道构建与密钥加载](../../credentials/store-subscriptions.md#从私有-credentials-加载号码认证-key)。
+
+**两个 Google Play 渠道在构建前都必须准备各自的 Firebase 配置 JSON**，包括调试构建；完整说明见 [私有配置与构建](telemetry.md#私有配置与构建)。默认位置相对 `product/` 如下：
+
+| 渠道 | 配置文件 | JSON 中须包含的 Android 包名 |
+| --- | --- | --- |
+| 家长 Google Play | `../credentials/firebase/parent-google-services.json` | `com.aizhuxue.parent.play` |
+| 学生 Google Play | `../credentials/firebase/student-google-services.json` | `com.aizhuxue.student.play` |
+
+若文件位于其他目录，在该次构建的环境中设置 `FIREBASE_CONFIG` 为对应 JSON 的绝对路径，并确认文件可读、包名匹配；切换家长/学生构建时须同步切换该变量，不能沿用另一渠道的 JSON。该变量由 Gradle 读取，不是 Dart define。不要把 Firebase Android 配置与后端 Google 服务账号私钥混用，后者不得打入 App；这些私有 JSON 均不提交 Git。仅依赖解析通过或 Google OAuth 配置齐备，不能代替这一步。
 
 学生端示例（先加载部署方确认的真实 `API_BASE`；按上表替换目标目录和构建类型，Google Play 与 iOS 不使用国内工程代替）：
 
