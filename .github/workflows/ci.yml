@@ -49,6 +49,13 @@ jobs:
     defaults: { run: { working-directory: app/app_parent_appstore } }
     steps:
       - uses: actions/checkout@v4
+      - name: Select Xcode 16
+        run: |
+          XCODE_APP=$(ls -d /Applications/Xcode_16*.app | sort -V | tail -n 1)
+          if [ -d "$XCODE_APP" ]; then
+            sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          fi
+          xcodebuild -version
       - uses: subosito/flutter-action@v2
         with: { channel: stable, flutter-version: "3.32.8" }
       - run: flutter pub get --enforce-lockfile
