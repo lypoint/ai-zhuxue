@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:app_core/app_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:overseas_compliance/overseas_compliance.dart';
 
@@ -45,5 +47,15 @@ void main() {
     await manager.revokeConsent();
     expect(manager.isAnalyticsGranted, isFalse);
     expect(await manager.isConsentRequired(), isFalse);
+  });
+
+  testWidgets('settings tile displays localized text in non-Chinese environment', (tester) async {
+    await AppLanguage.I.select('en');
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: GdprPrivacySettingsTile()),
+      ),
+    );
+    expect(find.text('Data Privacy & Analytics (Denied)'), findsOneWidget);
   });
 }
