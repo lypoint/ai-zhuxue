@@ -2,6 +2,8 @@ name: ci
 on:
   push: { branches: [main] }
   pull_request:
+env:
+  PUB_HOSTED_URL: https://pub.flutter-io.cn
 jobs:
   server:
     runs-on: ubuntu-latest
