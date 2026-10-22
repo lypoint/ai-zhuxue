@@ -1,5 +1,6 @@
 import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
+import '../student_app.dart';
 
 /// 会话抽屉（Codex 风格）：新对话、搜索、快捷入口，以及历史会话列表。
 /// 所有交互通过回调上抛给 ChatScreen 处理（网络/状态副作用留在 State 中）。
@@ -20,6 +21,7 @@ class ChatDrawer extends StatelessWidget {
   final ValueChanged<int> onOpenSession;
   final ValueChanged<Map<String, dynamic>> onSessionMenu;
   final VoidCallback onRetrySessions;
+  final List<Widget> Function(BuildContext context)? extraAccountActionBuilder;
 
   const ChatDrawer({
     super.key,
@@ -39,6 +41,7 @@ class ChatDrawer extends StatelessWidget {
     required this.onOpenSession,
     required this.onSessionMenu,
     required this.onRetrySessions,
+    this.extraAccountActionBuilder,
   });
 
   @override
@@ -184,11 +187,16 @@ class ChatDrawer extends StatelessWidget {
               title: Text(tr('账号与设置')),
               trailing: const LanguageButton(),
               onTap: () async {
+                final extraActions = (extraAccountActionBuilder ??
+                        StudentScope.of(context)?.extraAccountActionBuilder)
+                    ?.call(context) ??
+                    const <Widget>[];
                 final action = await showModalBottomSheet<String>(
                   context: context,
                   builder: (ctx) => SafeArea(
                     child: Wrap(
                       children: [
+                        ...extraActions,
                         ListTile(
                           leading: const Icon(Icons.logout),
                           title: Text(tr('退出登录')),

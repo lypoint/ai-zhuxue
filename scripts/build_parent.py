@@ -49,17 +49,27 @@ def artifact(channel, path):
     forbidden = {
         "wechat": (b"io/flutter/plugins/inapppurchase", b"io.flutter.plugins.inapppurchase", b"com/android/billingclient"),
         "googleplay": (b"com/jarvanmo/fluwx", b"com.jarvanmo.fluwx", b"com/tencent/mm/opensdk", b"com/mobile/auth", b"com.mobile.auth"),
-        "appstore": (b"fluwx", b"WechatOpenSDK", b"WXApi"),
+        "appstore": (b"fluwx", b"WechatOpenSDK", b"WXApi", b"One-tap not available in open-source stub"),
     }[channel]
     def inspect(name, data):
         for symbol in forbidden:
-            assert symbol not in name.encode() and symbol not in data, f"Foreign payment SDK {symbol!r} in {name}"
+            assert symbol not in name.encode() and symbol not in data, f"Foreign payment SDK or stub {symbol!r} in {name}"
     if path.is_dir():
         for file in path.rglob("*"):
             if file.is_file(): inspect(str(file.relative_to(path)), file.read_bytes())
     else:
         with zipfile.ZipFile(path) as archive:
             for name in archive.namelist(): inspect(name, archive.read(name))
+    if channel == "appstore":
+        sdk_target = ROOT / "app/app_parent_appstore/ios/Vendor/ATAuthSDK_D.xcframework"
+        if sdk_target.is_dir():
+            has_auth_bundle = False
+            if path.is_dir():
+                has_auth_bundle = any("ATAuthSDK.bundle" in str(f) for f in path.rglob("*"))
+            else:
+                with zipfile.ZipFile(path) as archive:
+                    has_auth_bundle = any("ATAuthSDK.bundle" in name for name in archive.namelist())
+            assert has_auth_bundle, "Release artifact missing ATAuthSDK.bundle from proprietary SDK"
     print(f"{channel}: artifact isolation checked")
 
 
@@ -104,12 +114,13 @@ def main():
             if not os.environ.get(name, "").startswith("https://"):
                 raise SystemExit(f"Set HTTPS {name} for store release")
     if channel == "appstore":
+        import shutil
         if not args.debug:
+            shutil.rmtree(package / "build/ios/ipa", ignore_errors=True)
             if not os.environ.get("ALIYUN_AUTH_SDK_KEY"):
                 raise SystemExit("Set ALIYUN_AUTH_SDK_KEY for this bundle ID")
             sdk_target = package / "ios/Vendor/ATAuthSDK_D.xcframework"
             if not sdk_target.is_dir():
-                import shutil
                 search_paths = [
                     os.environ.get("ALIYUN_AUTH_IOS_SDK_PATH"),
                     str(ROOT.parent / "credentials/rest-release-20261021/source/app/app_parent_appstore/ios/Vendor/ATAuthSDK_D.xcframework"),
@@ -125,12 +136,19 @@ def main():
             bundle_path = sdk_target / "ios-arm64/ATAuthSDK_D.framework/ATAuthSDK.bundle"
             if not bundle_path.exists():
                 raise SystemExit("Detected incomplete or stub ATAuthSDK_D.xcframework. Official release requires full proprietary SDK with ATAuthSDK.bundle.")
+            print("Updating CocoaPods dependencies for injected ATAuthSDK_D...")
+            run(["pod", "install", "--repo-update"], package / "ios")
+        else:
+            shutil.rmtree(package / "build/ios/iphoneos", ignore_errors=True)
         mode = ["ios", "--debug", "--no-codesign"] if args.debug else ["ipa", "--release"]
         run([flutter, "build", *mode, *options], package)
         output = package / "build/ios/iphoneos/Runner.app" if args.debug else next((package / "build/ios/ipa").glob("*.ipa"))
     else:
         if not args.debug and not (package / "android/key.properties").is_file():
             raise SystemExit("Configure android/key.properties and the channel's release signing key")
+        out_dir = package / ("build/app/outputs/flutter-apk" if args.debug else "build/app/outputs/bundle/release")
+        import shutil
+        shutil.rmtree(out_dir, ignore_errors=True)
         mode = ["apk", "--debug"] if args.debug else ["appbundle", "--release"]
         run([flutter, "build", *mode, *options], package)
         output = package / ("build/app/outputs/flutter-apk/app-debug.apk" if args.debug else "build/app/outputs/bundle/release/app-release.aab")

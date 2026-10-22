@@ -4,8 +4,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
+/// Track runtime diagnostic collection consent.
+bool _isDiagnosticGranted = false;
+
 /// Imported by Google Play shells only. Native collection starts disabled.
 Future<void> initializePlayTelemetry({bool initialAnalyticsConsent = false}) async {
+  _isDiagnosticGranted = initialAnalyticsConsent;
   try {
     await _configure(initialAnalyticsConsent);
   } catch (_) {
@@ -16,8 +20,9 @@ Future<void> initializePlayTelemetry({bool initialAnalyticsConsent = false}) asy
   }
 }
 
-/// Dynamically updates Firebase Analytics consent state according to user choice.
+/// Dynamically updates Firebase Analytics and Crashlytics diagnostics consent state according to user choice.
 Future<void> updatePlayTelemetryConsent({required bool analyticsGranted}) async {
+  _isDiagnosticGranted = analyticsGranted;
   try {
     final analytics = FirebaseAnalytics.instance;
     await analytics.setConsent(
@@ -27,8 +32,10 @@ Future<void> updatePlayTelemetryConsent({required bool analyticsGranted}) async 
       adPersonalizationSignalsConsentGranted: false,
     );
     await analytics.setAnalyticsCollectionEnabled(kReleaseMode && analyticsGranted);
+    final crashlytics = FirebaseCrashlytics.instance;
+    await crashlytics.setCrashlyticsCollectionEnabled(kReleaseMode && analyticsGranted);
   } catch (_) {
-    debugPrint("Firebase setConsent update unavailable");
+    debugPrint("Firebase setConsent/Crashlytics update unavailable");
   }
 }
 
@@ -43,23 +50,28 @@ Future<void> _configure(bool initialAnalyticsConsent) async {
     adPersonalizationSignalsConsentGranted: false,
   );
   await analytics.setAnalyticsCollectionEnabled(kReleaseMode && initialAnalyticsConsent);
-  await crashlytics.setCrashlyticsCollectionEnabled(kReleaseMode);
+  await crashlytics.setCrashlyticsCollectionEnabled(kReleaseMode && initialAnalyticsConsent);
   if (!kReleaseMode) return;
-  Telemetry.events = (event, result, status) => analytics.logEvent(
-    name: switch (event) {
-      AppEvent.appReady => 'app_ready',
-      AppEvent.login => 'account_login',
-      AppEvent.bindStudent => 'student_bind',
-      AppEvent.chatSend => 'chat_send',
-      AppEvent.createBindCode => 'bind_code_create',
-      AppEvent.purchaseVerify => 'purchase_verify',
-      AppEvent.restorePurchases => 'purchase_restore',
-      AppEvent.logout => 'account_logout',
-    },
-    parameters: {'result': result.name, if (status != null) 'status': status},
-  );
-  Telemetry.errors = (type, stack, fatal) =>
-      crashlytics.recordError(type, stack, fatal: fatal, printDetails: false);
+  Telemetry.events = (event, result, status) async {
+    if (!_isDiagnosticGranted) return;
+    await analytics.logEvent(
+      name: switch (event) {
+        AppEvent.appReady => 'app_ready',
+        AppEvent.login => 'account_login',
+        AppEvent.bindStudent => 'student_bind',
+        AppEvent.chatSend => 'chat_send',
+        AppEvent.createBindCode => 'bind_code_create',
+        AppEvent.purchaseVerify => 'purchase_verify',
+        AppEvent.restorePurchases => 'purchase_restore',
+        AppEvent.logout => 'account_logout',
+      },
+      parameters: {'result': result.name, if (status != null) 'status': status},
+    );
+  };
+  Telemetry.errors = (type, stack, fatal) async {
+    if (!_isDiagnosticGranted) return;
+    await crashlytics.recordError(type, stack, fatal: fatal, printDetails: false);
+  };
   final previous = FlutterError.onError;
   FlutterError.onError = (details) {
     previous?.call(details);

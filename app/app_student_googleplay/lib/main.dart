@@ -11,6 +11,9 @@ Future<void> main() async {
   await initializePlayTelemetry(
     initialAnalyticsConsent: consentManager.isAnalyticsGranted,
   );
+  GdprConsentManager.onConsentChanged = (granted) async {
+    await updatePlayTelemetryConsent(analyticsGranted: granted);
+  };
   Api.I.channel = 'googleplay';
   await AppLanguage.I.load();
   await Api.I.loadToken();
@@ -21,7 +24,12 @@ Future<void> main() async {
       onConsentDecision: (granted) {
         updatePlayTelemetryConsent(analyticsGranted: granted);
       },
-      child: StudentApp(navigatorKey: navigatorKey),
+      child: StudentApp(
+        navigatorKey: navigatorKey,
+        extraAccountActionBuilder: (context) => [
+          const GdprPrivacySettingsTile(),
+        ],
+      ),
     ),
   );
   Telemetry.event(AppEvent.appReady);

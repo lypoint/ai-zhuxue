@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_core/app_core.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../student_app.dart';
 import 'chat_screen.dart';
 
 String? normalizeBindCode(String? value) {
@@ -80,10 +81,29 @@ class _BindScreenState extends State<BindScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final extraActionBuilder = StudentScope.of(context)?.extraAccountActionBuilder;
     return Scaffold(
       appBar: AppBar(
         title: Text(tr("开始学习")),
-        actions: const [LanguageButton()],
+        actions: [
+          if (extraActionBuilder != null)
+            Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.privacy_tip_outlined),
+                tooltip: tr("隐私与授权设置"),
+                onPressed: () {
+                  final actions = extraActionBuilder(ctx);
+                  showModalBottomSheet(
+                    context: ctx,
+                    builder: (sheetCtx) => SafeArea(
+                      child: Wrap(children: actions),
+                    ),
+                  );
+                },
+              ),
+            ),
+          const LanguageButton(),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(

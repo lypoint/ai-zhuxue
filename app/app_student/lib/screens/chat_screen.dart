@@ -16,7 +16,8 @@ import 'grades_screen.dart';
 
 /// 学习聊天页：流式对话、会话抽屉、心跳时长上报、消息收藏与政策拦截提示。
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final List<Widget> Function(BuildContext context)? extraAccountActionBuilder;
+  const ChatScreen({super.key, this.extraAccountActionBuilder});
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -1659,6 +1660,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onOpenSession: _openSession,
         onSessionMenu: _sessionMenu,
         onRetrySessions: _loadSessions,
+        extraAccountActionBuilder: widget.extraAccountActionBuilder,
       ),
       body: Column(
         children: [
