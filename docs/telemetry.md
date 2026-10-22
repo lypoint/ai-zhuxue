@@ -1,8 +1,10 @@
 # 客户端错误分析与埋点
 
-国内学生端 `app_student`、国内家长端 `app_parent_wechat` 保留空实现；共享业务代码只调用 `app_core` 的 `Telemetry`，不依赖 Firebase。App Store 当前也保持空实现。
+国内学生端 `app_student`、国内家长端 `app_parent_wechat` 保留空实现；共享业务代码只调用 `app_core` 的 `Telemetry`，不依赖 Firebase，亦不包含任何海外合规与跟踪代码。
 
-Google Play 学生端 `app_student_googleplay`（`com.aizhuxue.student.play`）和家长端 `app_parent_googleplay`（`com.aizhuxue.parent.play`）使用独立渠道入口，引入 `play_telemetry`，接入 Firebase Analytics 与 Crashlytics。只有 release 构建启用采集；debug/profile 关闭。初始化或上报失败不阻断业务。
+海外渠道引入 `overseas_compliance` 模块提供轻量级 GDPR 动态 Consent 管理与合规弹窗：
+- Google Play 学生端 `app_student_googleplay` 与家长端 `app_parent_googleplay` 引入 `play_telemetry`，接入 Firebase Analytics 与 Crashlytics。遵循 GDPR Privacy by Default 原则，由用户在 GDPR 弹窗中的明确授权动态调用 `analytics.setConsent(analyticsStorageConsentGranted: granted)`。
+- App Store 家长端 `app_parent_appstore` 与学生端 `app_student_appstore`（iOS）集成 `app_tracking_transparency`，在 `Info.plist` 及七语言本地化资源中声明 `NSUserTrackingUsageDescription`，并在启动时完成隐私告知与追踪权限申请。
 
 ## 数据范围
 

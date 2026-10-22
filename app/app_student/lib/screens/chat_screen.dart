@@ -8,7 +8,6 @@ import '../foreground_heartbeat.dart';
 import '../models/bubble.dart';
 import '../widgets/chat_drawer.dart';
 import '../widgets/message_bubble.dart';
-import '../widgets/daily_incentive_card.dart';
 import 'bind_screen.dart';
 import 'favorites_screen.dart';
 import 'my_reports_screen.dart';
@@ -94,47 +93,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _sending = false;
   final Map<String, dynamic> _learningSelections = {};
   final Set<int> _feedbackPending = {};
-  Map<String, dynamic>? _dailyLearning;
-  String? _dailyLearningError;
-  int _dailyLearningRevision = 0;
-  Timer? _dailyLearningTimer;
-
-  void _applyDailyLearning(Map<String, dynamic> data) {
-    _dailyLearningTimer?.cancel();
-    setState(() {
-      _dailyLearning = data;
-      _dailyLearningError = null;
-    });
-    final delay = Duration(
-      seconds: (data['today']['refresh_after_seconds'] as int) + 1,
-    );
-    _dailyLearningTimer = Timer(delay, _loadDailyLearning);
-  }
-
-  Future<void> _loadDailyLearning() async {
-    final revision = ++_dailyLearningRevision;
-    _dailyLearningTimer?.cancel();
-    setState(() {
-      _dailyLearning = null;
-      _dailyLearningError = null;
-    });
-    try {
-      final data = await Api.I.learningSummary();
-      if (mounted && revision == _dailyLearningRevision) {
-        _applyDailyLearning(data);
-      }
-    } catch (e) {
-      if (mounted && revision == _dailyLearningRevision) {
-        setState(() => _dailyLearningError = tr("今日奖励加载失败，请重试"));
-      }
-    }
-  }
-
   Future<void> _openLearning() async {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const LearningScreen()));
-    if (mounted) _loadDailyLearning();
   }
 
   Future<void> _feedback(Bubble bubble, String action) async {
@@ -146,8 +108,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     try {
       final result = await Api.I.learningFeedback(id, action);
       if (!mounted) return;
-      ++_dailyLearningRevision;
-      _applyDailyLearning(result);
       setState(() => _learningSelections['$id'] = result['action']);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -219,7 +179,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _heartbeat.start();
       _loadRestStatus();
-      _loadDailyLearning();
     } else {
       ++_restRevision;
       _restTimer?.cancel();
@@ -237,7 +196,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (Api.onUnauthorized == _onSessionExpired) Api.onUnauthorized = null;
     WidgetsBinding.instance.removeObserver(this);
     _heartbeat.stop();
-    _dailyLearningTimer?.cancel();
     _inputFocus.dispose();
     super.dispose();
   }
@@ -253,7 +211,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Api.onUnauthorized = _onSessionExpired;
     _restore();
     _loadTeachers();
-    _loadDailyLearning();
     if (WidgetsBinding.instance.lifecycleState == null ||
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       _heartbeat.start();
@@ -1705,13 +1662,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       body: Column(
         children: [
-          if (MediaQuery.viewInsetsOf(context).bottom == 0)
-            DailyIncentiveCard(
-              summary: _dailyLearning,
-              error: _dailyLearningError,
-              onOpen: _openLearning,
-              onRetry: _loadDailyLearning,
-            ),
           if (_restoringLatest) ...[
             const LinearProgressIndicator(minHeight: 2),
             Padding(

@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "AI学習・生徒用";
+"NSCameraUsageDescription" = "保護者との連携用QRコードの読み取りと学習問題の撮影に使用します。";
+"NSPhotoLibraryUsageDescription" = "先生に送る学習問題の画像を選択します。";
+"NSUserTrackingUsageDescription" = "この権限はアプリの安定性とインストールの測定にのみ使用され、第三者広告主と個人情報を共有することはありません。";

@@ -42,6 +42,8 @@ void main() {
     expect(find.text('正在恢复上次对话…'), findsOneWidget);
     expect(find.byIcon(Icons.arrow_upward), findsOneWidget);
     expect(find.byTooltip('选择老师'), findsOneWidget);
+    expect(find.byTooltip('学习反馈与小行星'), findsOneWidget);
+    expect(find.text('今日参与奖励'), findsNothing);
     expect(find.byIcon(Icons.school_outlined), findsNothing);
     expect(
       find.ancestor(of: find.text('AI 学习助手'), matching: find.byType(InkWell)),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:overseas_compliance/overseas_compliance.dart';
 import 'package:play_telemetry/play_telemetry.dart';
 import 'google_login_screen.dart';
 import 'package:app_core/app_core.dart';
@@ -66,17 +67,31 @@ class GoogleAdapter implements StoreAdapter {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializePlayTelemetry();
+  final consentManager = GdprConsentManager.I;
+  await consentManager.init();
+  await initializePlayTelemetry(
+    initialAnalyticsConsent: consentManager.isAnalyticsGranted,
+  );
   await AppLanguage.I.load();
   InAppPurchaseAndroidPlatform.registerPlatform();
   final billing = StoreBilling(GoogleAdapter());
   Api.I.channel = 'googleplay';
   await Api.I.loadToken();
   await billing.retry();
+  final navigatorKey = GlobalKey<NavigatorState>();
   runApp(
-    BillingScope(
-      billing: billing,
-      child: ParentApp(loginBuilder: (_) => const GoogleLoginScreen()),
+    OverseasComplianceWrapper(
+      navigatorKey: navigatorKey,
+      onConsentDecision: (granted) {
+        updatePlayTelemetryConsent(analyticsGranted: granted);
+      },
+      child: BillingScope(
+        billing: billing,
+        child: ParentApp(
+          navigatorKey: navigatorKey,
+          loginBuilder: (_) => const GoogleLoginScreen(),
+        ),
+      ),
     ),
   );
   Telemetry.event(AppEvent.appReady);

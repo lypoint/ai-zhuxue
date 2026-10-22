@@ -6,14 +6,16 @@ import 'screens/login_screen.dart';
 
 /// 家长端根组件：已登录进入家庭总览，否则进入对应渠道的登录页。
 class ParentApp extends StatefulWidget {
-  const ParentApp({super.key, this.loginBuilder});
+  const ParentApp({super.key, this.loginBuilder, this.navigatorKey});
   final WidgetBuilder? loginBuilder;
+  final GlobalKey<NavigatorState>? navigatorKey;
   @override
   State<ParentApp> createState() => _ParentAppState();
 }
 
 class _ParentAppState extends State<ParentApp> {
-  final _navigatorKey = GlobalKey<NavigatorState>();
+  late final GlobalKey<NavigatorState> _navigatorKey =
+      widget.navigatorKey ?? GlobalKey<NavigatorState>();
   bool _handlingExpired = false;
 
   @override

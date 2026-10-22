@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import 'package:app_parent/billing.dart';
 import 'package:app_parent/parent_app.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
+import 'package:overseas_compliance/overseas_compliance.dart';
 import 'package:parent_store/store_billing.dart';
 
 class AppleAdapter implements StoreAdapter {
@@ -35,6 +37,17 @@ class AppleAdapter implements StoreAdapter {
   );
 }
 
+Future<void> _requestTrackingAuthorization() async {
+  try {
+    final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (status == TrackingStatus.notDetermined) {
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    }
+  } catch (_) {
+    // Non-fatal fallback for simulator or non-iOS environments
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppLanguage.I.load();
@@ -43,5 +56,15 @@ Future<void> main() async {
   Api.I.channel = 'appstore';
   await Api.I.loadToken();
   await billing.retry();
-  runApp(BillingScope(billing: billing, child: const ParentApp()));
+  final navigatorKey = GlobalKey<NavigatorState>();
+  runApp(
+    OverseasComplianceWrapper(
+      navigatorKey: navigatorKey,
+      onPostConsent: _requestTrackingAuthorization,
+      child: BillingScope(
+        billing: billing,
+        child: ParentApp(navigatorKey: navigatorKey),
+      ),
+    ),
+  );
 }

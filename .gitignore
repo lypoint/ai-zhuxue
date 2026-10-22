@@ -41,3 +41,4 @@ server/store-keys/
 # Firebase runtime configuration is injected from private credentials/
 **/google-services.json
 **/firebase_options.dart
+designs/

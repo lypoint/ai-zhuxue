@@ -12,6 +12,8 @@ dependencies:
     path: ../app_core
   play_telemetry:
     path: ../play_telemetry
+  overseas_compliance:
+    path: ../overseas_compliance
 dev_dependencies:
   flutter_test:
     sdk: flutter

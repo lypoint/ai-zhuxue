@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "AI 助學學生版";
+"NSCameraUsageDescription" = "用於掃描家長端綁定二維碼及拍攝學習題目";
+"NSPhotoLibraryUsageDescription" = "用於選擇需要老師講解的題目圖片";
+"NSUserTrackingUsageDescription" = "我們僅使用此權限來評估應用穩定性與安裝歸因，絕不會向第三方廣告商出售或共享您的個人資訊。";

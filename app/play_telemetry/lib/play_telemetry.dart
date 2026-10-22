@@ -5,9 +5,9 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 /// Imported by Google Play shells only. Native collection starts disabled.
-Future<void> initializePlayTelemetry() async {
+Future<void> initializePlayTelemetry({bool initialAnalyticsConsent = false}) async {
   try {
-    await _configure();
+    await _configure(initialAnalyticsConsent);
   } catch (_) {
     // Diagnostics must not prevent login or learning when unavailable.
     Telemetry.events = null;
@@ -16,17 +16,33 @@ Future<void> initializePlayTelemetry() async {
   }
 }
 
-Future<void> _configure() async {
+/// Dynamically updates Firebase Analytics consent state according to user choice.
+Future<void> updatePlayTelemetryConsent({required bool analyticsGranted}) async {
+  try {
+    final analytics = FirebaseAnalytics.instance;
+    await analytics.setConsent(
+      adStorageConsentGranted: false,
+      analyticsStorageConsentGranted: analyticsGranted,
+      adUserDataConsentGranted: false,
+      adPersonalizationSignalsConsentGranted: false,
+    );
+    await analytics.setAnalyticsCollectionEnabled(kReleaseMode && analyticsGranted);
+  } catch (_) {
+    debugPrint("Firebase setConsent update unavailable");
+  }
+}
+
+Future<void> _configure(bool initialAnalyticsConsent) async {
   await Firebase.initializeApp();
   final analytics = FirebaseAnalytics.instance;
   final crashlytics = FirebaseCrashlytics.instance;
   await analytics.setConsent(
     adStorageConsentGranted: false,
-    analyticsStorageConsentGranted: true,
+    analyticsStorageConsentGranted: initialAnalyticsConsent,
     adUserDataConsentGranted: false,
     adPersonalizationSignalsConsentGranted: false,
   );
-  await analytics.setAnalyticsCollectionEnabled(kReleaseMode);
+  await analytics.setAnalyticsCollectionEnabled(kReleaseMode && initialAnalyticsConsent);
   await crashlytics.setCrashlyticsCollectionEnabled(kReleaseMode);
   if (!kReleaseMode) return;
   Telemetry.events = (event, result, status) => analytics.logEvent(

@@ -6,12 +6,14 @@ import 'theme/student_theme.dart';
 
 /// 学生端：绑定（输入家长端绑定码）→ 学习聊天（围栏内）。
 class StudentApp extends StatelessWidget {
-  const StudentApp({super.key});
+  final GlobalKey<NavigatorState>? navigatorKey;
+  const StudentApp({super.key, this.navigatorKey});
 
   @override
   Widget build(BuildContext context) {
     return LanguageApp(
       builder: (locale) => MaterialApp(
+        navigatorKey: navigatorKey,
         locale: locale,
         supportedLocales: supportedAppLocales,
         localizationsDelegates: appLocalizationDelegates,

@@ -13,6 +13,9 @@ dependencies:
   in_app_purchase_storekit: 0.4.4
   parent_store:
     path: ../parent_store
+  overseas_compliance:
+    path: ../overseas_compliance
+  app_tracking_transparency: ^2.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

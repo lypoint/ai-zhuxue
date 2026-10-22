@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Aprendizaje con IA · Estudiante";
+"NSCameraUsageDescription" = "Para escanear códigos de vinculación y fotografiar preguntas de estudio.";
+"NSPhotoLibraryUsageDescription" = "Para seleccionar imágenes de preguntas y enviarlas al profesor.";
+"NSUserTrackingUsageDescription" = "Solo usamos este permiso para medir la estabilidad de la app y la atribución de instalación, nunca para publicidad de terceros.";

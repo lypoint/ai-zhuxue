@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "KI-Lernen · Schüler";
+"NSCameraUsageDescription" = "Zum Scannen von Kopplungscodes und Fotografieren von Lernaufgaben.";
+"NSPhotoLibraryUsageDescription" = "Lernaufgaben als Bild auswählen und an die Lehrkraft senden.";
+"NSUserTrackingUsageDescription" = "Wir verwenden diese Berechtigung nur zur Messung der App-Stabilität und Installation, niemals für Drittanbieter-Werbung.";

@@ -1,1 +1,2 @@
-"CFBundleDisplayName" = "AI学習・保護者用";
+"CFBundleDisplayName" = "AI 学習·保護者";
+"NSUserTrackingUsageDescription" = "この権限はアプリの安定性とインストールの測定にのみ使用され、第三者広告主と個人情報を共有することはありません。";
