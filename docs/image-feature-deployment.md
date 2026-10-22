@@ -11,6 +11,14 @@
 5. 备份数据库，运行 `alembic upgrade head`（生产启动也会迁移）。迁移兼容无图片历史消息；图片数据非空时拒绝降级，防止静默丢失。
 6. CMS 新建读图/生图配置，测试、启用，然后到老师的“图片能力”绑定。最后设置 `IMAGE_FEATURES_ENABLED=true` 并重启。默认关闭。
 
+### Docker Compose 配置（2026-10-23 同步）
+
+当前 `docker-compose.yml` 已向 API 传入 `IMAGE_FEATURES_ENABLED`、`QINIU_ACCESS_KEY`、`QINIU_SECRET_KEY`、`QINIU_BUCKET`、`QINIU_DOMAIN`、`QINIU_UPLOAD_URL`、`QINIU_CENSOR_URL`、`IMAGE_MAX_BYTES`、`IMAGE_MAX_PIXELS` 和 `IMAGE_FONT_PATH`。把实际值放在部署机私有环境或 Compose `.env`，不要写入 Git。
+
+字体目录通过 `${IMAGE_FONT_DIR:-/usr/share/fonts}:/usr/share/fonts:ro` 挂载。`IMAGE_FONT_DIR` 是宿主机目录，`IMAGE_FONT_PATH` 是容器内文件路径，默认为 `/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc`；宿主机必须实际安装该字体，挂载本身不会安装字体。自定义目录时相应调整容器内文件路径。先确认字体文件可读，再按上述顺序启用功能；不在日志中输出含存储密钥的完整 Compose 配置。
+
+既有 systemd 部署不会读取 Compose `.env` 或其挂载，须按私有生产说明将同一组应用配置加入服务实际加载的环境文件，并在服务主机上提供字体。发布时保留现有加密密钥，先备份、更新依赖和迁移，再重启与验收；不得把 Docker 命令用于替换现有部署方式。
+
 ## 存储与访问
 
 上传凭证限制 Key、10 分钟有效、不可覆盖。图片先进入 `incoming/`，服务端检查实际格式、字节数、像素数，按 EXIF 方向旋转，剥离元数据并重新编码到 `private/`。仅接受 JPEG/PNG/WebP，默认单张 8 MiB、2000 万像素、每条消息 3 张；移动端选择器先缩至 2400 像素范围。
@@ -48,7 +56,7 @@
 
 ## 上线联调
 
-自动化回归使用模型/存储替身。2026-10-20 已完成隔离环境真实阿里云/七牛联调，见 [真实验收记录](image-feature-acceptance-20261020.md)；移动端真机与生产环境仍需按下列清单确认：
+自动化回归使用模型/存储替身。历史隔离环境的阿里云/七牛联调不能代替本次发布验收，实际验收材料由部署方在仓库外保管；移动端真机与生产环境仍需按下列清单确认：
 
 1. 七牛私有权限、HTTPS、上传区域、CORS、真实审核服务及异常关闭访问。
 2. CMS 探针、绑定老师、修改后失效、原生/辅助读图、三种生图协议及参考图编辑。

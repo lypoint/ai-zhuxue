@@ -10,3 +10,5 @@
 1. 请登录[阿里云号码认证控制台](https://help.aliyun.com/zh/pnvs/developer-reference/the-ios-client-access)下载对应版本的官方商业动态库 SDK（`ATAuthSDK_D.xcframework`）；
 2. 解压并将商业版 `ATAuthSDK_D.xcframework` 放置到当前目录下（或通过环境变量 `ALIYUN_AUTH_IOS_SDK_PATH` 指定）；
 3. 配合对应 Bundle ID 的 `ALIYUN_AUTH_SDK_KEY` 环境变量执行发布脚本即可自动注入并完成校验。
+
+发布脚本从 `product/` 根目录运行 `python3 scripts/build_parent.py appstore`；工具链与完整环境要求见 [部署与运维](../../../../docs/deployment.md#4-flutter-构建产物)。必须显式设置 HTTPS `API_BASE`、`PRIVACY_URL`、`TERMS_URL`，选择 Xcode 16 并准备正式签名。脚本会刷新 Pods、清理旧 IPA 输出并校验本次产物；不要直接构建 IPA 跳过 SDK 注入和缓存处理。

@@ -65,7 +65,7 @@ flutter run
 # 默认连接本地 http://127.0.0.1:8100；联调或生产环境：--dart-define=API_BASE=https://<your-api-host>
 ```
 
-渠道商品、验单密钥、打包命令与验收步骤见 [渠道订阅接入](../credentials/store-subscriptions.md)。
+正式打包与部署先读 [部署与运维](docs/deployment.md#4-flutter-构建产物)；其中包含渠道入口、Flutter/Xcode、包源、生产 API 和商业 SDK 注入要求。真实凭据及商店参数另见仓库外的 [渠道订阅接入](../credentials/store-subscriptions.md)。以上快速开始命令仅用于开发。
 
 **Docker 部署**：
 

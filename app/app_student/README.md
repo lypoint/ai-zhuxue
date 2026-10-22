@@ -1,16 +1,5 @@
-# app_student
+# 学生端
 
-A new Flutter project.
+本工程是国内 Android 学生入口，同时向学生渠道壳提供共享界面。Google Play 使用 `../app_student_googleplay`，App Store 使用 `../app_student_appstore`，不得混用渠道产物。
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+打包前必读 [部署与运维](../../docs/deployment.md#4-flutter-构建产物)：Flutter 3.38.10、匹配锁文件的 `PUB_HOSTED_URL`、严格依赖解析、显式生产 `API_BASE`、iOS Xcode 16、正式签名及产物验收。直接运行 Flutter 时，环境变量不会自动传成 Dart define。
