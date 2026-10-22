@@ -1,7 +1,6 @@
 PODS:
   - app_tracking_transparency (0.0.1):
     - Flutter
-  - ATAuthSDK_D (2.14.19)
   - Flutter (1.0.0)
   - flutter_secure_storage_darwin (10.0.0):
     - Flutter
@@ -20,7 +19,6 @@ PODS:
 
 DEPENDENCIES:
   - app_tracking_transparency (from `.symlinks/plugins/app_tracking_transparency/ios`)
-  - ATAuthSDK_D (from `.`)
   - Flutter (from `Flutter`)
   - flutter_secure_storage_darwin (from `.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
@@ -31,8 +29,6 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   app_tracking_transparency:
     :path: ".symlinks/plugins/app_tracking_transparency/ios"
-  ATAuthSDK_D:
-    :path: "."
   Flutter:
     :path: Flutter
   flutter_secure_storage_darwin:
@@ -48,7 +44,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_tracking_transparency: 3d84f147f67ca82d3c15355c36b1fa6b66ca7c92
-  ATAuthSDK_D: cee1eb8cc307ad6f0c3dc54274c22829eab1a777
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   in_app_purchase_storekit: d1a48cb0f8b29dbf5f85f782f5dd79b21b90a5e6
@@ -56,6 +51,6 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
-PODFILE CHECKSUM: 20e66acb781cfec973dfd82ae562d1565b82a8be
+PODFILE CHECKSUM: cb64dc7a9cae3ec3ff75c00e346f1fd38555448e
 
 COCOAPODS: 1.16.2

@@ -104,8 +104,27 @@ def main():
             if not os.environ.get(name, "").startswith("https://"):
                 raise SystemExit(f"Set HTTPS {name} for store release")
     if channel == "appstore":
-        if not args.debug and not os.environ.get("ALIYUN_AUTH_SDK_KEY"):
-            raise SystemExit("Set ALIYUN_AUTH_SDK_KEY for this bundle ID")
+        if not args.debug:
+            if not os.environ.get("ALIYUN_AUTH_SDK_KEY"):
+                raise SystemExit("Set ALIYUN_AUTH_SDK_KEY for this bundle ID")
+            sdk_target = package / "ios/Vendor/ATAuthSDK_D.xcframework"
+            if not sdk_target.is_dir():
+                import shutil
+                search_paths = [
+                    os.environ.get("ALIYUN_AUTH_IOS_SDK_PATH"),
+                    str(ROOT.parent / "credentials/rest-release-20261021/source/app/app_parent_appstore/ios/Vendor/ATAuthSDK_D.xcframework"),
+                    str(ROOT.parent / "credentials/chat-ui-release-20261021/source/app/app_parent_appstore/ios/Vendor/ATAuthSDK_D.xcframework"),
+                ]
+                for p in search_paths:
+                    if p and Path(p).is_dir():
+                        shutil.copytree(p, sdk_target)
+                        print(f"Injected proprietary ATAuthSDK_D.xcframework from {p}")
+                        break
+            if not sdk_target.is_dir():
+                raise SystemExit("Missing official ATAuthSDK_D.xcframework for release. Place it in ios/Vendor/ or set ALIYUN_AUTH_IOS_SDK_PATH.")
+            bundle_path = sdk_target / "ios-arm64/ATAuthSDK_D.framework/ATAuthSDK.bundle"
+            if not bundle_path.exists():
+                raise SystemExit("Detected incomplete or stub ATAuthSDK_D.xcframework. Official release requires full proprietary SDK with ATAuthSDK.bundle.")
         mode = ["ios", "--debug", "--no-codesign"] if args.debug else ["ipa", "--release"]
         run([flutter, "build", *mode, *options], package)
         output = package / "build/ios/iphoneos/Runner.app" if args.debug else next((package / "build/ios/ipa").glob("*.ipa"))

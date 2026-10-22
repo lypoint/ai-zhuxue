@@ -11,6 +11,7 @@ import UIKit
     let controller = window?.rootViewController as! FlutterViewController
     FlutterMethodChannel(name: "ai.zhuxue/one_tap", binaryMessenger: controller.binaryMessenger)
       .setMethodCallHandler { call, result in
+#if canImport(ATAuthSDK_D)
         let sdk = TXCommonHandler.sharedInstance()
         switch call.method {
         case "isAvailable":
@@ -44,6 +45,16 @@ import UIKit
         default:
           result(FlutterMethodNotImplemented)
         }
+#else
+        switch call.method {
+        case "isAvailable":
+          result(false)
+        case "getLoginToken":
+          result(FlutterError(code: "ONE_TAP_UNAVAILABLE", message: "请使用短信验证码登录", details: nil))
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+#endif
       }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

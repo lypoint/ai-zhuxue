@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'gdpr_consent_manager.dart';
 
 /// Supported translations for GDPR dialogue across the app's seven languages.
@@ -73,16 +74,22 @@ class _GdprStrings {
 class GdprConsentDialog extends StatelessWidget {
   final VoidCallback onAccepted;
   final VoidCallback onEssentialOnly;
+  final String privacyUrl;
 
   const GdprConsentDialog({
     super.key,
     required this.onAccepted,
     required this.onEssentialOnly,
+    this.privacyUrl = const String.fromEnvironment(
+      'PRIVACY_URL',
+      defaultValue: 'https://gker.net/privacy/',
+    ),
   });
 
   /// Shows the dialog if consent has not been recorded yet.
   static Future<void> checkAndShow(
     BuildContext context, {
+    String? privacyUrl,
     void Function(bool granted)? onDecision,
   }) async {
     final manager = GdprConsentManager.I;
@@ -101,6 +108,11 @@ class GdprConsentDialog extends StatelessWidget {
       builder: (dialogContext) => PopScope(
         canPop: false,
         child: GdprConsentDialog(
+          privacyUrl: privacyUrl ??
+              const String.fromEnvironment(
+                'PRIVACY_URL',
+                defaultValue: 'https://gker.net/privacy/',
+              ),
           onAccepted: () async {
             await manager.saveConsent(grantAnalytics: true);
             if (dialogContext.mounted) Navigator.of(dialogContext).pop();
@@ -154,11 +166,14 @@ class GdprConsentDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             InkWell(
-              onTap: () {
-                // Link opens in browser or webview according to app capabilities.
+              onTap: () async {
+                final uri = Uri.tryParse(privacyUrl);
+                if (uri != null && await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
               },
               child: Text(
-                'https://gker.net/privacy/ ($privacyLink)',
+                '$privacyUrl ($privacyLink)',
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.primary,

@@ -69,6 +69,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final consentManager = GdprConsentManager.I;
   await consentManager.init();
+  GdprConsentManager.onConsentChanged = (granted) {
+    updatePlayTelemetryConsent(analyticsGranted: granted);
+  };
   await initializePlayTelemetry(
     initialAnalyticsConsent: consentManager.isAnalyticsGranted,
   );
@@ -90,6 +93,7 @@ Future<void> main() async {
         child: ParentApp(
           navigatorKey: navigatorKey,
           loginBuilder: (_) => const GoogleLoginScreen(),
+          extraAccountActionBuilder: (_) => const GdprPrivacySettingsTile(),
         ),
       ),
     ),

@@ -6,9 +6,15 @@ import 'screens/login_screen.dart';
 
 /// 家长端根组件：已登录进入家庭总览，否则进入对应渠道的登录页。
 class ParentApp extends StatefulWidget {
-  const ParentApp({super.key, this.loginBuilder, this.navigatorKey});
+  const ParentApp({
+    super.key,
+    this.loginBuilder,
+    this.navigatorKey,
+    this.extraAccountActionBuilder,
+  });
   final WidgetBuilder? loginBuilder;
   final GlobalKey<NavigatorState>? navigatorKey;
+  final WidgetBuilder? extraAccountActionBuilder;
   @override
   State<ParentApp> createState() => _ParentAppState();
 }
@@ -41,6 +47,7 @@ class _ParentAppState extends State<ParentApp> {
   Widget build(BuildContext context) {
     return ParentLoginScope(
       loginBuilder: widget.loginBuilder,
+      extraAccountActionBuilder: widget.extraAccountActionBuilder,
       child: LanguageApp(
         builder: (locale) => MaterialApp(
           locale: locale,

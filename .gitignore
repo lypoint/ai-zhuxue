@@ -43,4 +43,5 @@ server/store-keys/
 **/firebase_options.dart
 designs/
 review_doc/
+**/ios/Vendor/ATAuthSDK_D.xcframework/
 

@@ -11,6 +11,7 @@ class GdprConsentManager {
   static const String _keyTimestamp = 'compliance_gdpr_timestamp';
 
   final ValueNotifier<bool?> analyticsGranted = ValueNotifier<bool?>(null);
+  static void Function(bool analyticsGranted)? onConsentChanged;
   bool _initialized = false;
 
   /// Loads current consent state from persistent storage.
@@ -43,6 +44,7 @@ class GdprConsentManager {
     await prefs.setBool(_keyAnalytics, grantAnalytics);
     await prefs.setInt(_keyTimestamp, DateTime.now().millisecondsSinceEpoch);
     analyticsGranted.value = grantAnalytics;
+    onConsentChanged?.call(grantAnalytics);
   }
 
   /// Revokes consent and reverts to essential-only processing.

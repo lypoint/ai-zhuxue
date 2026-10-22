@@ -10,12 +10,15 @@ class ParentLoginScope extends InheritedWidget {
   const ParentLoginScope({
     super.key,
     required this.loginBuilder,
+    this.extraAccountActionBuilder,
     required super.child,
   });
   final WidgetBuilder? loginBuilder;
+  final WidgetBuilder? extraAccountActionBuilder;
   @override
   bool updateShouldNotify(ParentLoginScope oldWidget) =>
-      loginBuilder != oldWidget.loginBuilder;
+      loginBuilder != oldWidget.loginBuilder ||
+      extraAccountActionBuilder != oldWidget.extraAccountActionBuilder;
 }
 
 /// Every return-to-login path resolves the login page supplied by its channel.

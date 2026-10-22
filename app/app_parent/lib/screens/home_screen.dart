@@ -835,6 +835,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (context.dependOnInheritedWidgetOfExactType<ParentLoginScope>()?.extraAccountActionBuilder != null) ...[
+                    context.dependOnInheritedWidgetOfExactType<ParentLoginScope>()!.extraAccountActionBuilder!(context),
+                    const SizedBox(height: 12),
+                  ],
                   OutlinedButton.icon(
                     onPressed: _loggingOut ? null : _logout,
                     icon: const Icon(Icons.logout),

@@ -58,6 +58,16 @@ services:
       GOOGLE_SERVICE_ACCOUNT_PATH: /run/store/google-service-account.json
       GOOGLE_PUBSUB_AUDIENCE: ${GOOGLE_PUBSUB_AUDIENCE:-}
       GOOGLE_PUBSUB_EMAIL: ${GOOGLE_PUBSUB_EMAIL:-}
+      IMAGE_FEATURES_ENABLED: ${IMAGE_FEATURES_ENABLED:-false}
+      QINIU_ACCESS_KEY: ${QINIU_ACCESS_KEY:-}
+      QINIU_SECRET_KEY: ${QINIU_SECRET_KEY:-}
+      QINIU_BUCKET: ${QINIU_BUCKET:-}
+      QINIU_DOMAIN: ${QINIU_DOMAIN:-}
+      QINIU_UPLOAD_URL: ${QINIU_UPLOAD_URL:-https://upload.qiniup.com}
+      QINIU_CENSOR_URL: ${QINIU_CENSOR_URL:-https://ai.qiniuapi.com/v3/image/censor}
+      IMAGE_MAX_BYTES: ${IMAGE_MAX_BYTES:-8388608}
+      IMAGE_MAX_PIXELS: ${IMAGE_MAX_PIXELS:-20000000}
+      IMAGE_FONT_PATH: ${IMAGE_FONT_PATH:-/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc}
     depends_on:
       db:
         condition: service_healthy
@@ -65,6 +75,7 @@ services:
       - teacher_avatars:/data/teacher-avatars
       - ${WECHAT_KEY_DIR:-./server/payment-demo}:/run/wechat:ro
       - ${STORE_KEY_DIR:-./server/store-keys}:/run/store:ro
+      - ${IMAGE_FONT_DIR:-/usr/share/fonts}:/usr/share/fonts:ro
     ports:
       - "127.0.0.1:8000:8000"   # 仅本机可达；对外走 caddy TLS 或自行前置反代
 
