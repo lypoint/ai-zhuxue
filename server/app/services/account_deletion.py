@@ -16,6 +16,8 @@ def deactivate_student(db: Session, student: m.Student) -> None:
     student.nickname = "已注销"
     student.device_id = f"deleted-{uuid.uuid4().hex}"
     student.installation_id = None
+    student.forbidden_words_json = "[]"
+    student.fence_level = "strict"
     student.token_version = (student.token_version or 1) + 1
     for device in db.query(m.StudentDevice).filter_by(student_id=student.id).all():
         device.is_current = False
@@ -104,6 +106,8 @@ def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
         student.device_id = f"deleted-{uuid.uuid4().hex}"
         student.grade_band = "8-12"
         student.last_teacher_group_id = None
+        student.forbidden_words_json = "[]"
+        student.fence_level = "strict"
         student.active = False
         student.token_version += 1
     family.tag = None

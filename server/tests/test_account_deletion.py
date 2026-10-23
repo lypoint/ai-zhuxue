@@ -80,7 +80,8 @@ def test_complete_erases_personal_data_with_real_foreign_keys_and_preserves_fina
         db.add_all([family, other_family]); db.flush()
         guardian = m.Guardian(family_id=family.id, phone='13900000009', google_sub='sub',
                               username='private', password_hash='hash', nickname='name')
-        student = m.Student(family_id=family.id, device_id='old', installation_id='install', nickname='child')
+        student = m.Student(family_id=family.id, device_id='old', installation_id='install', nickname='child',
+                            fence_level='off', forbidden_words_json='["private"]')
         other = m.Student(family_id=other_family.id, device_id='other', nickname='untouched')
         db.add_all([guardian, student, other]); db.flush()
         conv = m.Conversation(student_id=student.id, title='private')
@@ -141,6 +142,7 @@ def test_complete_erases_personal_data_with_real_foreign_keys_and_preserves_fina
         assert guardian.phone is guardian.google_sub is guardian.username is guardian.password_hash is None
         assert guardian.nickname == '' and guardian.token_version == 2
         assert not student.active and student.nickname == '' and student.installation_id is None
+        assert student.forbidden_words_json == '[]' and student.fence_level == 'strict'
         assert student.device_id != 'old' and family.access_disabled
         assert other.nickname == 'untouched' and not other_family.access_disabled
         for model in (m.StoreAccount, m.StoreSubscription, m.StoreTransaction, m.SubscriptionOrder):

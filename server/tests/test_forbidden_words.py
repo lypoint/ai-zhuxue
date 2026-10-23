@@ -3,19 +3,23 @@ import asyncio
 import pytest
 from tests.conftest import h, make_family
 from app.services import fence, llm
+from app.security import parse_token
 
 
-def test_family_keywords(client, monkeypatch):
+def test_child_keywords(client, monkeypatch):
     parent, student = make_family(client)
     other_parent, other_student = make_family(client)
-    assert client.put("/parent/settings", headers=h(parent), json={
-        "quiet_enabled": False, "forbidden_words": [" 游戏 ", "GAME", "game", ""]
+    sid = int(parse_token(student)['sub'])
+    other_sid = int(parse_token(other_student)['sub'])
+    url = f"/parent/students/{sid}/fence-settings"
+    assert client.put(url, headers=h(parent), json={
+        "forbidden_words": [" 游戏 ", "GAME", "game", ""]
     }).status_code == 200
     assert client.put("/parent/settings", headers=h(parent),
                       json={"notify_fence": False}).status_code == 200
-    assert client.get("/parent/family", headers=h(parent)).json()["settings"]["forbidden_words"] == ["游戏", "GAME"]
-    assert client.get("/parent/family", headers=h(other_parent)).json()["settings"]["forbidden_words"] == []
-    assert client.put("/parent/settings", headers=h(student),
+    assert client.get(url, headers=h(parent)).json()["forbidden_words"] == ["游戏", "GAME"]
+    assert client.get(f"/parent/students/{other_sid}/fence-settings", headers=h(other_parent)).json()["forbidden_words"] == []
+    assert client.put(url, headers=h(student),
                       json={"forbidden_words": []}).status_code == 403
 
     async def no_model(*args, **kwargs):
@@ -32,9 +36,9 @@ def test_family_keywords(client, monkeypatch):
     assert response.status_code == 200
     assert fence.FORBIDDEN_WORD_REPLY in response.text
     assert 'event: done' in response.text
-    assert client.put("/parent/settings", headers=h(parent),
+    assert client.put(url, headers=h(parent),
                       json={"forbidden_words": []}).status_code == 200
-    assert client.get("/parent/family", headers=h(parent)).json()["settings"]["forbidden_words"] == []
+    assert client.get(url, headers=h(parent)).json()["forbidden_words"] == []
 
 
 def test_keyword_priority_and_literal_matching():
@@ -45,7 +49,8 @@ def test_keyword_priority_and_literal_matching():
 
 
 def test_keyword_validation(client):
-    parent, _ = make_family(client)
+    parent, student = make_family(client)
+    sid = int(parse_token(student)['sub'])
     for words in [["x" * 101], ["x"] * 501, "游戏"]:
-        assert client.put("/parent/settings", headers=h(parent),
+        assert client.put(f"/parent/students/{sid}/fence-settings", headers=h(parent),
                           json={"forbidden_words": words}).status_code == 422

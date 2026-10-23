@@ -42,6 +42,8 @@ SAFETY_EDUCATION_PATTERNS = (
 SAFETY_HARM_PATTERNS = (
     r"(?:怎样|怎么|如何).{0,8}(?:霸凌|欺负)同学",
     r"(?:让别人受伤|把同学打伤).{0,12}(?:不被发现|不留痕)",
+    r"(?:教我|如何|怎么|怎样|帮我).{0,8}(?:羞辱|孤立|贬低|嘲笑).{0,8}(?:同学|别人|朋友)",
+    r"(?:鼓励|劝|说服)我.{0,8}(?:不吃饭|绝食|伤害自己)",
 )
 
 # 学习信号（heuristic 降级模式用；llm 模式仅作参考不直接放行）
@@ -67,7 +69,8 @@ CLASSIFY_SYSTEM = (
     "输入可使用简体或繁体中文、英文、日文、韩文、德文、西班牙文，按语义分类，JSON字段保持不变。"
     "只输出JSON：{\"category\":\"study|entertainment|sensitive|other\",\"confidence\":0到1}。"
     "study=学科答疑/学习方法/教育性讨论；entertainment=纯娱乐流行文化；"
-    "sensitive=暴力色情自伤违法等；other=其他非学习。"
+    "sensitive=暴力色情自伤违法，以及鼓励霸凌羞辱、自我贬低、极端节食等危害儿童心理健康的内容；"
+    "正常的情绪倾诉、心理知识和求助不属于有害内容，可归为study（教育性讨论）；other=其他非学习。"
 )
 SECOND_PASS_SYSTEM = (
     "你是复核员。请严格复核该输入是否属于学习内容，宁可错杀不可放过敏感内容，"
@@ -131,7 +134,32 @@ async def _llm_classify(content: str, system: str, family_id: int | None = None,
 async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None = None,
                    recent_user_texts: list[str] | None = None,
                    group_id: int | None = None,
-                   forbidden_words: list[str] | None = None) -> dict:
+                   forbidden_words: list[str] | None = None,
+                   fence_level: str = "strict") -> dict:
+    """孩子的违禁词始终优先；其余内容按家长为该孩子选择的强度处理。"""
+    if any(word.casefold() in content.casefold() for word in forbidden_words or [] if word):
+        return {"decision": "reject", "category": "other", "confidence": 1.0,
+                "stages": [{"stage": "parent_keywords", "decision": "reject",
+                            "category": "other", "confidence": 1.0,
+                            "detail": "student forbidden word matched"}],
+                "reply": FORBIDDEN_WORD_REPLY}
+    if fence_level == "off":
+        return {"decision": "allow", "category": "other", "confidence": 1.0,
+                "stages": [{"stage": "policy", "decision": "allow", "category": "other",
+                            "confidence": 1.0, "detail": "student fence off"}]}
+    verdict = await _evaluate(content, grade_band, family_id, recent_user_texts, group_id)
+    if fence_level == "relaxed":
+        decision = "rewrite" if verdict["category"] == "sensitive" else "allow"
+        verdict["decision"] = decision
+        verdict["stages"].append({"stage": "policy", "decision": decision,
+                                  "category": verdict["category"],
+                                  "confidence": verdict["confidence"],
+                                  "detail": "student fence relaxed"})
+    return verdict
+
+
+async def _evaluate(content: str, grade_band: str, family_id: int | None,
+                    recent_user_texts: list[str] | None, group_id: int | None) -> dict:
     """返回 {decision: allow|rewrite|reject, category, confidence, stages: [FenceEvent dict...]}。
 
     recent_user_texts：当前消息之前的最近用户输入（最多取 2 条）。仅 llm 模式启用
@@ -146,12 +174,6 @@ async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None
                        "confidence": confidence, "detail": detail,
                        "intent": intent, "safety_education": safety_education})
         return decision
-
-    # 家长指定词优先于分类和白名单，只用于学生输入。
-    if any(word.casefold() in content.casefold() for word in forbidden_words or [] if word):
-        record("parent_keywords", "reject", "other", 1.0, "family forbidden word matched")
-        return {"decision": "reject", "category": "other", "confidence": 1.0,
-                "stages": stages, "reply": FORBIDDEN_WORD_REPLY}
 
     # 1) 安全教育白名单优先于词语命中，允许求助和预防类回答。
     if any(re.search(pattern, content) for pattern in SAFETY_EDUCATION_PATTERNS):

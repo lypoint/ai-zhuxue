@@ -34,6 +34,9 @@ void main() {
         if (request.url.path == '/parent/students' &&
             request.method == 'POST') {
           creates++;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
+          expect(body['fence_level'], 'off');
+          expect(body['forbidden_words'], ['GAME']);
           return http.Response(
             creates == 1 ? '{"detail":"名额不足"}' : '{"bind_code":"123456"}',
             creates == 1 ? 409 : 200,
@@ -74,6 +77,15 @@ void main() {
         await tester.tap(find.text('添加孩子'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('继续'));
+        await tester.pumpAndSettle();
+        expect(creates, 0);
+        expect(find.text('我的孩子 的围栏设置'), findsOneWidget);
+        await tester.tap(find.byType(DropdownButtonFormField<String>));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('不设围栏').last);
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'GAME');
+        await tester.tap(find.text('保存并继续'));
         await tester.pumpAndSettle();
         expect(find.text('需要增加孩子名额'), findsOneWidget);
         await tester.tap(find.widgetWithText(FilledButton, '增加名额'));

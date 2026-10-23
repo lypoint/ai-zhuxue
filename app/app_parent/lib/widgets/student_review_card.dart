@@ -12,6 +12,7 @@ class StudentReviewCard extends StatelessWidget {
   final bool bindingInProgress;
   final VoidCallback onManageDevices;
   final VoidCallback? onDelete;
+  final VoidCallback? onFenceSettings;
   final Future<void> Function(String band) onGradeBandChanged;
   final bool updatesDisabled;
   const StudentReviewCard({
@@ -22,6 +23,7 @@ class StudentReviewCard extends StatelessWidget {
     this.bindingInProgress = false,
     required this.onManageDevices,
     this.onDelete,
+    this.onFenceSettings,
     required this.onGradeBandChanged,
     this.updatesDisabled = false,
   });
@@ -245,6 +247,14 @@ class StudentReviewCard extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: onManageDevices,
               ),
+              if (onFenceSettings != null)
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  leading: const Icon(Icons.shield_outlined),
+                  title: Text(tr("围栏设置")),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: updatesDisabled ? null : onFenceSettings,
+                ),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                 leading: const Icon(Icons.qr_code_2),

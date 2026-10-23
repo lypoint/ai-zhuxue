@@ -306,10 +306,26 @@ class Api {
   Future<Map<String, dynamic>> createStudent(
     String nickname, {
     String gradeBand = '8-12',
+    String fenceLevel = 'strict',
+    List<String> forbiddenWords = const [],
   }) => _send(
     'POST',
     '/parent/students',
-    body: {'nickname': nickname, 'grade_band': gradeBand},
+    body: {
+      'nickname': nickname,
+      'grade_band': gradeBand,
+      'fence_level': fenceLevel,
+      'forbidden_words': forbiddenWords,
+    },
+  );
+  Future<void> updateStudentFenceSettings(
+    int studentId, {
+    required String fenceLevel,
+    required List<String> forbiddenWords,
+  }) => _send(
+    'PUT',
+    '/parent/students/$studentId/fence-settings',
+    body: {'fence_level': fenceLevel, 'forbidden_words': forbiddenWords},
   );
   Future<Map<String, dynamic>> createBindCode({
     String purpose = 'new_student',
@@ -374,7 +390,6 @@ class Api {
     int quietEnd = 6,
     int dailyMinutesCap = 60,
     bool notifyFence = true,
-    List<String>? forbiddenWords,
   }) => _send(
     'PUT',
     '/parent/settings',
@@ -386,7 +401,6 @@ class Api {
       'quiet_end': quietEnd,
       'daily_minutes_cap': dailyMinutesCap,
       'notify_fence': notifyFence,
-      if (forbiddenWords != null) 'forbidden_words': forbiddenWords,
     },
   );
 

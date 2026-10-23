@@ -6,6 +6,7 @@ import '../widgets/subscription_card.dart';
 import '../widgets/notification_badge.dart';
 import '../widgets/student_review_card.dart';
 import '../widgets/management_settings_card.dart';
+import '../widgets/student_fence_dialog.dart';
 import '../widgets/guardian_name_dialog.dart';
 import 'notifications_screen.dart';
 import '../billing.dart';
@@ -26,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String? _partialLoadError;
   bool _overviewLoadFailed = false;
   bool _manualRefreshing = false;
-  bool _makingCode = false;
   bool _billingPending = false;
   bool _loggingOut = false;
   bool _addingStudent = false;
@@ -89,27 +89,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  Future<void> _makeCode() async {
-    if (_makingCode) return;
-    setState(() => _makingCode = true);
-    try {
-      final data = await Api.I.createBindCode();
-      _showBindCode(data['code'] as String, tr("新学生端绑定码"));
-    } on ApiException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(tr("网络连接失败，请稍后重试"))));
-      }
-    } finally {
-      if (mounted) setState(() => _makingCode = false);
-    }
+  Future<void> _makeCode() => _addStudent();
+
+  Future<void> _editFenceSettings(Map<String, dynamic> student) async {
+    final saved = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StudentFenceDialog(
+        studentId: student['id'] as int,
+        studentName: student['nickname'] as String? ?? '',
+        settings:
+            student['fence_settings'] as Map<String, dynamic>? ?? const {},
+      ),
+    );
+    if (saved != null && mounted) _refresh();
   }
 
   void _showBindCode(String code, String label) {
@@ -178,6 +171,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ).showSnackBar(SnackBar(content: Text(tr("请输入孩子昵称"))));
       return;
     }
+    final fenceSettings = await showDialog<Map<String, dynamic>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => StudentFenceDialog(studentName: name),
+    );
+    if (fenceSettings == null || !mounted) return;
     setState(() => _addingStudent = true);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
@@ -185,7 +184,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       SnackBar(content: Text(tr("正在添加孩子…")), duration: Duration(seconds: 30)),
     );
     try {
-      final data = await Api.I.createStudent(name, gradeBand: gradeBand);
+      final data = await Api.I.createStudent(
+        name,
+        gradeBand: gradeBand,
+        fenceLevel: fenceSettings['fence_level'] as String,
+        forbiddenWords: (fenceSettings['forbidden_words'] as List)
+            .cast<String>(),
+      );
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
       _showBindCode(data['bind_code'] as String, tr("{0} 的绑定码", [name]));
@@ -213,7 +218,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
         );
-        if (add == true && mounted) await _buySeatAndRetry(name, gradeBand);
+        if (add == true && mounted) {
+          await _buySeatAndRetry(name, gradeBand, fenceSettings);
+        }
       } else {
         messenger.showSnackBar(SnackBar(content: Text(e.message)));
       }
@@ -227,7 +234,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _buySeatAndRetry(String name, String gradeBand) async {
+  Future<void> _buySeatAndRetry(
+    String name,
+    String gradeBand,
+    Map<String, dynamic> fenceSettings,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     var seatAdded = false;
     messenger.hideCurrentSnackBar();
@@ -243,7 +254,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return;
       }
       seatAdded = true;
-      final data = await Api.I.createStudent(name, gradeBand: gradeBand);
+      final data = await Api.I.createStudent(
+        name,
+        gradeBand: gradeBand,
+        fenceLevel: fenceSettings['fence_level'] as String,
+        forbiddenWords: (fenceSettings['forbidden_words'] as List)
+            .cast<String>(),
+      );
       if (!mounted) return;
       messenger.hideCurrentSnackBar();
       _showBindCode(data['bind_code'] as String, tr("{0} 的绑定码", [name]));
@@ -771,6 +788,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             : null,
                         bindingInProgress: _bindingStudentId == s['id'],
                         onDelete: () => _deleteStudent(s),
+                        onFenceSettings: () => _editFenceSettings(s),
                         onManageDevices: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => DeviceManageScreen(
@@ -828,10 +846,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.qr_code_2),
-                      title: Text(_makingCode ? tr("生成中…") : tr("学生端绑定码")),
+                      title: Text(_addingStudent ? tr("生成中…") : tr("学生端绑定码")),
                       subtitle: Text(tr("连接学生端设备")),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: _makingCode ? null : _makeCode,
+                      onTap: _addingStudent ? null : _makeCode,
                     ),
                   ),
                   const SizedBox(height: 24),

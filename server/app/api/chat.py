@@ -27,11 +27,6 @@ from ..services.teacher_channels import current_channel, channel_teachers, defau
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
-def _forbidden_words(db: Session, family_id: int) -> list[str]:
-    fs = db.query(FamilySettings).filter_by(family_id=family_id).first()
-    return json.loads(fs.forbidden_words_json) if fs else []
-
-
 class MessageReportIn(BaseModel):
     message_id: int
     reason: str = Field(min_length=1, max_length=500)
@@ -88,6 +83,14 @@ SYSTEM_PROMPT = (
     "行内公式用 $...$（如 $x^2 + 1$），独立公式用 $$...$$（如 $$\\frac{{a}}{{b}}$$）。"
 )
 BAND_DESC = {"8-12": "8-12岁（小学中高年级）", "12-16": "12-16岁（初中）", "16-18": "16-18岁（高中）"}
+
+
+def _system_prompt(grade_band: str, fence_level: str) -> str:
+    prompt = SYSTEM_PROMPT.format(band=BAND_DESC.get(grade_band, "8-12岁"))
+    if fence_level != "strict":
+        prompt = prompt.replace("只解答学科问题、学习方法与教育性讨论，", "")
+        prompt = prompt.replace("如果学生跑题了，温和地把话题带回学习。", "")
+    return prompt
 
 
 def _rewrite_instruction(body: ChatIn) -> str:
@@ -351,14 +354,14 @@ def heartbeat(body: dict, student: Student = Depends(current_student), db: Sessi
 
 async def _output_check(content: str, student: Student, conversation_id: int,
                         message: Message, db: Session, group_id: int | None = None,
-                        locale: str = "zh-Hans") -> Message:
+                        locale: str = "zh-Hans", fence_level: str = "strict") -> Message:
     """生成侧内容安全复核（TC260 生成合格率保障）：assistant 全文再过一次分类器。
 
     sensitive → 落库替换为拒绝话术（流式已送达部分无法撤回，家长端与存储保持一致）
     并发 security 告警；记录 output_check FenceEvent 供评测统计。
     """
     verdict = await fence.evaluate(content, student.grade_band, student.family_id,
-                                   group_id=group_id)
+                                   group_id=group_id, fence_level=fence_level)
     if verdict["category"] != "sensitive":
         return message
     db.add(FenceEvent(student_id=student.id, conversation_id=conversation_id,
@@ -449,6 +452,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
 
     # 围栏判定（带最近用户消息作上下文：多轮铺垫防御）
+    fence_level = student.fence_level
     effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
@@ -457,7 +461,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
         verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
-                                       forbidden_words=_forbidden_words(db, student.family_id),
+                                       fence_level=fence_level,
+                                       forbidden_words=json.loads(student.forbidden_words_json),
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
@@ -471,6 +476,21 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
             "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
+    # P0 安全闭环：家长通知。敏感输入一律发 security 安全告警（不可被偏好关闭、不限频）
+    if verdict["category"] == "sensitive":
+        _notify(student.family_id, "security", "⚠️ 已拦截一条敏感内容",
+                f"{student.nickname}尝试询问：「{body.content[:50]}」。建议关注并与孩子沟通。",
+                conversation_id=conv.id, db=db)
+    elif verdict["decision"] == "reject":
+        _notify(student.family_id, "fence", "已拦截一条非学习内容",
+                f"{student.nickname}尝试询问：「{body.content[:50]}」。建议关注并与孩子沟通。",
+                conversation_id=conv.id, db=db)
+    elif verdict["decision"] == "rewrite":
+        # 与 /chat/stream 对齐：改写引导也通知家长（每天最多一条防骚扰）。
+        _notify(student.family_id, "fence", "已引导话题回到学习",
+                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
+                conversation_id=conv.id, once_per_day=True, db=db)
+
     if verdict["decision"] == "reject":
         cur = _is_active_attempt(db, user_msg.id, attempt)
         if not cur:
@@ -479,21 +499,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         reply = Message(conversation_id=conv.id, role="assistant",
                         content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
         db.add(reply)
-        # 与 /chat/stream 对齐：拒绝时发家长通知（敏感=security，其余=fence）。
-        _notify(student.family_id,
-                "security" if verdict["category"] == "sensitive" else "fence",
-                "⚠️ 已拦截一条敏感内容" if verdict["category"] == "sensitive"
-                else "已拦截一条非学习内容",
-                f"{student.nickname}尝试询问：「{body.content[:50]}」。建议关注并与孩子沟通。",
-                conversation_id=conv.id, db=db)
         db.commit()
         return reply
-
-    if verdict["decision"] == "rewrite":
-        # 与 /chat/stream 对齐：改写引导也通知家长（每天最多一条防骚扰）。
-        _notify(student.family_id, "fence", "已引导话题回到学习",
-                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
-                conversation_id=conv.id, once_per_day=True, db=db)
 
     # 关键：与 /chat/stream 保持一致的事务边界，先提交输入审核记录（FenceEvent）和家长通知，
     # 避免后续 LLM 调用期间持有未提交状态，并确保审计记录落库不丢失。
@@ -506,7 +513,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     history = (db.query(Message).filter(Message.conversation_id == conv.id)
                .order_by(Message.id.desc()).limit(12).all())
     history.reverse()
-    messages = [{"role": "system", "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(student.grade_band, "8-12岁")) + "\n" + language.instruction(body.locale)}]
+    messages = [{"role": "system", "content": _system_prompt(student.grade_band, fence_level) + "\n" + language.instruction(body.locale)}]
     messages[0]["content"] += image_chat.output_instruction(db, conv.teacher_group_id)
     for m in history[:-1]:
         if m.role == "assistant" and not m.content.strip():
@@ -557,7 +564,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     db.commit()
     try:
         reply = await _output_check(result["content"], student, conv.id, reply, db,
-                                    conv.teacher_group_id, locale=body.locale)
+                                    conv.teacher_group_id, locale=body.locale, fence_level=fence_level)
     except Exception:
         db.rollback()
         db.delete(db.get(Message, reply.id))
@@ -640,6 +647,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
     db.commit()  # 与普通聊天共用同一预留时点。
 
     effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
+    fence_level = student.fence_level
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
                .filter(Conversation.student_id == student.id, Message.role == "user",
@@ -647,7 +655,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
         verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
-                                       forbidden_words=_forbidden_words(db, student.family_id),
+                                       fence_level=fence_level,
+                                       forbidden_words=json.loads(student.forbidden_words_json),
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
@@ -661,12 +670,13 @@ async def send_message_stream(body: ChatIn, live: bool = False,
             "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
-    # P0 安全闭环：家长通知。敏感拦截=security（安全告警），其余拦截/改写=fence
-    if verdict["decision"] == "reject":
-        _notify(student.family_id,
-                "security" if verdict["category"] == "sensitive" else "fence",
-                "⚠️ 已拦截一条敏感内容" if verdict["category"] == "sensitive"
-                else "已拦截一条非学习内容",
+    # P0 安全闭环：家长通知。敏感输入一律发 security 安全告警（不可被偏好关闭、不限频）
+    if verdict["category"] == "sensitive":
+        _notify(student.family_id, "security", "⚠️ 已拦截一条敏感内容",
+                f"{student.nickname}尝试询问：「{body.content[:50]}」。建议关注并与孩子沟通。",
+                conversation_id=conv.id, db=db)
+    elif verdict["decision"] == "reject":
+        _notify(student.family_id, "fence", "已拦截一条非学习内容",
                 f"{student.nickname}尝试询问：「{body.content[:50]}」。建议关注并与孩子沟通。",
                 conversation_id=conv.id, db=db)
     elif verdict["decision"] == "rewrite":
@@ -709,7 +719,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                        .order_by(Message.id.desc()).limit(12).all())
             history.reverse()
             messages = [{"role": "system",
-                         "content": SYSTEM_PROMPT.format(band=BAND_DESC.get(grade_band, "8-12岁")) + "\n" + language.instruction(body.locale)}]
+                         "content": _system_prompt(grade_band, fence_level) + "\n" + language.instruction(body.locale)}]
             messages[0]["content"] += image_chat.output_instruction(sdb, teacher_group_id)
             for m in history[:-1]:
                 if m.role == "assistant" and not m.content.strip():
@@ -745,7 +755,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                 out_action = fence_action
                 if collected:
                     check = await fence.evaluate(content, grade_band, family_id,
-                                                 group_id=teacher_group_id)
+                                                 group_id=teacher_group_id, fence_level=fence_level)
                     if check["category"] == "sensitive":
                         content = language.safe_reply(body.locale)
                         out_action = "reject"

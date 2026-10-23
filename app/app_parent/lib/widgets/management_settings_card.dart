@@ -21,7 +21,6 @@ class ManagementSettingsCard extends StatefulWidget {
 class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   late final TextEditingController _capCtrl;
   late final TextEditingController _minutesCtrl;
-  late final TextEditingController _forbiddenWordsCtrl;
   late bool _quietEnabled;
   late int _quietStart;
   late int _quietEnd;
@@ -29,7 +28,7 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   bool _saving = false;
   late String _savedValue;
   String get _value =>
-      '${_capCtrl.text}|${_minutesCtrl.text}|${_forbiddenWordsCtrl.text}|$_quietEnabled|$_quietStart|$_quietEnd|$_notifyFence';
+      '${_capCtrl.text}|${_minutesCtrl.text}|$_quietEnabled|$_quietStart|$_quietEnd|$_notifyFence';
   bool get _dirty => _value != _savedValue;
   void _changed() => setState(() {});
 
@@ -43,15 +42,12 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
     _minutesCtrl = TextEditingController(
       text: (s['daily_minutes_cap'] as num).toString(),
     );
-    _forbiddenWordsCtrl = TextEditingController(
-      text: (s['forbidden_words'] as List? ?? []).join('\n'),
-    );
     _quietEnabled = s['quiet_enabled'] as bool? ?? true;
     _quietStart = s['quiet_start'] as int? ?? 22;
     _quietEnd = s['quiet_end'] as int? ?? 6;
     _notifyFence = s['notify_fence'] as bool? ?? true;
     _savedValue = _value;
-    for (final controller in [_capCtrl, _minutesCtrl, _forbiddenWordsCtrl]) {
+    for (final controller in [_capCtrl, _minutesCtrl]) {
       controller.addListener(_changed);
     }
   }
@@ -60,7 +56,6 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
   void dispose() {
     _capCtrl.dispose();
     _minutesCtrl.dispose();
-    _forbiddenWordsCtrl.dispose();
     super.dispose();
   }
 
@@ -96,12 +91,6 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
         quietEnd: _quietEnd,
         dailyMinutesCap: minutes,
         notifyFence: _notifyFence,
-        forbiddenWords: _forbiddenWordsCtrl.text
-            .split('\n')
-            .map((word) => word.trim())
-            .where((word) => word.isNotEmpty)
-            .toSet()
-            .toList(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(_snackBar(tr("已保存")));
@@ -239,20 +228,8 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
               context,
               Icons.shield_outlined,
               tr("内容与通知"),
-              tr("设置家庭规则，及时了解学习动态"),
+              tr("孩子围栏请在各自的孩子卡片中设置。"),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _forbiddenWordsCtrl,
-              minLines: 3,
-              maxLines: 6,
-              decoration: InputDecoration(
-                labelText: tr("违禁词列表（每行一个）"),
-                helperText: tr("包含任一词即拒绝回答，忽略英文大小写；清空后取消自定义限制"),
-                helperMaxLines: 4,
-              ),
-            ),
-            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(

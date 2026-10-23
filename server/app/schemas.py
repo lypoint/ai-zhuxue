@@ -125,6 +125,7 @@ class FenceEventOut(BaseModel):
 
 
 class FamilySettingsIn(BaseModel):
+    model_config = {"extra": "forbid"}
     # 部分更新：只改一个策略时，不应把其它家长设置重置为默认值。
     daily_message_cap: int | None = Field(default=None, ge=10, le=1000)
     review_enabled: bool | None = None
@@ -133,7 +134,12 @@ class FamilySettingsIn(BaseModel):
     quiet_end: int | None = Field(default=None, ge=0, le=23)
     daily_minutes_cap: int | None = Field(default=None, ge=0, le=480)  # 0=不限
     notify_fence: bool | None = None  # security 告警不可关闭
+
+
+class StudentFenceSettingsIn(BaseModel):
+    model_config = {"extra": "forbid"}
     forbidden_words: list[str] | None = Field(default=None, max_length=500)
+    fence_level: Literal["strict", "relaxed", "off"] | None = None
 
     @field_validator("forbidden_words")
     @classmethod
@@ -151,3 +157,8 @@ class FamilySettingsIn(BaseModel):
                 result.append(word)
                 seen.add(word.casefold())
         return result
+
+
+class StudentCreateIn(StudentFenceSettingsIn):
+    nickname: str = Field(default="我的孩子", min_length=1, max_length=50)
+    grade_band: Literal["8-12", "12-16", "16-18"] = "8-12"

@@ -16,7 +16,8 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       Student, StudentDevice, StudentGrade, StudentGradeVersion,
                       Subscription, SubscriptionOrder, WellbeingAssessment, Notification,
                       FenceFeedback)
-from ..schemas import ConversationOut, FamilySettingsIn, FenceEventOut, MessageOut
+from ..schemas import (ConversationOut, FamilySettingsIn, FenceEventOut, MessageOut,
+                       StudentFenceSettingsIn, StudentCreateIn)
 from ..services.teacher_channels import current_channel, channel_teachers
 
 router = APIRouter(prefix="/parent", tags=["parent"])
@@ -55,6 +56,8 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
     return {
         "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname},
         "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band,
+                      "fence_settings": {"fence_level": s.fence_level,
+                                         "forbidden_words": json.loads(s.forbidden_words_json)},
                       "active": s.active, "seat_status": s.seat_status,
                       "current_device": ({"name": devices[s.id].device_name,
                                           "last_seen_at": devices[s.id].last_seen_at.isoformat()
@@ -67,8 +70,7 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
                      "quiet_start": settings_row.quiet_start if settings_row else settings.fence_quiet_start,
                      "quiet_end": settings_row.quiet_end if settings_row else settings.fence_quiet_end,
                      "daily_minutes_cap": settings_row.daily_minutes_cap if settings_row else 60,
-                     "notify_fence": settings_row.notify_fence if settings_row else True,
-                     "forbidden_words": json.loads(settings_row.forbidden_words_json) if settings_row else []},
+                     "notify_fence": settings_row.notify_fence if settings_row else True},
     }
 
 
@@ -92,18 +94,18 @@ def list_students(guardian: Guardian = Depends(current_guardian), db: Session = 
 
 
 @router.post("/students")
-def create_student(body: dict, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
+def create_student(body: StudentCreateIn, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     from ..services.subscription import can_add_student
     # Serialize seat checks with concurrent child creation/bind operations.
     db.query(Family).filter_by(id=guardian.family_id).with_for_update().first()
     if not can_add_student(guardian.family_id, db):
         raise HTTPException(409, "no student seat available")
-    nickname = (body.get("nickname") or "我的孩子").strip()[:50]
-    grade_band = body.get("grade_band", "8-12")
-    if grade_band not in GRADE_BANDS:
-        raise HTTPException(422, "grade_band 须为 8-12/12-16/16-18")
+    nickname = body.nickname.strip() or "我的孩子"
+    grade_band = body.grade_band
     student = Student(family_id=guardian.family_id, nickname=nickname,
                       grade_band=grade_band,
+                      fence_level=body.fence_level or "strict",
+                      forbidden_words_json=json.dumps(body.forbidden_words or [], ensure_ascii=False),
                       device_id=f"pending-{__import__('uuid').uuid4().hex}")
     db.add(student)
     db.flush()
@@ -112,6 +114,27 @@ def create_student(body: dict, guardian: Guardian = Depends(current_guardian), d
     db.commit()
     return {"student_id": student.id, "bind_code": bind.code,
             "expires_at": bind.expires_at.isoformat()}
+
+
+@router.get("/students/{student_id}/fence-settings")
+def student_fence_settings(student_id: int, guardian: Guardian = Depends(current_guardian),
+                           db: Session = Depends(get_db)):
+    student = _own_student(guardian, student_id, db)
+    return {"fence_level": student.fence_level,
+            "forbidden_words": json.loads(student.forbidden_words_json)}
+
+
+@router.put("/students/{student_id}/fence-settings")
+def update_student_fence_settings(student_id: int, body: StudentFenceSettingsIn,
+                                  guardian: Guardian = Depends(current_guardian),
+                                  db: Session = Depends(get_db)):
+    student = _own_student(guardian, student_id, db)
+    if body.fence_level is not None:
+        student.fence_level = body.fence_level
+    if body.forbidden_words is not None:
+        student.forbidden_words_json = json.dumps(body.forbidden_words, ensure_ascii=False)
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/students/{student_id}/rebind-code")
@@ -425,8 +448,6 @@ def update_settings(body: FamilySettingsIn, guardian: Guardian = Depends(current
         value = getattr(body, field)
         if value is not None:
             setattr(fs, field, value)
-    if body.forbidden_words is not None:
-        fs.forbidden_words_json = json.dumps(body.forbidden_words, ensure_ascii=False)
     db.commit()
     return {"ok": True}
 

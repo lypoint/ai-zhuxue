@@ -156,6 +156,22 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 ```
 → `200 {"ok": true}`。`quiet_*` 为**家长自定义禁用时段**（覆盖全局 22–6；`quiet_enabled=false` 整体关闭）。学生端触发时 423 文案带实际时段。`daily_minutes_cap`（0–480）为每日真实使用时长上限（心跳累计，0=不限）。`notify_fence=false` 关闭围栏改写类通知（**security 安全告警不可关闭**）。
 
+家庭级接口仅管理次数、时长、休息时段和通知；不接受 `fence_level` / `forbidden_words`，旧客户端须升级后在具体孩子下管理围栏，避免误改其他孩子。
+
+### GET /parent/students/{id}/fence-settings、PUT /parent/students/{id}/fence-settings
+
+读写指定孩子的 `{"fence_level":"strict","forbidden_words":[]}`，仅所属家庭的家长可操作，跨家庭返回 404。PUT 支持部分更新，省略时保留原值。`GET /parent/family` 和 `GET /parent/students` 的每个孩子条目中返回 `fence_settings`；家庭 `settings` 不再返回围栏字段。
+
+`POST /parent/students` 创建孩子时可同时传入 `fence_level` 和 `forbidden_words`，与孩子、专属绑定码在同一事务中保存。新孩子默认 `strict`、空违禁词；家长端添加流程会在生成孩子及绑定码之前引导确认这两项设置，取消不会创建孩子。每个孩子卡片的“围栏设置”入口可独立修改，重新绑定设备不会重置设置。历史家庭违禁词通过迁移一次性复制到现有有效孩子，后续不再读取家庭违禁词。旧库的家庭字段仅保留用于回滚，不参与聊天判定。
+
+自定义 `forbidden_words` 始终优先于该孩子的档位，命中即固定拒答并引导学习。
+
+- `strict`（严格）：学习内容放行；其他内容引导学习；敏感内容固定拒答并引导。
+- `relaxed`（宽松）：允许普通闲聊、娱乐；判为危害儿童身心健康的敏感内容引导学习。正常情绪倾诉、心理知识和求助允许回答。
+- `off`（不设围栏）：未命中自定义违禁词时，跳过聊天输入分类和输出内容拦截，生成提示也不再限定学习话题。上游模型仍可能自行拒答。
+
+以上档位适用于普通和流式聊天，包括重试；次数、时长、休息时段、订阅权限独立生效。宽松档的语义识别依赖现有分类模型；规则降级仅识别已有关键词和正则，不能保证识别所有心理危害表达。
+
 ### PUT /parent/students/{id}/nickname — 修改孩子昵称（家长）
 `{"nickname": "新昵称"}` → `200 {"ok": true}`。绑定后改名，跨家庭 404。
 
