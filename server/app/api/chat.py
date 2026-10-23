@@ -90,6 +90,17 @@ SYSTEM_PROMPT = (
 BAND_DESC = {"8-12": "8-12岁（小学中高年级）", "12-16": "12-16岁（初中）", "16-18": "16-18岁（高中）"}
 
 
+def _rewrite_instruction(body: ChatIn) -> str:
+    instruction = (f"{fence.GUIDANCE_PREFIX}学生刚才说：「{body.content}」。"
+                   "请温和地把话题引导回学习，并主动问一个相关的学科问题。")
+    if body.asset_ids:
+        instruction += ("学生已上传图片，系统已接收并完成图片识别；本次问题需要引导回学习。"
+                        "请简短回应图片已收到，邀请学生继续讨论学科知识或发送学习题目。"
+                        "不要声称看不到图片、图片未上传，也不要要求学生重新上传或用文字描述图片。"
+                        "不要继续解答本次偏离学习的问题。")
+    return instruction
+
+
 @router.get("/teachers")
 def available_teachers(student: Student = Depends(current_student), db: Session = Depends(get_db),
                        channel: Annotated[str, Depends(current_channel)] = "wechat"):
@@ -465,9 +476,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
             continue
         messages.append({"role": m.role, "content": image_chat.history_content(db, conv.teacher_group_id, m)})
     if verdict["decision"] == "rewrite":
-        messages.append({"role": "system",
-                         "content": f"{fence.GUIDANCE_PREFIX}学生刚才说：「{body.content}」。"
-                                    f"请温和地把话题引导回学习，并主动问一个相关的学科问题。"})
+        messages.append({"role": "system", "content": _rewrite_instruction(body)})
     else:
         messages.append({"role": "user", "content": image_chat.model_content(db, conv.teacher_group_id, user_msg, effective_content)})
 
@@ -654,9 +663,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                     continue
                 messages.append({"role": m.role, "content": image_chat.history_content(sdb, teacher_group_id, m)})
             if fence_action == "rewrite":
-                messages.append({"role": "system",
-                                 "content": f"{fence.GUIDANCE_PREFIX}学生刚才说：「{body.content}」。"
-                                            f"请温和地把话题引导回学习，并主动问一个相关的学科问题。"})
+                messages.append({"role": "system", "content": _rewrite_instruction(body)})
             else:
                 messages.append({"role": "user", "content": image_chat.model_content(sdb, teacher_group_id, sdb.get(Message, user_msg_id), effective_content)})
 

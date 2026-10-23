@@ -13,6 +13,7 @@ import 'favorites_screen.dart';
 import 'my_reports_screen.dart';
 import 'my_stats_screen.dart';
 import 'grades_screen.dart';
+import 'image_crop_screen.dart';
 
 /// 学习聊天页：流式对话、会话抽屉、心跳时长上报、消息收藏与政策拦截提示。
 class ChatScreen extends StatefulWidget {
@@ -189,6 +190,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    for (final draft in _draftImages) {
+      draft.uploadCancellation?.complete();
+    }
     ++_restRevision;
     _restTimer?.cancel();
     _inputCtrl.removeListener(_inputChanged);
@@ -1041,11 +1045,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         imageQuality: 90,
       );
       if (picked == null || !mounted || _resting) return;
-      final bytes = await picked.readAsBytes();
+      final original = await picked.readAsBytes();
+      if (!mounted || _resting) return;
+      final bytes = await Navigator.of(context).push<Uint8List>(
+        MaterialPageRoute(builder: (_) => ImageCropScreen(bytes: original)),
+      );
+      if (bytes == null) return;
       if (!mounted || _resting) return;
       final draft = _DraftImage(bytes);
       setState(() => _draftImages.add(draft));
-      await _uploadDraft(draft);
+      unawaited(_uploadDraft(draft));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -1053,31 +1062,60 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         ).showSnackBar(SnackBar(content: Text(tr('无法读取图片，请检查相机或相册权限'))));
       }
     } finally {
-      if (mounted) setState(() => _uploadingImage = false);
+      if (mounted) {
+        setState(
+          () => _uploadingImage = _draftImages.any(
+            (draft) => draft.uploadCancellation != null,
+          ),
+        );
+      }
     }
+  }
+
+  void _removeDraft(_DraftImage draft) {
+    setState(() {
+      draft.uploadCancellation?.complete();
+      draft.uploadCancellation = null;
+      _draftImages.remove(draft);
+      _uploadingImage = _draftImages.any(
+        (image) => image.uploadCancellation != null,
+      );
+    });
   }
 
   Future<void> _uploadDraft(_DraftImage draft) async {
     if (_resting) return;
+    final cancellation = Completer<void>();
     setState(() {
+      draft.uploadCancellation = cancellation;
       _uploadingImage = true;
       draft.error = false;
     });
+    bool isCurrent() =>
+        mounted &&
+        _draftImages.contains(draft) &&
+        identical(draft.uploadCancellation, cancellation);
     try {
       final block = await Api.I.uploadChatImage(
         draft.bytes,
         conversationId: _conversationId,
+        cancelled: cancellation.future,
       );
-      if (mounted) setState(() => draft.block = block);
+      if (isCurrent()) setState(() => draft.block = block);
     } on ApiException catch (e) {
-      if (mounted) {
+      if (isCurrent()) {
         if (e.status == 423) _handleRestRestriction(e);
         setState(() => draft.error = true);
       }
     } catch (_) {
-      if (mounted) setState(() => draft.error = true);
+      if (isCurrent()) setState(() => draft.error = true);
     } finally {
-      if (mounted) setState(() => _uploadingImage = false);
+      if (isCurrent()) {
+        setState(() {
+          draft.uploadCancellation = null;
+          _uploadingImage = false;
+        });
+      }
     }
   }
 
@@ -1198,10 +1236,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     top: 0,
                     child: IconButton(
                       tooltip: tr('移除图片'),
-                      onPressed: _sending || _uploadingImage
-                          ? null
-                          : () => setState(() => _draftImages.remove(draft)),
-                      icon: const Icon(Icons.cancel),
+                      padding: EdgeInsets.zero,
+                      alignment: Alignment.topRight,
+                      constraints: const BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 48,
+                      ),
+                      onPressed: _sending ? null : () => _removeDraft(draft),
+                      icon: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.cancel),
+                      ),
                     ),
                   ),
                 ],
@@ -1896,5 +1944,6 @@ class _DraftImage {
   final Uint8List bytes;
   Map<String, dynamic>? block;
   bool error = false;
+  Completer<void>? uploadCancellation;
   _DraftImage(this.bytes);
 }

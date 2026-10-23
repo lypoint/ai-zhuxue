@@ -121,6 +121,7 @@ class Api {
     String method,
     String path, {
     Map<String, dynamic>? body,
+    http.Client? client,
   }) async {
     _assertValidApiBaseForRelease();
     final uri = Uri.parse('$apiBase$path');
@@ -130,25 +131,29 @@ class Api {
       'X-App-Channel': appChannel,
       if (_token != null) 'Authorization': 'Bearer $_token',
     };
-    final resp = switch (method) {
-      'POST' => await http.post(
-        uri,
-        headers: headers,
-        body: jsonEncode(body ?? {}),
-      ),
-      'PUT' => await http.put(
-        uri,
-        headers: headers,
-        body: jsonEncode(body ?? {}),
-      ),
-      'PATCH' => await http.patch(
-        uri,
-        headers: headers,
-        body: jsonEncode(body ?? {}),
-      ),
-      'DELETE' => await http.delete(uri, headers: headers),
-      _ => await http.get(uri, headers: headers),
-    };
+    final request = http.Request(method, uri)..headers.addAll(headers);
+    if (body != null) request.body = jsonEncode(body);
+    final resp = client != null
+        ? await http.Response.fromStream(await client.send(request))
+        : switch (method) {
+            'POST' => await http.post(
+              uri,
+              headers: headers,
+              body: jsonEncode(body ?? {}),
+            ),
+            'PUT' => await http.put(
+              uri,
+              headers: headers,
+              body: jsonEncode(body ?? {}),
+            ),
+            'PATCH' => await http.patch(
+              uri,
+              headers: headers,
+              body: jsonEncode(body ?? {}),
+            ),
+            'DELETE' => await http.delete(uri, headers: headers),
+            _ => await http.get(uri, headers: headers),
+          };
     final data = jsonDecode(utf8.decode(resp.bodyBytes));
     if (resp.statusCode >= 400) {
       if (resp.statusCode == 401 && !path.endsWith('/password')) {
@@ -782,33 +787,63 @@ class Api {
     Uint8List bytes, {
     int? conversationId,
     int? teacherId,
+    Future<void>? cancelled,
   }) async {
-    final upload = await _send(
-      'POST',
-      '/media/uploads',
-      body: {
-        if (conversationId != null) 'conversation_id': conversationId,
-        if (teacherId != null) 'teacher_id': teacherId,
-      },
-    );
-    if (bytes.length > (upload['max_bytes'] as int)) {
-      throw ApiException(422, '图片超过大小限制，请选择较小的图片');
+    final client = http.Client();
+    var isCancelled = false;
+    cancelled?.then((_) {
+      isCancelled = true;
+      client.close();
+    });
+    void checkCancelled() {
+      if (isCancelled) throw http.ClientException('Image upload cancelled');
     }
-    final request =
-        http.MultipartRequest('POST', Uri.parse(upload['upload_url'] as String))
-          ..fields['key'] = upload['key'] as String
-          ..fields['token'] = upload['token'] as String
-          ..files.add(
-            http.MultipartFile.fromBytes(
-              'file',
-              bytes,
-              filename: 'question.jpg',
-            ),
-          );
-    final response = await request.send().timeout(const Duration(seconds: 60));
-    await response.stream.drain<void>().timeout(const Duration(seconds: 60));
-    if (response.statusCode != 200) throw ApiException(503, '图片上传失败，请重试');
-    return _send('POST', '/media/${upload['asset_id']}/complete');
+
+    try {
+      final upload = await _requestRaw(
+        'POST',
+        '/media/uploads',
+        client: client,
+        body: {
+          if (conversationId != null) 'conversation_id': conversationId,
+          if (teacherId != null) 'teacher_id': teacherId,
+        },
+      );
+      checkCancelled();
+      if (bytes.length > (upload['max_bytes'] as int)) {
+        throw ApiException(422, '图片超过大小限制，请选择较小的图片');
+      }
+      final request =
+          http.MultipartRequest(
+              'POST',
+              Uri.parse(upload['upload_url'] as String),
+            )
+            ..fields['key'] = upload['key'] as String
+            ..fields['token'] = upload['token'] as String
+            ..files.add(
+              http.MultipartFile.fromBytes(
+                'file',
+                bytes,
+                filename: 'question.jpg',
+              ),
+            );
+      final response = await client
+          .send(request)
+          .timeout(const Duration(seconds: 60));
+      await response.stream.drain<void>().timeout(const Duration(seconds: 60));
+      checkCancelled();
+      if (response.statusCode != 200) throw ApiException(503, '图片上传失败，请重试');
+      final block = await _requestRaw(
+        'POST',
+        '/media/${upload['asset_id']}/complete',
+        body: {},
+        client: client,
+      );
+      checkCancelled();
+      return block;
+    } finally {
+      client.close();
+    }
   }
 
   /// 发消息（非流式）：返回 assistant 消息。

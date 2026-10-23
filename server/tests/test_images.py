@@ -185,6 +185,61 @@ def test_assisted_image_only_chat_passes_recognition_to_fence(client, image_env,
         assert db.get(MediaAsset, aid).message_id
 
 
+@pytest.mark.parametrize('path', ['/chat', '/chat/stream'])
+@pytest.mark.parametrize('with_image', [False, True])
+def test_rewrite_acknowledges_received_image_and_guides_learning(client, image_env, monkeypatch, path, with_image):
+    e = image_env
+    aid = asset(e) if with_image else None
+    seen = []
+    reply = '我们一起回到学习上吧，试着说说你想学哪个知识点。'
+
+    async def evaluate(text, *args, **kwargs):
+        return {'decision': 'rewrite', 'category': 'other', 'stages': []}
+
+    async def vision(*args, **kwargs):
+        return {'content': json.dumps({'text': '非学习材料', 'relations': '', 'uncertain': ''}), 'usage': {}}
+
+    async def chat(msgs, **kwargs):
+        instruction = msgs[-1]['content']
+        seen.append(instruction)
+        assert msgs[-1]['role'] == 'system'
+        assert '把话题引导回学习' in instruction
+        assert ('系统已接收并完成图片识别' in instruction) == with_image
+        if with_image:
+            assert '不要声称看不到图片' in instruction
+            assert '不要继续解答本次偏离学习的问题' in instruction
+            assert '非学习材料' not in instruction
+            assert 'image_url' not in json.dumps(msgs)
+        return {'content': reply, 'tokens_in': 1, 'tokens_out': 1, 'provider': 'test', 'model': 'chat'}
+
+    async def stream(msgs, **kwargs):
+        await chat(msgs, **kwargs)
+        yield {'delta': reply, 'provider': 'test', 'model': 'chat'}
+        yield {'usage': {'tokens_in': 1, 'tokens_out': 1}}
+
+    monkeypatch.setattr('app.api.chat.fence.evaluate', evaluate)
+    monkeypatch.setattr(image_models, 'complete', vision)
+    monkeypatch.setattr('app.api.chat.llm.chat', chat)
+    monkeypatch.setattr('app.api.chat.llm.chat_stream', stream)
+    response = client.post(path, headers=h(e['token']), json={
+        'content': '你能看到图中内容吗？' if with_image else '聊点娱乐',
+        'asset_ids': [aid] if aid else [], 'teacher_id': e['gid'],
+    })
+    assert response.status_code == 200, response.text
+    if path.endswith('stream'):
+        assert 'done' in _events(response.text)
+    else:
+        assert response.json()['content'] == reply
+    assert seen
+    with SessionLocal() as db:
+        conv = db.query(Conversation).filter_by(student_id=e['sid']).one()
+        user = db.query(Message).filter_by(conversation_id=conv.id, role='user').one()
+        assert user.fence_action == 'rewrite'
+        if aid:
+            assert db.get(MediaAsset, aid).message_id == user.id
+            assert json.loads(db.get(MediaAsset, aid).analysis_json)['data']['text'] == '非学习材料'
+
+
 def test_native_images_and_revision_capabilities(image_env):
     e = image_env
     with SessionLocal.begin() as db:
