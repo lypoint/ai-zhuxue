@@ -6,6 +6,7 @@
 
 - 本文是当前通用打包部署流程；家长构建行为见 `scripts/build_parent.py`，CI 环境见 `.github/workflows/ci.yml`。发布前先核对三者及目标渠道锁文件，不直接复制历史验收记录中的命令。
 - 实际生产环境先读私有 [渠道与凭据说明](../../credentials/store-subscriptions.md) 和 [生产部署说明](../../credentials/production-deploy-gker.md)。当前生产使用什么进程管理、端口和配置文件，须以该环境的说明及只读检查结果为准；下方 Docker 示例不代表既有 systemd 环境的升级方式。
+- 各渠道版本号一致性原则：除非特殊说明，最新发布版本的各个渠道版本号（version name）尽量保持一致。例如国内包是 1.0.3，则 Google Play 即使历史版本是 1.0.1 也应同步对齐至 1.0.3，反之亦然；构建号（versionCode / build number）按各渠道各自历史记录严格递增，且必须高于各渠道/商店已发布的最大版本。
 - 客户端正式构建必须显式设置远程 HTTPS `API_BASE`；默认值已改为 `http://127.0.0.1:8100`。宿主机环境变量不会自动成为 Dart define，直接执行 Flutter 时必须传 `--dart-define=API_BASE=...`。
 - 服务端更新：核对目标提交与现有版本 → 比较依赖和迁移 → 备份并确认恢复方式 → 按该环境流程发布 → 检查健康、迁移版本和关键业务。依赖有变化时必须安装当前 `server/requirements.txt`；不能只切换源码并复用未更新的虚拟环境。保留现有 `JWT_SECRET`、`LLM_KEY_SECRET`、`STORE_TOKEN_SECRET`，不要套用首次部署示例重新生成。
 - systemd 环境还须先只读核对每个服务实际生效的 `ExecStart`、`WorkingDirectory`、`User`、`EnvironmentFiles` 和 `DropInPaths`。API/CMS 可能使用不同虚拟环境，依赖安装及迁移必须指向本次选定的实际环境；依赖变化时优先创建独立新环境并保留旧环境供回滚。切换时保留原启动参数和环境文件，确认所有 drop-in 合并后使用了预期环境，不能只改工作目录或向历史共享 venv 安装依赖。
@@ -153,7 +154,7 @@ xcodebuild -version
 )
 ```
 
-学生海外包直接构建时还须传入 `--dart-define=PRIVACY_URL="$PRIVACY_URL"`，使用部署方确认的 HTTPS 政策地址。正式发布前检查 Android 签名配置、iOS 签名、包名、版本及构建号，确认版本高于已发布版本。
+学生海外包直接构建时还须传入 `--dart-define=PRIVACY_URL="$PRIVACY_URL"`，使用部署方确认的 HTTPS 政策地址。正式发布前检查 Android 签名配置、iOS 签名、包名、版本及构建号：除非特殊说明，各渠道展示版本号尽量同步保持一致（如国内包发布 1.0.3，Google Play 等其他渠道即使前版为 1.0.1 也应同步对齐为 1.0.3），构建号确认严格递增且高于该渠道已发布版本。
 
 ### iOS 家长商业 SDK 与产物检查
 
