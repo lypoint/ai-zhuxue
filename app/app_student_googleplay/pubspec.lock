@@ -22,7 +22,7 @@ packages:
       path: "../app_student"
       relative: true
     source: path
-    version: "1.0.4+5"
+    version: "1.0.5+6"
   args:
     dependency: transitive
     description:
