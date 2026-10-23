@@ -185,7 +185,7 @@ def _student_conversation(db: Session, conversation_id: int, student: Student) -
 
 
 def _check_subscription(student: Student, db: Session, teacher_id: int | None = None,
-                        channel: str = "wechat"):
+                        channel: str = "wechat", retry_message_id: int | None = None):
     """P0 商业闭环：订阅到期拦截学生端（友好文案引导家长续费）。"""
     from ..services import subscription
     if subscription.is_active(student.family_id, db):
@@ -197,7 +197,8 @@ def _check_subscription(student: Student, db: Session, teacher_id: int | None = 
                else _teacher(db, student, channel=channel))
     if teacher and teacher.post_trial_daily_free_count > 0:
         if subscription.post_trial_free_remaining(
-                student.id, db, teacher.id, teacher.post_trial_daily_free_count) > 0:
+                student.id, db, teacher.id, teacher.post_trial_daily_free_count,
+                exclude_message_id=retry_message_id) > 0:
             return True
         raise HTTPException(429, "这位老师今日免费次数已用完，请通知家长购买会员后继续学习")
     raise HTTPException(402, "这位老师需要会员，请通知家长在家长端购买会员后继续学习")
@@ -261,7 +262,8 @@ def availability(student: Student = Depends(current_student), db: Session = Depe
 
 
 def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
-                  channel: str = "wechat", *, check_message_quota: bool = True):
+                  channel: str = "wechat", *, check_message_quota: bool = True,
+                  retry_message_id: int | None = None):
     """服务端未成年人模式：订阅权益 + 时段禁用 + 每日消息上限 + 每日时长上限。
 
     created_at 统一存 UTC（naive）；本地日界与时段均按 TZ_OFFSET_HOURS 换算，
@@ -270,7 +272,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
     # ponytail: 串行化同一家庭的配额预留；消息在模型调用前提交，吞吐不足时改用计数器。
     db.query(Family).filter_by(id=student.family_id).update(
         {Family.id: Family.id}, synchronize_session=False)
-    quota_pending = _check_subscription(student, db, teacher_id, channel)
+    quota_pending = _check_subscription(student, db, teacher_id, channel, retry_message_id=retry_message_id)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = local_now()
     fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
@@ -289,12 +291,14 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
             and_(Message.fence_action == "pending",
                  Message.created_at >= dt.datetime.utcnow() - dt.timedelta(minutes=30)),
         )
-        count = (db.query(Message)
+        count_q = (db.query(Message)
                  .join(Conversation, Message.conversation_id == Conversation.id)
                  .filter(Conversation.student_id == student.id,
                          Message.role == "user", Message.created_at >= local_midnight_utc,
-                         counted_message)
-                 .count())
+                         counted_message))
+        if retry_message_id is not None:
+            count_q = count_q.filter(Message.id != retry_message_id)
+        count = count_q.count()
         if count >= cap:
             _notify(student.family_id, "quota", "今日学习次数已用完",
                     f"{student.nickname}今天的对话次数已用完，明天再来吧。（每日上限可在家长端调整）",
@@ -302,12 +306,14 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
             raise HTTPException(429, "今天的对话次数用完了，明天再来吧")
         group = db.get(LLMGroup, teacher_id) if teacher_id is not None else _teacher(db, student, channel=channel)
         if group and group.daily_message_cap:
-            group_count = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
+            group_count_q = (db.query(Message).join(Conversation, Message.conversation_id == Conversation.id)
                            .filter(Conversation.student_id == student.id,
                                    Conversation.teacher_group_id == group.id,
                                    Message.role == "user", Message.created_at >= local_midnight_utc,
-                                   counted_message).count())
-            if group_count >= group.daily_message_cap:
+                                   counted_message))
+            if retry_message_id is not None:
+                group_count_q = group_count_q.filter(Message.id != retry_message_id)
+            if group_count_q.count() >= group.daily_message_cap:
                 raise HTTPException(429, "该老师今日对话次数已用完")
     # P1 完整时长管控：真实使用时长上限（端侧心跳累计；0=家长不限时）
     if fs and fs.daily_minutes_cap > 0:
@@ -369,7 +375,20 @@ async def _output_check(content: str, student: Student, conversation_id: int,
     return message
 
 
-async def _prepare_images(body, student, conv, user_msg, db):
+def _is_active_attempt(db: Session, msg_id: int, attempt: int) -> Message | None:
+    """原子验证当前请求是否仍持有该消息的独占执行权（行锁互斥）。"""
+    cur = (db.query(Message)
+           .filter_by(id=msg_id)
+           .populate_existing()
+           .with_for_update()
+           .first())
+    if cur and (cur.tokens_in or 0) == attempt and cur.fence_action == "pending":
+        return cur
+    db.rollback()
+    return None
+
+
+async def _prepare_images(body, student, conv, user_msg, db, attempt: int = 1):
     try:
         route = llm._provider("chat", student.family_id, conv.teacher_group_id) if body.asset_ids else None
         snapshot = ({"id": None, "revision": 0, "protocol": "openai", "base_url": route[1]["base_url"],
@@ -378,8 +397,10 @@ async def _prepare_images(body, student, conv, user_msg, db):
         return content, route
     except Exception as error:
         db.rollback()
-        db.get(Message, user_msg.id).fence_action = "failed"
-        db.commit()
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+            db.commit()
         raise HTTPException(error.status_code if isinstance(error, HTTPException) else 503,
             error.detail if isinstance(error, HTTPException) else "图片识别失败，请重试或更换清晰图片",
             headers={"X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
@@ -420,14 +441,15 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         db.add(conv)
         db.flush()
 
+    attempt = 1
     user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
-                       fence_action="pending")
+                       fence_action="pending", tokens_in=attempt)
     db.add(user_msg)
     db.flush()
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
 
     # 围栏判定（带最近用户消息作上下文：多轮铺垫防御）
-    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db)
+    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
                .filter(Conversation.student_id == student.id, Message.role == "user",
@@ -439,16 +461,21 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
-        user_msg.fence_action = "failed"
-        db.commit()
-        if body.asset_ids:
-            raise HTTPException(503, "图片问题审核暂不可用，请重试", headers={
-                "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
-        raise
+        db.rollback()
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+            db.commit()
+        detail = "图片问题审核暂不可用，请重试" if body.asset_ids else "问题审核暂不可用，请重试"
+        raise HTTPException(503, detail, headers={
+            "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
     if verdict["decision"] == "reject":
-        user_msg.fence_action = "reject"
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if not cur:
+            raise HTTPException(409, "请求已被新重试接管")
+        cur.fence_action = "reject"
         reply = Message(conversation_id=conv.id, role="assistant",
                         content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
         db.add(reply)
@@ -461,6 +488,16 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                 conversation_id=conv.id, db=db)
         db.commit()
         return reply
+
+    if verdict["decision"] == "rewrite":
+        # 与 /chat/stream 对齐：改写引导也通知家长（每天最多一条防骚扰）。
+        _notify(student.family_id, "fence", "已引导话题回到学习",
+                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
+                conversation_id=conv.id, once_per_day=True, db=db)
+
+    # 关键：与 /chat/stream 保持一致的事务边界，先提交输入审核记录（FenceEvent）和家长通知，
+    # 避免后续 LLM 调用期间持有未提交状态，并确保审计记录落库不丢失。
+    db.commit()
 
     if not db.query(Conversation).count():
         pass
@@ -484,35 +521,39 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
                                 group_id=conv.teacher_group_id, **({"route": image_route} if image_route else {}))
     except llm.LLMUnavailable as e:
-        user_msg.fence_action = "failed"
-        db.commit()
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+            db.commit()
         raise HTTPException(503, f"LLM unavailable: {e}")
     except Exception:
-        user_msg.fence_action = "failed"
-        db.commit()
-        if body.asset_ids:
-            raise HTTPException(503, "图片问题审核暂不可用，请重试", headers={
-                "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
-        raise
+        db.rollback()
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+            db.commit()
+        detail = "图片问题审核暂不可用，请重试" if body.asset_ids else "问题审核暂不可用，请重试"
+        raise HTTPException(503, detail, headers={
+            "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
 
     if not (result["content"] or "").strip():
-        user_msg.fence_action = "failed"
-        db.commit()
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+            db.commit()
         raise HTTPException(503, "模型没有返回正文，请重试或切换老师")
 
+    cur = _is_active_attempt(db, user_msg.id, attempt)
+    if not cur:
+        raise HTTPException(409, "请求已被新重试接管")
     reply = Message(conversation_id=conv.id, role="assistant", content=result["content"],
                     fence_action=verdict["decision"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"])
     db.add(reply)
-    user_msg.fence_action = verdict["decision"]
+    cur.fence_action = verdict["decision"]
     db.add(UsageLog(student_id=student.id, purpose="chat", provider=result["provider"],
                     model=result["model"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"]))
-    if verdict["decision"] == "rewrite":
-        # 与 /chat/stream 对齐：改写引导也通知家长（每天最多一条防骚扰）。
-        _notify(student.family_id, "fence", "已引导话题回到学习",
-                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
-                conversation_id=conv.id, once_per_day=True, db=db)
     db.commit()
     try:
         reply = await _output_check(result["content"], student, conv.id, reply, db,
@@ -563,15 +604,21 @@ async def send_message_stream(body: ChatIn, live: bool = False,
     if body.conversation_id is None and body.retry_message_id is None:
         teacher = _teacher(db, student, body.teacher_id, channel)
         policy_teacher_id = teacher.id if teacher else None
-    _check_policy(student, db, policy_teacher_id, channel)
+    _check_policy(student, db, policy_teacher_id, channel, retry_message_id=body.retry_message_id)
 
     if retry is not None:
-        db.refresh(retry)  # 配额锁之后重新确认，避免两个重试同时生成回复。
-        if (retry.fence_action != "failed" or
-                db.query(func.max(Message.id)).filter_by(conversation_id=conv.id).scalar() != retry.id):
+        user_msg = (db.query(Message)
+                    .filter_by(id=retry.id)
+                    .populate_existing()
+                    .with_for_update()
+                    .one())
+        if (user_msg.fence_action not in ("failed", "pending") or
+                db.query(func.max(Message.id)).filter_by(conversation_id=conv.id).scalar() != user_msg.id):
             raise HTTPException(409, "message is not retryable")
-        user_msg = retry
         user_msg.fence_action = "pending"
+        attempt = int(user_msg.tokens_in or 0) + 1
+        user_msg.tokens_in = attempt
+        db.flush()
     else:
         if body.conversation_id:
             conv = _student_conversation(db, body.conversation_id, student)
@@ -585,13 +632,14 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                 teacher_avatar_snapshot=teacher.teacher_avatar_url if teacher else "")
             db.add(conv)
             db.flush()
+        attempt = 1
         user_msg = Message(conversation_id=conv.id, role="user", content=body.content,
-                           fence_action="pending")
+                           fence_action="pending", tokens_in=attempt)
         db.add(user_msg)
         db.flush()
     db.commit()  # 与普通聊天共用同一预留时点。
 
-    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db)
+    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
                .filter(Conversation.student_id == student.id, Message.role == "user",
@@ -603,12 +651,14 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                        recent_user_texts=recent,
                                        group_id=conv.teacher_group_id)
     except Exception:
-        user_msg.fence_action = "failed"
-        db.commit()
-        if body.asset_ids:
-            raise HTTPException(503, "图片问题审核暂不可用，请重试", headers={
-                "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
-        raise
+        db.rollback()
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+            db.commit()
+        detail = "图片问题审核暂不可用，请重试" if body.asset_ids else "问题审核暂不可用，请重试"
+        raise HTTPException(503, detail, headers={
+            "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
     for s in verdict["stages"]:
         db.add(FenceEvent(student_id=student.id, conversation_id=conv.id, message_id=user_msg.id, **s))
     # P0 安全闭环：家长通知。敏感拦截=security（安全告警），其余拦截/改写=fence
@@ -643,10 +693,13 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                "fence_action": fence_action,
                                "category": verdict["category"]})
             if fence_action == "reject":
+                cur_user = _is_active_attempt(sdb, user_msg_id, attempt)
+                if not cur_user:
+                    return
                 reply = Message(conversation_id=conv_id, role="assistant",
                                 content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
                 sdb.add(reply)
-                sdb.get(Message, user_msg_id).fence_action = fence_action
+                cur_user.fence_action = fence_action
                 sdb.commit()
                 yield sse("delta", {"text": reply.content})
                 yield sse("done", {"message_id": reply.id, "tokens_in": 0, "tokens_out": 0})
@@ -709,12 +762,15 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                         # 安全优先模式：复核通过，全文按块回放（用户感知仍为逐字，首字延迟数秒）
                         for i in range(0, len(content), 24):
                             yield sse("delta", {"text": content[i:i + 24]})
+                cur_user = _is_active_attempt(sdb, user_msg_id, attempt)
+                if not cur_user:
+                    return
                 reply = Message(conversation_id=conv_id, role="assistant", content=content,
                                 fence_action=out_action,
                                 tokens_in=usage["tokens_in"] if usage else 0,
                                 tokens_out=usage["tokens_out"] if usage else 0)
                 sdb.add(reply)
-                sdb.get(Message, user_msg_id).fence_action = fence_action
+                cur_user.fence_action = fence_action
                 if usage:
                     row = UsageLog(student_id=student_id, purpose="chat",
                                    tokens_in=usage["tokens_in"], tokens_out=usage["tokens_out"],
@@ -728,16 +784,21 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                    "tokens_in": usage["tokens_in"] if usage else 0,
                                    "tokens_out": usage["tokens_out"] if usage else 0})
             except llm.LLMUnavailable as e:
-                sdb.get(Message, user_msg_id).fence_action = "failed"
-                sdb.commit()
+                cur = _is_active_attempt(sdb, user_msg_id, attempt)
+                if cur:
+                    cur.fence_action = "failed"
+                    sdb.commit()
                 yield sse("error", {"message": str(e)})
         finally:
-            sdb.rollback()
-            pending = sdb.get(Message, user_msg_id)
-            if pending and pending.fence_action == "pending":
-                pending.fence_action = "failed"
-                sdb.commit()
-            sdb.close()
+            try:
+                cur = _is_active_attempt(sdb, user_msg_id, attempt)
+                if cur:
+                    cur.fence_action = "failed"
+                    sdb.commit()
+            except Exception:
+                sdb.rollback()
+            finally:
+                sdb.close()
 
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

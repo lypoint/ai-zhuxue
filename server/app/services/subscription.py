@@ -194,7 +194,8 @@ def is_active(family_id: int, db: Session) -> bool:
 
 
 def post_trial_free_used(student_id: int, db: Session, group_id: int | None = None,
-                         include_pending: bool = False) -> int:
+                         include_pending: bool = False,
+                         exclude_message_id: int | None = None) -> int:
     """Count today's replies to one student; optionally reserve in-flight replies."""
     from ..models import Conversation, Message, Student
     family_id = db.query(Student.family_id).filter_by(id=student_id).scalar()
@@ -224,15 +225,19 @@ def post_trial_free_used(student_id: int, db: Session, group_id: int | None = No
         Conversation.student_id == student_id,
         reply_filter, Message.created_at >= start_utc,
     )
+    if exclude_message_id is not None:
+        query = query.filter(Message.id != exclude_message_id)
     if group_id is not None:
         query = query.filter(Conversation.teacher_group_id == group_id)
     return int(query.scalar() or 0)
 
 
 def post_trial_free_remaining(student_id: int, db: Session, group_id: int,
-                              free_count: int) -> int:
+                              free_count: int,
+                              exclude_message_id: int | None = None) -> int:
     return max(0, free_count - post_trial_free_used(student_id, db, group_id,
-                                                     include_pending=True))
+                                                     include_pending=True,
+                                                     exclude_message_id=exclude_message_id))
 
 
 def mock_pay(family_id: int, db: Session, idempotency_key: str | None = None,

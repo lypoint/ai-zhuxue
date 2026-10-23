@@ -608,7 +608,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     if (messages.isNotEmpty &&
         messages.last['role'] == 'user' &&
-        messages.last['fence_action'] == 'failed') {
+        (messages.last['fence_action'] == 'failed' ||
+            messages.last['fence_action'] == 'pending')) {
       _bubbles.add(Bubble('assistant', tr("⚠️ 老师回复失败，请重试"), failed: true));
     }
     _startImagePolling();
@@ -618,7 +619,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final id = _conversationId;
     if (id == null) return;
     final messages = await Api.I.conversationMessages(id);
-    if (mounted) setState(() => _replaceBubbles(messages));
+    if (mounted) {
+      setState(() => _replaceBubbles(messages));
+      _scrollToBottom();
+    }
   }
 
   Future<void> _copyMessage(Bubble b) async {
@@ -1304,7 +1308,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     final retryBubble = retrying ? _bubbles.last : null;
     final retryMessageId = retrying ? _bubbles[retryUserIndex].messageId : null;
-    if (retrying && retryMessageId == null) return;
+    if (retrying && retryMessageId == null) {
+      _inputCtrl.text = text;
+      _draftImages.addAll(drafts);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr("问题未成功入库，已保留在输入框，请重新发送"))),
+      );
+      return;
+    }
     if (!retrying && followUp == null) {
       _inputCtrl.clear();
       _draftImages.clear();
@@ -1452,9 +1463,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         try {
           await _refreshCurrentConversation();
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(tr("会话已更新，请查看老师回复"))));
+            _scrollToBottom();
+            final hasAssistant = _bubbles.isNotEmpty &&
+                _bubbles.last.role == 'assistant' &&
+                !_bubbles.last.failed;
+            if (hasAssistant) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(tr("会话已更新，请查看老师回复"))));
+            } else {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(tr("上一条回复未完成，请重试"))));
+            }
           }
         } catch (_) {
           updateLast(tr("⚠️ 会话状态已变化，请重新打开聊天记录"), failed: true);

@@ -136,6 +136,9 @@ def _provider(purpose: str = "chat", family_id: int | None = None, group_id: int
 
 
 def _output_limit(base_url: str, model: str, requested: int) -> int:
+    # OpenRouter accounts calculate max credit reservation against max_tokens.
+    if "openrouter.ai" in base_url:
+        return min(requested, 4096)
     # These DashScope models reject the application's 40960-token default.
     if (urlsplit(base_url).hostname == "dashscope.aliyuncs.com"
             and model in {"qwen-plus", "qwen3-vl-plus"}):
