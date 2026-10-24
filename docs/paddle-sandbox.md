@@ -1,6 +1,6 @@
 # Web Paddle Sandbox
 
-2026-10-25：Sandbox 商品、Web 收银台与服务端权益闭环已实现，并使用真实 Paddle 测试卡在本地隔离数据库验收。生产 Web 支付仍关闭；本实现不接受 Paddle Live 凭据，不处理真实扣款。
+2026-10-25：Sandbox 商品、Web 收银台与服务端权益闭环已实现，并使用真实 Paddle 测试卡在本地隔离数据库验收。线上家长 Web 已向指定测试家庭开放 Sandbox，其他家庭入口关闭；本实现不接受 Paddle Live 凭据，不处理真实扣款。
 
 ## 配置
 
@@ -26,6 +26,8 @@ API key 需要 `price.read`、`transaction.read/write`、`subscription.read`、`
 Sandbox 使用独立渠道 `paddle_sandbox`，不伪装成 Google Play，不累计到国内实收金额；与商店/微信的有效订阅互斥。复用家庭权益读取，无新增表或迁移。密钥、测试库、浏览器资料和付款证据保存在仓库外私有凭据区。
 
 ## 验证与边界
+
+线上已验证真实登录测试家庭读取目录、真实 Sandbox SDK/收银台及官方样式加载、固定回调签名检查。线上未替用户提交付款，真实账户购买由用户自行验收。
 
 本地已完成真实测试卡购买两名额月订阅：收银台成功 → 真实签名回调 200 → 后端权威核验 → Web 展示 2 名额及 Paddle Sandbox 来源，刷新保留。Google 身份和家庭创建使用本地验收夹具，不代表生产 Google 登录和支付联调。
 
