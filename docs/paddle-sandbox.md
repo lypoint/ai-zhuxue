@@ -12,7 +12,7 @@ API key 需要 `price.read`、`transaction.read/write`、`subscription.read`、`
 
 在 Sandbox 设置自己的 HTTPS 默认付款地址，并注册公网 `POST /payments/paddle/sandbox/notify`。订阅事件使用 `subscription.created/activated/updated/canceled/paused/past_due/resumed`，交易使用 `transaction.completed`。回调入口只暴露该路径并限制请求体；不可把带模拟身份的本地验收 API 整体通过隧道公开。
 
-家长站模板已允许官方 `https://cdn.paddle.com/paddle/v2/paddle.js` 脚本、`https://sandbox-buy.paddle.com` iframe，以及 Sandbox 收银台/API 连接。学生站不加载支付脚本。付款链接使用家长站 `/subscription?_ptxn=txn_…`；登录后先由服务端校验交易归属，再打开收银台，不允许通过他人交易链接操作付款。
+家长站模板已允许官方 `https://cdn.paddle.com/paddle/v2/paddle.js` 脚本、`https://sandbox-buy.paddle.com` iframe，以及 Sandbox 收银台/API 连接、官方 Sandbox 收银台样式 `https://sandbox-cdn.paddle.com/paddle/v2/assets/css/paddle.css`。学生站不加载支付脚本。付款链接使用家长站 `/subscription?_ptxn=txn_…`；登录后先由服务端校验交易归属，再打开收银台，不允许通过他人交易链接操作付款。
 
 ## 行为与接口
 
