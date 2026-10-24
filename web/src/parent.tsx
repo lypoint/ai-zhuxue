@@ -55,6 +55,7 @@ import { Favorites, MessageCard } from "./content";
 import Grades from "./grades";
 import Learning from "./learning";
 import Assessments from "./assessments";
+import PaddleSandbox from "./paddle-sandbox";
 
 type PageProps = {
   family: Family;
@@ -1327,7 +1328,7 @@ function Subscription({ timezone }: { timezone: string | null }) {
   return (
     <>
       <Heading title={t("subscription")} />
-      <p className="notice">{t("noPayment")}</p>
+      <PaddleSandbox reload={resource.reload} provider={resource.data?.provider} />
       <ResourceState {...resource} retry={resource.reload} />
       {resource.data && (
         <section className="panel">
@@ -1349,7 +1350,9 @@ function Subscription({ timezone }: { timezone: string | null }) {
             <dd>
               {resource.data.plan === "free_trial"
                 ? t("freeTrial")
-                : resource.data.provider ||
+                : resource.data.provider === "paddle_sandbox"
+                  ? "Paddle Sandbox"
+                  : resource.data.provider ||
                   resource.data.billing_source ||
                   resource.data.source ||
                   resource.data.store?.platform ||

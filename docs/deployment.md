@@ -215,6 +215,8 @@ xcodebuild -version
 
 源码为 `web/`，复用本服务，不增加 Node 业务后端。订阅页只读展示已核验权益和购买来源，网页支付未接入；不得把开发 mock 购买开放给网页。
 
+2026-10-25：新增默认关闭的 Paddle Sandbox 接入，已在本地隔离家庭验收真实测试卡购买与签名回调，详见 [Paddle Sandbox](paddle-sandbox.md)。新增线上固定付款链接、Sandbox 专用测试家庭名单及家长 CSP 部署步骤；正式收款保持关闭，启用结果以私有生产记录和公网检查为准。
+
 ### 品牌与当前域名（2026-10-24 已上线）
 
 英文品牌为 **AI StudyNest**。海外官网由旧域名迁移至 `https://aistudynest.com`；家长站为 `https://parents.aistudynest.com`，学生站为 `https://learn.aistudynest.com`。两站 Cookie 保持 host-only，不设置父域 Domain。

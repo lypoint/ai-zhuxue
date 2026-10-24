@@ -70,6 +70,11 @@ class Settings(BaseSettings):
     store_products_json: str = "{}"
     store_token_secret: str = ""  # Fernet key (generate once, retain across deployments)
     store_test_account_tokens: str = ""  # comma-separated family UUIDs allowed for review/test purchases
+    paddle_sandbox_enabled: bool = False
+    paddle_sandbox_api_key: str = ""
+    paddle_sandbox_client_token: str = ""
+    paddle_sandbox_webhook_secret: str = ""
+    paddle_sandbox_test_account_tokens: str = ""
     apple_environment: Literal["Production", "Sandbox"] = "Production"
     apple_bundle_id: str = "com.aizhuxue.appParent"
     apple_app_id: int = 0

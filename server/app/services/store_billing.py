@@ -280,6 +280,9 @@ async def google_status(reference: str) -> VerifiedSubscription:
 
 
 async def verify(channel: str, reference: str) -> VerifiedSubscription:
+    if channel == "paddle_sandbox":
+        from .paddle_billing import verify_subscription
+        return await asyncio.to_thread(verify_subscription, reference)
     if channel == "appstore":
         return await asyncio.to_thread(apple_status, reference)
     return await google_status(reference)
