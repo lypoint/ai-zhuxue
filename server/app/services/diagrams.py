@@ -58,6 +58,9 @@ def render(plan: Plan) -> bytes:
             if x2 <= x1 or y2 <= y1:
                 raise ValueError("invalid bounding box")
             getattr(draw, "rectangle" if shape.kind == "rect" else "ellipse")(points, outline=shape.color, width=3)
+            if shape.label:
+                draw.text(((x1 + x2) / 2, (y1 + y2) / 2), shape.label,
+                          font=font, fill=shape.color, anchor="mm")
         else:
             if len(points) < 2:
                 raise ValueError("line requires at least two points")

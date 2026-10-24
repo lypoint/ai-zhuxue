@@ -367,6 +367,18 @@ def test_drawing_schema_rejects_unbounded_and_code():
         diagrams.render(plan)
 
 
+@pytest.mark.parametrize("kind", ["rect", "ellipse"])
+def test_shape_number_is_visible_inside_the_geometry(kind, monkeypatch):
+    monkeypatch.setattr(settings, "image_font_path", "")
+    def interior(label):
+        plan = diagrams.Plan(kind="drawing", shapes=[diagrams.Shape(
+            kind=kind, points=[(100, 100), (300, 300)], label=label)])
+        return Image.open(io.BytesIO(diagrams.render(plan))).convert("L").crop((200, 200, 300, 300))
+    # Borders are outside this crop; a number must add visible pixels inside it.
+    assert min(interior("").getdata()) > 245
+    assert min(interior("8").getdata()) < 100
+
+
 def test_generated_fetch_rejects_ssrf():
     for url in ['http://example.com/x.png', 'https://127.0.0.1/x.png', 'https://evilaliyuncs.com/x.png']:
         with pytest.raises(ValueError):
