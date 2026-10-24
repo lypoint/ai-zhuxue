@@ -55,6 +55,7 @@ const metadata = JSON.parse(fs.readFileSync(new URL("../server/app/locales.json"
 const locales = Object.keys(metadata);
 assert.equal(locales.length, 78);
 assert.deepEqual(Object.keys(catalog).filter(key => key !== "_messages").sort(), [...locales].sort());
+const generated = Object.fromEntries(locales.map(locale => [locale, JSON.parse(fs.readFileSync(new URL(`src/generated-locales/${locale}.json`, root), "utf8"))]));
 for (const [key, value] of Object.entries(english)) {
   const alias = aliases.get(value.toLowerCase());
   locales.forEach((locale) => {
@@ -66,6 +67,7 @@ for (const [key, value] of Object.entries(english)) {
       core[key]?.[index] ||
       (alias && catalog[locale][alias]);
     assert.ok(translated, `Untranslated: ${locale}/${key}`);
+    assert.equal(generated[locale].translation[key], translated, `Generated translation mismatch: ${locale}/${key}`);
     assert.deepEqual(
       (translated.match(/\{\{.*?\}\}/g) || []).sort(),
       (value.match(/\{\{.*?\}\}/g) || []).sort(),

@@ -15,6 +15,7 @@
 原有 7 种语言的既有译文保留。新增内容使用 Google 机器翻译生成，尚未经过母语审校。西班牙语地区选项复用现有通用西班牙语译文；法语、马来语等地区选项可能暂时具有相同译文，后续可独立校对。
 
 - Flutter 界面及隐私弹窗：`app/app_core/assets/i18n/catalog.json`。
+- Web 构建前从源词表生成 `web/src/generated-locales/`（不提交），浏览器仅加载当前语言，切换失败时保留原选择并提示网络错误。
 - Web 新增语言文案：`web/src/expanded-translations.json`；既有文案仍使用 `web-translations.json` 和 `i18n.ts`。
 - 服务端固定安全提示：`server/app/safety-translations.json`。运行时不请求翻译服务。
 - iOS 系统权限提示：三个 iOS 工程的 `Runner/<locale>.lproj/InfoPlist.strings`。

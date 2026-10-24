@@ -192,13 +192,15 @@ export function Field({
 }
 export function LanguagePicker() {
   const { t, i18n } = useTranslation();
+  const { run, busy } = useAction();
   return (
     <label className="language-picker">
       <span className="sr-only">{t("language")}</span>
       <select
         aria-label={t("language")}
         value={i18n.resolvedLanguage}
-        onChange={(e) => setLanguage(e.target.value)}
+        disabled={busy}
+        onChange={(e) => void run(() => setLanguage(e.target.value))}
       >
         {Object.entries(languages).map(([key, name]) => (
           <option value={key} key={key}>

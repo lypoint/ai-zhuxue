@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev:parent": "vite --mode parent --host 127.0.0.1 --port 5173 --strictPort",
-    "dev:student": "vite --mode student --host 127.0.0.1 --port 5174 --strictPort",
-    "check": "node scripts/check-i18n.mjs && tsc --noEmit && node --test tests-unit/*.test.mjs",
+    "dev:parent": "node scripts/generate-locales.mjs && vite --mode parent --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:student": "node scripts/generate-locales.mjs && vite --mode student --host 127.0.0.1 --port 5174 --strictPort",
+    "check": "node scripts/generate-locales.mjs && node scripts/check-i18n.mjs && tsc --noEmit && node --test tests-unit/*.test.mjs",
     "build": "npm run check && vite build --mode parent && vite build --mode student",
     "test": "playwright test",
     "test:https": "npm run build && playwright test -c playwright.https.config.ts"

@@ -1,8 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import catalogs from "../../app/app_core/assets/i18n/catalog.json";
-import webTranslations from "./web-translations.json";
-import expandedTranslations from "./expanded-translations.json";
+import english from "./generated-locales/en.json";
+import messages from "./generated-locales/messages.json";
 import localeMetadata from "../../server/app/locales.json";
 import { resolveLocale } from "./locale";
 
@@ -339,23 +338,6 @@ const en: Record<string, string> = {
   cropWidth: "Crop width (%)",
   cropHeight: "Crop height (%)",
 };
-const catalog = catalogs as unknown as Record<string, Record<string, string>>;
-const byEnglish = new Map(
-  Object.entries(catalog.en).map(([source, value]) => [
-    value.trim().toLowerCase(),
-    source,
-  ]),
-);
-const resources: Record<string, { translation: Record<string, string> }> = {};
-for (const locale of Object.keys(languages)) {
-  const translation: Record<string, string> = {};
-  for (const [key, value] of Object.entries(en)) {
-    const source = byEnglish.get(value.toLowerCase());
-    translation[key] =
-      locale === "en" ? value : (source && catalog[locale]?.[source]) || value;
-  }
-  resources[locale] = { translation };
-}
 const core: Record<string, string[]> = {
   overview: ["概览", "概覽", "概要", "개요", "Übersicht", "Resumen"],
   children: [
@@ -463,17 +445,14 @@ const core: Record<string, string[]> = {
     "Tus padres pueden leer tus conversaciones. La IA puede equivocarse.",
   ],
 };
-for (const [key, values] of Object.entries(core))
-  ["zh-Hans", "zh-Hant", "ja", "ko", "de", "es"].forEach((locale, index) => {
-    resources[locale].translation[key] = values[index];
-  });
-for (const [key, values] of Object.entries(webTranslations))
-  ["zh-Hans", "zh-Hant", "ja", "ko", "de", "es"].forEach((locale, index) => {
-    resources[locale].translation[key] = values[index];
-  });
-for (const [locale, translation] of Object.entries(expandedTranslations)) {
-  Object.assign(resources[locale].translation, translation);
-}
+type LocaleData = { translation: Record<string, string>; catalog: Record<string, string> };
+const catalog: Record<string, Record<string, string>> = {en: english.catalog};
+const resources = {en: {translation: english.translation}};
+const loaders = import.meta.glob<{default: LocaleData}>([
+  './generated-locales/*.json',
+  '!./generated-locales/en.json',
+  '!./generated-locales/messages.json',
+]);
 const resolve = (value: string) => resolveLocale(value, Object.keys(languages));
 let saved: string | null = null;
 try {
@@ -481,20 +460,38 @@ try {
 } catch {
   /* Browser privacy mode can disable storage. */
 }
-void i18n.use(initReactI18next).init({
+const initialized = i18n.use(initReactI18next).init({
   resources,
-  lng: resolve(saved || navigator.language),
+  lng: "en",
   fallbackLng: "en",
   keySeparator: false,
   interpolation: { escapeValue: false },
 });
-export function setLanguage(value: string) {
+let requestedLocale = resolve(saved || navigator.language);
+async function applyLanguage(value: string) {
+  const locale = resolve(value);
+  requestedLocale = locale;
+  if (!catalog[locale]) {
+    const {default: data} = await loaders[`./generated-locales/${locale}.json`]();
+    catalog[locale] = data.catalog;
+    i18n.addResourceBundle(locale, 'translation', data.translation);
+  }
+  if (requestedLocale === locale) await i18n.changeLanguage(locale);
+}
+export const languageReady = initialized
+  .then(() => applyLanguage(requestedLocale))
+  .catch(() => i18n.changeLanguage('en'));
+export async function setLanguage(value: string) {
   try {
-    localStorage.setItem("ai-learning-language", value);
+    await applyLanguage(value);
+  } catch {
+    throw new Error(i18n.t('networkError'));
+  }
+  try {
+    localStorage.setItem("ai-learning-language", resolve(value));
   } catch {
     /* Language still changes for this page. */
   }
-  void i18n.changeLanguage(resolve(value));
 }
 export function tx(source: string): string {
   const locale = i18n.resolvedLanguage || "en";
@@ -523,7 +520,7 @@ export function tx(source: string): string {
   const uiKey = Object.keys(en).find((key) => en[key] === source);
   if (uiKey) return i18n.t(uiKey);
   if (catalog[locale]?.[source]) return catalog[locale][source];
-  for (const template of catalogs._messages) {
+  for (const template of messages) {
     if (!template.includes("{")) continue;
     const pattern = template
       .split(/(\{\d+\})/)
