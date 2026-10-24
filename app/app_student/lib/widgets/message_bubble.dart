@@ -31,7 +31,7 @@ class MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Align(
-        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
         child: Column(
           crossAxisAlignment: isUser
               ? CrossAxisAlignment.end

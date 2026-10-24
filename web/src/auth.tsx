@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { browser, ROLE, setCSRF, type Session } from "./api";
 import {
@@ -28,6 +28,15 @@ export function Auth({
   const [config, setConfig] = useState<{ google_client_id: string } | null>(
     null,
   );
+  const [configError, setConfigError] = useState("");
+  const loadConfig = useCallback(async () => {
+    setConfigError("");
+    try {
+      setConfig(await browser<{ google_client_id: string }>("/config"));
+    } catch (e) {
+      setConfigError((e as Error).message);
+    }
+  }, []);
   const refresh = async () => {
     const data = await browser<Session>("/session");
     setCSRF(data.csrf_token);
@@ -49,11 +58,8 @@ export function Auth({
     return () => window.removeEventListener("session-expired", expired);
   }, []);
   useEffect(() => {
-    if (!session)
-      void browser<{ google_client_id: string }>("/config")
-        .then(setConfig)
-        .catch((e) => setError(e.message));
-  }, [session]);
+    if (!session && ROLE === "parent") void loadConfig();
+  }, [session, loadConfig]);
   if (loading)
     return (
       <div className="loading-page" role="status">
@@ -99,19 +105,14 @@ export function Auth({
                 ) : (
                   <p className="notice">{t("googleUnavailable")}</p>
                 )
+              ) : configError ? (
+                <div role="alert">
+                  <p className="notice error">{tx(configError)}</p>
+                  <button onClick={() => void loadConfig()}>{t("retry")}</button>
+                </div>
               ) : (
                 <p role="status">{t("loading")}</p>
               )}
-              <button
-                onClick={() => {
-                  setError("");
-                  void browser<{ google_client_id: string }>("/config")
-                    .then(setConfig)
-                    .catch((e) => setError(e.message));
-                }}
-              >
-                {t("retry")}
-              </button>
             </>
           ) : (
             <form

@@ -61,7 +61,7 @@ class ChatIn(BaseModel):
     asset_ids: list[str] = Field(default_factory=list, max_length=3)
     teacher_id: int | None = None
     retry_message_id: int | None = None
-    locale: Literal["zh-Hans", "zh-Hant", "en", "ja", "ko", "de", "es"] = "zh-Hans"
+    locale: str = "zh-Hans"
 
     @model_validator(mode="after")
     def valid_message(self):

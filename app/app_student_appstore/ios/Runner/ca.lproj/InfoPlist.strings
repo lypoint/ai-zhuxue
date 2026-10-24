@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "AI StudyNest · Estudiant";
+"NSCameraUsageDescription" = "Escaneja els codis d'aparellament dels pares i fotografia les preguntes d'estudi.";
+"NSPhotoLibraryUsageDescription" = "Seleccioneu imatges de preguntes d'estudi per enviar-les al vostre professor.";
+"NSUserTrackingUsageDescription" = "Només fem servir aquest permís per mesurar l'estabilitat de l'aplicació i l'atribució de la instal·lació, mai per vendre ni compartir les vostres dades personals amb anunciants de tercers.";

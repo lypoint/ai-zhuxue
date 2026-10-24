@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
         allow: [
           fileURLToPath(new URL(".", import.meta.url)),
           fileURLToPath(new URL("../app/app_core/assets", import.meta.url)),
+          fileURLToPath(new URL("../server/app/locales.json", import.meta.url)),
         ],
       },
       proxy: {

@@ -16,6 +16,7 @@ const App = lazy(() =>
 const updateLanguage = () => {
   document.title = `AI StudyNest · ${i18n.t(__WEB_ROLE__ === "parent" ? "guardian" : "student")}`;
   document.documentElement.lang = i18n.language;
+  document.documentElement.dir = i18n.dir();
 };
 updateLanguage();
 i18n.on("languageChanged", updateLanguage);

@@ -66,7 +66,7 @@ ENTERTAINMENT_HINTS = re.compile(
 
 CLASSIFY_SYSTEM = (
     "你是未成年人AI助学产品的学习话题分类器。判断用户输入是否属于学习内容。"
-    "输入可使用简体或繁体中文、英文、日文、韩文、德文、西班牙文，按语义分类，JSON字段保持不变。"
+    "输入可使用任何语言、地区或文字变体，也可能混合多种语言；按语义分类，JSON字段保持不变。"
     "只输出JSON：{\"category\":\"study|entertainment|sensitive|other\",\"confidence\":0到1}。"
     "study=学科答疑/学习方法/教育性讨论；entertainment=纯娱乐流行文化；"
     "sensitive=暴力色情自伤违法，以及鼓励霸凌羞辱、自我贬低、极端节食等危害儿童心理健康的内容；"

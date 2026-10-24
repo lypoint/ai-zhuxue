@@ -97,6 +97,7 @@ class GdprPrivacySettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final manager = GdprConsentManager.I;
     return ValueListenableBuilder<bool?>(
       valueListenable: manager.analyticsGranted,
@@ -140,6 +141,7 @@ class _GdprSettingsDialogState extends State<_GdprSettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(_localTr("数据隐私与统计授权")),

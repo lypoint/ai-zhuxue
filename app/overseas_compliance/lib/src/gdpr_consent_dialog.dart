@@ -3,7 +3,7 @@ import 'package:app_core/app_core.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'gdpr_consent_manager.dart';
 
-/// Supported translations for GDPR dialogue across the app's seven languages.
+/// Existing consent translations; additional languages use the shared catalog.
 class _GdprStrings {
   static const Map<String, Map<String, String>> _localized = {
     'zh-Hans': {
@@ -65,8 +65,7 @@ class _GdprStrings {
   };
 
   static String get(String key, String tag) {
-    final lang = _localized[tag] ?? _localized['en']!;
-    return lang[key] ?? _localized['en']![key] ?? key;
+    return _localized[tag]?[key] ?? tr(_localized['en']![key] ?? key);
   }
 }
 
@@ -130,6 +129,7 @@ class GdprConsentDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final tag = AppLanguage.I.tag;
     final title = _GdprStrings.get('title', tag);
     final body = _GdprStrings.get('body', tag);

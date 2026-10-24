@@ -41,19 +41,27 @@ const aliases = new Map(
     key,
   ]),
 );
-const locales = ["zh-Hans", "zh-Hant", "ja", "ko", "de", "es"];
+const legacyLocales = ["zh-Hans", "zh-Hant", "ja", "ko", "de", "es"];
 for (const [key, values] of Object.entries({ ...core, ...web })) {
   assert.ok(english[key], `Unknown translation key: ${key}`);
-  assert.equal(values.length, locales.length, `Missing locale: ${key}`);
+  assert.equal(values.length, legacyLocales.length, `Missing locale: ${key}`);
   assert.ok(
     values.every((value) => typeof value === "string" && value.trim()),
     `Empty translation: ${key}`,
   );
 }
+const expanded = JSON.parse(fs.readFileSync(new URL("src/expanded-translations.json", root), "utf8"));
+const metadata = JSON.parse(fs.readFileSync(new URL("../server/app/locales.json", root), "utf8"));
+const locales = Object.keys(metadata);
+assert.equal(locales.length, 78);
+assert.deepEqual(Object.keys(catalog).filter(key => key !== "_messages").sort(), [...locales].sort());
 for (const [key, value] of Object.entries(english)) {
   const alias = aliases.get(value.toLowerCase());
-  locales.forEach((locale, index) => {
+  locales.forEach((locale) => {
+    const index = legacyLocales.indexOf(locale);
     const translated =
+      expanded[locale]?.[key] ||
+      (locale === "en" ? value : undefined) ||
       web[key]?.[index] ||
       core[key]?.[index] ||
       (alias && catalog[locale][alias]);
@@ -66,5 +74,5 @@ for (const [key, value] of Object.entries(english)) {
   });
 }
 console.log(
-  `PASS: ${Object.keys(english).length} semantic UI keys in all seven languages; interpolation preserved.`,
+  `PASS: ${Object.keys(english).length} semantic UI keys in all ${locales.length} languages; interpolation preserved.`,
 );

@@ -164,7 +164,7 @@ class StudentReviewCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
                   onPressed: onRebind,
                   icon: const Icon(Icons.qr_code_2, size: 18),

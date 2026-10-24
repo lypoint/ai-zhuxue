@@ -150,7 +150,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Align(
-          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+          alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 4),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -194,7 +194,7 @@ class _ConversationDetailScreenState extends State<ConversationDetailScreen> {
         ),
         if (action != null && action != 'allow')
           Padding(
-            padding: const EdgeInsets.only(left: 8, bottom: 6),
+            padding: const EdgeInsetsDirectional.only(start: 8, bottom: 6),
             child: Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               spacing: 8,

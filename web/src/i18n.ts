@@ -2,16 +2,13 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import catalogs from "../../app/app_core/assets/i18n/catalog.json";
 import webTranslations from "./web-translations.json";
+import expandedTranslations from "./expanded-translations.json";
+import localeMetadata from "../../server/app/locales.json";
+import { resolveLocale } from "./locale";
 
-export const languages = {
-  en: "English",
-  "zh-Hans": "简体中文",
-  "zh-Hant": "繁體中文",
-  ja: "日本語",
-  ko: "한국어",
-  de: "Deutsch",
-  es: "Español",
-};
+export const languages: Record<string, string> = Object.fromEntries(
+  Object.entries(localeMetadata).map(([tag, value]) => [tag, value.name]),
+);
 const en: Record<string, string> = {
   confirmFamilyZone:
     "Ask your parent to confirm the family time zone before connecting.",
@@ -474,15 +471,10 @@ for (const [key, values] of Object.entries(webTranslations))
   ["zh-Hans", "zh-Hant", "ja", "ko", "de", "es"].forEach((locale, index) => {
     resources[locale].translation[key] = values[index];
   });
-function resolve(value: string) {
-  if (/^zh/i.test(value))
-    return /Hant|TW|HK|MO/i.test(value) ? "zh-Hant" : "zh-Hans";
-  return (
-    Object.keys(languages).find((locale) =>
-      value.toLowerCase().startsWith(locale),
-    ) || "en"
-  );
+for (const [locale, translation] of Object.entries(expandedTranslations)) {
+  Object.assign(resources[locale].translation, translation);
 }
+const resolve = (value: string) => resolveLocale(value, Object.keys(languages));
 let saved: string | null = null;
 try {
   saved = localStorage.getItem("ai-learning-language");
@@ -502,7 +494,7 @@ export function setLanguage(value: string) {
   } catch {
     /* Language still changes for this page. */
   }
-  void i18n.changeLanguage(value);
+  void i18n.changeLanguage(resolve(value));
 }
 export function tx(source: string): string {
   const locale = i18n.resolvedLanguage || "en";

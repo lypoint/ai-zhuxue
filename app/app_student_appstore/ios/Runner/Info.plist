@@ -6,13 +6,84 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleLocalizations</key>
 	<array>
-		<string>zh-Hans</string>
-		<string>zh-Hant</string>
 		<string>en</string>
+		<string>es-US</string>
+		<string>es-419</string>
+		<string>es</string>
 		<string>ja</string>
 		<string>ko</string>
 		<string>de</string>
-		<string>es</string>
+		<string>fr-FR</string>
+		<string>fr-CA</string>
+		<string>pt-BR</string>
+		<string>pt-PT</string>
+		<string>it</string>
+		<string>zh-Hant</string>
+		<string>zh-Hant-HK</string>
+		<string>zh-Hans</string>
+		<string>tr</string>
+		<string>ru</string>
+		<string>ar</string>
+		<string>vi</string>
+		<string>th</string>
+		<string>id</string>
+		<string>fil</string>
+		<string>tl</string>
+		<string>ms-MY</string>
+		<string>ms</string>
+		<string>nl</string>
+		<string>pl</string>
+		<string>cs</string>
+		<string>ro</string>
+		<string>hu</string>
+		<string>el</string>
+		<string>sv</string>
+		<string>da</string>
+		<string>nb</string>
+		<string>fi</string>
+		<string>uk</string>
+		<string>he</string>
+		<string>hi</string>
+		<string>bn</string>
+		<string>ur</string>
+		<string>fa</string>
+		<string>ta</string>
+		<string>te</string>
+		<string>mr</string>
+		<string>gu</string>
+		<string>kn</string>
+		<string>ml</string>
+		<string>pa</string>
+		<string>ne</string>
+		<string>si</string>
+		<string>hr</string>
+		<string>sk</string>
+		<string>sl</string>
+		<string>sr</string>
+		<string>bg</string>
+		<string>be</string>
+		<string>lt</string>
+		<string>lv</string>
+		<string>et</string>
+		<string>mk</string>
+		<string>sq</string>
+		<string>az-Cyrl</string>
+		<string>kk</string>
+		<string>ky</string>
+		<string>hy</string>
+		<string>ka</string>
+		<string>is</string>
+		<string>ca</string>
+		<string>eu</string>
+		<string>gl</string>
+		<string>af</string>
+		<string>sw</string>
+		<string>zu</string>
+		<string>am</string>
+		<string>km</string>
+		<string>lo</string>
+		<string>my</string>
+		<string>mn</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>AI助学·学生版</string>

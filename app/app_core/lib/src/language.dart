@@ -5,17 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const supportedAppLocales = [
-  Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
-  Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
-  Locale('en'),
-  Locale('ja'),
-  Locale('ko'),
-  Locale('de'),
-  Locale('es'),
-];
+import 'supported_locales.dart';
+export 'supported_locales.dart';
 
-const appLocalizationDelegates = [
+const appLocalizationDelegates = <LocalizationsDelegate<dynamic>>[
   GlobalMaterialLocalizations.delegate,
   GlobalWidgetsLocalizations.delegate,
   GlobalCupertinoLocalizations.delegate,
@@ -42,16 +35,72 @@ class AppLanguage extends ChangeNotifier with WidgetsBindingObserver {
   String get tag => locale.toLanguageTag();
 
   static Locale resolve(Locale value) {
+    final tag = value.toLanguageTag();
+    final exact = supportedAppLocales.where(
+      (locale) => locale.toLanguageTag() == tag,
+    );
+    if (exact.isNotEmpty) return exact.first;
     if (value.languageCode == 'zh') {
-      if (value.scriptCode == 'Hans') return supportedAppLocales[0];
-      return supportedAppLocales[value.scriptCode == 'Hant' ||
-              ['TW', 'HK', 'MO'].contains(value.countryCode)
-          ? 1
-          : 0];
+      if (value.scriptCode == 'Hans') {
+        return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+      }
+      if (value.countryCode == 'HK') {
+        return const Locale.fromSubtags(
+          languageCode: 'zh',
+          scriptCode: 'Hant',
+          countryCode: 'HK',
+        );
+      }
+      return Locale.fromSubtags(
+        languageCode: 'zh',
+        scriptCode:
+            value.scriptCode == 'Hant' ||
+                ['TW', 'MO'].contains(value.countryCode)
+            ? 'Hant'
+            : 'Hans',
+      );
+    }
+    final language = value.languageCode == 'no' ? 'nb' : value.languageCode;
+    if (value.countryCode != null) {
+      final regional = supportedAppLocales.where(
+        (locale) =>
+            locale.languageCode == language &&
+            locale.countryCode == value.countryCode,
+      );
+      if (regional.isNotEmpty) return regional.first;
+    }
+    if (language == 'es' &&
+        [
+          'MX',
+          'AR',
+          'BO',
+          'BR',
+          'BZ',
+          'CL',
+          'CO',
+          'CR',
+          'CU',
+          'DO',
+          'EC',
+          'GT',
+          'HN',
+          'NI',
+          'PA',
+          'PE',
+          'PR',
+          'PY',
+          'SV',
+          'UY',
+          'VE',
+        ].contains(value.countryCode)) {
+      return const Locale('es', '419');
     }
     return supportedAppLocales.firstWhere(
-      (locale) => locale.languageCode == value.languageCode,
-      orElse: () => const Locale('en'),
+      (locale) => locale.languageCode == language && locale.countryCode == null,
+      orElse: () => supportedAppLocales.firstWhere(
+        (locale) => locale.languageCode == language,
+        orElse: () => const Locale('en'),
+      ),
     );
   }
 
@@ -121,7 +170,9 @@ class AppLanguage extends ChangeNotifier with WidgetsBindingObserver {
   static void watch(BuildContext context) => Localizations.localeOf(context);
 
   String text(String source, [List<Object?> args = const []]) {
-    final template = _loaded ? (_catalog[tag]?[source] ?? source) : source;
+    final template = _loaded
+        ? (_catalog[tag]?[source] ?? _catalog['en']?[source] ?? source)
+        : source;
     return template.replaceAllMapped(RegExp(r'\{(\d+)\}'), (match) {
       final index = int.parse(match[1]!);
       return index < args.length ? '${args[index] ?? ''}' : match[0]!;
@@ -190,15 +241,6 @@ class LanguageButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    const names = [
-      '简体中文',
-      '繁體中文',
-      'English',
-      '日本語',
-      '한국어',
-      'Deutsch',
-      'Español',
-    ];
     return PopupMenuButton<String>(
       tooltip: tr('语言'),
       icon: const Icon(Icons.language),
@@ -210,7 +252,9 @@ class LanguageButton extends StatelessWidget {
         for (var i = 0; i < supportedAppLocales.length; i++)
           PopupMenuItem(
             value: supportedAppLocales[i].toLanguageTag(),
-            child: Text(names[i]),
+            child: Text(
+              appLocaleNames[supportedAppLocales[i].toLanguageTag()]!,
+            ),
           ),
       ],
     );

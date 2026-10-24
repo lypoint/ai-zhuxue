@@ -28,7 +28,7 @@ void main() {
   });
   tearDown(() => AppLanguage.I.select('zh-Hans'));
 
-  test('seven complete catalogs preserve every placeholder', () async {
+  test('all 78 catalogs preserve every placeholder', () async {
     final raw =
         jsonDecode(
               await rootBundle.loadString(
@@ -71,7 +71,7 @@ void main() {
       );
       expect(
         AppLanguage.resolve(const Locale('zh', 'HK')).toLanguageTag(),
-        'zh-Hant',
+        'zh-Hant-HK',
       );
       expect(
         AppLanguage.resolve(
@@ -89,8 +89,37 @@ void main() {
         ).toLanguageTag(),
         'zh-Hans',
       );
-      expect(AppLanguage.resolve(const Locale('es', 'MX')), const Locale('es'));
-      expect(AppLanguage.resolve(const Locale('fr')), const Locale('en'));
+      expect(
+        AppLanguage.resolve(const Locale('es', 'MX')),
+        const Locale('es', '419'),
+      );
+      expect(
+        AppLanguage.resolve(const Locale('es', 'US')),
+        const Locale('es', 'US'),
+      );
+      expect(
+        AppLanguage.resolve(const Locale('fr', 'CA')),
+        const Locale('fr', 'CA'),
+      );
+      expect(
+        AppLanguage.resolve(const Locale('pt', 'PT')),
+        const Locale('pt', 'PT'),
+      );
+      expect(
+        AppLanguage.resolve(
+          const Locale.fromSubtags(
+            languageCode: 'fr',
+            scriptCode: 'Latn',
+            countryCode: 'CA',
+          ),
+        ),
+        const Locale('fr', 'CA'),
+      );
+      expect(AppLanguage.resolve(const Locale('no')), const Locale('nb'));
+      expect(AppLanguage.resolve(const Locale('xx')), const Locale('en'));
+      expect(AppLanguage.resolve(const Locale('fr')), const Locale('fr', 'FR'));
+      expect(supportedAppLocales.length, 78);
+      expect(appLocaleNames.length, 78);
     },
   );
 
@@ -113,7 +142,7 @@ void main() {
         (await SharedPreferences.getInstance()).getString('app_language'),
         isNull,
       );
-      await expectLater(AppLanguage.I.select('fr'), throwsArgumentError);
+      await expectLater(AppLanguage.I.select('xx'), throwsArgumentError);
     },
   );
 
@@ -138,17 +167,38 @@ void main() {
     await tester.enterText(find.byType(TextField), '孩子自己的文字');
     await tester.tap(find.byIcon(Icons.language));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('English'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
     expect(find.text('Parent app'), findsOneWidget);
     expect(find.text('Subject'), findsOneWidget);
     expect(find.text('孩子自己的文字'), findsOneWidget);
-    for (final tag in ['zh-Hant', 'ja', 'ko', 'de', 'es']) {
+    for (final locale in supportedAppLocales) {
+      final tag = locale.toLanguageTag();
       await AppLanguage.I.select(tag);
       await tester.pumpAndSettle();
       expect(find.text(tr('家长端')), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      expect(
+        Directionality.of(tester.element(find.byType(TextField))),
+        ['ar', 'he', 'ur', 'fa'].contains(locale.languageCode)
+            ? TextDirection.rtl
+            : TextDirection.ltr,
+      );
+      expect(tester.takeException(), isNull, reason: tag);
+      expect(find.text('孩子自己的文字'), findsOneWidget);
+      expect(
+        (await SharedPreferences.getInstance()).getString('app_language'),
+        tag,
+      );
     }
+    await tester.tap(find.byIcon(Icons.language));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Монгол хэл'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Монгол хэл'));
+    await tester.pumpAndSettle();
+    expect(AppLanguage.I.tag, 'mn');
   });
 
   test(

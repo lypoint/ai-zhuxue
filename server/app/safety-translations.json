@@ -1,0 +1,314 @@
+{
+  "en": {
+    "reject": "I can't answer that question. If something is upsetting you, please tell a parent or teacher. Let's return to learning—is there any homework or topic you'd like help with?",
+    "forbidden": "I can't answer that question. Please ask a learning question, such as homework, a school subject or study methods."
+  },
+  "es-US": {
+    "reject": "No puedo responder a esa pregunta. Si algo te preocupa, habla con tu familia o un docente. Volvamos al aprendizaje: ¿necesitas ayuda con alguna tarea o tema?",
+    "forbidden": "No puedo responder a esa pregunta. Haz una pregunta sobre el aprendizaje, como una tarea, una asignatura o métodos de estudio."
+  },
+  "es-419": {
+    "reject": "No puedo responder a esa pregunta. Si algo te preocupa, habla con tu familia o un docente. Volvamos al aprendizaje: ¿necesitas ayuda con alguna tarea o tema?",
+    "forbidden": "No puedo responder a esa pregunta. Haz una pregunta sobre el aprendizaje, como una tarea, una asignatura o métodos de estudio."
+  },
+  "es": {
+    "reject": "No puedo responder a esa pregunta. Si algo te preocupa, habla con tu familia o un docente. Volvamos al aprendizaje: ¿necesitas ayuda con alguna tarea o tema?",
+    "forbidden": "No puedo responder a esa pregunta. Haz una pregunta sobre el aprendizaje, como una tarea, una asignatura o métodos de estudio."
+  },
+  "ja": {
+    "reject": "その質問には答えられません。つらいことがあれば、保護者や先生に話してください。学習に戻りましょう。宿題や知りたいことはありますか？",
+    "forbidden": "その質問には答えられません。宿題、教科の内容、勉強方法など、学習に関する質問をしてください。"
+  },
+  "ko": {
+    "reject": "그 질문에는 답할 수 없어요. 힘든 일이 있다면 보호자나 선생님께 말씀드려 주세요. 다시 공부로 돌아가 볼까요? 도움이 필요한 숙제나 내용이 있나요?",
+    "forbidden": "그 질문에는 답할 수 없어요. 숙제, 교과 내용, 공부 방법 등 학습에 관한 질문을 해 주세요."
+  },
+  "de": {
+    "reject": "Diese Frage kann ich nicht beantworten. Wenn dich etwas belastet, sprich bitte mit deinen Eltern oder einer Lehrkraft. Kehren wir zum Lernen zurück—brauchst du Hilfe bei Hausaufgaben oder einem Thema?",
+    "forbidden": "Diese Frage kann ich nicht beantworten. Bitte stelle eine Lernfrage, etwa zu Hausaufgaben, einem Schulfach oder Lernmethoden."
+  },
+  "fr-FR": {
+    "reject": "Je ne peux pas répondre à cette question. Si quelque chose vous dérange, parlez-en à un parent ou à un enseignant. Revenons à l'apprentissage : y a-t-il un devoir ou un sujet pour lequel vous aimeriez obtenir de l'aide ?",
+    "forbidden": "Je ne peux pas répondre à cette question. Veuillez poser une question d'apprentissage, comme des devoirs, une matière scolaire ou des méthodes d'étude."
+  },
+  "fr-CA": {
+    "reject": "Je ne peux pas répondre à cette question. Si quelque chose vous dérange, parlez-en à un parent ou à un enseignant. Revenons à l'apprentissage : y a-t-il un devoir ou un sujet pour lequel vous aimeriez obtenir de l'aide ?",
+    "forbidden": "Je ne peux pas répondre à cette question. Veuillez poser une question d'apprentissage, comme des devoirs, une matière scolaire ou des méthodes d'étude."
+  },
+  "pt-BR": {
+    "reject": "Não posso responder a essa pergunta. Se algo estiver incomodando você, conte a um pai ou professor. Voltemos ao aprendizado: há algum dever de casa ou tópico para o qual você gostaria de ajuda?",
+    "forbidden": "Não posso responder a essa pergunta. Faça uma pergunta de aprendizagem, como lição de casa, matéria escolar ou métodos de estudo."
+  },
+  "pt-PT": {
+    "reject": "Não posso responder a essa questão. Se algo o estiver a incomodar, conte a um pai ou professor. Voltemos à aprendizagem: há algum trabalho de casa ou tema para o qual gostaria de ajuda?",
+    "forbidden": "Não posso responder a essa questão. Faça uma pergunta de aprendizagem, como os trabalhos de casa, a matéria escolar ou os métodos de estudo."
+  },
+  "it": {
+    "reject": "Non posso rispondere a questa domanda. Se qualcosa ti turba, dillo a un genitore o a un insegnante. Torniamo all'apprendimento: c'è qualche compito o argomento per il quale vorresti aiuto?",
+    "forbidden": "Non posso rispondere a questa domanda. Si prega di porre una domanda di apprendimento, come compiti a casa, una materia scolastica o metodi di studio."
+  },
+  "zh-Hant": {
+    "reject": "這個問題我不能回答。如果你遇到了讓你難受的事情，請告訴家長或老師。我們回到學習上來吧——有什麼作業或知識點需要講解嗎？",
+    "forbidden": "這個問題我不能回答，請重新輸入學習方面的問題，例如作業、學科知識或學習方法。"
+  },
+  "zh-Hant-HK": {
+    "reject": "我無法回答這個問題。如果有什麼事讓您感到不安，請告訴家長或老師。讓我們回到學習上來——有什麼作業或主題需要幫助嗎？",
+    "forbidden": "我無法回答這個問題。請提出學習問題，例如家庭作業、學校科目或學習方法。"
+  },
+  "zh-Hans": {
+    "reject": "这个问题我不能回答。如果你遇到了让你难受的事情，请告诉家长或老师。我们回到学习上来吧——有什么作业或知识点需要讲解吗？",
+    "forbidden": "这个问题我不能回答，请重新输入学习方面的问题，例如作业、学科知识或学习方法。"
+  },
+  "tr": {
+    "reject": "Bu soruya cevap veremem. Eğer bir şey sizi üzüyorsa lütfen ebeveyninize veya öğretmeninize söyleyin. Hadi öğrenmeye dönelim; yardım istediğiniz herhangi bir ödev veya konu var mı?",
+    "forbidden": "Bu soruya cevap veremem. Lütfen ev ödevi, okul konusu veya çalışma yöntemleri gibi bir öğrenme sorusu sorun."
+  },
+  "ru": {
+    "reject": "Я не могу ответить на этот вопрос. Если вас что-то расстраивает, сообщите об этом родителям или учителю. Давайте вернемся к обучению: есть ли какое-нибудь домашнее задание или тема, с которой вам нужна помощь?",
+    "forbidden": "Я не могу ответить на этот вопрос. Пожалуйста, задайте учебный вопрос, например, домашнее задание, школьный предмет или методы обучения."
+  },
+  "ar": {
+    "reject": "لا أستطيع الإجابة على هذا السؤال. إذا كان هناك شيء يزعجك، من فضلك أخبر أحد الوالدين أو المعلم. دعنا نعود إلى التعلم – هل هناك أي واجب منزلي أو موضوع تريد المساعدة فيه؟",
+    "forbidden": "لا أستطيع الإجابة على هذا السؤال. يرجى طرح سؤال تعليمي، مثل الواجب المنزلي أو مادة دراسية أو طرق الدراسة."
+  },
+  "vi": {
+    "reject": "Tôi không thể trả lời câu hỏi đó. If something is upsetting you, please tell a parent or teacher. Let's return to learning—is there any homework or topic you'd like help with?",
+    "forbidden": "Tôi không thể trả lời câu hỏi đó. Please ask a learning question, such as homework, a school subject or study methods."
+  },
+  "th": {
+    "reject": "ฉันไม่สามารถตอบคำถามนั้นได้ หากมีสิ่งใดทำให้คุณไม่พอใจ โปรดบอกผู้ปกครองหรือครู กลับไปเรียนรู้กันดีกว่า มีการบ้านหรือหัวข้อใดที่คุณต้องการความช่วยเหลือหรือไม่",
+    "forbidden": "ฉันไม่สามารถตอบคำถามนั้นได้ โปรดถามคำถามการเรียนรู้ เช่น การบ้าน วิชาที่โรงเรียน หรือวิธีเรียน"
+  },
+  "id": {
+    "reject": "Saya tidak bisa menjawab pertanyaan itu. Jika ada sesuatu yang membuat Anda kesal, harap beri tahu orang tua atau guru. Mari kita kembali belajar—apakah ada pekerjaan rumah atau topik yang ingin Anda bantu?",
+    "forbidden": "Saya tidak bisa menjawab pertanyaan itu. Silakan ajukan pertanyaan pembelajaran, seperti pekerjaan rumah, mata pelajaran sekolah, atau metode belajar."
+  },
+  "fil": {
+    "reject": "Hindi ko masagot ang tanong na iyon. Kung may nakagagalit sa iyo, mangyaring sabihin sa isang magulang o guro. Bumalik tayo sa pag-aaral—may araling-bahay ba o paksa na gusto mong matulungan?",
+    "forbidden": "Hindi ko masagot ang tanong na iyon. Mangyaring magtanong ng tanong sa pag-aaral, tulad ng takdang-aralin, paksa sa paaralan o mga paraan ng pag-aaral."
+  },
+  "tl": {
+    "reject": "Hindi ko masagot ang tanong na iyon. Kung may nakagagalit sa iyo, mangyaring sabihin sa isang magulang o guro. Bumalik tayo sa pag-aaral—may araling-bahay ba o paksa na gusto mong matulungan?",
+    "forbidden": "Hindi ko masagot ang tanong na iyon. Mangyaring magtanong ng tanong sa pag-aaral, tulad ng takdang-aralin, paksa sa paaralan o mga paraan ng pag-aaral."
+  },
+  "ms-MY": {
+    "reject": "Saya tidak dapat menjawab soalan itu. Jika ada sesuatu yang mengganggu anda, sila beritahu ibu bapa atau guru. Mari kembali kepada pembelajaran—adakah kerja rumah atau topik yang anda ingin bantu?",
+    "forbidden": "Saya tidak dapat menjawab soalan itu. Sila tanya soalan pembelajaran, seperti kerja rumah, subjek sekolah atau kaedah belajar."
+  },
+  "ms": {
+    "reject": "Saya tidak dapat menjawab soalan itu. Jika ada sesuatu yang mengganggu anda, sila beritahu ibu bapa atau guru. Mari kembali kepada pembelajaran—adakah kerja rumah atau topik yang anda ingin bantu?",
+    "forbidden": "Saya tidak dapat menjawab soalan itu. Sila tanya soalan pembelajaran, seperti kerja rumah, subjek sekolah atau kaedah belajar."
+  },
+  "nl": {
+    "reject": "Die vraag kan ik niet beantwoorden. Als iets je van streek maakt, vertel dit dan aan een ouder of leerkracht. Laten we teruggaan naar het leren: is er huiswerk of een onderwerp waar u hulp bij zou willen hebben?",
+    "forbidden": "Die vraag kan ik niet beantwoorden. Stel een leervraag, zoals huiswerk, een schoolvak of studiemethode."
+  },
+  "pl": {
+    "reject": "Nie potrafię odpowiedzieć na to pytanie. Jeżeli coś Cię niepokoi, powiedz o tym rodzicom lub nauczycielowi. Wróćmy do nauki — czy jest jakaś praca domowa lub temat, w którym potrzebujesz pomocy?",
+    "forbidden": "Nie potrafię odpowiedzieć na to pytanie. Zadaj pytanie edukacyjne, np. zadanie domowe, przedmiot szkolny lub metody nauki."
+  },
+  "cs": {
+    "reject": "Na tu otázku nedokážu odpovědět. Pokud vás něco rozčiluje, řekněte to prosím rodičům nebo učiteli. Vraťme se k učení – je nějaký domácí úkol nebo téma, se kterým byste chtěli pomoci?",
+    "forbidden": "Na tu otázku nedokážu odpovědět. Položte prosím učební otázku, například domácí úkol, školní předmět nebo studijní metody."
+  },
+  "ro": {
+    "reject": "Nu pot să răspund la această întrebare. Dacă ceva vă supără, vă rugăm să spuneți unui părinte sau unui profesor. Să ne întoarcem la învățare — există teme sau subiect pentru care ai dori ajutor?",
+    "forbidden": "Nu pot să răspund la această întrebare. Vă rugăm să puneți o întrebare de învățare, cum ar fi teme pentru acasă, o materie școlară sau metode de studiu."
+  },
+  "hu": {
+    "reject": "Nem tudok erre a kérdésre válaszolni. Ha valami idegesít, kérjük, szóljon szülőjének vagy tanárának. Térjünk vissza a tanuláshoz – van olyan házi feladat vagy téma, amihez segítséget szeretne?",
+    "forbidden": "Nem tudok erre a kérdésre válaszolni. Kérem, tegyen fel tanulási kérdést, például házi feladatot, iskolai tantárgyat vagy tanulási módszereket."
+  },
+  "el": {
+    "reject": "Δεν μπορώ να απαντήσω σε αυτή την ερώτηση. Εάν κάτι σας στενοχωρεί, ενημερώστε το σε έναν γονέα ή δάσκαλο. Ας επιστρέψουμε στη μάθηση—υπάρχει κάποια εργασία ή θέμα για το οποίο θα θέλατε βοήθεια;",
+    "forbidden": "Δεν μπορώ να απαντήσω σε αυτή την ερώτηση. Κάντε μια ερώτηση μάθησης, όπως εργασίες για το σπίτι, ένα σχολικό μάθημα ή μεθόδους μελέτης."
+  },
+  "sv": {
+    "reject": "Jag kan inte svara på den frågan. Om något gör dig upprörd, berätta för en förälder eller lärare. Låt oss återgå till lärandet – finns det några läxor eller ämne du vill ha hjälp med?",
+    "forbidden": "Jag kan inte svara på den frågan. Ställ gärna en lärandefråga, som läxor, ett skolämne eller studiesätt."
+  },
+  "da": {
+    "reject": "Jeg kan ikke svare på det spørgsmål. Hvis noget forstyrrer dig, bedes du fortælle det til en forælder eller lærer. Lad os vende tilbage til at lære – er der nogle lektier eller emner, du gerne vil have hjælp til?",
+    "forbidden": "Jeg kan ikke svare på det spørgsmål. Stil venligst et læringsspørgsmål, såsom lektier, et skolefag eller studiemetoder."
+  },
+  "nb": {
+    "reject": "Jeg kan ikke svare på det spørsmålet. Hvis noe opprører deg, vennligst fortell en forelder eller lærer. La oss gå tilbake til læringen – er det noen lekser eller emne du vil ha hjelp med?",
+    "forbidden": "Jeg kan ikke svare på det spørsmålet. Still et læringsspørsmål, for eksempel lekser, et skolefag eller studiemetoder."
+  },
+  "fi": {
+    "reject": "En osaa vastata tuohon kysymykseen. Jos jokin asia ärsyttää sinua, kerro siitä vanhemmalle tai opettajalle. Palataan oppimiseen – onko sinulla kotitehtäviä tai aiheita, joihin haluaisit apua?",
+    "forbidden": "En osaa vastata tuohon kysymykseen. Esitä oppimiskysymys, kuten kotitehtävä, oppiaine tai oppimismenetelmät."
+  },
+  "uk": {
+    "reject": "Я не можу відповісти на це питання. Якщо вас щось засмучує, розкажіть про це батькам або вчителям. Давайте повернемося до навчання — чи є якесь домашнє завдання або тема, з якою вам потрібна допомога?",
+    "forbidden": "Я не можу відповісти на це питання. Будь ласка, поставте навчальне запитання, наприклад домашнє завдання, шкільний предмет або методи навчання."
+  },
+  "he": {
+    "reject": "אני לא יכול לענות על השאלה הזאת. אם משהו מטריד אותך, אנא ספר להורה או למורה. בוא נחזור ללמוד - האם יש שיעורי בית או נושא שאתה רוצה לעזור בו?",
+    "forbidden": "אני לא יכול לענות על השאלה הזאת. נא לשאול שאלת למידה, כגון שיעורי בית, מקצוע בבית הספר או שיטות לימוד."
+  },
+  "hi": {
+    "reject": "मैं उस प्रश्न का उत्तर नहीं दे सकता. यदि कोई बात आपको परेशान कर रही है, तो कृपया अपने माता-पिता या शिक्षक को बताएं। आइए सीखने की ओर लौटें—क्या कोई गृहकार्य या विषय है जिसमें आप सहायता चाहेंगे?",
+    "forbidden": "मैं उस प्रश्न का उत्तर नहीं दे सकता. कृपया कोई सीखने का प्रश्न पूछें, जैसे होमवर्क, स्कूल का कोई विषय या अध्ययन के तरीके।"
+  },
+  "bn": {
+    "reject": "আমি সেই প্রশ্নের উত্তর দিতে পারব না। যদি কিছু আপনাকে বিরক্ত করে, তাহলে অনুগ্রহ করে একজন অভিভাবক বা শিক্ষককে বলুন। আসুন শেখার দিকে ফিরে যাই—কোন হোমওয়ার্ক বা বিষয় আছে যা আপনি সাহায্য করতে চান?",
+    "forbidden": "আমি সেই প্রশ্নের উত্তর দিতে পারব না। একটি শেখার প্রশ্ন জিজ্ঞাসা করুন, যেমন হোমওয়ার্ক, একটি স্কুল বিষয় বা অধ্যয়ন পদ্ধতি."
+  },
+  "ur": {
+    "reject": "میں اس سوال کا جواب نہیں دے سکتا۔ اگر کوئی چیز آپ کو پریشان کر رہی ہے، تو براہ کرم والدین یا استاد کو بتائیں۔ آئیے سیکھنے پر واپس آتے ہیں — کیا کوئی ہوم ورک یا موضوع ہے جس میں آپ مدد چاہتے ہیں؟",
+    "forbidden": "میں اس سوال کا جواب نہیں دے سکتا۔ براہ کرم کوئی سیکھنے کا سوال پوچھیں، جیسے ہوم ورک، اسکول کا مضمون یا مطالعہ کے طریقے۔"
+  },
+  "fa": {
+    "reject": "من نمی توانم به این سوال پاسخ دهم. اگر چیزی شما را ناراحت می کند، لطفاً به والدین یا معلمان بگویید. بیایید به یادگیری بازگردیم - آیا تکلیف یا موضوعی وجود دارد که بخواهید در مورد آن کمک کنید؟",
+    "forbidden": "من نمی توانم به این سوال پاسخ دهم. لطفاً یک سؤال آموزشی بپرسید، مانند مشق شب، موضوع مدرسه یا روش های مطالعه."
+  },
+  "ta": {
+    "reject": "அந்தக் கேள்விக்கு என்னால் பதில் சொல்ல முடியாது. ஏதேனும் உங்களை வருத்தப்படுத்தினால், பெற்றோர் அல்லது ஆசிரியரிடம் சொல்லுங்கள். கற்றலுக்குத் திரும்புவோம்—நீங்கள் உதவி செய்ய விரும்பும் ஏதேனும் வீட்டுப்பாடம் அல்லது தலைப்பு உள்ளதா?",
+    "forbidden": "அந்தக் கேள்விக்கு என்னால் பதில் சொல்ல முடியாது. வீட்டுப்பாடம், பள்ளி பாடம் அல்லது படிப்பு முறைகள் போன்ற கற்றல் கேள்வியைக் கேளுங்கள்."
+  },
+  "te": {
+    "reject": "ఆ ప్రశ్నకు నేను సమాధానం చెప్పలేను. ఏదైనా మిమ్మల్ని కలవరపెడితే, దయచేసి తల్లిదండ్రులకు లేదా ఉపాధ్యాయులకు చెప్పండి. నేర్చుకోవడానికి తిరిగి వెళ్దాం—మీరు సహాయం చేయాలనుకుంటున్న ఏదైనా హోంవర్క్ లేదా టాపిక్ ఉందా?",
+    "forbidden": "ఆ ప్రశ్నకు నేను సమాధానం చెప్పలేను. దయచేసి హోంవర్క్, పాఠశాల విషయం లేదా అధ్యయన పద్ధతులు వంటి అభ్యాస ప్రశ్నలను అడగండి."
+  },
+  "mr": {
+    "reject": "मी त्या प्रश्नाचे उत्तर देऊ शकत नाही. जर काही तुम्हाला अस्वस्थ करत असेल तर कृपया पालक किंवा शिक्षकांना सांगा. चला शिकण्याकडे परत जाऊया - तुम्हाला काही गृहपाठ किंवा विषयासाठी मदत हवी आहे का?",
+    "forbidden": "मी त्या प्रश्नाचे उत्तर देऊ शकत नाही. कृपया गृहपाठ, शालेय विषय किंवा अभ्यास पद्धती यासारखे शिक्षण प्रश्न विचारा."
+  },
+  "gu": {
+    "reject": "હું તે પ્રશ્નનો જવાબ આપી શકતો નથી. જો કંઈક તમને પરેશાન કરતું હોય, તો કૃપા કરીને માતાપિતા અથવા શિક્ષકને જણાવો. ચાલો શીખવા પર પાછા ફરીએ - શું કોઈ હોમવર્ક અથવા વિષય છે જેમાં તમે મદદ કરવા માંગો છો?",
+    "forbidden": "હું તે પ્રશ્નનો જવાબ આપી શકતો નથી. કૃપા કરીને કોઈ શીખવાના પ્રશ્ન પૂછો, જેમ કે હોમવર્ક, શાળાનો વિષય અથવા અભ્યાસ પદ્ધતિઓ."
+  },
+  "kn": {
+    "reject": "ಆ ಪ್ರಶ್ನೆಗೆ ನಾನು ಉತ್ತರಿಸಲಾರೆ. ನಿಮಗೆ ಏನಾದರೂ ಅಸಮಾಧಾನವಿದ್ದರೆ, ದಯವಿಟ್ಟು ಪೋಷಕರಿಗೆ ಅಥವಾ ಶಿಕ್ಷಕರಿಗೆ ತಿಳಿಸಿ. ಕಲಿಕೆಗೆ ಹಿಂತಿರುಗಿ ನೋಡೋಣ—ಯಾವುದಾದರೂ ಹೋಮ್‌ವರ್ಕ್ ಅಥವಾ ನೀವು ಸಹಾಯ ಮಾಡಲು ಬಯಸುವ ವಿಷಯವಿದೆಯೇ?",
+    "forbidden": "ಆ ಪ್ರಶ್ನೆಗೆ ನಾನು ಉತ್ತರಿಸಲಾರೆ. ದಯವಿಟ್ಟು ಮನೆಕೆಲಸ, ಶಾಲೆಯ ವಿಷಯ ಅಥವಾ ಅಧ್ಯಯನ ವಿಧಾನಗಳಂತಹ ಕಲಿಕೆಯ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ."
+  },
+  "ml": {
+    "reject": "ആ ചോദ്യത്തിന് എനിക്ക് ഉത്തരം നൽകാൻ കഴിയില്ല. എന്തെങ്കിലും നിങ്ങളെ വിഷമിപ്പിക്കുന്നുണ്ടെങ്കിൽ, മാതാപിതാക്കളോടോ അധ്യാപകനോടോ പറയുക. നമുക്ക് പഠനത്തിലേക്ക് മടങ്ങാം—നിങ്ങൾ സഹായിക്കാൻ ആഗ്രഹിക്കുന്ന ഏതെങ്കിലും ഗൃഹപാഠമോ വിഷയമോ ഉണ്ടോ?",
+    "forbidden": "ആ ചോദ്യത്തിന് എനിക്ക് ഉത്തരം നൽകാൻ കഴിയില്ല. ഗൃഹപാഠം, ഒരു സ്കൂൾ വിഷയം അല്ലെങ്കിൽ പഠന രീതികൾ പോലുള്ള ഒരു പഠന ചോദ്യം ചോദിക്കുക."
+  },
+  "pa": {
+    "reject": "ਹੈ\nਮੈਂ ਉਸ ਸਵਾਲ ਦਾ ਜਵਾਬ ਨਹੀਂ ਦੇ ਸਕਦਾ। ਜੇਕਰ ਕੋਈ ਚੀਜ਼ ਤੁਹਾਨੂੰ ਪਰੇਸ਼ਾਨ ਕਰ ਰਹੀ ਹੈ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਮਾਤਾ-ਪਿਤਾ ਜਾਂ ਅਧਿਆਪਕ ਨੂੰ ਦੱਸੋ। ਚਲੋ ਸਿੱਖਣ ਲਈ ਵਾਪਸ ਚੱਲੀਏ—ਕੀ ਕੋਈ ਹੋਮਵਰਕ ਜਾਂ ਵਿਸ਼ਾ ਹੈ ਜਿਸ ਵਿੱਚ ਤੁਸੀਂ ਮਦਦ ਚਾਹੁੰਦੇ ਹੋ?",
+    "forbidden": "ਹੈ\nਮੈਂ ਉਸ ਸਵਾਲ ਦਾ ਜਵਾਬ ਨਹੀਂ ਦੇ ਸਕਦਾ। ਕਿਰਪਾ ਕਰਕੇ ਕੋਈ ਸਿੱਖਣ ਦਾ ਸਵਾਲ ਪੁੱਛੋ, ਜਿਵੇਂ ਕਿ ਹੋਮਵਰਕ, ਸਕੂਲ ਦਾ ਵਿਸ਼ਾ ਜਾਂ ਅਧਿਐਨ ਕਰਨ ਦੇ ਢੰਗ।"
+  },
+  "ne": {
+    "reject": "म त्यो प्रश्नको जवाफ दिन सक्दिन। यदि कुनै कुराले तपाईलाई अप्ठ्यारो पारेको छ भने, कृपया अभिभावक वा शिक्षकलाई भन्नुहोस्। सिकाइमा फर्कौं—के त्यहाँ कुनै गृहकार्य वा विषय छ जसमा तपाईं मद्दत चाहनुहुन्छ?",
+    "forbidden": "म त्यो प्रश्नको जवाफ दिन सक्दिन। कृपया सिकाइ प्रश्न सोध्नुहोस्, जस्तै गृहकार्य, विद्यालयको विषय वा अध्ययन विधिहरू।"
+  },
+  "si": {
+    "reject": "මට ඒ ප්‍රශ්නයට උත්තර දෙන්න බැහැ. යම් දෙයක් ඔබව කලබලයට පත් කරන්නේ නම්, කරුණාකර දෙමාපියන්ට හෝ ගුරුවරයෙකුට කියන්න. අපි නැවත ඉගෙනීමට යමු—ඔබ උදව් කිරීමට කැමති ගෙදර වැඩ හෝ මාතෘකාවක් තිබේද?",
+    "forbidden": "මට ඒ ප්‍රශ්නයට උත්තර දෙන්න බැහැ. කරුණාකර ගෙදර වැඩ, පාසල් විෂයයක් හෝ අධ්‍යයන ක්‍රම වැනි ඉගෙනීමේ ප්‍රශ්නයක් අසන්න."
+  },
+  "hr": {
+    "reject": "Ne mogu odgovoriti na to pitanje. Ako vas nešto uzrujava, recite roditelju ili učitelju. Vratimo se učenju — postoji li neka domaća zadaća ili tema oko koje biste željeli pomoć?",
+    "forbidden": "Ne mogu odgovoriti na to pitanje. Postavite pitanje za učenje, poput domaće zadaće, školskog predmeta ili metoda učenja."
+  },
+  "sk": {
+    "reject": "Na túto otázku neviem odpovedať. Ak ťa niečo rozčuľuje, povedz to rodičovi alebo učiteľovi. Vráťme sa k učeniu – je nejaká domáca úloha alebo téma, s ktorou by ste chceli pomôcť?",
+    "forbidden": "Na túto otázku neviem odpovedať. Položte otázku na učenie, napríklad domácu úlohu, školský predmet alebo metódy štúdia."
+  },
+  "sl": {
+    "reject": "Ne znam odgovoriti na to vprašanje. Če vas kaj moti, povejte staršem ali učitelju. Vrnimo se k učenju – ali obstaja kakšna domača naloga ali tema, pri kateri bi potrebovali pomoč?",
+    "forbidden": "Ne znam odgovoriti na to vprašanje. Zastavite učno vprašanje, kot je domača naloga, šolski predmet ali učne metode."
+  },
+  "sr": {
+    "reject": "Не могу одговорити на то питање. Ако вас нешто узнемирава, реците родитељу или наставнику. Вратимо се учењу—да ли постоји неки домаћи задатак или тема за коју бисте желели да вам помогнете?",
+    "forbidden": "Не могу одговорити на то питање. Поставите питање за учење, као што је домаћи задатак, школски предмет или методе учења."
+  },
+  "bg": {
+    "reject": "Не мога да отговоря на този въпрос. Ако нещо ви разстройва, моля, кажете на родител или учител. Да се ​​върнем към ученето – има ли домашна работа или тема, за която бихте искали помощ?",
+    "forbidden": "Не мога да отговоря на този въпрос. Моля, задайте учебен въпрос, като домашна работа, училищен предмет или методи на обучение."
+  },
+  "be": {
+    "reject": "Я не магу адказаць на гэтае пытанне. Калі вас нешта засмучае, раскажыце пра гэта бацькам або настаўнікам. Давайце вернемся да вывучэння - ці ёсць дамашняе заданне або тэма, з якой вы хацелі б дапамагчы?",
+    "forbidden": "Я не магу адказаць на гэтае пытанне. Калі ласка, задайце навучальнае пытанне, напрыклад, хатняе заданне, школьны прадмет або метады вывучэння."
+  },
+  "lt": {
+    "reject": "Negaliu atsakyti į šį klausimą. Jei kas nors jus nervina, pasakykite tėvams ar mokytojui. Grįžkime prie mokymosi – ar yra kokių nors namų darbų ar temų, dėl kurių norėtumėte pagalbos?",
+    "forbidden": "Negaliu atsakyti į šį klausimą. Užduokite mokymosi klausimą, pvz., namų darbus, mokyklinį dalyką ar studijų metodus."
+  },
+  "lv": {
+    "reject": "Es nevaru atbildēt uz šo jautājumu. Ja kaut kas jūs satrauc, lūdzu, pastāstiet to vecākiem vai skolotājam. Atgriezīsimies pie mācīšanās — vai ir kāds mājasdarbs vai tēma, kurā vēlaties saņemt palīdzību?",
+    "forbidden": "Es nevaru atbildēt uz šo jautājumu. Lūdzu, uzdodiet mācību jautājumu, piemēram, mājasdarbu, mācību priekšmetu vai mācību metodes."
+  },
+  "et": {
+    "reject": "Ma ei oska sellele küsimusele vastata. Kui miski teid häirib, rääkige sellest vanemale või õpetajale. Naaskem õppimise juurde – kas on mõni kodutöö või teema, millega seoses soovite abi?",
+    "forbidden": "Ma ei oska sellele küsimusele vastata. Palun esitage õppimisega seotud küsimus, näiteks kodutöö, õppeaine või õppemeetodid."
+  },
+  "mk": {
+    "reject": "Не можам да одговорам на тоа прашање. Ако нешто ве вознемирува, ве молиме кажете му на родител или наставник. Да се ​​вратиме на учењето - дали има некоја домашна задача или тема за која би сакале помош?",
+    "forbidden": "Не можам да одговорам на тоа прашање. Ве молиме поставете прашање за учење, како што се домашна задача, училишен предмет или методи на учење."
+  },
+  "sq": {
+    "reject": "Nuk mund t'i përgjigjem kësaj pyetjeje. Nëse diçka ju shqetëson, ju lutemi tregoni një prindi ose mësuesi. Le t'i kthehemi mësimit - a ka ndonjë detyrë shtëpie ose temë për të cilën do të dëshironit ndihmë?",
+    "forbidden": "Nuk mund t'i përgjigjem kësaj pyetjeje. Ju lutemi bëni një pyetje mësimore, të tilla si detyrat e shtëpisë, një lëndë shkollore ose metodat e studimit."
+  },
+  "az-Cyrl": {
+    "reject": "Бу суала ҹаваб верә билмәрәм. Әҝәр бир шеј сизи нараһат едирсә, лүтфән валидејнә вә ја мүәллимә дејин. Ҝәлин өјрәнмәјә гајыдаг – көмәк етмәк истәдијиниз ев тапшырығы вә ја мөвзу вармы?",
+    "forbidden": "Бу суала ҹаваб верә билмәрәм. Зәһмәт олмаса, ев тапшырығы, мәктәб мөвзусу вә ја өјрәнмә методлары кими өјрәнмә суалы верин."
+  },
+  "kk": {
+    "reject": "Мен бұл сұраққа жауап бере алмаймын. Егер сізді бірдеңе ренжітсе, ата-анаңызға немесе мұғалімге айтыңыз. Оқытуға оралайық — көмектескіңіз келетін үй тапсырмасы немесе тақырып бар ма?",
+    "forbidden": "Мен бұл сұраққа жауап бере алмаймын. Үй тапсырмасы, мектеп тақырыбы немесе оқу әдістері сияқты оқу сұрағын қойыңыз."
+  },
+  "ky": {
+    "reject": "Мен бул суроого жооп бере албайм. Эгер сизди бир нерсе капа кылып жатса, ата-энеңизге же мугалимиңизге айтыңыз. Келгиле, окууга кайтып келели — жардам алгыңыз келген үй тапшырмасы же тема барбы?",
+    "forbidden": "Мен бул суроого жооп бере албайм. Сураныч, үй тапшырмасы, мектеп предмети же окуу ыкмалары сыяктуу окуу суроосун бериңиз."
+  },
+  "hy": {
+    "reject": "Ես չեմ կարող պատասխանել այդ հարցին։ Եթե ​​ինչ-որ բան խանգարում է ձեզ, խնդրում եմ, ասեք ծնողին կամ ուսուցչին: Եկեք վերադառնանք սովորելուն. կա՞ որևէ տնային աշխատանք կամ թեմա, որի հետ կցանկանայիք օգնել:",
+    "forbidden": "Ես չեմ կարող պատասխանել այդ հարցին։ Խնդրում ենք տալ ուսումնական հարց, օրինակ՝ տնային աշխատանք, դպրոցական առարկա կամ ուսումնասիրության մեթոդներ:"
+  },
+  "ka": {
+    "reject": "ამ კითხვაზე პასუხის გაცემა არ შემიძლია. თუ რამე გაწუხებთ, გთხოვთ, უთხარით მშობელს ან მასწავლებელს. მოდით დავუბრუნდეთ სწავლას - არის თუ არა საშინაო დავალება ან თემა, რომლითაც გსურთ დახმარება?",
+    "forbidden": "ამ კითხვაზე პასუხის გაცემა არ შემიძლია. გთხოვთ, დასვით სასწავლო შეკითხვა, როგორიცაა საშინაო დავალება, სასკოლო საგანი ან სწავლის მეთოდები."
+  },
+  "is": {
+    "reject": "Ég get ekki svarað þeirri spurningu. Ef eitthvað kemur þér í uppnám, vinsamlegast láttu foreldri eða kennara vita. Snúum okkur aftur að læra — er einhver heimavinna eða efni sem þú vilt fá aðstoð við?",
+    "forbidden": "Ég get ekki svarað þeirri spurningu. Vinsamlega spyrjið námsspurningar eins og heimanáms, námsefnis eða námsaðferða."
+  },
+  "ca": {
+    "reject": "No puc respondre aquesta pregunta. Si alguna cosa et molesta, digues-ho a un pare o professor. Tornem a l'aprenentatge: hi ha alguna tasca o tema amb el qual t'agradaria ajuda?",
+    "forbidden": "No puc respondre aquesta pregunta. Si us plau, feu una pregunta d'aprenentatge, com ara deures, una assignatura escolar o mètodes d'estudi."
+  },
+  "eu": {
+    "reject": "Ezin diot galdera horri erantzun. Zerbait haserretzen bazaitu, mesedez esan guraso edo irakasle bati. Itzuli gaitezen ikastera: ba al dago laguntza nahi zenukeen etxeko lanik edo gairik?",
+    "forbidden": "Ezin diot galdera horri erantzun. Mesedez, egin ikasteko galdera bat, hala nola, etxeko lanak, eskolako irakasgai bat edo ikasketa metodoak."
+  },
+  "gl": {
+    "reject": "Non podo responder a esa pregunta. Se algo che molesta, comunícalle a un pai ou profesor. Volvemos á aprendizaxe. ¿Hai algunha tarefa ou tema co que che gustaría axudar?",
+    "forbidden": "Non podo responder a esa pregunta. Faga unha pregunta de aprendizaxe, como deberes, unha materia escolar ou métodos de estudo."
+  },
+  "af": {
+    "reject": "Ek kan nie daardie vraag beantwoord nie. As iets jou ontstel, vertel asseblief 'n ouer of onderwyser. Kom ons keer terug na leer—is daar enige huiswerk of onderwerp waarmee jy hulp wil hê?",
+    "forbidden": "Ek kan nie daardie vraag beantwoord nie. Vra asseblief 'n leervraag, soos huiswerk, 'n skoolvak of studiemetodes."
+  },
+  "sw": {
+    "reject": "Siwezi kujibu swali hilo. Ikiwa kitu kinakukera, tafadhali mwambie mzazi au mwalimu. Hebu turejee kujifunza— je, kuna kazi yoyote ya nyumbani au mada ambayo ungependa kusaidiwa nayo?",
+    "forbidden": "Siwezi kujibu swali hilo. Tafadhali uliza swali la kujifunza, kama vile kazi ya nyumbani, somo la shule au mbinu za kusoma."
+  },
+  "zu": {
+    "reject": "Angikwazi ukuwuphendula lowo mbuzo. Uma kukhona okukuphethe kabi, sicela utshele umzali noma uthisha. Masibuyele ekufundeni—ingabe ukhona umsebenzi wesikole noma isihloko ongathanda ukusizwa ngaso?",
+    "forbidden": "Angikwazi ukuwuphendula lowo mbuzo. Sicela ubuze umbuzo wokufunda, njengomsebenzi wasekhaya, isifundo sesikole noma izindlela zokufunda."
+  },
+  "am": {
+    "reject": "የሚለውን ጥያቄ መመለስ አልችልም። የሚያናድድዎት ነገር ካለ እባክዎን ለወላጅ ወይም ለአስተማሪ ይንገሩ። ወደ መማር እንመለስ-የቤት ስራ ወይም ርእሰ ጉዳይ አለ?",
+    "forbidden": "የሚለውን ጥያቄ መመለስ አልችልም። እባኮትን የመማር ጥያቄ ይጠይቁ፣ ለምሳሌ የቤት ስራ፣ የትምህርት ቤት ርዕሰ ጉዳይ ወይም የጥናት ዘዴዎች።"
+  },
+  "km": {
+    "reject": "ខ្ញុំមិនអាចឆ្លើយសំណួរនោះបានទេ។ ប្រសិនបើមានអ្វីមួយរំខានអ្នក សូមប្រាប់ឪពុកម្តាយ ឬគ្រូ។ តោះត្រឡប់ទៅការរៀនវិញ តើមានកិច្ចការផ្ទះ ឬប្រធានបទណាមួយដែលអ្នកចង់ជួយទេ?",
+    "forbidden": "ខ្ញុំមិនអាចឆ្លើយសំណួរនោះបានទេ។ សូមសួរសំណួរសិក្សាដូចជា កិច្ចការផ្ទះ មុខវិជ្ជាសាលា ឬវិធីសាស្រ្តសិក្សា។"
+  },
+  "lo": {
+    "reject": "ຂ້ອຍບໍ່ສາມາດຕອບຄໍາຖາມນັ້ນໄດ້. ຖ້າມີບາງຢ່າງເຮັດໃຫ້ເຈົ້າເສຍໃຈ, ກະລຸນາບອກພໍ່ແມ່ ຫຼື ຄູສອນ. ກັບຄືນສູ່ການຮຽນຮູ້—ມີວຽກບ້ານ ຫຼືຫົວຂໍ້ໃດທີ່ເຈົ້າຕ້ອງການຊ່ວຍບໍ?",
+    "forbidden": "ຂ້ອຍບໍ່ສາມາດຕອບຄໍາຖາມນັ້ນໄດ້. ກະລຸນາຖາມຄໍາຖາມການຮຽນຮູ້, ເຊັ່ນ: ການບ້ານ, ວິຊາໂຮງຮຽນຫຼືວິທີການສຶກສາ."
+  },
+  "my": {
+    "reject": "အဲဒီမေးခွန်းကို ကျွန်တော် မဖြေနိုင်ဘူး။ တစ်ခုခု စိတ်အနှောင့်အယှက်ဖြစ်ရင် မိဘ ဒါမှမဟုတ် ဆရာကို ပြောပြပါ။ သင်ယူခြင်းသို့ ပြန်သွားကြပါစို့ — သင်အကူအညီပေးလိုသော အိမ်စာ သို့မဟုတ် အကြောင်းအရာတစ်ခုခုရှိပါသလား။",
+    "forbidden": "အဲဒီမေးခွန်းကို ကျွန်တော် မဖြေနိုင်ဘူး။ အိမ်စာ၊ ကျောင်းဘာသာရပ် သို့မဟုတ် လေ့လာမှုနည်းလမ်းများကဲ့သို့သော သင်ယူမှုမေးခွန်းတစ်ခုမေးပါ။"
+  },
+  "mn": {
+    "reject": "Би энэ асуултад хариулж чадахгүй байна. Хэрэв ямар нэг зүйл таныг бухимдуулж байвал эцэг эх, багшдаа хэлээрэй. Суралцах зүйлдээ буцаж орцгооё— танд туслахыг хүссэн гэрийн даалгавар эсвэл сэдэв байна уу?",
+    "forbidden": "Би энэ асуултад хариулж чадахгүй байна. Гэрийн даалгавар, сургуулийн хичээл, сургалтын арга барил гэх мэт сурах асуулт асууна уу."
+  }
+}

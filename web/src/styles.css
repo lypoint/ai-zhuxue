@@ -157,7 +157,7 @@ strong {
 }
 .skip-link {
   position: fixed;
-  left: 16px;
+  inset-inline-start: 16px;
   top: -100px;
   z-index: 100;
   background: white;
@@ -342,7 +342,7 @@ select {
 }
 .toast {
   position: fixed;
-  right: 24px;
+  inset-inline-end: 24px;
   bottom: 24px;
   z-index: 1000;
   background: #254f41;
@@ -381,7 +381,7 @@ select {
   position: fixed;
   top: 0;
   bottom: 0;
-  left: 0;
+  inset-inline-start: 0;
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -425,7 +425,7 @@ select {
   font-size: 13px;
 }
 .app-body {
-  margin-left: var(--sidebar);
+  margin-inline-start: var(--sidebar);
   flex: 1;
   min-width: 0;
 }
@@ -437,7 +437,7 @@ select {
   padding: 16px 36px;
 }
 .topbar-end {
-  margin-left: auto;
+  margin-inline-start: auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -552,7 +552,7 @@ select {
   display: flex;
   gap: 16px;
   align-items: center;
-  text-align: left;
+  text-align: start;
   width: 100%;
   padding: 18px 0;
   border: 0;
@@ -742,13 +742,13 @@ dialog::backdrop {
 blockquote {
   margin: 18px 0;
   padding: 12px 18px;
-  border-left: 3px solid #c2d4b7;
+  border-inline-start: 3px solid #c2d4b7;
   background: #f5f7f0;
   font-size: 14px;
 }
 .notification-row {
   display: block;
-  text-align: left;
+  text-align: start;
   width: 100%;
   font-weight: 400;
   color: #243d37;
@@ -895,7 +895,7 @@ dd {
   background: #f4f6ef;
   padding: 22px 14px;
   overflow-y: auto;
-  border-right: 1px solid #e9ede4;
+  border-inline-end: 1px solid #e9ede4;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -916,7 +916,7 @@ dd {
 }
 .history-title {
   padding: 8px 0;
-  text-align: left;
+  text-align: start;
   display: block;
   background: none;
   border: 0;
@@ -1010,7 +1010,7 @@ dd {
   background: #e9eee2;
   padding: 18px 22px;
   border-radius: 14px 14px 2px 14px;
-  margin-left: auto;
+  margin-inline-start: auto;
   max-width: 82%;
   width: fit-content;
 }
@@ -1036,7 +1036,7 @@ dd {
 }
 .markdown ul,
 .markdown ol {
-  padding-left: 24px;
+  padding-inline-start: 24px;
 }
 .markdown pre {
   background: #edf1e7;
@@ -1063,7 +1063,7 @@ dd {
   border: 1px solid var(--border);
   padding: 10px;
   min-width: 70px;
-  text-align: left;
+  text-align: start;
 }
 .katex-display {
   overflow: auto;
@@ -1250,7 +1250,7 @@ dd {
   justify-content: flex-start;
   gap: 18px;
   margin: 10px 0;
-  text-align: left;
+  text-align: start;
 }
 .teacher-option strong,
 .teacher-option small {
@@ -1299,7 +1299,7 @@ dd {
   flex-shrink: 0;
 }
 .transcript .message.user {
-  margin-left: 0;
+  margin-inline-start: 0;
   max-width: 100%;
   background: #f3f5ed;
 }
@@ -1331,8 +1331,8 @@ dd {
     width: 250px;
   }
   .chat-panel .message-scroll {
-    padding-left: max(50px, calc((100% - 900px) / 2));
-    padding-right: max(50px, calc((100% - 900px) / 2));
+    padding-inline-start: max(50px, calc((100% - 900px) / 2));
+    padding-inline-end: max(50px, calc((100% - 900px) / 2));
   }
 }
 @media (max-width: 1200px) {
@@ -1381,7 +1381,7 @@ dd {
     transform: translateX(0);
   }
   .app-body {
-    margin-left: 0;
+    margin-inline-start: 0;
   }
   .mobile-menu {
     display: inline-flex !important;
@@ -1494,7 +1494,7 @@ dd {
   .history-sidebar {
     display: none;
     position: absolute;
-    left: 0;
+    inset-inline-start: 0;
     top: 130px;
     bottom: 0;
     z-index: 20;
@@ -1605,7 +1605,7 @@ dd {
   }
   .toast {
     bottom: 16px;
-    right: 16px;
+    inset-inline-end: 16px;
     font-size: 13px;
   }
   .crop-preview img {
@@ -1649,4 +1649,9 @@ dd {
   .child-switcher .field > label {
     display: none;
   }
+}
+
+@media (max-width: 1050px) {
+  [dir="rtl"] .sidebar { transform: translateX(105%); }
+  [dir="rtl"] .sidebar.open { transform: translateX(0); }
 }
