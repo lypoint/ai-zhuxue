@@ -56,6 +56,7 @@ def test_favorite_flow_idempotent_and_parent_visible(client):
     sid = client.get("/parent/family", headers=h(g)).json()["students"][0]["id"]
     pfav = client.get(f"/parent/students/{sid}/favorites", headers=h(g)).json()
     assert len(pfav) == 1
+    assert pfav[0]["message_id"] == mid and pfav[0]["conversation_id"] == cid
     # 删除
     assert client.delete(f"/chat/favorites/{favs[0]['id']}", headers=h(s)).json() == {"ok": True}
     assert client.get("/chat/favorites", headers=h(s)).json() == []

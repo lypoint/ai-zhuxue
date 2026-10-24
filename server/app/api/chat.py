@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ..config import settings
-from ..local_time import local_now, utc_bounds
+from ..local_time import local_now, utc_bounds, quota_start, local_datetime, previous_business_day
 from ..db import get_db
 from ..api.deps import current_student
 from sqlalchemy import and_, func, or_
@@ -82,7 +82,7 @@ SYSTEM_PROMPT = (
     "输出使用 Markdown 格式（标题/列表/表格/代码块）；数学公式一律用 LaTeX："
     "行内公式用 $...$（如 $x^2 + 1$），独立公式用 $$...$$（如 $$\\frac{{a}}{{b}}$$）。"
 )
-BAND_DESC = {"8-12": "8-12岁（小学中高年级）", "12-16": "12-16岁（初中）", "16-18": "16-18岁（高中）"}
+BAND_DESC = {"8-12": "8-12岁", "12-16": "12-16岁", "16-18": "16-18岁"}
 
 
 def _system_prompt(grade_band: str, fence_level: str) -> str:
@@ -220,7 +220,7 @@ def _notify(family_id: int, type_: str, title: str, body: str,
         if fs and not fs.notify_fence:
             return
     if once_per_day:
-        today_start = utc_bounds(local_now().date().isoformat())[0]
+        today_start = quota_start(local_now())
         exists = (db.query(Notification)
                   .filter_by(family_id=family_id, type=type_,
                              is_read=False)
@@ -239,9 +239,13 @@ def _local_day(student_id: int, db: Session) -> str:
 
 def _today_seconds(student_id: int, db: Session) -> int:
     from ..models import ActiveTime
-    row = db.query(ActiveTime).filter_by(student_id=student_id,
-                                         day=_local_day(student_id, db)).first()
-    return row.seconds if row else 0
+    day = _local_day(student_id, db)
+    days = {day}
+    previous = previous_business_day()
+    if previous:
+        days.add(previous)
+    return sum(row.seconds for row in db.query(ActiveTime).filter(
+        ActiveTime.student_id == student_id, ActiveTime.day.in_(days)).all())
 
 
 def _rest_status(fs: FamilySettings | None, now: dt.datetime) -> dict:
@@ -261,7 +265,13 @@ def _rest_status(fs: FamilySettings | None, now: dt.datetime) -> dict:
 @router.get("/availability")
 def availability(student: Student = Depends(current_student), db: Session = Depends(get_db)):
     fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
-    return _rest_status(fs, local_now())
+    used = _today_seconds(student.id, db)
+    cap = fs.daily_minutes_cap if fs else 60
+    return {**_rest_status(fs, local_now()), "used_seconds": used,
+            "daily_minutes_cap": cap, "remaining_seconds": max(0, cap * 60 - used) if cap else None,
+            "quiet_start": fs.quiet_start if fs else settings.fence_quiet_start,
+            "quiet_end": fs.quiet_end if fs else settings.fence_quiet_end,
+            "timezone": student.family.timezone, "day": _local_day(student.id, db)}
 
 
 def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
@@ -286,7 +296,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
         cap = settings.fence_daily_message_cap
         if fs:
             cap = fs.daily_message_cap
-        local_midnight_utc = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
+        local_midnight_utc = quota_start(local_now())
         # 已失败的请求不占次数；进行中的预留仅保留 30 分钟，避免服务中断后一直占额。
         counted_message = or_(
             Message.fence_action.is_(None),
@@ -855,7 +865,7 @@ def toggle_pin(conversation_id: int, body: dict, student: Student = Depends(curr
 
 
 @router.get("/sessions")
-def my_sessions(student: Student = Depends(current_student), db: Session = Depends(get_db)):
+def my_sessions(q: str = "", student: Student = Depends(current_student), db: Session = Depends(get_db)):
     """学生端会话列表（Codex 风格抽屉）：标题/时间/消息数，按最近更新倒序。"""
     # 聚合子查询一次取回每会话消息数与最后时间（避免 100 会话 N+1 查询）
     agg = (db.query(Message.conversation_id,
@@ -863,10 +873,14 @@ def my_sessions(student: Student = Depends(current_student), db: Session = Depen
                     func.max(Message.id).label("last_id"))
            .group_by(Message.conversation_id).subquery())
     last_msg = Message.__table__
+    if len(q) > 200:
+        raise HTTPException(422, "Search is limited to 200 characters.")
+    matching = db.query(Message.conversation_id).filter(Message.content.ilike(f"%{q}%"))
     convs = (db.query(Conversation, func.coalesce(agg.c.cnt, 0))
              .outerjoin(agg, Conversation.id == agg.c.conversation_id)
              .filter(Conversation.student_id == student.id,
                      Conversation.student_deleted_at.is_(None))
+             .filter(or_(Conversation.title.ilike(f"%{q}%"), Conversation.id.in_(matching)))
              .order_by(Conversation.pinned.desc(), Conversation.id.desc())
              .limit(100).all())
     items = []
@@ -911,8 +925,13 @@ def latest_conversation(student: Student = Depends(current_student), db: Session
 @router.get("/conversations", response_model=list[MessageOut])
 def my_messages(conversation_id: int, student: Student = Depends(current_student),
                 db: Session = Depends(get_db)):
-    _student_conversation(db, conversation_id, student)
-    return db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.id).all()
+    conv = _student_conversation(db, conversation_id, student)
+    return [{"id": message.id, "role": message.role, "content": message.content,
+             "content_blocks": message.content_blocks, "image_job": message.image_job,
+             "fence_action": message.fence_action, "created_at": message.created_at,
+             "teacher_id": conv.teacher_group_id, "teacher_name": conv.teacher_name_snapshot,
+             "teacher_avatar_url": conv.teacher_avatar_snapshot}
+            for message in db.query(Message).filter_by(conversation_id=conversation_id).order_by(Message.id).all()]
 
 
 # ---------- 学生成绩与学业评估 ----------
@@ -1078,7 +1097,7 @@ def student_academic_assessment(body: dict | None = None, student: Student = Dep
         end = str(body.get("to") or local_now().date().isoformat())
         end_date = dt.date.fromisoformat(end)
         start = str(body.get("from") or (end_date - dt.timedelta(days=30)).isoformat())
-        if dt.date.fromisoformat(start) >= end_date:
+        if dt.date.fromisoformat(start) > end_date:
             raise ValueError
     except ValueError:
         raise HTTPException(422, "日期范围无效")
@@ -1092,7 +1111,7 @@ def student_academic_assessment(body: dict | None = None, student: Student = Dep
         return {"assessment_id": cached.id, "status": cached.status,
                 "period": {"from": start, "to": end}, "model": cached.model,
                 "input_data_version": cached.input_data_version, **json.loads(cached.result_json)}
-    since = utc_bounds(local_now().date().isoformat())[0]
+    since = quota_start(local_now())
     generated = generation_count(db, student.family_id, "academic", since)
     if generated >= 10:
         raise HTTPException(429, "学业评估生成次数已达今日上限，请明天再试")
@@ -1191,8 +1210,9 @@ def my_stats(student: Student = Depends(current_student), db: Session = Depends(
     from ..models import ActiveTime, Favorite
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = local_now()
-    today0 = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
-    week0 = today0 - dt.timedelta(days=now_local.weekday())
+    today0 = utc_bounds(now_local.date().isoformat())[0]
+    week_day = (now_local - dt.timedelta(days=now_local.weekday())).date().isoformat()
+    week0 = utc_bounds(week_day)[0]
 
     def q_count(since, role=None, action=None):
         q = (db.query(func.count(Message.id))
@@ -1208,7 +1228,7 @@ def my_stats(student: Student = Depends(current_student), db: Session = Depends(
                                                day=now_local.strftime("%Y-%m-%d")).first()
     week_rows = db.query(ActiveTime).filter(
         ActiveTime.student_id == student.id,
-        ActiveTime.day >= (week0 + offset).date().isoformat()).all()
+        ActiveTime.day >= week_day).all()
     fav_count = db.query(Favorite).filter_by(student_id=student.id).count()
     return {
         "today": {"questions": q_count(today0), "blocked": q_count(today0, action="reject"),

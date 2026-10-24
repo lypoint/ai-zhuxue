@@ -29,6 +29,9 @@ class Family(TimestampMixin, Base):
     # 家庭标签（如 beta/vip/free-trial）：绑定同名 llm_groups.tag 的分组，决定该家庭用哪个 provider/model
     tag: Mapped[str | None] = mapped_column(String(50), nullable=True)
     access_disabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    timezone: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    previous_timezone: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    timezone_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     guardians: Mapped[list["Guardian"]] = relationship(back_populates="family")
     students: Mapped[list["Student"]] = relationship(back_populates="family")
@@ -48,6 +51,18 @@ class Guardian(TimestampMixin, Base):
     token_version: Mapped[int] = mapped_column(Integer, default=1)  # 登出即 +1，旧 token 全部失效
 
     family: Mapped["Family"] = relationship(back_populates="guardians")
+
+
+class WebSession(TimestampMixin, Base):
+    __tablename__ = "web_sessions"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    role: Mapped[str] = mapped_column(String(16))
+    subject_id: Mapped[int] = mapped_column(Integer)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), index=True)
+    token_version: Mapped[int] = mapped_column(Integer)
+    device_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class AccountDeletionRequest(TimestampMixin, Base):

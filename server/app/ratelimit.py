@@ -12,7 +12,8 @@ from .config import settings
 from .db import SessionLocal
 from .security import parse_token
 
-PROTECTED = {"/auth/": 20, "/chat": 30,
+PROTECTED = {"/browser/parent/login": 20, "/browser/student/connect": 20,
+             "/auth/": 20, "/chat": 30,
              "/admin/login": 10, "/admin/": 120}
 
 
@@ -35,19 +36,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         prefix = next((p for p in PROTECTED if request.url.path.startswith(p)), None)
         if prefix and settings.env != "test":
             ip = request.client.host if request.client else "unknown"
-            keys = [f"{prefix}:ip:{ip}"]
+            read = prefix == "/chat" and request.method == "GET"
+            bucket = prefix + (":read" if read else "")
+            keys = [f"{bucket}:ip:{ip}"]
             if prefix == "/chat":
                 try:
                     payload = parse_token(request.headers.get("Authorization", "").removeprefix("Bearer "))
                     if payload.get("role") == "student":
-                        keys.append(f"{prefix}:student:{payload['sub']}")
+                        keys.append(f"{bucket}:student:{payload['sub']}")
                 except Exception:
                     pass  # 无效令牌仍占 IP 配额，鉴权随后拒绝。
             try:
                 minute = int(time.time() // 60)
                 with SessionLocal.begin() as db:
                     allowed = all(_hit(db, key, 300 if prefix == "/chat" and ":ip:" in key
-                                       else PROTECTED[prefix], minute) for key in keys)
+                                       else 120 if read else PROTECTED[prefix], minute) for key in keys)
                     if secrets.randbelow(100) == 0:
                         db.execute(text("DELETE FROM rate_limit_windows WHERE window_start < :old"),
                                    {"old": minute - 20})

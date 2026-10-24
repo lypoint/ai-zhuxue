@@ -5,7 +5,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.config import settings
-from app.db import Base
+from app.db import Base, connect_args
 import app.models  # noqa: F401  确保所有表注册到 Base.metadata
 
 config = context.config
@@ -26,7 +26,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.", poolclass=pool.NullPool)
+        prefix="sqlalchemy.", poolclass=pool.NullPool, connect_args=connect_args)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata,
                           render_as_batch=True)  # sqlite 变更需要 batch 模式

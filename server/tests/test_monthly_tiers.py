@@ -7,6 +7,7 @@ import pytest
 
 from app.config import settings
 from app.db import SessionLocal
+from app.local_time import as_utc
 from app.models import Subscription, SubscriptionOrder
 from app.security import parse_token
 from app.services.subscription import next_month
@@ -77,7 +78,7 @@ def test_immediate_upgrade_is_full_tier_without_proration_or_stacking(client, mo
     assert paid["subscription"]["has_pending_payment"] is False
     with SessionLocal() as db:
         sub = db.query(Subscription).filter_by(family_id=family_id).one()
-        assert sub.expires_at == max(original_expiry, next_month(sub.started_at))
+        assert as_utc(sub.expires_at) == max(as_utc(original_expiry), as_utc(next_month(sub.started_at)))
     assert confirm(client, token, purchase).json()["subscription"] == paid["subscription"]
 
 
@@ -130,7 +131,7 @@ def test_old_quoted_order_keeps_legacy_entitlements(client, monkeypatch):
     paid = confirm(client, token, purchase).json()
     assert paid["billing_rule"] == "legacy"
     assert paid["subscription"]["seat_count"] == 2
-    assert paid["subscription"]["expires_at"] == original_expiry.isoformat()
+    assert as_utc(dt.datetime.fromisoformat(paid["subscription"]["expires_at"])) == as_utc(original_expiry)
     assert paid["subscription"]["paid_amount"] == 11
 
 

@@ -1,5 +1,5 @@
 from app.db import SessionLocal
-from app.models import Conversation, Message, Student
+from app.models import Conversation, Message, Student, FenceFeedback
 from app.security import parse_token
 from tests.conftest import h, make_admin, make_family
 
@@ -52,6 +52,8 @@ def test_student_report_cms_reply_and_ownership(client):
         db.get(Conversation, conversation_id).student_deleted_at = datetime.now(timezone.utc)
     assert client.get(path, headers=h(student_token)).json()[0]["conversation_id"] is None
     with SessionLocal.begin() as db:
+        db.get(FenceFeedback, report_id).message_id = None
+        db.flush()
         db.delete(db.get(Message, message_id))
     missing = client.get(path, headers=h(student_token))
     assert missing.status_code == 200

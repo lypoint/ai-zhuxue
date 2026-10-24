@@ -12,6 +12,84 @@ from app.services.assessments import _personal_signal, WELLBEING_HINTS
 from tests.conftest import h, make_family
 
 
+@pytest.mark.parametrize('content,expected', [
+    ('For a math practice check, explain briefly in English why 7 times 8 equals 56.', {'数学'}),
+    ('Read the expression in this image and explain the answer in English.', set()),
+    ('Explain this math word problem in English.', {'数学'}),
+    ('In English, explain algebra.', {'数学'}),
+    ('请用英语简短解释数学方程。', {'数学'}),
+    ('請用英語回答數學問題。', {'数学'}),
+    ('英語で方程式を説明してください。', {'数学'}),
+    ('영어로 방정식을 설명해 주세요.', {'数学'}),
+    ('Bitte erkläre die Gleichung auf Englisch.', {'数学'}),
+    ('Responde en inglés y explica esta ecuación.', {'数学'}),
+    ('Explain verbs in English.', {'英语'}),
+    ('Explain English grammar in a math problem.', {'英语', '数学'}),
+    ('Explain how to say hello in English.', {'英语'}),
+    ('Translate "respond in English" into Chinese.', {'英语'}),
+    ('请用英语解释这个单词。', {'英语'}),
+    ('英語で使う動詞を説明してください。', {'英语'}),
+    ('영어로 동사를 설명해 주세요.', {'英语'}),
+    ('I study English and math.', {'英语', '数学'}),
+])
+def test_academic_response_language_is_not_a_subject(content, expected):
+    from app.services.assessments import _academic_content, SUBJECT_HINTS
+    classified = _academic_content(content)
+    assert {subject for subject, hints in SUBJECT_HINTS.items()
+            if any(h.casefold() in classified for h in hints)} == expected
+
+
+def test_academic_rule_fix_replaces_cached_result_for_both_roles(client):
+    import json
+    from app.models import AcademicAssessment
+    from app.services.assessments import input_version
+    guardian, student = make_family(client)
+    sid = client.get('/parent/family', headers=h(guardian)).json()['students'][0]['id']
+    prompts = [
+        'For a math practice check, explain briefly in English why 7 times 8 equals 56.',
+        'Read the expression in this image and explain the answer in English.',
+    ]
+    with SessionLocal.begin() as db:
+        conversation = Conversation(student_id=sid, title='Language instruction regression')
+        db.add(conversation)
+        db.flush()
+        cid = conversation.id
+        for text in prompts:
+            db.add(Message(conversation_id=cid, role='user', content=text,
+                           created_at=datetime(2026, 10, 24, 4)))
+        db.flush()
+        version = input_version(db, sid, '2026-10-24', '2026-10-24')
+        assert version.startswith('v6-')
+        old = AcademicAssessment(student_id=sid, period_from='2026-10-24', period_to='2026-10-24',
+                                 input_data_version=version.replace('v6-', 'v5-', 1),
+                                 result_json=json.dumps({'subjects': [{'subject': '英语', 'question_count': 2}]}))
+        db.add(old)
+        db.flush()
+        old_id = old.id
+    ids = []
+    for path, token in [(f'/parent/students/{sid}/academic-assessments', guardian),
+                        ('/chat/academic-assessments', student)]:
+        response = client.post(path, headers=h(token), json={'from': '2026-10-24', 'to': '2026-10-24'})
+        assert response.status_code == 200, response.text
+        result = response.json()
+        assert result['input_data_version'].startswith('v6-')
+        assert result['question_count'] == 2
+        assert [(row['subject'], row['question_count']) for row in result['subjects']] == [('数学', 1)]
+        ids.append(result['assessment_id'])
+    assert ids[0] == ids[1] != old_id
+    wellbeing_path = f'/parent/students/{sid}/wellbeing-assessments'
+    assert client.post(wellbeing_path, headers=h(guardian),
+                       json={'from': '2026-10-24', 'to': '2026-10-24'}).status_code == 200
+    for path, token in [(f'/parent/students/{sid}/academic-assessments', guardian),
+                        ('/chat/academic-assessments', student), (wellbeing_path, guardian)]:
+        for period in ({'from': '2026-10-25', 'to': '2026-10-24'},
+                       {'from': 'invalid', 'to': '2026-10-24'}):
+            assert client.post(path, headers=h(token), json=period).status_code == 422
+    with SessionLocal() as db:
+        assert db.get(AcademicAssessment, old_id) is not None
+        assert [m.content for m in db.query(Message).filter_by(conversation_id=cid).order_by(Message.id)] == prompts
+
+
 @pytest.mark.parametrize('content,kind,expected', [
     ('如何预防校园霸凌', 'peer_support', False),
     ('我想了解自杀预防政策', 'self_harm', False),
@@ -30,6 +108,27 @@ from tests.conftest import h, make_family
     ('我没有自残但我想自杀', 'self_harm', True),
     ('我很难过，如何预防自杀', 'self_harm', False),
     ('同学欺负我怎么办，如何预防自杀', 'self_harm', False),
+    ('I feel SAD.', 'low_mood', True),
+    ('I am not anxious.', 'school_stress', False),
+    ('I do not want to kill myself.', 'self_harm', False),
+    ('What is suicide prevention?', 'self_harm', False),
+    ('I want to kill myself. How can I get help?', 'self_harm', True),
+    ('Ich denke an Selbstmord.', 'self_harm', True),
+    ('Was bedeutet Selbstmordprävention?', 'self_harm', False),
+    ('¿Qué es el suicidio?', 'self_harm', False),
+    ('Pienso en el suicidio.', 'self_harm', True),
+    ('自殺予防について教えて', 'self_harm', False),
+    ('自殺するつもりはありません', 'self_harm', False),
+    ('自殺したい', 'self_harm', True),
+    ('자살 예방을 설명해 줘', 'self_harm', False),
+    ('자살할 생각은 없어요', 'self_harm', False),
+    ('자살하고 싶어요', 'self_harm', True),
+    ('如何預防自殺', 'self_harm', False),
+    ('我想自殺', 'self_harm', True),
+    ('Was bedeutet Selbstmordprävention? Aber ich denke an Selbstmord.', 'self_harm', True),
+    ('¿Qué es el suicidio? Pero pienso en el suicidio.', 'self_harm', True),
+    ('自殺するつもりはありません。でも自殺したい', 'self_harm', True),
+    ('자살할 생각은 없어요 하지만 자살하고 싶어요', 'self_harm', True),
 ])
 def test_wellbeing_context(content, kind, expected):
     assert _personal_signal(content, WELLBEING_HINTS[kind]) is expected

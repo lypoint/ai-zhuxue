@@ -19,6 +19,7 @@ def deactivate_student(db: Session, student: m.Student) -> None:
     student.forbidden_words_json = "[]"
     student.fence_level = "strict"
     student.token_version = (student.token_version or 1) + 1
+    db.query(m.WebSession).filter_by(role="student", subject_id=student.id).delete(synchronize_session=False)
     for device in db.query(m.StudentDevice).filter_by(student_id=student.id).all():
         device.is_current = False
         device.revoked_at = device.revoked_at or now
@@ -95,6 +96,7 @@ def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
         db.query(model).filter(model.student_id.in_(ids)).delete(synchronize_session=False)
     for model in (m.BindCode, m.FamilySettings, m.Subscription):
         db.query(model).filter_by(family_id=family_id).delete(synchronize_session=False)
+    db.query(m.WebSession).filter_by(family_id=family_id).delete(synchronize_session=False)
     for guardian in db.query(m.Guardian).filter_by(family_id=family_id):
         guardian.phone = guardian.google_sub = guardian.username = guardian.password_hash = None
         guardian.nickname = ""

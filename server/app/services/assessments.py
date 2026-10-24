@@ -12,23 +12,39 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from ..config import settings
-from ..local_time import utc_bounds
+from ..local_time import utc_bounds, business_zone
 
 from ..models import (AcademicAssessment, AssessmentAudit, Conversation, FenceEvent,
                       Message, Student, StudentGrade, WellbeingAssessment)
 
 SUBJECT_HINTS = {
-    "数学": ("数学", "方程", "函数", "几何", "三角", "计算"),
-    "语文": ("语文", "作文", "阅读", "古诗", "成语"),
-    "英语": ("英语", "单词", "语法", "翻译"),
-    "科学": ("物理", "化学", "生物", "光合", "细胞", "实验"),
+    "数学": ("数学", "方程", "函数", "几何", "三角", "计算", "數學", "方程式", "수학", "방정식", "math", "algebra", "fraction", "geometry", "mathematik", "gleichung", "matemática", "ecuación"),
+    "语文": ("语文", "作文", "阅读", "古诗", "成语", "閱讀", "読解", "읽기", "reading", "writing", "literature", "lesen", "schreiben", "lectura", "escritura"),
+    "英语": ("英语", "单词", "语法", "翻译", "英語", "文法", "문법", "영어", "english", "grammar", "vocabulary", "grammatik", "englisch", "inglés", "gramática"),
+    "科学": ("物理", "化学", "生物", "光合", "细胞", "实验", "實驗", "科学", "과학", "실험", "science", "physics", "chemistry", "biology", "physik", "chemie", "biologie", "ciencia", "física", "química", "biología"),
 }
 WELLBEING_HINTS = {
-    "school_stress": ("考试压力", "成绩压力", "作业压力", "学不完", "焦虑", "害怕考试"),
-    "peer_support": ("被欺负", "霸凌", "没人和我玩", "孤单", "同学欺负"),
-    "low_mood": ("难过", "不想上学", "没意思", "很累", "睡不着", "不开心"),
-    "self_harm": ("自杀", "自残", "割腕", "轻生", "不想活"),
+    "school_stress": ("考试压力", "成绩压力", "作业压力", "学不完", "焦虑", "害怕考试", "考試壓力", "試験が怖い", "시험 스트레스", "exam stress", "school stress", "stressed about school", "anxious", "prüfungsangst", "schulstress", "estrés escolar", "ansiedad"),
+    "peer_support": ("被欺负", "霸凌", "没人和我玩", "孤单", "同学欺负", "被欺負", "いじめられ", "외로워", "괴롭힘", "bullied", "bullying", "lonely", "gemobbt", "einsam", "acosado", "acoso escolar", "me siento solo"),
+    "low_mood": ("难过", "不想上学", "没意思", "很累", "睡不着", "不开心", "難過", "悲しい", "眠れない", "슬퍼", "잠을 못", "feel sad", "feeling sad", "unhappy", "cannot sleep", "can't sleep", "traurig", "schlaflos", "triste", "no puedo dormir"),
+    "self_harm": ("自杀", "自残", "割腕", "轻生", "不想活", "自殺", "自傷", "자살", "자해", "suicide", "self-harm", "kill myself", "selbstmord", "selbstverletzung", "suicidio", "autolesión"),
 }
+
+
+def _academic_content(content: str) -> str:
+    text = content.casefold()
+    # Keep language names when the question concerns language itself.
+    if re.search(r"\b(?:words?(?!\s+problems?\b)|phrases?|sentences?|verbs?|nouns?|adjectives?|adverbs?|tenses?|pronunciation|idioms?|translate|how to say|how to spell)\b"
+                 r"|单词|單詞|动词|動詞|文法|语法|語法|단어|동사|명사|문법", text):
+        return text
+    # Ignore explicit response-language instructions, not the question that follows them.
+    text = re.sub(r"(\b(?:answer|reply|respond|explain|antworte|antworten|erkläre|erklären|responde|responder|contesta|explica|explicar)\b[^.!?。！？\n]{0,160}?)"
+                  r"\b(?:in english|auf englisch|en inglés)\b", r"\1", text)
+    text = re.sub(r"\b(?:in english|auf englisch|en inglés)\s*[,，:：]\s*"
+                  r"(?=(?:please\s+)?(?:answer|reply|respond|explain|antworte|erkläre|responde|contesta|explica)\b)", "", text)
+    text = re.sub(r"((?:请|請)?(?:用|以))(?:英语|英語)(?=[^。！？\n]{0,12}(?:回答|解释|解釋|说明|說明|作答))", r"\1", text)
+    text = re.sub(r"英語で(?=[^。！？\n]{0,40}(?:答|回答|説明))", "", text)
+    return re.sub(r"영어로(?=[^.!?\n]{0,40}(?:답변|대답|설명))", "", text)
 
 
 def _rows(db: Session, student_id: int, start: str, end: str):
@@ -56,7 +72,7 @@ def input_version(db: Session, student_id: int, start: str, end: str) -> str:
     ) or "0"
     grade_version = hashlib.sha256(grade_facts.encode()).hexdigest()[:16]
     # Version the rules and timezone so earlier snapshots cannot mask fixes.
-    return f"v3-tz{settings.tz_offset_hours}-m{rows[-1].id if rows else 0}-g{grade_version}-f{fences[0] if fences else 0}"
+    return f"v6-tz{business_zone()}-m{rows[-1].id if rows else 0}-g{grade_version}-f{fences[0] if fences else 0}"
 
 
 def generation_count(db: Session, family_id: int, assessment_type: str,
@@ -96,9 +112,10 @@ def academic(db: Session, student_id: int, start: str, end: str) -> dict:
     all_rows = _rows(db, student_id, start, end)
     conversation_ids = {m.conversation_id for m in all_rows}
     rows = [m for m in all_rows if m.role == "user"]
+    content = {m.id: _academic_content(m.content or "") for m in rows}
     subjects = []
     for subject, hints in SUBJECT_HINTS.items():
-        matched = [m for m in rows if any(h in (m.content or "") for h in hints)]
+        matched = [m for m in rows if any(h.casefold() in content[m.id] for h in hints)]
         if matched:
             subjects.append({
                 "subject": subject,
@@ -126,8 +143,16 @@ def academic(db: Session, student_id: int, start: str, end: str) -> dict:
 
 def _personal_signal(content: str, hints: tuple[str, ...]) -> bool:
     # ponytail: sentence rules cannot resolve irony or indirect disclosure; use a reviewed classifier if samples demand it.
-    for sentence in re.split(r"[。！？!?；;，,\n]|但是|但", content):
+    for sentence in re.split(r"[。！？!?；;，,\n.]|但是|但|でも|しかし|하지만|지만|\b(?:but|aber|pero)\b", content.casefold()):
         if not any(h in sentence for h in hints):
+            continue
+        if re.search(r"\b(?:translate|definition|novel|character|prevention|research|what is|how to prevent|übersetz\w*|was ist|was bedeutet|novela|personaje|prevención|qué es|cómo prevenir|traduce)\b|予防|翻訳|小説|登場人物|예방|번역|소설|등장인물", sentence):
+            continue
+        if re.search(r"\b(?:do not|don't|never)\s+(?:(?:want|intend|plan)\s+to\s+)?(?:kill myself|self-harm)\b"
+                     r"|(?:自殺|自傷)(?:する)?(?:つもり|意思|意図)は(?:ありません|ない)"
+                     r"|(?:자살|자해)(?:할)?\s*(?:생각|의도)(?:은|는|이)?\s*(?:없|않)", sentence):
+            continue
+        if re.search(r"\b(?:do not|don't|never|not|no longer|nicht|kein|nunca)\b.{0,24}(?:sad|anxious|suicid|self-harm|traurig|triste|ansiedad)", sentence):
             continue
         if re.search(r"(?:没有|并不|不会|不想|从未)(?:自杀|自残|割腕|轻生|焦虑|难过)", sentence):
             continue

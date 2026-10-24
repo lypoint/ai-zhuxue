@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import settings
-from ..local_time import local_now, utc_bounds
+from ..local_time import local_now, utc_bounds, local_datetime, quota_start, as_utc
 from ..db import get_db
 from ..api.deps import current_guardian, guardian_identity
 from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family, FamilySettings,
@@ -55,6 +55,7 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
     ).all()} if students else {}
     return {
         "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname},
+        "timezone": db.get(Family, guardian.family_id).timezone,
         "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band,
                       "fence_settings": {"fence_level": s.fence_level,
                                          "forbidden_words": json.loads(s.forbidden_words_json)},
@@ -72,6 +73,29 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
                      "daily_minutes_cap": settings_row.daily_minutes_cap if settings_row else 60,
                      "notify_fence": settings_row.notify_fence if settings_row else True},
     }
+
+
+@router.put("/timezone")
+def set_timezone(body: dict, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
+    from datetime import datetime, timezone, timedelta
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    from ..local_time import as_utc
+    name = body.get("timezone")
+    try:
+        if not isinstance(name, str) or len(name) > 100:
+            raise ValueError
+        zone = ZoneInfo(name)
+    except (ZoneInfoNotFoundError, ValueError):
+        raise HTTPException(422, "Choose a valid IANA time zone.")
+    family = db.query(Family).filter_by(id=guardian.family_id).with_for_update().one()
+    now = datetime.now(timezone.utc)
+    if family.timezone != name:
+        if family.timezone_changed_at and now - as_utc(family.timezone_changed_at) < timedelta(hours=24):
+            raise HTTPException(409, "The family time zone can be changed once every 24 hours.")
+        family.previous_timezone, family.timezone = family.timezone, name
+        family.timezone_changed_at = now
+        db.commit()
+    return {"timezone": family.timezone}
 
 
 @router.put("/guardian/nickname")
@@ -342,6 +366,18 @@ def export_student_data(student_id: int, guardian: Guardian = Depends(current_gu
                               "created_at": e.created_at.isoformat()}
                              for e in events],
         })
+    from .learning import summary as learning_summary
+    from ..models import Favorite
+    out["timezone"] = db.get(Family, guardian.family_id).timezone
+    out["grades"] = list_grades(student.id, True, guardian, db)
+    for grade in out["grades"]:
+        grade["versions"] = grade_history(student.id, grade["id"], guardian, db)
+    out["learning"] = learning_summary(db, student.id)
+    out["usage"] = student_usage(student.id, guardian, db)
+    out["favorites"] = [{"id": row.id, "message_id": row.message_id,
+                         "conversation_id": row.conversation_id, "content": row.content,
+                         "created_at": row.created_at.isoformat()}
+                        for row in db.query(Favorite).filter_by(student_id=student.id).order_by(Favorite.id)]
     return out
 
 
@@ -360,9 +396,15 @@ def delete_student(student_id: int, purge: bool = False,
     db.query(Family).filter_by(id=guardian.family_id).with_for_update().first()
     student = _own_student(guardian, student_id, db)
     if purge:
+        from ..models import WebSession
+        db.query(WebSession).filter_by(role="student", subject_id=student.id).delete(synchronize_session=False)
         from ..models import ActiveTime, Favorite, UsageLog
+        from ..models import LearningFeedback, LearningFeedbackEvent, LearningDayReward, RewardAgreement, RewardRedemption
         from ..services.media import detach_student
         detach_student(db, student.id)
+        # Remove message/student dependents before their FK targets; redemptions reference agreements.
+        for model in (LearningFeedback, LearningFeedbackEvent, RewardRedemption, RewardAgreement, LearningDayReward):
+            db.query(model).filter_by(student_id=student.id).delete(synchronize_session=False)
         # Clear dependent rows before removing the student so PostgreSQL's
         # foreign-key checks behave the same as SQLite's test database.
         db.query(BindCode).filter(
@@ -420,13 +462,13 @@ def student_usage(student_id: int, guardian: Guardian = Depends(current_guardian
 
     _own_student(guardian, student_id, db)
     logs = db.query(UsageLog).filter_by(student_id=student_id).all()
-    today_start_utc = utc_bounds(local_now().date().isoformat())[0]
+    today_start_utc = quota_start(local_now())
     total = {"tokens_in": 0, "tokens_out": 0}
     today = {"tokens_in": 0, "tokens_out": 0}
     for log in logs:
         total["tokens_in"] += log.tokens_in
         total["tokens_out"] += log.tokens_out
-        if log.created_at and log.created_at >= today_start_utc:
+        if log.created_at and as_utc(log.created_at) >= as_utc(today_start_utc):
             today["tokens_in"] += log.tokens_in
             today["tokens_out"] += log.tokens_out
     return {"total": total, "today": today}
@@ -491,6 +533,7 @@ def student_favorites(student_id: int, guardian: Guardian = Depends(current_guar
             .order_by(Favorite.id.desc()).limit(200).all())
     return [{"id": f.id, "role": f.role, "content": f.content,
              "content_blocks": (db.get(Message, f.message_id).content_blocks if f.message_id and db.get(Message, f.message_id) else []),
+             "message_id": f.message_id,
              "conversation_id": f.conversation_id,
              "created_at": f.created_at.isoformat() if f.created_at else None}
             for f in rows]
@@ -707,11 +750,13 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
                     db: Session = Depends(get_db)):
     """家长首页摘要：今日与本周的学习活动一屏掌握（不用翻对话）。"""
     import datetime as dt
+    from .chat import _today_seconds
 
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = local_now()
-    today0 = now_local.replace(hour=0, minute=0, second=0, microsecond=0) - offset
-    week0 = today0 - dt.timedelta(days=now_local.weekday())  # 周一
+    today0 = utc_bounds(now_local.date().isoformat())[0]
+    week_day = (now_local - dt.timedelta(days=now_local.weekday())).date().isoformat()
+    week0 = utc_bounds(week_day)[0]  # 周一
 
     _own_student(guardian, student_id, db)
     convs = db.query(Conversation).filter_by(student_id=student_id).all()
@@ -726,7 +771,8 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
         w_rows = db.query(ActiveTime).filter(
             ActiveTime.student_id == student_id,
             ActiveTime.day >= (nl - dt.timedelta(days=nl.weekday())).date().isoformat()).all()
-        return {"today": {**empty, "minutes": (t_row.seconds // 60) if t_row else 0},
+        return {"today": {**empty, "minutes": (t_row.seconds // 60) if t_row else 0,
+                           "quota_used_seconds": _today_seconds(student_id, db)},
                 "week": {**empty, "active_days": len(w_rows), "minutes": sum(r.seconds for r in w_rows) // 60}}
 
     def window_stats(since, until=None):
@@ -745,7 +791,7 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
         # 活跃时长近似：同一天内消息时间跨度（首条到末条），上限 60 分钟/日 防极端值
         by_day = {}
         for m, _ in rows:
-            day = (m.created_at + offset).date()
+            day = local_datetime(m.created_at).date()
             by_day.setdefault(day, []).append(m.created_at)
         minutes = 0
         for day, times in by_day.items():
@@ -758,6 +804,7 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
                 "study": study, "minutes": minutes}
 
     today = window_stats(today0)
+    today["quota_used_seconds"] = _today_seconds(student_id, db)
     week = window_stats(week0)
     # 有端侧心跳数据时用真实时长替换估算
     from ..models import ActiveTime
@@ -767,10 +814,10 @@ def student_summary(student_id: int, guardian: Guardian = Depends(current_guardi
         today["minutes"] = today_row.seconds // 60
     week_rows = db.query(ActiveTime).filter(
         ActiveTime.student_id == student_id,
-        ActiveTime.day >= (week0 + offset).date().isoformat()).all()
+        ActiveTime.day >= week_day).all()
     if week_rows:
         week["minutes"] = sum(r.seconds for r in week_rows) // 60
-    active_days = len({(m.created_at + offset).date()
+    active_days = len({local_datetime(m.created_at).date()
                        for m, _ in (db.query(Message, Conversation)
                                     .join(Conversation, Message.conversation_id == Conversation.id)
                                     .filter(Conversation.student_id == student_id,
@@ -787,7 +834,7 @@ def _period(body: dict):
         end_date = dt.date.fromisoformat(end)
         start = str(body.get("from") or (end_date - dt.timedelta(days=30)).isoformat())
         start_date = dt.date.fromisoformat(start)
-        if start_date >= end_date:
+        if start_date > end_date:
             raise ValueError
     except ValueError:
         raise HTTPException(422, "日期范围无效")
@@ -797,7 +844,7 @@ def _period(body: dict):
 def _assessment_rate_check(db: Session, student_id: int, assessment_type: str,
                            actor_id: int):
     from ..services.assessments import generation_count
-    since = utc_bounds(local_now().date().isoformat())[0]
+    since = quota_start(local_now())
     family_id = db.query(Student.family_id).filter_by(id=student_id).scalar()
     generated = generation_count(db, family_id, assessment_type, since)
     if generated >= 10:
@@ -972,6 +1019,8 @@ def add_subscription_seat(body: dict, guardian: Guardian = Depends(current_guard
 def notifications(unread_only: bool = False, page: int = 1, size: int = 30,
                   guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
     from ..models import Notification
+    if page < 1 or size < 1:
+        raise HTTPException(422, "Page and size must be positive.")
     size = min(size, 100)
     q = db.query(Notification).filter_by(family_id=guardian.family_id)
     if unread_only:
@@ -980,11 +1029,25 @@ def notifications(unread_only: bool = False, page: int = 1, size: int = 30,
     unread = db.query(func.count(Notification.id)).filter_by(family_id=guardian.family_id,
                                                              is_read=False).scalar() or 0
     rows = (q.order_by(Notification.id.desc()).offset((page - 1) * size).limit(size).all())
+    student_ids = dict(db.query(Conversation.id, Conversation.student_id).filter(
+        Conversation.id.in_([n.conversation_id for n in rows if n.conversation_id])).all())
     return {"unread": unread, "total": total,
             "items": [{"id": n.id, "type": n.type, "title": n.title, "body": n.body,
                        "conversation_id": n.conversation_id, "is_read": n.is_read,
+                       "student_id": student_ids.get(n.conversation_id),
                        "created_at": n.created_at.isoformat() if n.created_at else None}
                       for n in rows]}
+
+
+@router.put("/notifications/{notification_id}/read")
+def notification_read(notification_id: int, guardian: Guardian = Depends(current_guardian),
+                      db: Session = Depends(get_db)):
+    row = db.query(Notification).filter_by(id=notification_id, family_id=guardian.family_id).first()
+    if not row:
+        raise HTTPException(404, "Notification not found.")
+    row.is_read = True
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/notifications/read-all")

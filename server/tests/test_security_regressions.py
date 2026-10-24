@@ -53,7 +53,7 @@ def test_admin_login_is_limited(client, monkeypatch):
     assert all(r.status_code == 401 for r in responses[:5])
     assert responses[-1].status_code == 429
     with SessionLocal() as db:
-        logs = db.query(AdminLog).filter_by(admin=username).all()
+        logs = db.query(AdminLog).filter_by(admin=username).order_by(AdminLog.id).all()
         assert [entry.action for entry in logs] == ["admin.login.failed"] * 5 + ["admin.login.blocked"]
         assert all("password" not in entry.detail and "ip=" in entry.detail for entry in logs)
 

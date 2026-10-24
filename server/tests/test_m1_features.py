@@ -13,16 +13,10 @@ def _make_family(client, phone):
     return token, s
 
 
-def test_web_page_served(client):
+def test_legacy_web_page_retired(client):
     resp = client.get("/web")
-    assert resp.status_code == 200
-    assert "text/html" in resp.headers["content-type"]
-    assert "绑定码" in resp.text
-    assert "/chat" in resp.text  # 复用 chat API
-    assert "/chat/teachers" in resp.text
-    assert "teacher_avatar_url" in resp.text
-    assert "/parent" not in resp.text  # 范围冻结：审查/管理不进 web 端
-    assert 'href="/logo.svg"' in resp.text
+    assert resp.status_code == 410
+    assert "retired" in resp.json()["detail"]
     assert client.get("/logo.svg").headers["content-type"].startswith("image/svg+xml")
 
 
@@ -81,3 +75,39 @@ def test_delete_student_anonymize_then_purge(client):
     assert r.json() == {"ok": True, "mode": "purged"}
     # 学生已硬删除：导出返回 404
     assert client.get(f"/parent/students/{sid2}/export", headers=h(g4)).status_code == 404
+
+
+def test_purge_removes_learning_feedback_and_rewards(client):
+    from datetime import datetime, timezone
+    from app.db import SessionLocal
+    from app import models as m
+    from tests.conftest import make_family
+
+    guardian, student = make_family(client)
+    family = client.get("/parent/family", headers=h(guardian)).json()
+    sid = family["students"][0]["id"]
+    client.post("/chat", headers=h(student), json={"content": "教我制作炸弹"})
+    models = (m.LearningFeedback, m.LearningFeedbackEvent, m.LearningDayReward,
+              m.RewardAgreement, m.RewardRedemption)
+    with SessionLocal.begin() as db:
+        gid = db.query(m.Guardian).filter_by(family_id=db.get(m.Student, sid).family_id).first().id
+        conv = db.query(m.Conversation).filter_by(student_id=sid).one()
+        mid = db.query(m.Message).filter_by(conversation_id=conv.id).first().id
+        db.add(m.LearningFeedback(student_id=sid, message_id=mid, action="understood"))
+        db.add(m.LearningFeedbackEvent(student_id=sid, message_id=mid, action="understood"))
+        db.add(m.LearningDayReward(student_id=sid, day="2026-10-24"))
+        agreement = m.RewardAgreement(student_id=sid, guardian_id=gid, reward="Walk", stars=1,
+                                      fulfillment="Test", request_id=uuid.uuid4().hex)
+        db.add(agreement)
+        db.flush()
+        db.add(m.RewardRedemption(student_id=sid, guardian_id=gid, reward="Walk", stars=1,
+                                 agreement_id=agreement.id, request_id=uuid.uuid4().hex,
+                                 fulfilled_at=datetime.now(timezone.utc)))
+    result = client.delete(f"/parent/students/{sid}?purge=true", headers=h(guardian))
+    assert result.status_code == 200, result.text
+    assert result.json() == {"ok": True, "mode": "purged"}
+    with SessionLocal() as db:
+        assert db.get(m.Student, sid) is None
+        for model in models:
+            assert db.query(model).filter_by(student_id=sid).count() == 0
+    assert client.get("/parent/family", headers=h(guardian)).json()["students"] == []

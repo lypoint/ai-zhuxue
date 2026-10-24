@@ -144,7 +144,7 @@ async def guardian_google(body: GuardianGoogleIn, db: Session = Depends(get_db),
     if channel != "googleplay":
         raise HTTPException(403, "此渠道不支持 Google 登录")
     claims = await run_in_threadpool(verify_google_identity, body.id_token)
-    return _guardian_token(None, "家长", db, google_sub=claims["sub"])
+    return _guardian_token(None, "Parent", db, google_sub=claims["sub"])
 
 
 def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub: str | None = None) -> TokenOut:

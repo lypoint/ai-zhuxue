@@ -201,9 +201,8 @@ def post_trial_free_used(student_id: int, db: Session, group_id: int | None = No
     family_id = db.query(Student.family_id).filter_by(id=student_id).scalar()
     if family_id is None:
         return 0
-    offset = dt.timedelta(hours=settings.tz_offset_hours)
-    local_now = dt.datetime.utcnow() + offset
-    start_utc = local_now.replace(hour=0, minute=0, second=0, microsecond=0) - offset
+    from ..local_time import quota_start
+    start_utc = quota_start()
     # Messages sent while the trial/subscription was active do not consume the
     # post-trial allowance when expiry happens later on the same local day.
     sub = db.query(Subscription).filter_by(family_id=family_id).first()

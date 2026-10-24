@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from ..db import get_db
 from ..models import (Student, Guardian, Message, Conversation, LearningFeedback,
                       LearningFeedbackEvent, LearningDayReward, RewardAgreement, RewardRedemption, utcnow)
-from ..local_time import local_now, utc_bounds
+from ..local_time import local_now, utc_bounds, local_datetime, previous_business_day
 from ..config import settings
 from .deps import current_student, current_guardian
 from .parent import _own_student
@@ -44,7 +44,7 @@ def day_of(timestamp):
     # SQLite returns naive UTC; PostgreSQL may return an aware local timestamp.
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=timezone.utc)
-    return timestamp.astimezone(timezone(timedelta(hours=settings.tz_offset_hours))).date().isoformat()
+    return local_datetime(timestamp).date().isoformat()
 
 
 def summary(db, student_id):
@@ -65,7 +65,7 @@ def summary(db, student_id):
     spent = sum(row.stars for row in redemptions)
     today = local_now().date().isoformat()
     expires_at = utc_bounds(today)[1].replace(tzinfo=timezone.utc)
-    return dict(today=dict(date=today, stars=int(today in rewards),
+    return dict(today=dict(date=today, stars=int(today in rewards or previous_business_day() in rewards),
                            expires_at=expires_at.isoformat(),
                            refresh_after_seconds=max(1, int((expires_at - utcnow()).total_seconds()))),
                 days=daily, earned=len(rewards), spent=spent, balance=len(rewards)-spent,
@@ -100,7 +100,7 @@ def feedback(message_id: int, body: FeedbackIn, student: Student = Depends(curre
     question = db.query(Message.id).filter(Message.conversation_id == conv.id,
         Message.role == "user", Message.id < message_id).first()
     awarded = False
-    if question and day_of(message.created_at) == today and not db.query(LearningDayReward.id).filter_by(student_id=student.id, day=today).first():
+    if question and day_of(message.created_at) == today and not db.query(LearningDayReward.id).filter(LearningDayReward.student_id == student.id, LearningDayReward.day.in_([today, previous_business_day() or today])).first():
         db.add(LearningDayReward(student_id=student.id, day=today))
         awarded = True
     db.commit()

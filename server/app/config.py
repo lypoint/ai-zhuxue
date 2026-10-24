@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     llm_key_secret: str = ""  # LLM api_key 落库加密密钥；空则回落 jwt_secret
     cors_origins: str = ""  # 生产后台页面的完整 Origin，多个用逗号分隔
     upload_dir: str = "./uploads"  # CMS 老师头像
+    web_enabled: bool = False
+    web_parent_origin: str = "http://localhost:5173"
+    web_student_origin: str = "http://localhost:5174"
+    web_session_hours: int = 24 * 7
     image_features_enabled: bool = False  # 紧急关闭后不接收上传、不执行配图；历史已审核图片仍可查看
     qiniu_access_key: str = ""
     qiniu_secret_key: str = ""

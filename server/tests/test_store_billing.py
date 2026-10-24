@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from .conftest import h, make_family
 from app.config import settings
 from app.db import SessionLocal
+from app.local_time import as_utc
 from app.models import Guardian, StoreEvent, StoreSubscription, Subscription, StoreTransaction
 from app.services import store_billing as billing
 
@@ -50,7 +51,7 @@ def test_verified_purchase_upgrade_idempotent_restore_and_refund(client, stores,
         response = client.post('/parent/billing/verify', headers=h(token), json={'channel':'appstore','reference':'12345'})
         assert response.status_code == 200
         assert response.json()['seat_count'] == 10
-        assert response.json()['expires_at'] == result.expires.isoformat()
+        assert as_utc(datetime.fromisoformat(response.json()['expires_at'])) == as_utc(result.expires)
     with SessionLocal() as db:
         assert db.query(StoreSubscription).filter_by(family_id=family).count() == 1
         assert db.query(StoreTransaction).filter_by(family_id=family).count() == 1

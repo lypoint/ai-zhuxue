@@ -7,11 +7,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .api import admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin
+from .api import admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin, browser
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
-from .web_page import WEB_PAGE_HTML
 
 
 @contextlib.asynccontextmanager
@@ -51,6 +50,9 @@ app.add_middleware(
     expose_headers=["X-User-Message-Id", "X-Conversation-Id"],
 )
 app.add_middleware(RateLimitMiddleware)
+from .local_time import FamilyTimezoneMiddleware
+app.add_middleware(FamilyTimezoneMiddleware)
+app.add_middleware(browser.BrowserMiddleware)
 app.include_router(auth.router)
 app.include_router(bind.router)
 app.include_router(chat.router)
@@ -61,12 +63,13 @@ app.include_router(learning.router)
 app.include_router(admin.router)
 app.include_router(images.router)
 app.include_router(image_admin.router)
+app.include_router(browser.router)
 
 
 @app.get("/web", response_class=HTMLResponse, include_in_schema=False)
 def web_chat():
-    """Web 端：仅提供聊天功能（2026-09-14 提案第四轮澄清的范围冻结）。审查/管理功能不进 web 端。"""
-    return WEB_PAGE_HTML
+    """Retired domestic chat-only page; native business APIs remain available."""
+    raise HTTPException(410, "The legacy Web page has been retired. Use the international Student space.")
 
 
 @app.get("/logo.svg", include_in_schema=False)

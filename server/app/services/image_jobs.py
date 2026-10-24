@@ -9,7 +9,7 @@ from sqlalchemy import func
 
 from ..config import settings
 from ..db import SessionLocal
-from ..local_time import local_now, utc_bounds
+from ..local_time import local_now, utc_bounds, quota_start
 from ..models import Conversation, Family, ImageJob, LLMGroup, MediaAsset, Message, Student, UsageLog
 from . import diagrams, fence, image_models, media
 from .keyvault import encrypt_api_key
@@ -38,7 +38,7 @@ def enqueue(db, student, conversation, message, locale="zh-Hans", *, manual=Fals
     existing = db.query(ImageJob).filter_by(message_id=message.id).first()
     if existing and existing.state not in ("failed", "skipped"):
         return existing
-    start = utc_bounds(local_now().date().isoformat())[0]
+    start = quota_start()
     used = db.query(func.count(ImageJob.id)).filter(ImageJob.student_id == student.id,
         ImageJob.created_at >= start, ImageJob.state.in_(("queued", "running", "ready"))).scalar()
     if used >= teacher.image_daily_cap:
