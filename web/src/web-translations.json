@@ -1,0 +1,1707 @@
+{
+  "conversationHistory": [
+    "对话记录",
+    "對話記錄",
+    "会話履歴",
+    "대화 기록",
+    "Gespräche",
+    "Conversaciones"
+  ],
+  "contactUs": [
+    "联系我们",
+    "聯絡我們",
+    "お問い合わせ",
+    "문의하기",
+    "Kontakt",
+    "Contacto"
+  ],
+  "rotatePhoto": [
+    "顺时针旋转",
+    "順時針旋轉",
+    "右に90度回転",
+    "시계 방향으로 회전",
+    "Im Uhrzeigersinn drehen",
+    "Girar a la derecha"
+  ],
+  "backToLatest": [
+    "回到最新消息",
+    "回到最新訊息",
+    "最新のメッセージへ",
+    "최신 메시지로 이동",
+    "Zu den neuesten Nachrichten",
+    "Volver a los últimos mensajes"
+  ],
+  "suggestions": [
+    "建议",
+    "建議",
+    "アドバイス",
+    "제안",
+    "Empfehlungen",
+    "Sugerencias"
+  ],
+  "safetyNotification": [
+    "已拦截一条安全相关内容",
+    "已攔截一條安全相關內容",
+    "安全に関わる内容をブロックしました",
+    "안전 관련 콘텐츠가 차단되었습니다",
+    "Sicherheitsrelevante Inhalte wurden blockiert",
+    "Se ha bloqueado contenido relacionado con la seguridad"
+  ],
+  "offTopicNotification": [
+    "已拦截一条非学习问题",
+    "已攔截一條非學習問題",
+    "学習以外の質問をブロックしました",
+    "학습과 관련 없는 질문이 차단되었습니다",
+    "Eine Frage außerhalb des Lernbereichs wurde blockiert",
+    "Se ha bloqueado una pregunta ajena al aprendizaje"
+  ],
+  "guardian": [
+    "家长",
+    "家長",
+    "保護者",
+    "보호자",
+    "Elternteil",
+    "Padre o madre"
+  ],
+  "gradeDeleted": [
+    "已删除",
+    "已刪除",
+    "削除済み",
+    "삭제됨",
+    "Gelöscht",
+    "Eliminado"
+  ],
+  "restored": [
+    "已恢复",
+    "已恢復",
+    "復元済み",
+    "복원됨",
+    "Wiederhergestellt",
+    "Restaurado"
+  ],
+  "welcomeNotification": [
+    "欢迎使用 AI 助学",
+    "歡迎使用 AI 助學",
+    "AI StudyNestへようこそ",
+    "AI StudyNest에 오신 것을 환영합니다",
+    "Willkommen bei AI StudyNest",
+    "Te damos la bienvenida a AI StudyNest"
+  ],
+  "trialNotification": [
+    "已为您开启 30 天免费试用。请生成连接码，连接孩子的学习设备。",
+    "已為您開啟 30 天免費試用。請產生連接碼，連接孩子的學習裝置。",
+    "30日間の無料体験が始まりました。接続コードを作成し、お子さまの学習端末を接続してください。",
+    "30일 무료 체험이 시작되었습니다. 연결 코드를 만들어 자녀의 학습 기기를 연결하세요.",
+    "Dein kostenloser Testzeitraum von 30 Tagen hat begonnen. Erstelle einen Verbindungscode, um das Lerngerät deines Kindes zu verbinden.",
+    "Ha comenzado tu prueba gratuita de 30 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija."
+  ],
+  "you": ["你", "你", "あなた", "나", "Du", "Tú"],
+  "student": ["学生", "學生", "生徒", "학생", "Kind", "Estudiante"],
+  "skipContent": [
+    "跳到正文",
+    "跳到正文",
+    "本文へ移動",
+    "본문으로 이동",
+    "Zum Inhalt springen",
+    "Saltar al contenido"
+  ],
+  "menu": [
+    "打开导航",
+    "開啟導覽",
+    "ナビゲーションを開く",
+    "탐색 메뉴 열기",
+    "Navigation öffnen",
+    "Abrir navegación"
+  ],
+  "basedOnRecords": [
+    "依据已记录的学习活动",
+    "依據已記錄的學習活動",
+    "記録された学習活動に基づく",
+    "기록된 학습 활동 기반",
+    "Auf Basis aufgezeichneter Lernaktivität",
+    "Basado en la actividad registrada"
+  ],
+  "freeTrial": [
+    "免费试用",
+    "免費試用",
+    "無料体験",
+    "무료 체험",
+    "Kostenlose Testphase",
+    "Prueba gratuita"
+  ],
+  "not_needed": [
+    "无需处理",
+    "無需處理",
+    "対応不要",
+    "조치 불필요",
+    "Keine Maßnahme nötig",
+    "No requiere acción"
+  ],
+  "pending": [
+    "待处理",
+    "待處理",
+    "保留中",
+    "대기 중",
+    "Ausstehend",
+    "Pendiente"
+  ],
+  "open": ["待审核", "待審核", "確認待ち", "검토 대기", "Offen", "Abierto"],
+  "resolved": ["已审核", "已審核", "確認済み", "검토됨", "Geprüft", "Revisado"],
+  "closed": ["已关闭", "已關閉", "終了", "종료됨", "Geschlossen", "Cerrado"],
+  "school_stress": [
+    "学习压力",
+    "學習壓力",
+    "学校でのストレス",
+    "학업 스트레스",
+    "Schulstress",
+    "Estrés escolar"
+  ],
+  "peer_support": [
+    "同伴支持",
+    "同伴支持",
+    "友人との関係",
+    "또래 관계 지원",
+    "Unterstützung durch Gleichaltrige",
+    "Apoyo entre compañeros"
+  ],
+  "low_mood": [
+    "低落情绪",
+    "低落情緒",
+    "気分の落ち込み",
+    "기분 저하",
+    "Niedergeschlagenheit",
+    "Ánimo bajo"
+  ],
+  "self_harm": [
+    "与自伤相关的表达",
+    "與自傷相關的表達",
+    "自傷に関する表現",
+    "자해 관련 표현",
+    "Äußerungen zu Selbstverletzung",
+    "Expresiones sobre autolesiones"
+  ],
+  "urgent": [
+    "需要立即关注",
+    "需要立即關注",
+    "すぐに注意が必要",
+    "즉각적인 관심 필요",
+    "Sofortige Aufmerksamkeit nötig",
+    "Requiere atención inmediata"
+  ],
+  "observe": [
+    "观察并一起沟通",
+    "觀察並一起溝通",
+    "様子を見て話し合う",
+    "관찰하고 함께 대화하기",
+    "Beobachten und gemeinsam sprechen",
+    "Observar y conversar"
+  ],
+  "attention": [
+    "需要关注",
+    "需要關注",
+    "注意が必要",
+    "관심 필요",
+    "Aufmerksamkeit nötig",
+    "Requiere atención"
+  ],
+  "study": [
+    "学习内容",
+    "學習內容",
+    "学習内容",
+    "학습 내용",
+    "Lernen",
+    "Aprendizaje"
+  ],
+  "entertainment": [
+    "娱乐内容",
+    "娛樂內容",
+    "娯楽",
+    "오락",
+    "Unterhaltung",
+    "Entretenimiento"
+  ],
+  "sensitive": [
+    "安全相关",
+    "安全相關",
+    "安全に関する内容",
+    "안전 관련",
+    "Sicherheitsbezogen",
+    "Relacionado con la seguridad"
+  ],
+  "allow": ["已允许", "已允許", "許可", "허용됨", "Erlaubt", "Permitido"],
+  "reject": [
+    "已拦截",
+    "已攔截",
+    "ブロック",
+    "차단됨",
+    "Blockiert",
+    "Bloqueado"
+  ],
+  "rewrite": [
+    "已引导回学习",
+    "已引導回學習",
+    "学習内容へ案内",
+    "학습으로 안내됨",
+    "Zum Lernen zurückgeführt",
+    "Redirigido al aprendizaje"
+  ],
+  "subscription": [
+    "订阅",
+    "訂閱",
+    "サブスクリプション",
+    "구독",
+    "Abonnement",
+    "Suscripción"
+  ],
+  "settings": ["设置", "設定", "設定", "설정", "Einstellungen", "Ajustes"],
+  "notifications": [
+    "通知",
+    "通知",
+    "通知",
+    "알림",
+    "Mitteilungen",
+    "Notificaciones"
+  ],
+  "grades": [
+    "成绩与成长",
+    "成績與成長",
+    "成績と成長",
+    "성적과 성장",
+    "Noten & Entwicklung",
+    "Notas y progreso"
+  ],
+  "learning": [
+    "学习与奖励",
+    "學習與獎勵",
+    "学習とごほうび",
+    "학습과 보상",
+    "Lernen & Belohnungen",
+    "Aprendizaje y recompensas"
+  ],
+  "assessments": [
+    "评估",
+    "評估",
+    "振り返り",
+    "평가",
+    "Einschätzungen",
+    "Evaluaciones"
+  ],
+  "ask": [
+    "提个问题，或添加图片…",
+    "提個問題，或新增圖片…",
+    "質問するか、写真を追加…",
+    "질문하거나 사진을 추가하세요…",
+    "Stelle eine Frage oder füge ein Foto hinzu…",
+    "Haz una pregunta o añade una foto…"
+  ],
+  "send": ["发送", "傳送", "送信", "보내기", "Senden", "Enviar"],
+  "stop": [
+    "停止生成",
+    "停止生成",
+    "生成を停止",
+    "생성 중지",
+    "Generierung stoppen",
+    "Detener generación"
+  ],
+  "loading": [
+    "加载中…",
+    "載入中…",
+    "読み込み中…",
+    "불러오는 중…",
+    "Wird geladen…",
+    "Cargando…"
+  ],
+  "save": [
+    "保存更改",
+    "儲存變更",
+    "変更を保存",
+    "변경 사항 저장",
+    "Änderungen speichern",
+    "Guardar cambios"
+  ],
+  "back": ["返回", "返回", "戻る", "뒤로", "Zurück", "Volver"],
+  "next": ["下一步", "下一步", "次へ", "다음", "Weiter", "Siguiente"],
+  "search": ["搜索", "搜尋", "検索", "검색", "Suchen", "Buscar"],
+  "searchHint": [
+    "搜索对话",
+    "搜尋對話",
+    "会話を検索",
+    "대화 검색",
+    "Gespräche durchsuchen",
+    "Buscar conversaciones"
+  ],
+  "noResults": [
+    "没有结果",
+    "沒有結果",
+    "結果がありません",
+    "결과 없음",
+    "Keine Ergebnisse",
+    "Sin resultados"
+  ],
+  "empty": [
+    "暂时还没有内容。",
+    "目前還沒有內容。",
+    "まだ何もありません。",
+    "아직 내용이 없습니다.",
+    "Hier ist noch nichts.",
+    "Todavía no hay contenido."
+  ],
+  "restore": ["恢复", "還原", "復元", "복원", "Wiederherstellen", "Restaurar"],
+  "history": [
+    "版本历史",
+    "版本記錄",
+    "変更履歴",
+    "버전 기록",
+    "Versionsverlauf",
+    "Historial de versiones"
+  ],
+  "name": ["名字", "名字", "名前", "이름", "Name", "Nombre"],
+  "ageBand": [
+    "年龄范围",
+    "年齡範圍",
+    "年齢層",
+    "연령대",
+    "Altersgruppe",
+    "Franja de edad"
+  ],
+  "addChild": [
+    "添加孩子",
+    "新增孩子",
+    "子どもを追加",
+    "자녀 추가",
+    "Kind hinzufügen",
+    "Añadir menor"
+  ],
+  "disconnect": [
+    "断开设备连接",
+    "中斷裝置連線",
+    "端末の接続を解除",
+    "기기 연결 해제",
+    "Gerät trennen",
+    "Desconectar dispositivo"
+  ],
+  "currentDevice": [
+    "当前设备",
+    "目前裝置",
+    "現在の端末",
+    "현재 기기",
+    "Aktuelles Gerät",
+    "Dispositivo actual"
+  ],
+  "noDevice": [
+    "尚未连接设备",
+    "尚未連接裝置",
+    "端末が未接続です",
+    "연결된 기기 없음",
+    "Kein Gerät verbunden",
+    "Ningún dispositivo conectado"
+  ],
+  "copy": ["复制", "複製", "コピー", "복사", "Kopieren", "Copiar"],
+  "copied": [
+    "已复制",
+    "已複製",
+    "コピーしました",
+    "복사됨",
+    "Kopiert",
+    "Copiado"
+  ],
+  "newCode": [
+    "生成新连接码",
+    "產生新連接碼",
+    "新しいコードを発行",
+    "새 연결 코드 생성",
+    "Neuen Code erstellen",
+    "Generar otro código"
+  ],
+  "codeHint": [
+    "输入 8 位连接码",
+    "輸入 8 碼連接碼",
+    "8文字のコードを入力",
+    "8자리 코드 입력",
+    "8-stelligen Code eingeben",
+    "Introduce el código de 8 caracteres"
+  ],
+  "validUntil": [
+    "有效期至",
+    "有效期限",
+    "有効期限",
+    "유효 기간",
+    "Gültig bis",
+    "Válido hasta"
+  ],
+  "createFamily": [
+    "给好奇心留点空间。",
+    "給好奇心留點空間。",
+    "好奇心のための場所を。",
+    "호기심이 자랄 공간을 만들어요.",
+    "Raum für Neugier schaffen.",
+    "Dale espacio a la curiosidad."
+  ],
+  "familyTimezone": [
+    "家庭时区",
+    "家庭時區",
+    "家族のタイムゾーン",
+    "가족 시간대",
+    "Familienzeitzone",
+    "Zona horaria familiar"
+  ],
+  "chooseChild": [
+    "选择孩子",
+    "選擇孩子",
+    "子どもを選択",
+    "자녀 선택",
+    "Kind auswählen",
+    "Seleccionar menor"
+  ],
+  "noChildren": [
+    "先添加第一位孩子。",
+    "先新增第一位孩子。",
+    "最初の子どもを追加してください。",
+    "첫 자녀를 추가해 주세요.",
+    "Fügen Sie zunächst ein Kind hinzu.",
+    "Añade al primer menor para empezar."
+  ],
+  "learningTime": [
+    "今日学习时长",
+    "今日學習時間",
+    "今日の学習時間",
+    "오늘의 학습 시간",
+    "Heutige Lernzeit",
+    "Tiempo de aprendizaje de hoy"
+  ],
+  "questions": ["提问数", "提問數", "質問数", "질문 수", "Fragen", "Preguntas"],
+  "thisWeek": ["本周", "本週", "今週", "이번 주", "Diese Woche", "Esta semana"],
+  "minutes": ["分钟", "分鐘", "分", "분", "Minuten", "minutos"],
+  "today": ["今天", "今天", "今日", "오늘", "Heute", "Hoy"],
+  "remaining": [
+    "剩余 {{count}} 分钟",
+    "剩餘 {{count}} 分鐘",
+    "残り{{count}}分",
+    "{{count}}분 남음",
+    "Noch {{count}} Min.",
+    "Quedan {{count}} min"
+  ],
+  "unlimited": [
+    "不限时长",
+    "不限時間",
+    "時間制限なし",
+    "시간 제한 없음",
+    "Kein Zeitlimit",
+    "Sin límite de tiempo"
+  ],
+  "recent": [
+    "最近的对话",
+    "最近的對話",
+    "最近の会話",
+    "최근 대화",
+    "Letzte Gespräche",
+    "Conversaciones recientes"
+  ],
+  "viewAll": [
+    "查看全部学习记录",
+    "查看所有學習紀錄",
+    "すべての学習記録を見る",
+    "모든 학습 기록 보기",
+    "Alle Lernaktivitäten ansehen",
+    "Ver toda la actividad"
+  ],
+  "beforeBegin": [
+    "第一次提问前",
+    "第一次提問前",
+    "最初の質問の前に",
+    "첫 질문 전에",
+    "Vor deiner ersten Frage",
+    "Antes de tu primera pregunta"
+  ],
+  "understand": [
+    "我明白了，开始学习",
+    "我明白了，開始學習",
+    "わかりました。学習を始める",
+    "이해했어요. 학습 시작",
+    "Verstanden. Lernen starten",
+    "Lo entiendo. Empezar a aprender"
+  ],
+  "privacy": [
+    "隐私",
+    "隱私",
+    "プライバシー",
+    "개인정보",
+    "Datenschutz",
+    "Privacidad"
+  ],
+  "help": ["帮助", "說明", "ヘルプ", "도움말", "Hilfe", "Ayuda"],
+  "terms": [
+    "使用条款",
+    "使用條款",
+    "利用規約",
+    "이용약관",
+    "Nutzungsbedingungen",
+    "Condiciones de uso"
+  ],
+  "signIn": [
+    "登录家庭空间",
+    "登入家庭空間",
+    "家族スペースにログイン",
+    "가족 공간에 로그인",
+    "Im Familienbereich anmelden",
+    "Entrar al espacio familiar"
+  ],
+  "signOutAll": [
+    "退出所有设备",
+    "登出所有裝置",
+    "すべての端末からログアウト",
+    "모든 기기에서 로그아웃",
+    "Auf allen Geräten abmelden",
+    "Cerrar sesión en todos los dispositivos"
+  ],
+  "deleteFamily": [
+    "申请删除家庭账号",
+    "申請刪除家庭帳號",
+    "家族アカウントの削除を申請",
+    "가족 계정 삭제 요청",
+    "Löschung des Familienkontos beantragen",
+    "Solicitar eliminación de la cuenta familiar"
+  ],
+  "confirm": ["确认", "確認", "確認", "확인", "Bestätigen", "Confirmar"],
+  "confirmDelete": [
+    "输入 DELETE",
+    "輸入 DELETE",
+    "DELETE と入力",
+    "DELETE 입력",
+    "DELETE eingeben",
+    "Escribe DELETE"
+  ],
+  "danger": [
+    "账号与隐私",
+    "帳號與隱私",
+    "アカウントとプライバシー",
+    "계정 및 개인정보",
+    "Konto & Datenschutz",
+    "Cuenta y privacidad"
+  ],
+  "profile": [
+    "个人资料",
+    "個人資料",
+    "プロフィール",
+    "프로필",
+    "Profil",
+    "Perfil"
+  ],
+  "changed": [
+    "更改已保存。",
+    "變更已儲存。",
+    "変更を保存しました。",
+    "변경 사항이 저장되었습니다.",
+    "Änderungen gespeichert.",
+    "Cambios guardados."
+  ],
+  "error": [
+    "出了点问题，请重试。",
+    "發生問題，請重試。",
+    "問題が発生しました。もう一度お試しください。",
+    "문제가 발생했습니다. 다시 시도해 주세요.",
+    "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+    "Se produjo un error. Inténtalo de nuevo."
+  ],
+  "sessionExpired": [
+    "登录已过期，请重新登录。",
+    "登入已過期，請重新登入。",
+    "セッションが切れました。再度ログインしてください。",
+    "세션이 만료되었습니다. 다시 로그인해 주세요.",
+    "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
+    "La sesión ha caducado. Vuelve a entrar."
+  ],
+  "online": [
+    "网络已恢复。",
+    "網路已恢復。",
+    "接続が回復しました。",
+    "연결이 복구되었습니다.",
+    "Verbindung wiederhergestellt.",
+    "Conexión restablecida."
+  ],
+  "access": [
+    "学习权益",
+    "學習權益",
+    "学習の利用資格",
+    "학습 이용 권한",
+    "Lernzugang",
+    "Acceso al aprendizaje"
+  ],
+  "purchaseSource": [
+    "购买渠道",
+    "購買管道",
+    "購入元",
+    "구매 경로",
+    "Kaufkanal",
+    "Canal de compra"
+  ],
+  "managePlay": [
+    "前往 Google Play 管理",
+    "前往 Google Play 管理",
+    "Google Play で管理",
+    "Google Play에서 관리",
+    "Bei Google Play verwalten",
+    "Gestionar en Google Play"
+  ],
+  "active": ["有效", "有效", "有効", "활성", "Aktiv", "Activo"],
+  "inactive": ["已停用", "已停用", "無効", "비활성", "Inaktiv", "Inactivo"],
+  "expires": [
+    "到期时间",
+    "到期時間",
+    "有効期限",
+    "만료일",
+    "Läuft ab",
+    "Vencimiento"
+  ],
+  "seats": [
+    "孩子档案名额",
+    "孩子檔案名額",
+    "子どものプロフィール枠",
+    "자녀 프로필 정원",
+    "Kinderprofilplätze",
+    "Plazas para perfiles de menores"
+  ],
+  "timeUsed": [
+    "已用时长",
+    "已用時間",
+    "使用時間",
+    "사용 시간",
+    "Genutzte Zeit",
+    "Tiempo utilizado"
+  ],
+  "dailyMinutes": [
+    "每日学习时长（分钟）",
+    "每日學習時間（分鐘）",
+    "1日の学習時間（分）",
+    "일일 학습 시간(분)",
+    "Tägliche Lernzeit (Minuten)",
+    "Tiempo diario de aprendizaje (minutos)"
+  ],
+  "dailyMessages": [
+    "每日提问上限",
+    "每日提問上限",
+    "1日の質問上限",
+    "일일 질문 한도",
+    "Tägliches Fragenlimit",
+    "Límite diario de preguntas"
+  ],
+  "quiet": [
+    "休息时段",
+    "休息時段",
+    "休息時間帯",
+    "휴식 시간대",
+    "Ruhezeiten",
+    "Horas de descanso"
+  ],
+  "enabled": ["已启用", "已啟用", "有効", "사용", "Aktiviert", "Habilitado"],
+  "startHour": [
+    "开始时间",
+    "開始時間",
+    "開始時刻",
+    "시작 시각",
+    "Beginn",
+    "Hora de inicio"
+  ],
+  "endHour": [
+    "结束时间",
+    "結束時間",
+    "終了時刻",
+    "종료 시각",
+    "Ende",
+    "Hora de fin"
+  ],
+  "noLimitHint": [
+    "0–480 分钟，0 表示不限时。",
+    "0–480 分鐘，0 表示不限時。",
+    "0〜480分。0は制限なしです。",
+    "0~480분, 0은 제한 없음입니다.",
+    "0–480 Minuten; 0 bedeutet unbegrenzt.",
+    "0–480 minutos; 0 significa sin límite."
+  ],
+  "equalHours": [
+    "开始和结束时间相同表示没有休息时段。",
+    "開始和結束時間相同表示沒有休息時段。",
+    "開始と終了が同じ場合、休息時間帯はありません。",
+    "시작과 종료가 같으면 휴식 시간대가 없습니다.",
+    "Gleiche Start- und Endzeit bedeutet keine Ruhezeit.",
+    "Si inicio y fin coinciden, no hay periodo de descanso."
+  ],
+  "fence": [
+    "学习边界",
+    "學習邊界",
+    "学習の範囲",
+    "학습 경계",
+    "Lerngrenzen",
+    "Límites de aprendizaje"
+  ],
+  "fenceLevel": [
+    "边界强度",
+    "邊界強度",
+    "制限レベル",
+    "경계 수준",
+    "Stufe der Lerngrenzen",
+    "Nivel de límites"
+  ],
+  "off": ["关闭", "關閉", "オフ", "끄기", "Aus", "Desactivado"],
+  "forbidden": [
+    "自定义屏蔽词",
+    "自訂封鎖詞",
+    "独自の禁止語句",
+    "사용자 지정 차단어",
+    "Eigene gesperrte Begriffe",
+    "Palabras bloqueadas personalizadas"
+  ],
+  "notifyFence": [
+    "学习边界通知",
+    "學習邊界通知",
+    "学習範囲に関する通知",
+    "학습 경계 알림",
+    "Mitteilungen zu Lerngrenzen",
+    "Avisos sobre límites de aprendizaje"
+  ],
+  "notifyHint": [
+    "安全警报始终保持开启。",
+    "安全警報始終保持開啟。",
+    "安全に関する警告は常に有効です。",
+    "안전 경고는 항상 활성화됩니다.",
+    "Sicherheitswarnungen bleiben immer aktiv.",
+    "Las alertas de seguridad permanecen activas."
+  ],
+  "pin": ["置顶", "置頂", "固定", "고정", "Anheften", "Fijar"],
+  "teacher": [
+    "学习向导",
+    "學習嚮導",
+    "学習ガイド",
+    "학습 도우미",
+    "Lernbegleitung",
+    "Guía de aprendizaje"
+  ],
+  "addPhoto": [
+    "添加图片",
+    "新增圖片",
+    "写真を追加",
+    "사진 추가",
+    "Foto hinzufügen",
+    "Añadir foto"
+  ],
+  "camera": [
+    "拍照",
+    "拍照",
+    "写真を撮る",
+    "사진 촬영",
+    "Foto aufnehmen",
+    "Tomar foto"
+  ],
+  "applyCrop": [
+    "使用这张图片",
+    "使用這張圖片",
+    "この写真を使う",
+    "이 사진 사용",
+    "Dieses Foto verwenden",
+    "Usar esta foto"
+  ],
+  "uploading": [
+    "正在上传图片…",
+    "正在上傳圖片…",
+    "写真をアップロード中…",
+    "사진 업로드 중…",
+    "Foto wird hochgeladen…",
+    "Subiendo foto…"
+  ],
+  "imageLimit": [
+    "最多添加 3 张图片。",
+    "最多新增 3 張圖片。",
+    "写真は3枚まで追加できます。",
+    "최대 3장의 사진을 첨부할 수 있습니다.",
+    "Du kannst bis zu 3 Bilder anhängen.",
+    "Puedes adjuntar hasta 3 imágenes."
+  ],
+  "imageType": [
+    "请选择 JPEG、PNG 或 WebP 图片。",
+    "請選擇 JPEG、PNG 或 WebP 圖片。",
+    "JPEG、PNG、WebPの画像を選んでください。",
+    "JPEG, PNG 또는 WebP 이미지를 선택하세요.",
+    "Wähle ein JPEG-, PNG- oder WebP-Bild.",
+    "Elige una imagen JPEG, PNG o WebP."
+  ],
+  "viewImage": [
+    "查看大图",
+    "查看大圖",
+    "画像を表示",
+    "이미지 보기",
+    "Bild ansehen",
+    "Ver imagen"
+  ],
+  "imageUnavailable": [
+    "图片暂不可用",
+    "圖片暫時無法使用",
+    "画像を表示できません",
+    "이미지를 사용할 수 없습니다",
+    "Bild nicht verfügbar",
+    "Imagen no disponible"
+  ],
+  "diagram": [
+    "添加图示",
+    "新增圖示",
+    "図を追加",
+    "설명 그림 추가",
+    "Abbildung hinzufügen",
+    "Añadir ilustración"
+  ],
+  "pendingImage": [
+    "正在准备图示…",
+    "正在準備圖示…",
+    "図を準備中…",
+    "설명 그림 준비 중…",
+    "Abbildung wird vorbereitet…",
+    "Preparando ilustración…"
+  ],
+  "feedback": [
+    "这对你有帮助吗？",
+    "這對你有幫助嗎？",
+    "役に立ちましたか？",
+    "도움이 되었나요?",
+    "Hat dir das geholfen?",
+    "¿Te ha ayudado?"
+  ],
+  "understood": [
+    "我懂了",
+    "我懂了",
+    "わかった",
+    "이해했어요",
+    "Ich verstehe",
+    "Lo entiendo"
+  ],
+  "not_understood": [
+    "还没弄懂",
+    "還沒弄懂",
+    "まだわからない",
+    "아직 잘 모르겠어요",
+    "Noch nicht verstanden",
+    "Todavía no lo entiendo"
+  ],
+  "continue": [
+    "继续讲解",
+    "繼續講解",
+    "説明を続けて",
+    "계속 설명해 주세요",
+    "Weiter erklären",
+    "Sigue explicando"
+  ],
+  "report": [
+    "举报这条回答",
+    "檢舉這則回答",
+    "この回答を報告",
+    "이 답변 신고",
+    "Diese Antwort melden",
+    "Denunciar esta respuesta"
+  ],
+  "reason": ["原因", "原因", "理由", "이유", "Grund", "Motivo"],
+  "submit": ["提交", "送出", "送信", "제출", "Absenden", "Enviar"],
+  "removeSaved": [
+    "取消收藏",
+    "取消收藏",
+    "保存を解除",
+    "저장 취소",
+    "Gespeicherten Moment entfernen",
+    "Quitar de guardados"
+  ],
+  "boundaries": [
+    "边界事件",
+    "邊界事件",
+    "範囲判定の記録",
+    "경계 이벤트",
+    "Ereignisse zu Lerngrenzen",
+    "Eventos de límites"
+  ],
+  "deleted": [
+    "学生已移除",
+    "學生已移除",
+    "生徒が削除済み",
+    "학생이 삭제함",
+    "Vom Kind entfernt",
+    "Eliminado por el estudiante"
+  ],
+  "readAll": [
+    "全部标为已读",
+    "全部標為已讀",
+    "すべて既読にする",
+    "모두 읽음으로 표시",
+    "Alle als gelesen markieren",
+    "Marcar todo como leído"
+  ],
+  "previous": ["上一页", "上一頁", "前へ", "이전", "Zurück", "Anterior"],
+  "more": [
+    "下一页",
+    "下一頁",
+    "次のページ",
+    "다음 페이지",
+    "Nächste Seite",
+    "Página siguiente"
+  ],
+  "export": [
+    "导出学习数据",
+    "匯出學習資料",
+    "学習データを書き出す",
+    "학습 데이터 내보내기",
+    "Lerndaten exportieren",
+    "Exportar datos de aprendizaje"
+  ],
+  "feedbackNote": [
+    "哪些内容需要重新检查？",
+    "哪些內容需要重新檢查？",
+    "見直しが必要な点を教えてください",
+    "다시 검토할 내용을 알려주세요",
+    "Was sollten wir noch einmal prüfen?",
+    "Indica qué deberíamos revisar"
+  ],
+  "flagged": [
+    "提交复核",
+    "提交複核",
+    "見直しを依頼",
+    "검토 요청",
+    "Zur Prüfung markieren",
+    "Solicitar revisión"
+  ],
+  "takeBreak": [
+    "该休息一会儿了",
+    "該休息一會兒了",
+    "少し休憩しましょう",
+    "잠시 쉬어갈 시간이에요",
+    "Zeit für eine kurze Pause",
+    "Es hora de un pequeño descanso"
+  ],
+  "quietPeriod": [
+    "休息时段：{{start}}–{{end}}",
+    "休息時段：{{start}}–{{end}}",
+    "休息時間：{{start}}〜{{end}}",
+    "휴식 시간: {{start}}~{{end}}",
+    "Ruhezeit: {{start}}–{{end}}",
+    "Descanso: {{start}}–{{end}}"
+  ],
+  "timeUp": [
+    "今天的学习时间已经用完。",
+    "今天的學習時間已經用完。",
+    "今日の学習時間を使い切りました。",
+    "오늘의 학습 시간을 모두 사용했어요.",
+    "Deine Lernzeit für heute ist aufgebraucht.",
+    "Has agotado el tiempo de aprendizaje de hoy."
+  ],
+  "draftSaved": [
+    "草稿和对话已保存。",
+    "草稿和對話已儲存。",
+    "下書きと会話は保存されています。",
+    "초안과 대화가 저장되었습니다.",
+    "Dein Entwurf und Gespräch sind gespeichert.",
+    "Tu borrador y la conversación están guardados."
+  ],
+  "checkAgain": [
+    "检查是否可以继续",
+    "檢查是否可以繼續",
+    "利用状況を確認",
+    "이용 가능 여부 확인",
+    "Verfügbarkeit prüfen",
+    "Comprobar disponibilidad"
+  ],
+  "title": ["标题", "標題", "タイトル", "제목", "Titel", "Título"],
+  "maxScore": [
+    "满分",
+    "滿分",
+    "満点",
+    "만점",
+    "Maximalpunktzahl",
+    "Puntuación máxima"
+  ],
+  "term": ["学期", "學期", "学期", "학기", "Schulhalbjahr", "Periodo escolar"],
+  "gradeType": ["类型", "類型", "種類", "유형", "Typ", "Tipo"],
+  "note": ["备注", "備註", "メモ", "메모", "Notizen", "Notas"],
+  "other": ["其他", "其他", "その他", "기타", "Sonstiges", "Otro"],
+  "addGrade": [
+    "添加成绩",
+    "新增成績",
+    "成績を追加",
+    "성적 추가",
+    "Note hinzufügen",
+    "Añadir nota"
+  ],
+  "trend": [
+    "成绩趋势",
+    "成績趨勢",
+    "成績の推移",
+    "성적 추이",
+    "Notenverlauf",
+    "Evolución de notas"
+  ],
+  "version": ["版本", "版本", "バージョン", "버전", "Version", "Versión"],
+  "from": ["开始日期", "開始日期", "開始日", "시작일", "Von", "Desde"],
+  "to": ["结束日期", "結束日期", "終了日", "종료일", "Bis", "Hasta"],
+  "generate": [
+    "生成评估",
+    "產生評估",
+    "振り返りを作成",
+    "평가 생성",
+    "Einschätzung erstellen",
+    "Generar evaluación"
+  ],
+  "academic": [
+    "学习评估",
+    "學習評估",
+    "学習の振り返り",
+    "학습 평가",
+    "Lerneinschätzung",
+    "Evaluación del aprendizaje"
+  ],
+  "wellbeing": [
+    "身心状态观察",
+    "身心狀態觀察",
+    "心身の様子の観察",
+    "심신 상태 관찰",
+    "Beobachtungen zum Wohlbefinden",
+    "Observaciones de bienestar"
+  ],
+  "evidence": ["依据", "依據", "根拠", "근거", "Belege", "Evidencias"],
+  "acknowledge": [
+    "确认已查看",
+    "確認已查看",
+    "確認しました",
+    "확인 완료",
+    "Kenntnis nehmen",
+    "Confirmar lectura"
+  ],
+  "notNeeded": [
+    "无需处理",
+    "無需處理",
+    "対応不要",
+    "조치 불필요",
+    "Keine Maßnahme nötig",
+    "No requiere acción"
+  ],
+  "acknowledged": [
+    "已确认",
+    "已確認",
+    "確認済み",
+    "확인됨",
+    "Zur Kenntnis genommen",
+    "Lectura confirmada"
+  ],
+  "balance": [
+    "可用小行星",
+    "可用小行星",
+    "使える星",
+    "사용 가능한 별",
+    "Verfügbare Sterne",
+    "Estrellas disponibles"
+  ],
+  "earned": ["已获得", "已獲得", "獲得済み", "획득", "Erhalten", "Obtenidas"],
+  "spent": ["已兑换", "已兌換", "交換済み", "사용", "Eingelöst", "Canjeadas"],
+  "agreements": [
+    "家庭奖励约定",
+    "家庭獎勵約定",
+    "家族のごほうびの約束",
+    "가족 보상 약속",
+    "Familienvereinbarungen zu Belohnungen",
+    "Acuerdos de recompensas familiares"
+  ],
+  "reward": ["奖励", "獎勵", "ごほうび", "보상", "Belohnung", "Recompensa"],
+  "stars": [
+    "所需小行星",
+    "所需小行星",
+    "必要な星の数",
+    "필요한 별",
+    "Benötigte Sterne",
+    "Estrellas necesarias"
+  ],
+  "fulfillment": [
+    "兑现方式与时间",
+    "兌現方式與時間",
+    "渡し方と時期",
+    "이행 방법과 시기",
+    "Wie und wann einlösen",
+    "Cómo y cuándo entregarla"
+  ],
+  "propose": [
+    "提出奖励约定",
+    "提出獎勵約定",
+    "ごほうびを提案",
+    "보상 제안",
+    "Belohnung vorschlagen",
+    "Proponer recompensa"
+  ],
+  "accept": [
+    "接受约定",
+    "接受約定",
+    "約束を受け入れる",
+    "약속 수락",
+    "Vereinbarung annehmen",
+    "Aceptar acuerdo"
+  ],
+  "redeem": ["兑换", "兌換", "交換する", "교환", "Einlösen", "Canjear"],
+  "fulfill": [
+    "标记已兑现",
+    "標記已兌現",
+    "渡したことを記録",
+    "이행 완료로 표시",
+    "Als erfüllt markieren",
+    "Marcar como entregada"
+  ],
+  "awaiting": [
+    "等待接受",
+    "等待接受",
+    "承諾待ち",
+    "수락 대기 중",
+    "Wartet auf Annahme",
+    "Pendiente de aceptación"
+  ],
+  "redemptions": [
+    "兑换记录",
+    "兌換紀錄",
+    "交換履歴",
+    "교환 기록",
+    "Einlösungen",
+    "Canjes"
+  ],
+  "feedbackHistory": [
+    "学习反馈",
+    "學習回饋",
+    "学習のフィードバック",
+    "학습 피드백",
+    "Lernfeedback",
+    "Comentarios de aprendizaje"
+  ],
+  "bookmark": [
+    "收藏这条内容",
+    "收藏這則內容",
+    "内容を保存",
+    "내용 저장",
+    "Moment speichern",
+    "Guardar momento"
+  ],
+  "connected": [
+    "设备已连接。",
+    "裝置已連接。",
+    "端末を接続しました。",
+    "기기가 연결되었습니다.",
+    "Gerät verbunden.",
+    "Dispositivo conectado."
+  ],
+  "nameHint": [
+    "请使用昵称，不要填写联系方式。",
+    "請使用暱稱，不要填寫聯絡方式。",
+    "連絡先ではなくニックネームを使ってください。",
+    "연락처 대신 별명을 사용하세요.",
+    "Verwenden Sie einen Spitznamen statt Kontaktdaten.",
+    "Usa un apodo, no datos de contacto."
+  ],
+  "deviceName": [
+    "学习设备名称",
+    "學習裝置名稱",
+    "学習端末の名前",
+    "학습 기기 이름",
+    "Name des Lerngeräts",
+    "Nombre del dispositivo de aprendizaje"
+  ],
+  "tokensIn": [
+    "输入 Token",
+    "輸入 Token",
+    "入力トークン",
+    "입력 토큰",
+    "Eingabe-Token",
+    "Tokens de entrada"
+  ],
+  "tokensOut": [
+    "输出 Token",
+    "輸出 Token",
+    "出力トークン",
+    "출력 토큰",
+    "Ausgabe-Token",
+    "Tokens de salida"
+  ],
+  "showDeleted": [
+    "包含已移除的项目",
+    "包含已移除的項目",
+    "削除済み項目を含む",
+    "삭제된 항목 포함",
+    "Entfernte Einträge einschließen",
+    "Incluir elementos eliminados"
+  ],
+  "reconnect": [
+    "重新连接",
+    "重新連接",
+    "再接続",
+    "다시 연결",
+    "Erneut verbinden",
+    "Volver a conectar"
+  ],
+  "loadingAnswer": [
+    "正在想一想…",
+    "正在想一想…",
+    "考えています…",
+    "생각하는 중…",
+    "Ich denke darüber nach…",
+    "Pensándolo…"
+  ],
+  "inputHint": [
+    "Enter 发送 · Shift + Enter 换行",
+    "Enter 傳送 · Shift + Enter 換行",
+    "Enterで送信・Shift+Enterで改行",
+    "Enter 전송 · Shift+Enter 줄 바꿈",
+    "Enter zum Senden · Shift + Enter für neue Zeile",
+    "Intro para enviar · Mayús + Intro para otra línea"
+  ],
+  "cropLeft": [
+    "左侧裁切位置（%）",
+    "左側裁切位置（%）",
+    "左からの位置（%）",
+    "왼쪽 자르기 위치(%)",
+    "Zuschnitt von links (%)",
+    "Recorte desde la izquierda (%)"
+  ],
+  "cropTop": [
+    "顶部裁切位置（%）",
+    "頂部裁切位置（%）",
+    "上からの位置（%）",
+    "위쪽 자르기 위치(%)",
+    "Zuschnitt von oben (%)",
+    "Recorte desde arriba (%)"
+  ],
+  "cropWidth": [
+    "裁切宽度（%）",
+    "裁切寬度（%）",
+    "切り取り幅（%）",
+    "자르기 너비(%)",
+    "Zuschnittbreite (%)",
+    "Ancho del recorte (%)"
+  ],
+  "cropHeight": [
+    "裁切高度（%）",
+    "裁切高度（%）",
+    "切り取り高さ（%）",
+    "자르기 높이(%)",
+    "Zuschnitthöhe (%)",
+    "Alto del recorte (%)"
+  ],
+  "overviewHint": [
+    "了解孩子的学习，也给成长留点空间。",
+    "了解孩子的學習，也給成長留點空間。",
+    "子どもの学びを見守り、成長の余地を。",
+    "자녀의 배움을 살펴보고 성장할 여유를 주세요.",
+    "Ein Einblick ins Lernen Ihres Kindes. Raum zum Wachsen.",
+    "Una ventana al aprendizaje de tu hijo y espacio para crecer."
+  ],
+  "connectHeading": [
+    "下一个问题，从这里开始。",
+    "下一個問題，從這裡開始。",
+    "次の疑問は、ここから。",
+    "다음 질문은 여기서 시작해요.",
+    "Deine nächste Frage beginnt hier.",
+    "Tu próxima pregunta empieza aquí."
+  ],
+  "connectHint": [
+    "请家长在家长空间生成连接码。",
+    "請家長在家長空間產生連接碼。",
+    "保護者スペースで接続コードを発行してもらってください。",
+    "보호자 공간에서 연결 코드를 받아 주세요.",
+    "Bitte deine Eltern um den Code aus dem Elternbereich.",
+    "Pide a tus padres el código de su espacio para padres."
+  ],
+  "codeHelp": [
+    "家长生成连接码，你在这里输入，无需 Google 账号。",
+    "家長產生連接碼，你在這裡輸入，無需 Google 帳號。",
+    "保護者が発行したコードをここに入力します。Googleアカウントは不要です。",
+    "보호자가 만든 코드를 여기에 입력하세요. Google 계정은 필요하지 않습니다.",
+    "Deine Eltern erstellen den Code, du gibst ihn hier ein. Kein Google-Konto nötig.",
+    "Tus padres generan el código y tú lo introduces aquí. No necesitas cuenta de Google."
+  ],
+  "expiredCode": [
+    "连接码 10 分钟后过期，需要时请家长重新生成。",
+    "連接碼 10 分鐘後過期，需要時請家長重新產生。",
+    "コードは10分で期限切れになります。必要なら再発行してもらってください。",
+    "코드는 10분 후 만료됩니다. 필요하면 보호자에게 새 코드를 요청하세요.",
+    "Codes laufen nach 10 Minuten ab. Bitte deine Eltern bei Bedarf um einen neuen.",
+    "Los códigos caducan a los 10 minutos. Pide uno nuevo si lo necesitas."
+  ],
+  "replaceWarning": [
+    "每个孩子同时只能连接一台学习设备。连接此浏览器会退出当前设备，学习记录会保留。",
+    "每個孩子同時只能連接一台學習裝置。連接此瀏覽器會登出目前裝置，學習紀錄會保留。",
+    "子ども1人につき同時に使える学習端末は1台です。このブラウザを接続すると現在の端末はログアウトします。履歴は残ります。",
+    "자녀당 한 번에 한 학습 기기만 연결할 수 있습니다. 이 브라우저를 연결하면 기존 기기에서 로그아웃되며 학습 기록은 유지됩니다.",
+    "Pro Kind ist ein Lerngerät gleichzeitig möglich. Diese Verbindung meldet das aktuelle Gerät ab; der Lernverlauf bleibt erhalten.",
+    "Cada menor solo puede tener un dispositivo conectado. Al conectar este navegador se cierra la sesión del dispositivo actual; el historial se conserva."
+  ],
+  "setupHint": [
+    "创建孩子档案、确认家庭时区，然后连接学习设备。",
+    "建立孩子檔案、確認家庭時區，然後連接學習裝置。",
+    "子どものプロフィールを作成し、家族のタイムゾーンを確認してから学習端末を接続します。",
+    "자녀 프로필을 만들고 가족 시간대를 확인한 뒤 학습 기기를 연결하세요.",
+    "Erstellen Sie ein Kinderprofil, bestätigen Sie die Familienzeitzone und verbinden Sie dann ein Lerngerät.",
+    "Crea un perfil del menor, confirma la zona horaria familiar y conecta un dispositivo."
+  ],
+  "timezoneHint": [
+    "学习日、每日额度和休息时段均按此时区计算，并处理夏令时变化。",
+    "學習日、每日額度和休息時段均依此時區計算，並處理日光節約時間變化。",
+    "学習日、1日の上限、休息時間はこのタイムゾーンに従い、夏時間にも対応します。",
+    "학습일, 일일 한도와 휴식 시간은 이 시간대를 따르며 서머타임 변경도 반영됩니다.",
+    "Lerntage, Tageslimits und Ruhezeiten folgen dieser Zeitzone einschließlich Sommerzeit.",
+    "Los días, límites diarios y descansos siguen esta zona horaria, incluidos los cambios de horario estacional."
+  ],
+  "timezoneRate": [
+    "每 24 小时最多更改一次时区，已用额度会延续。",
+    "每 24 小時最多變更一次時區，已用額度會延續。",
+    "タイムゾーンは24時間に1回変更できます。使用済みの時間は引き継がれます。",
+    "시간대는 24시간에 한 번 변경할 수 있으며 기존 사용량은 유지됩니다.",
+    "Die Zeitzone lässt sich einmal in 24 Stunden ändern. Bisherige Nutzung bleibt angerechnet.",
+    "La zona horaria se puede cambiar una vez cada 24 horas. Se conserva el uso acumulado."
+  ],
+  "parentVisibility": [
+    "你可以查看孩子的完整学习对话，包括孩子从自己历史中移除的对话。",
+    "你可以查看孩子的完整學習對話，包括孩子從自己記錄中移除的對話。",
+    "子どもが自分の履歴から削除した会話を含め、学習会話全体を確認できます。",
+    "자녀가 자신의 기록에서 삭제한 대화를 포함해 전체 학습 대화를 볼 수 있습니다.",
+    "Sie können vollständige Lerngespräche lesen, auch wenn Ihr Kind sie aus seinem Verlauf entfernt hat.",
+    "Puedes leer las conversaciones completas, incluso las que el menor haya quitado de su historial."
+  ],
+  "googleHint": [
+    "请使用 Google Play 家长 App 中的同一个 Google 账号登录。",
+    "請使用 Google Play 家長 App 中的同一個 Google 帳號登入。",
+    "Google Playの保護者アプリと同じGoogleアカウントでログインしてください。",
+    "Google Play 보호자 앱과 동일한 Google 계정으로 로그인하세요.",
+    "Melden Sie sich mit demselben Google-Konto wie in der Eltern-App von Google Play an.",
+    "Entra con la misma cuenta de Google que usas en la aplicación para padres de Google Play."
+  ],
+  "googleUnavailable": [
+    "当前环境尚未配置 Google 登录。",
+    "目前環境尚未設定 Google 登入。",
+    "この環境ではGoogleログインが未設定です。",
+    "이 환경에는 Google 로그인이 설정되지 않았습니다.",
+    "Google-Anmeldung ist in dieser Umgebung noch nicht eingerichtet.",
+    "El inicio de sesión con Google no está configurado en este entorno."
+  ],
+  "googleFailed": [
+    "无法加载 Google 登录，请检查网络后重试。",
+    "無法載入 Google 登入，請檢查網路後重試。",
+    "Googleログインを読み込めません。接続を確認して再試行してください。",
+    "Google 로그인을 불러올 수 없습니다. 연결을 확인하고 다시 시도하세요.",
+    "Google-Anmeldung konnte nicht geladen werden. Verbindung prüfen und erneut versuchen.",
+    "No se pudo cargar el acceso con Google. Comprueba la conexión e inténtalo de nuevo."
+  ],
+  "signOutAllHint": [
+    "该账号会同时退出 Web 和原生 App。",
+    "該帳號會同時登出 Web 和原生 App。",
+    "このアカウントはWebとアプリの両方でログアウトします。",
+    "이 계정은 웹과 앱 모두에서 로그아웃됩니다.",
+    "Dieses Konto wird im Web und in der nativen App abgemeldet.",
+    "Se cerrará la sesión de esta cuenta tanto en la web como en la aplicación."
+  ],
+  "deleteHint": [
+    "输入 DELETE 确认。这会停用访问并启动账号删除流程，订阅需在原购买渠道取消。",
+    "輸入 DELETE 確認。這會停用存取並啟動帳號刪除流程，訂閱需在原購買管道取消。",
+    "確認のためDELETEと入力してください。アクセスを停止し削除手続きを開始します。購読の解約は購入元で行ってください。",
+    "확인하려면 DELETE를 입력하세요. 접근이 중단되고 계정 삭제 절차가 시작됩니다. 구독은 원래 구매 경로에서 취소해야 합니다.",
+    "Geben Sie DELETE ein. Der Zugang wird gesperrt und die Kontolöschung eingeleitet. Abonnements müssen im ursprünglichen Kaufkanal gekündigt werden.",
+    "Escribe DELETE para confirmar. Se desactivará el acceso y empezará la eliminación. Cancela las suscripciones en el canal donde las compraste."
+  ],
+  "offline": [
+    "当前离线，草稿会保留在此设备。",
+    "目前離線，草稿會保留在此裝置。",
+    "オフラインです。下書きはこの端末に残ります。",
+    "오프라인입니다. 초안은 이 기기에 보관됩니다.",
+    "Du bist offline. Dein Entwurf bleibt auf diesem Gerät.",
+    "Estás sin conexión. Tu borrador se conserva en este dispositivo."
+  ],
+  "forbiddenHint": [
+    "每行一个词或短语，与原生 App 设置共享。",
+    "每行一個詞或片語，與原生 App 設定共用。",
+    "1行に1つの語句を入力します。アプリの設定と共有されます。",
+    "한 줄에 한 단어나 문구를 입력하세요. 앱 설정과 공유됩니다.",
+    "Ein Begriff pro Zeile. Diese Einstellung wird mit der nativen App geteilt.",
+    "Una palabra o frase por línea. Se comparte con los ajustes de la aplicación."
+  ],
+  "deleteChat": [
+    "从你的历史中移除此对话？家长仍可以查看。",
+    "從你的記錄中移除此對話？家長仍可以查看。",
+    "この会話を自分の履歴から削除しますか？保護者は引き続き確認できます。",
+    "이 대화를 내 기록에서 삭제할까요? 보호자는 계속 볼 수 있습니다.",
+    "Dieses Gespräch aus deinem Verlauf entfernen? Deine Eltern können es weiter lesen.",
+    "¿Quitar esta conversación de tu historial? Tus padres podrán seguir viéndola."
+  ],
+  "teacherLocked": [
+    "这位老师目前暂不向你的家庭开放。",
+    "這位老師目前暫不向你的家庭開放。",
+    "この先生は現在、ご家族では利用できません。",
+    "현재 가족 계정에서 이 선생님을 이용할 수 없습니다.",
+    "Diese Lernbegleitung ist für deine Familie derzeit nicht verfügbar.",
+    "Este tutor no está disponible para tu familia en este momento."
+  ],
+  "noTeachers": [
+    "当前没有可用老师，请询问家长或稍后重试。",
+    "目前沒有可用老師，請詢問家長或稍後重試。",
+    "利用できる先生がいません。保護者に相談するか後で試してください。",
+    "이용 가능한 선생님이 없습니다. 보호자에게 문의하거나 나중에 다시 시도하세요.",
+    "Zurzeit ist keine Lernbegleitung verfügbar. Frage deine Eltern oder versuche es später.",
+    "No hay tutores disponibles. Consulta con tus padres o inténtalo más tarde."
+  ],
+  "newTeacherHint": [
+    "选择其他老师会开始新对话，已有对话保留原来的老师。",
+    "選擇其他老師會開始新對話，已有對話保留原來的老師。",
+    "先生を変えると新しい会話が始まります。既存の会話の先生は変わりません。",
+    "다른 선생님을 선택하면 새 대화가 시작됩니다. 기존 대화의 선생님은 유지됩니다.",
+    "Eine andere Lernbegleitung startet ein neues Gespräch. Bestehende Gespräche behalten ihre bisherige Begleitung.",
+    "Cambiar de tutor inicia otra conversación. Las conversaciones existentes conservan su tutor."
+  ],
+  "cropHint": [
+    "调整裁切范围后添加图片，图片会压缩并移除元数据。",
+    "調整裁切範圍後新增圖片，圖片會壓縮並移除中繼資料。",
+    "範囲を調整して写真を追加します。画像は圧縮され、メタデータは削除されます。",
+    "자르기 범위를 조정한 뒤 사진을 추가하세요. 이미지는 압축되고 메타데이터가 제거됩니다.",
+    "Passe den Zuschnitt an und füge das Foto hinzu. Bilder werden komprimiert und Metadaten entfernt.",
+    "Ajusta el recorte y añade la foto. La imagen se comprime y se eliminan sus metadatos."
+  ],
+  "uploadFailed": [
+    "图片上传失败，请重试或移除。",
+    "圖片上傳失敗，請重試或移除。",
+    "アップロードできませんでした。再試行するか写真を削除してください。",
+    "사진 업로드에 실패했습니다. 다시 시도하거나 삭제하세요.",
+    "Foto konnte nicht hochgeladen werden. Erneut versuchen oder entfernen.",
+    "No se pudo subir la foto. Reinténtalo o elimínala."
+  ],
+  "sourceUnavailable": [
+    "原对话已不在你的历史记录中。",
+    "原對話已不在你的歷史紀錄中。",
+    "元の会話は履歴にありません。",
+    "원래 대화가 더 이상 기록에 없습니다.",
+    "Das ursprüngliche Gespräch ist nicht mehr in deinem Verlauf.",
+    "La conversación original ya no está en tu historial."
+  ],
+  "breakHint": [
+    "伸伸懒腰，看看远处，或和别人聊聊刚探索的想法。",
+    "伸伸懶腰，看看遠處，或和別人聊聊剛探索的想法。",
+    "体を伸ばして画面から目を離したり、学んだことを誰かに話してみましょう。",
+    "기지개를 켜고 화면에서 눈을 떼거나 방금 배운 내용을 누군가에게 이야기해 보세요.",
+    "Streck dich, schau vom Bildschirm weg oder erzähle jemandem von deiner Entdeckung.",
+    "Estírate, aparta la vista de la pantalla o cuenta a alguien lo que has descubierto."
+  ],
+  "trendHint": [
+    "选择同一科目比较成绩，分数会保留原满分。",
+    "選擇同一科目比較成績，分數會保留原滿分。",
+    "公平に比較するため科目を1つ選んでください。点数は元の満点とともに表示されます。",
+    "공정하게 비교하려면 한 과목을 선택하세요. 점수는 원래 만점과 함께 표시됩니다.",
+    "Wähle für einen fairen Vergleich ein Fach. Punkte werden mit ihrer ursprünglichen Maximalpunktzahl gezeigt.",
+    "Elige una sola asignatura para comparar. Las notas muestran su puntuación máxima original."
+  ],
+  "assessmentHint": [
+    "这是依据学习记录的可解释估计，不是学校成绩或医学诊断。",
+    "這是依據學習紀錄的可解釋估計，不是學校成績或醫學診斷。",
+    "学習記録に基づく説明可能な推定です。学校の成績や医学的診断ではありません。",
+    "학습 기록을 바탕으로 한 설명 가능한 추정이며 학교 성적이나 의학적 진단이 아닙니다.",
+    "Dies sind nachvollziehbare Einschätzungen anhand von Lernaufzeichnungen, keine Schulnoten oder Diagnosen.",
+    "Son estimaciones explicables basadas en el aprendizaje registrado, no notas escolares ni diagnósticos."
+  ],
+  "rewardRule": [
+    "每天完成一次学习交流并提交任一种学习反馈，获得一颗参与小行星。修改反馈不会重复奖励。",
+    "每天完成一次學習交流並提交任一種學習回饋，獲得一顆參與小行星。修改回饋不會重複獎勵。",
+    "学習のやり取りを終えてフィードバックを送ると、1日1つ参加の星がもらえます。変更しても追加の星はもらえません。",
+    "학습 대화를 마치고 피드백을 보내면 하루에 참여 별 하나를 받습니다. 피드백을 바꿔도 추가 별은 지급되지 않습니다.",
+    "Nach einem abgeschlossenen Lerngespräch mit Feedback gibt es täglich einen Teilnahmestern. Geändertes Feedback bringt keine weiteren Sterne.",
+    "Recibes una estrella diaria al completar un intercambio y enviar cualquier comentario. Cambiarlo no otorga estrellas adicionales."
+  ],
+  "releaseChild": [
+    "移除此孩子档案并断开其学习设备？",
+    "移除此孩子檔案並中斷其學習裝置？",
+    "この子どものプロフィールを削除し、学習端末を切断しますか？",
+    "이 자녀 프로필을 삭제하고 학습 기기를 연결 해제할까요?",
+    "Dieses Kinderprofil entfernen und seine Lerngeräte trennen?",
+    "¿Eliminar este perfil y desconectar sus dispositivos?"
+  ],
+  "dataKept": [
+    "学习记录会保留供家庭审查，除非明确申请完整删除。",
+    "學習紀錄會保留供家庭審查，除非明確申請完整刪除。",
+    "完全な削除を申請しない限り、家族が確認できるよう学習記録は残ります。",
+    "전체 삭제를 요청하지 않으면 가족 검토를 위해 학습 기록이 유지됩니다.",
+    "Lernaufzeichnungen bleiben zur Familienprüfung erhalten, sofern keine vollständige Löschung beantragt wird.",
+    "Los registros se conservan para revisión familiar salvo que se solicite su eliminación completa."
+  ],
+  "newConversation": [
+    "今天想弄懂什么？",
+    "今天想弄懂什麼？",
+    "今日は何を知りたい？",
+    "오늘은 무엇을 알고 싶나요?",
+    "Was möchtest du heute verstehen?",
+    "¿Qué te gustaría entender hoy?"
+  ],
+  "topicHint": [
+    "先提个问题，我们一起一步步想清楚。",
+    "先提個問題，我們一起一步步想清楚。",
+    "質問から始めましょう。一緒に考えていけます。",
+    "질문부터 시작해요. 함께 차근차근 알아볼 수 있어요.",
+    "Beginne mit einer Frage. Wir können sie gemeinsam durchgehen.",
+    "Empieza con una pregunta. Podemos resolverla paso a paso."
+  ],
+  "deletedMessage": [
+    "此对话已从学生历史中移除。",
+    "此對話已從學生記錄中移除。",
+    "この会話は生徒の履歴から削除されています。",
+    "이 대화는 학생 기록에서 삭제되었습니다.",
+    "Dieses Gespräch wurde aus dem Verlauf des Kindes entfernt.",
+    "Esta conversación se ha quitado del historial del estudiante."
+  ],
+  "invalidCode": [
+    "连接码无效、已过期或已使用。",
+    "連接碼無效、已過期或已使用。",
+    "コードが無効、期限切れ、または使用済みです。",
+    "유효하지 않거나 만료 또는 사용된 연결 코드입니다.",
+    "Dieser Code ist ungültig, abgelaufen oder bereits verwendet.",
+    "Este código no es válido, ha caducado o ya se ha usado."
+  ],
+  "fileTooLarge": [
+    "图片太大，请选择更小的图片。",
+    "圖片太大，請選擇較小的圖片。",
+    "画像が大きすぎます。小さい画像を選んでください。",
+    "이미지가 너무 큽니다. 더 작은 이미지를 선택하세요.",
+    "Das Bild ist zu groß. Wähle ein kleineres.",
+    "La imagen es demasiado grande. Elige una más pequeña."
+  ],
+  "deleteGrade": [
+    "删除此成绩？可以在已移除项目中恢复。",
+    "刪除此成績？可以在已移除項目中還原。",
+    "この成績を削除しますか？削除済み項目から復元できます。",
+    "이 성적을 삭제할까요? 삭제된 항목에서 복원할 수 있습니다.",
+    "Diese Note löschen? Sie kann aus entfernten Einträgen wiederhergestellt werden.",
+    "¿Eliminar esta nota? Podrás restaurarla desde los elementos eliminados."
+  ],
+  "unknownError": [
+    "请求未能完成，请重试或联系支持。",
+    "請求未能完成，請重試或聯絡支援。",
+    "処理できませんでした。再試行するかサポートにご連絡ください。",
+    "요청을 완료할 수 없습니다. 다시 시도하거나 지원팀에 문의하세요.",
+    "Die Anfrage konnte nicht abgeschlossen werden. Erneut versuchen oder den Support kontaktieren.",
+    "No se pudo completar la solicitud. Reinténtalo o contacta con soporte."
+  ],
+  "networkError": [
+    "网络不可用，请先确认最新状态再重试。",
+    "網路無法使用，請先確認最新狀態再重試。",
+    "接続できません。最新の状態を確認してから再試行してください。",
+    "네트워크를 사용할 수 없습니다. 최신 상태를 확인한 후 다시 시도하세요.",
+    "Netzwerk nicht verfügbar. Prüfen Sie vor dem erneuten Versuch den aktuellen Stand.",
+    "No hay conexión. Comprueba el estado actual antes de reintentarlo."
+  ],
+  "stopped": [
+    "已停止生成，可以重试已保存的问题。",
+    "已停止生成，可以重試已儲存的問題。",
+    "生成を停止しました。保存済みの質問を再試行できます。",
+    "생성이 중지되었습니다. 저장된 질문을 다시 시도할 수 있습니다.",
+    "Generierung gestoppt. Du kannst die gespeicherte Frage erneut versuchen.",
+    "Generación detenida. Puedes reintentar la pregunta guardada."
+  ],
+  "privacyBody": [
+    "家长可以查看学习对话。配置的 AI 服务商会处理必要的消息和已审核图片。请勿分享联系方式等不必要的个人信息。可在设置中申请删除账号。",
+    "家長可以查看學習對話。設定的 AI 服務商會處理必要的訊息和已審核圖片。請勿分享聯絡方式等不必要的個人資訊。可在設定中申請刪除帳號。",
+    "家族は学習会話を確認できます。必要なメッセージと審査済み画像は設定済みのAI事業者が処理します。連絡先など不要な個人情報を共有しないでください。アカウント削除は設定から申請できます。",
+    "가족은 학습 대화를 볼 수 있습니다. 필요한 메시지와 검토된 이미지는 설정된 AI 제공업체가 처리합니다. 연락처 등 불필요한 개인정보는 공유하지 마세요. 설정에서 계정 삭제를 요청할 수 있습니다.",
+    "Ihre Familie kann Lerngespräche einsehen. Notwendige Nachrichten und geprüfte Bilder werden von den eingerichteten KI-Anbietern verarbeitet. Teilen Sie keine unnötigen persönlichen Daten wie Kontaktdaten. Kontolöschung ist in den Einstellungen verfügbar.",
+    "Tu familia puede revisar las conversaciones. Los proveedores de IA configurados procesan los mensajes necesarios y las imágenes revisadas. Evita compartir contactos u otros datos personales innecesarios. Puedes solicitar eliminar la cuenta en Ajustes."
+  ],
+  "helpBody": [
+    "家长生成连接码并管理学习时间。你可以提问、添加图片、收藏和提交反馈。网站白名单与设备锁定需由家长在设备设置中配置。",
+    "家長產生連接碼並管理學習時間。你可以提問、新增圖片、收藏和提交回饋。網站允許清單與裝置鎖定需由家長在裝置設定中設定。",
+    "保護者が接続コードと学習時間を管理します。質問、写真の追加、保存、フィードバックができます。サイト制限や端末のロックは保護者が端末設定で行ってください。",
+    "보호자가 연결 코드와 학습 시간을 관리합니다. 질문하고 사진을 추가하며 내용을 저장하고 피드백을 보낼 수 있습니다. 웹사이트 제한과 기기 잠금은 보호자가 기기 설정에서 구성해야 합니다.",
+    "Deine Eltern erstellen Verbindungscodes und verwalten die Lernzeit. Du kannst Fragen stellen, Fotos hinzufügen, Ideen speichern und Feedback geben. Websitebeschränkungen und Gerätesperren müssen deine Eltern in den Geräteeinstellungen einrichten.",
+    "Tus padres generan los códigos y gestionan el tiempo. Puedes preguntar, añadir fotos, guardar ideas y enviar comentarios. Tus padres deben configurar las restricciones de sitios y el bloqueo en los ajustes del dispositivo."
+  ],
+  "termsBody": [
+    "AI StudyNest 辅助学习，不能替代老师或专业意见。AI 回答和观察可能不准确，使用需由监护人指导。本版本不提供网站支付。",
+    "AI StudyNest 輔助學習，不能取代老師或專業意見。AI 回答和觀察可能不準確，使用需由監護人指導。本版本不提供網站付款。",
+    "AI StudyNestは学習を支援し、教師や専門家の助言の代わりではありません。AIの回答や観察は誤ることがあります。保護者の指導のもとで利用してください。この版ではWeb決済は提供しません。",
+    "AI StudyNest은 학습을 돕지만 교사나 전문가의 조언을 대신하지 않습니다. AI 답변과 관찰은 부정확할 수 있습니다. 보호자의 지도하에 사용해야 하며 이 버전은 웹 결제를 제공하지 않습니다.",
+    "AI StudyNest unterstützt das Lernen und ersetzt keine Lehrkräfte oder fachliche Beratung. KI-Antworten und Beobachtungen können falsch sein. Erziehungsberechtigte sollen die Nutzung begleiten. Diese Version bietet keine Webzahlungen.",
+    "AI StudyNest apoya el aprendizaje, pero no sustituye a docentes ni asesoramiento profesional. Las respuestas y observaciones de IA pueden ser inexactas. El uso debe estar supervisado por un tutor. Esta versión no ofrece pagos web."
+  ],
+  "confirmFamilyZone": [
+    "请先让家长确认家庭时区，再连接设备。",
+    "請先讓家長確認家庭時區，再連接裝置。",
+    "接続する前に、保護者に家族のタイムゾーンを確認してもらってください。",
+    "연결하기 전에 보호자에게 가족 시간대를 확인해 달라고 요청하세요.",
+    "Bitte deine Eltern, vor dem Verbinden die Familienzeitzone zu bestätigen.",
+    "Pide a tu padre o madre que confirme la zona horaria familiar antes de conectar."
+  ],
+  "imageReviewFailed": [
+    "图片未通过审核，请选择另一张。",
+    "圖片未通過審核，請選擇另一張。",
+    "画像が審査を通過しませんでした。別の画像を選んでください。",
+    "이미지가 검토를 통과하지 못했습니다. 다른 이미지를 선택하세요.",
+    "Das Bild hat die Prüfung nicht bestanden. Bitte wähle ein anderes.",
+    "La imagen no ha pasado la revisión. Elige otra."
+  ],
+  "imageServiceUnavailable": [
+    "图片存储或审核暂不可用，请重试。",
+    "圖片儲存或審核暫時無法使用，請重試。",
+    "画像の保存または審査を利用できません。もう一度お試しください。",
+    "이미지 저장 또는 검토를 사용할 수 없습니다. 다시 시도하세요.",
+    "Bildspeicherung oder Prüfung ist gerade nicht verfügbar. Bitte versuche es erneut.",
+    "El almacenamiento o la revisión de imágenes no están disponibles. Inténtalo de nuevo."
+  ],
+  "verificationFailed": [
+    "无法验证此请求，请刷新页面后重试。",
+    "無法驗證此請求，請重新整理頁面後再試。",
+    "リクエストを確認できませんでした。ページを再読み込みしてお試しください。",
+    "요청을 확인할 수 없습니다. 페이지를 새로고침한 후 다시 시도하세요.",
+    "Die Anfrage konnte nicht überprüft werden. Lade die Seite neu und versuche es erneut.",
+    "No se pudo verificar la solicitud. Actualiza la página e inténtalo de nuevo."
+  ],
+  "invalidTimezone": [
+    "请选择有效的时区。",
+    "請選擇有效的時區。",
+    "有効なタイムゾーンを選んでください。",
+    "유효한 시간대를 선택하세요.",
+    "Bitte wähle eine gültige Zeitzone.",
+    "Elige una zona horaria válida."
+  ],
+  "incompleteAnswer": [
+    "回答未能完成，请重试。",
+    "回答未能完成，請重試。",
+    "回答を完了できませんでした。もう一度お試しください。",
+    "답변을 완료하지 못했습니다. 다시 시도하세요.",
+    "Die Antwort konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
+    "No se pudo completar la respuesta. Inténtalo de nuevo."
+  ],
+  "cropError": [
+    "无法处理图片，请重试。",
+    "無法處理圖片，請重試。",
+    "画像を加工できませんでした。もう一度お試しください。",
+    "이미지를 처리하지 못했습니다. 다시 시도하세요.",
+    "Das Bild konnte nicht bearbeitet werden. Bitte versuche es erneut.",
+    "No se pudo editar la imagen. Inténtalo de nuevo."
+  ],
+  "clipboardError": [
+    "剪贴板不可用，请手动选择并复制连接码。",
+    "剪貼簿無法使用，請手動選取並複製連接碼。",
+    "クリップボードを利用できません。コードを選択して手動でコピーしてください。",
+    "클립보드를 사용할 수 없습니다. 코드를 선택하여 직접 복사하세요.",
+    "Die Zwischenablage ist nicht verfügbar. Markiere und kopiere den Code manuell.",
+    "El portapapeles no está disponible. Selecciona y copia el código manualmente."
+  ],
+  "formError": [
+    "请检查表单后重试。",
+    "請檢查表單後重試。",
+    "入力内容を確認してもう一度お試しください。",
+    "입력 내용을 확인한 후 다시 시도하세요.",
+    "Bitte überprüfe die Eingaben und versuche es erneut.",
+    "Revisa el formulario e inténtalo de nuevo."
+  ],
+  "invalidScore": [
+    "得分不能超过满分。",
+    "得分不能超過滿分。",
+    "得点は満点以下にしてください。",
+    "점수는 만점을 초과할 수 없습니다.",
+    "Die Punktzahl darf die Höchstpunktzahl nicht überschreiten.",
+    "La puntuación no puede superar el máximo."
+  ],
+  "webBrowser": [
+    "网页浏览器",
+    "網頁瀏覽器",
+    "Webブラウザ",
+    "웹 브라우저",
+    "Webbrowser",
+    "Navegador web"
+  ]
+}

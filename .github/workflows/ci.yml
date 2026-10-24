@@ -7,14 +7,30 @@ env:
 jobs:
   server:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: web_acceptance
+          POSTGRES_PASSWORD: acceptance-only
+          POSTGRES_DB: acceptance
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+psycopg2://web_acceptance:acceptance-only@localhost:5432/acceptance' || 'sqlite:///./ci-test.db' }}
     defaults: { run: { working-directory: server } }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt pytest
+      - run: alembic upgrade head
       - run: python -m pytest -q
-      - env:
+      - if: matrix.database == 'sqlite'
+        env:
           FENCE_MODE: llm
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           CHAT_MODEL: deepseek/deepseek-chat-v3.1
@@ -25,6 +41,29 @@ jobs:
           else
             python -m tools.eval_fence --check   # llm 模式围栏指标阈值断言（已实测达标）
           fi
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: python -m venv ../server/.venv
+      - run: ../server/.venv/bin/python -m pip install -r ../server/requirements.txt
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-browser-failures
+          path: |
+            web/playwright-report/
+            web/test-results/
   app:
     runs-on: ubuntu-latest
     strategy:
