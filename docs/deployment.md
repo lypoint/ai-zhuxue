@@ -2,7 +2,7 @@
 
 本文提供通用部署与配置说明。实际生产环境地址、凭据、发布步骤及恢复资料由部署方在仓库之外单独保管，不随本仓库分发。
 
-## 0. 后续 Agent 的执行入口（2026-10-23 同步）
+## 0. 后续 Agent 的执行入口（2026-10-24 同步）
 
 - 本文是当前通用打包部署流程；家长构建行为见 `scripts/build_parent.py`，CI 环境见 `.github/workflows/ci.yml`。发布前先核对三者及目标渠道锁文件，不直接复制历史验收记录中的命令。
 - 实际生产环境先读私有 [渠道与凭据说明](../../credentials/store-subscriptions.md) 和 [生产部署说明](../../credentials/production-deploy-gker.md)。当前生产使用什么进程管理、端口和配置文件，须以该环境的说明及只读检查结果为准；下方 Docker 示例不代表既有 systemd 环境的升级方式。
@@ -208,5 +208,97 @@ xcodebuild -version
 
 **产品**
 - [ ] 家长端实付订阅接入（真实支付通道，费率按通道确认）
-- [ ] Web 端（仅聊天）复用 chat API
+- [x] 海外 Web 双端生产发布、真实 Google 与合成学习流程联调；Android 模拟器补充验证完成范围见 [Web 验收记录](web-acceptance.md)；物理设备仍待验收
 - [ ] 时长管控从「消息数近似」升级为真实使用时长统计
+
+## 6. Google Play 海外双端 Web
+
+源码为 `web/`，复用本服务，不增加 Node 业务后端。订阅页只读展示已核验权益和购买来源，网页支付未接入；不得把开发 mock 购买开放给网页。
+
+### 品牌与当前域名（2026-10-24 已上线）
+
+英文品牌为 **AI StudyNest**。海外官网由旧域名迁移至 `https://aistudynest.com`；家长站为 `https://parents.aistudynest.com`，学生站为 `https://learn.aistudynest.com`。两站 Cookie 保持 host-only，不设置父域 Domain。
+
+当前生产配置为 `WEB_PARENT_ORIGIN=https://parents.aistudynest.com`、`WEB_STUDENT_ORIGIN=https://learn.aistudynest.com`；本地开发 Origin 保持 localhost。Google OAuth 的 JavaScript 授权来源配置为家长站 Origin，品牌名称改为 AI StudyNest；学生站不注册 Google 登录。Google Play 官网入口配置已随双站上线，源码位于外层 `site/googleplay/web-entrypoints.json`。后续发布须核对入口仍指向这两个 Origin。
+
+三站 DNS/TLS、家长 Google OAuth 与真实登录已验证。下表为当前域名职责，后续发布仍须核对实际运行配置；不要把历史迁移步骤当成尚未完成的待办。
+
+| 入口 | 当前职责 |
+|---|---|
+| `https://aistudynest.com` | Google Play 渠道官网、双端入口、隐私与条款；同时承载受限验单中继及通知路由 |
+| `https://parents.aistudynest.com` | 家长 Web、Google 登录、家庭与学习管理、只读订阅权益 |
+| `https://learn.aistudynest.com` | 学生 Web、连接码绑定、同源学习与私有媒体；不加载 Google 登录或支付 |
+| `https://i.lix.do` | 已退役，所有入口返回 410，不代理或重定向 |
+
+`GOOGLE_GATEWAY_URL=https://aistudynest.com`；`GOOGLE_PUBSUB_AUDIENCE`、Pub/Sub push endpoint 与 OIDC audience 均为 `https://aistudynest.com/payments/googleplay/notify`。官网 `/google/request`、`/google/certs` 保持主 API 来源限制及共享凭据鉴权，通知保留 Google OIDC 验签。新链路已通过认证测试推送，旧路由不再保留；具体主机、密钥与恢复材料只在私有生产说明中维护。域名迁移涉及原生包中的政策链接时，按对应渠道正式构建流程更新，不修改已有 APK；本轮未重新打包原生 App。
+
+### 构建与本地验收
+
+```sh
+cd web
+npm ci
+npm run build
+npx playwright install chromium webkit
+npm test
+```
+
+锁文件为 `web/package-lock.json`。Node 使用 Vite 8 支持的版本（20.19+、22.12+；本次开发使用 26.4）。产物分别为 `web/dist/parent/`、`web/dist/student/`。构建不读取或打入私钥；Google Web client ID 由已确认的后端配置经 `/browser/parent/config` 提供。
+
+Playwright 自启隔离的 8810 测试 API，以及 5173/5174 前端；端口占用时直接报错，不复用现有服务。测试夹具替代 Google 身份验证、模型和私有图片外部服务，因此仍需验收真实 Google OAuth、存储审核和模型配置。验收详情及未完成项见 [Web 验收记录](web-acceptance.md)。
+
+本地生产构建 HTTPS 验证：安装独立 Caddy 2.11+ 后运行 `CADDY_BIN=/absolute/path/to/caddy npm run test:https`。该流程使用临时证书、隔离数据库和实际代理模板，端口为 18443/19443/18811/8810，不安装系统 CA；身份、模型和图片依赖仍使用夹具。它验证本地网关，不代表公网部署或真实 OAuth 已通过。详见 `web/README.md`。
+
+### 生产必需配置
+
+| 配置 | 要求 |
+|---|---|
+| `WEB_ENABLED` | 默认 false；完成迁移、代理和 OAuth 核对后启用 |
+| `WEB_PARENT_ORIGIN` | 家长站真实 HTTPS Origin，不含路径、查询串或片段 |
+| `WEB_STUDENT_ORIGIN` | 学生站真实 HTTPS Origin；必须与家长站不同 |
+| `WEB_SESSION_HOURS` | 默认 168；会话有服务端到期与撤销，Cookie 为 Secure/HttpOnly/host-only/SameSite=Strict |
+| `GOOGLE_LOGIN_CLIENT_ID` | 已核实的 OAuth Web client ID；Google 控制台允许家长 Origin，继续严格校验 audience |
+| 图片配置 | 沿用当前图片部署说明；学生上传、审核后读取经学习站同源代理，不重定向到存储域名 |
+
+迁移新增 `families.timezone`、前一时区与切换时间，以及 `web_sessions`。未配置家庭继续沿用 `TZ_OFFSET_HOURS`，已有原生 App 不改认证协议；Web 连接前须由家长确认 IANA 时区。切换最多每日一次，首个新学习日延续已用额度，历史时长记录不改名、不复制为新消费。时间戳仍为 UTC，日界通过 IANA 时区处理夏令时。
+
+应用与 Alembic 的 PostgreSQL 连接均固定会话时区为 UTC，避免服务器本地时区重新解释旧调用方写入的无时区 UTC 时间。上线前核对历史写入约定、数据库会话时区和样本时间戳；此次改动不重写历史时间数据。家庭时区仅用于业务日界与显示，不用作数据库连接时区。
+
+`web/Caddyfile` 是双站模板，导入前设置：两端的真实 Origin、`WEB_PARENT_ROOT`/`WEB_STUDENT_ROOT`（本次构建的绝对目录）、`WEB_API_UPSTREAM`（已核实 API 上游）。代理必须保留真实 Host，分别只开放 `/api/browser/parent/*` 与 `/api/browser/student/*`，剥离 `/api` 后转发；关闭 SSE 缓冲。普通静态路径回退到该角色的 `index.html`，不得把另一角色或原生 API 整体暴露到学习站。模板含角色独立 CSP，学生站仅允许本站脚本、字体及私有图片。
+
+两处反向代理均显式设置 `header_up Host {hostport}` 和 `flush_interval -1`。Caddy 2.11+ 对 HTTPS 上游默认改写 Host；浏览器后端依赖原始角色 Host 校验，因此不能省略该覆盖。参见 [Caddy HTTPS 上游说明](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#https)。
+
+Google Play 官网源码在仓库外层私有 `site/googleplay/`，不加入开源 `product` 仓库。其双端链接由同源 `/web-entrypoints.json` 配置，格式为 `{"parent":"家长站真实 HTTPS Origin","student":"学生站真实 HTTPS Origin"}`。两端必须是不同 Origin；未配置时入口隐藏，不能用示例域名或历史 API 地址代替真实配置。与本次构建一起检查入口实际跳转、深链接刷新和浏览器会话。
+
+国内私有官网已在源码中移除旧 Web 入口、使用步骤与现行政策范围中的 Web 描述。API `/web` 固定返回 410，旧内嵌页面已删除；国内服务器曾配置的 `/ai-zhuxue/` 等别名还须按真实反代配置返回 410，并刷新缓存。不能删除 App 使用的 `/chat`、`/auth`、`/parent` 等业务 API，也不能把国内 token 自动转到海外站。
+
+后续更新仍按本文件第 0 节读取私有生产说明、核对真实环境、备份数据库与保留原密钥，再执行迁移与站点切换。2026-10-24 经用户批准已完成首次生产启用、迁移与真实 Google/合成学习流程验收；这不代替 iPad/Android 真机与真实网站白名单验收。
+
+### 跨机 HTTPS 上游
+
+静态站与 API 反代位于不同主机时，不能直接把站点 Host 发往只接受 API 域名的中间 Caddy：第一跳的 Host/TLS SNI 应匹配已确认的 API 域名；第二跳仅接受已确认静态站节点的源 IP，并按 `/browser/parent/*` 与 `/browser/student/*` 分别将 Host 还原为对应站点主机名，再转发至 loopback API。未匹配的 `/browser/*` 返回 404；原生 API 路由保留。多组 `handle` 使用 `route` 保持明确顺序，避免通用拒绝规则抢先匹配。
+
+站点入口代理使用 Caddy 默认行为丢弃不可信客户端提供的 X-Forwarded-*；中间 API 代理仅对受源 IP 约束的角色路由转发该客户端地址，避免所有家庭共享节点 IP 的限流桶。两跳都关闭 SSE 缓冲。不要在通用 API 路由信任任意客户端提交的转发头。实际节点、候选文件、数据库备份和切换脚本保存在私有生产说明；新代理先校验、备份，先切换 API 并验证迁移/健康，再启用静态站，最后检查 TLS、跨角色隔离、真实 Google 登录和当前验单健康。
+
+### 2026-10-24 已上线与真实回归
+
+官网及双端 HTTPS 已在用户批准后启用；生产 Web Origin 使用上述确定域名，数据库当前迁移 `0c3e7a9b2d41`。API 保留现有 systemd/虚拟环境和密钥，CMS 保留原发布；两跳角色代理、当前验单路由及备份恢复方式见私有生产说明。不可从本段跳过运行状态检查直接复用历史发布包。
+
+真实 Google 登录、家庭/试用权益、学生连接、真实流式/公式/识图/图示、反馈/收藏/奖励、成绩/评估/导出和重绑失效已有线上证据。上线后修复 TeX 分隔符兼容、图示形状标签、含反馈奖励的孩子彻底删除与横屏输入区，专门回归和实际输出均已核验。支付仍关闭；原生 App 未重打包。物理设备按用户要求暂缓验收；母语审校、目标市场性能与评估分类局限见 [Web 验收记录](web-acceptance.md)。
+
+### 2026-10-24 验单域名全量切换
+
+用户确认旧路由没有实际订单后，Google 验单中继、公钥读取及 Pub/Sub authenticated push 已统一迁至 AI StudyNest 官网 Origin。主 API 的 `GOOGLE_GATEWAY_URL`、`GOOGLE_PUBSUB_AUDIENCE` 与 Pub/Sub 的 push endpoint / OIDC audience 必须一致更新；实际值与备份位置见私有生产说明。验单路径保持主 API 来源 IP 限制及共享凭据鉴权，通知保持原始 Google OIDC 验签；没有放宽接口。
+
+已核实新端点 Google 公钥 200、无凭据 401、跨包操作 403、合成无效令牌 400 invalid、真实 Pub/Sub 认证测试推送 200。旧域名仅返回 410，不代理或重定向；当前调用方不再使用旧域名。官网、家长站、学生站与 API/CMS 健康复核通过。此变更不启用 Web 支付，也不代表真实订单购买验收；本轮没有代码、依赖或数据库迁移变更。
+
+### 联系方式静态更新
+
+2026-10-24：双端帮助/隐私/条款窗口与 Google Play 渠道官网三页页脚加入用户指定的联系邮箱链接，支持七语标签。静态构建与当前站点单独部署，保留现行验单、下载及角色代理；不因官网源码存在其他任务修改而整站覆盖发布。生效目录和恢复文件见私有生产说明。
+
+### 静态传输与会话失效复核
+
+2026-10-24：双端 Caddy 对 /assets/* 启用 zstd/gzip，动态接口与 SSE 不套用静态压缩；发布后核对压缩响应解码字节与检查过的 dist 一致。模板与双引擎 HTTPS 网关回归覆盖静态内容可读、安全 Cookie 和及时 SSE。会话运行时失效及初次加载401均清理当前标签页私有草稿；有效会话刷新仍恢复草稿，无关偏好保留。用户已暂缓物理设备验收，后续恢复时按 Web 验收记录继续。
+
+### 评估规则与缓存版本
+
+2026-10-24：学业分类区分已覆盖的回答语言指令与实际语言课程，规则更新时同步递增输入版本，避免家长/学生复用旧快照。历史快照保留，仅重新生成时使用新版本。评估日期按完整业务日包含首尾两天，起止相同合法，倒序或无效日期仍拒绝。此改动无迁移/依赖变更；生产更新前校验原文件摘要，备份当前代码配置和数据库，切换后检查健康与当前部署代码的隔离canary。

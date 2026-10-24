@@ -6,10 +6,10 @@
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌──────────────┐
-│ 学生端 App   │     │ 家长端 App   │     │ Web 端(仅聊天)│
-│ (Flutter,   │     │ (Flutter,   │     │ (已实现,复用  │
-│ app_student │     │ app_parent  │     │  chat API)   │
-│ +app_core)  │     │ +app_core)  │     │              │
+│ 学生端 App   │     │ 家长端 App   │     │ 海外 Web 双端 │
+│ (Flutter,   │     │ (Flutter,   │     │ React/TS     │
+│ app_student │     │ app_parent  │     │ 家长 / 学生   │
+│ +app_core)  │     │ +app_core)  │     │ 独立源与会话  │
 └──────┬──────┘     └──────┬──────┘     └──────┬───────┘
        │ HTTPS/JWT         │ HTTPS/JWT         │
        ▼                   ▼                   ▼
@@ -31,6 +31,8 @@
                         open.bigmodel.cn 等
                          (模型备案需核实)
 ```
+
+2026-10-24：新增海外 `web/`，通过角色独立的同源代理与 HttpOnly 会话复用业务接口；具体部署、安全会话、IANA 时区及待验边界见 [Web 验收记录](web-acceptance.md)。旧内嵌 `/web` 页面已由 API 返回 410，生产旧反代别名仍须发布时核对。
 
 ## 1.5 CMS 独立服务
 

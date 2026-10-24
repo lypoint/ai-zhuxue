@@ -119,3 +119,11 @@
 智谱/Kimi 商务确认(C37/C38) ──→ 模型选型锁定 ──→ M1 llm 模式全量
 团队/预算（提案方）──→ 全部里程碑排期
 ```
+
+## 海外双端 Web（2026-10-24）
+
+已新增 React/TypeScript 家长与学生双入口，复用现有家庭、学习和管理 API；覆盖图片、反馈追问与奖励、成绩评估、通知、导出和账号管理。新增浏览器安全会话、IANA 家庭时区与 PostgreSQL UTC 连接约定，旧 `/web` 返回 410。上文按历史日期记录的“仅聊天／Web 后台计时待校准”不再描述当前源码。
+
+品牌为 **AI StudyNest**；官网 `https://aistudynest.com`，家长 `https://parents.aistudynest.com`，学生 `https://learn.aistudynest.com`。双端及官网已生产发布，真实 Google／模型／私有存储联调和 Android 模拟器验证已完成记录范围；验单及通知已全量迁至官网，旧 `i.lix.do` 返回 410。Web 与渠道官网已提供联系邮箱入口。
+
+逐项证据见 [Web 验收记录](web-acceptance.md)，后续部署按 [部署与运维](deployment.md#6-google-play-海外双端-web)。网页订阅支付按用户要求留空；物理 iPad／Android／iPhone 的摄像头、锁屏、主屏幕会话及系统网站白名单验收按用户决定暂缓，不记为通过。
