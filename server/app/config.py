@@ -70,6 +70,11 @@ class Settings(BaseSettings):
     store_products_json: str = "{}"
     store_token_secret: str = ""  # Fernet key (generate once, retain across deployments)
     store_test_account_tokens: str = ""  # comma-separated family UUIDs allowed for review/test purchases
+    creem_test_enabled: bool = False
+    creem_test_api_key: str = ""
+    creem_test_webhook_secret: str = ""
+    creem_test_account_tokens: str = ""
+
     paddle_sandbox_enabled: bool = False
     paddle_sandbox_api_key: str = ""
     paddle_sandbox_client_token: str = ""

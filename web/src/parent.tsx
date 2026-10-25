@@ -56,6 +56,7 @@ import Grades from "./grades";
 import Learning from "./learning";
 import Assessments from "./assessments";
 import PaddleSandbox from "./paddle-sandbox";
+import CreemTest from "./creem-test";
 
 type PageProps = {
   family: Family;
@@ -1329,6 +1330,7 @@ function Subscription({ timezone }: { timezone: string | null }) {
     <>
       <Heading title={t("subscription")} />
       <PaddleSandbox reload={resource.reload} provider={resource.data?.provider} />
+      <CreemTest reload={resource.reload} provider={resource.data?.provider} />
       <ResourceState {...resource} retry={resource.reload} />
       {resource.data && (
         <section className="panel">
