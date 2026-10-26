@@ -219,11 +219,11 @@ xcodebuild -version
 
 2026-10-26：Creem Test Mode 备用支付接入流程见 [Creem 测试支付](creem-test.md)。仅指定测试家庭可见，正式收款保持关闭；部署前后状态以私有生产记录为准。
 
-家长 Web Firebase Analytics：构建前从私有 `credentials/firebase/parent-web-config.json` 注入 `PARENT_FIREBASE_CONFIG`（JSON，必须是 Web App 的 `apiKey/appId/projectId/measurementId`），不要使用 Android 配置或管理员私钥；本地可写入忽略的 `web/.env.parent.local`，示例见 `web/.env.parent.example`。SDK 及 gRPC 安全修复覆盖版本已锁定在 `web/package-lock.json`，按 `npm ci` 安装，不复用旧依赖目录。配置缺失时统计入口和收集都关闭，字段不完整时构建失败；学生构建始终不包含 Firebase 配置/SDK。当前源码已实现、独立云端 Web 数据流已建立并确认增强型衡量关闭，本地测试事件已抵达 DebugView，生产站点尚未切换。
+家长 Web Firebase Analytics：构建前从私有 `credentials/firebase/parent-web-config.json` 注入 `PARENT_FIREBASE_CONFIG`（JSON，必须是 Web App 的 `apiKey/appId/projectId/measurementId`），不要使用 Android 配置或管理员私钥；本地可写入忽略的 `web/.env.parent.local`，示例见 `web/.env.parent.example`。SDK 及 gRPC 安全修复覆盖版本已锁定在 `web/package-lock.json`，按 `npm ci` 安装，不复用旧依赖目录。配置缺失时统计入口和收集都关闭，字段不完整时构建失败；学生构建始终不包含 Firebase 配置/SDK。独立云端 Web 数据流已建立并确认增强型衡量关闭，本地测试事件已抵达 DebugView；2026-10-26 已随 `13b2537` 配套发布 API/CMS、家长及学习站静态页面。
 
 上线时仅对家长 CSP 增加 `web/Caddyfile` 中明确列出的 gtag 脚本、Analytics 收集及 Firebase Web 配置/安装请求域名，学生 CSP 保持原样。检查实际生效代理（包括跨机两跳）与模板一致，并同步国际官网完整隐私政策中的 Web Analytics、浏览器标识、用途、可撤回授权和 Google 数据处理说明；家长 Web 内的隐私说明已同步。发布后验证：首次/拒绝时无 Firebase 请求；同意后固定事件到达独立 Web 数据流；页面/支付回跳的 query、hash 和资源 ID 不出现在事件参数；撤回和跨标签页同步立即停止；学生产物无 Firebase SDK/数据流标识。埋点事件口径、同意样本限制与测试命令见 [埋点说明](telemetry.md#家长-web-firebase-analytics2026-10-26)。本改动无数据库迁移，但 Web 注册事件需配套启用带 `is_new_user` 的登录响应，旧响应按非新用户处理。
 
-服务端/学习站运营统计（2026-10-26）：新增迁移 `2e5f7a9b1c3d`，按当前环境先迁移及发布 API，再发布 Web 和 CMS。服务端、学习站不设同意门槛；家长 Web 保留同意控制。没有新的第三方密钥或学习站 CSP 域名。CMS 概览新增管理员专用漏斗查询，事件与成熟 cohort、支付证据缺口及上线验证见 [运营统计](operations-analytics.md)。本次无历史回填，未部署生产；须同步线上完整隐私政策中的第一方统计范围。
+服务端/学习站运营统计（2026-10-26）：新增迁移 `2e5f7a9b1c3d`，按当前环境先迁移及发布 API，再发布 Web 和 CMS。服务端、学习站不设同意门槛；家长 Web 保留同意控制。没有新的第三方密钥或学习站 CSP 域名。CMS 概览新增管理员专用漏斗查询，事件与成熟 cohort、支付证据缺口及上线验证见 [运营统计](operations-analytics.md)。本次无历史回填；2026-10-26 已随 `13b2537` 上线，国际官网七语完整隐私政策同步披露第一方统计范围。
 
 ### 品牌与当前域名（2026-10-24 已上线）
 
@@ -320,7 +320,9 @@ Google Play 官网源码在仓库外层私有 `site/googleplay/`，不加入开�
 
 生产发布前按第 0 节读取私有生产说明，确认两个域名各自实际生效的静态根目录并分别备份。以现行线上文件建立候选，仅合入本次核对过的 HTML/翻译改动；`site/` 上传不得递归混入 `site/googleplay/`，国际目录也不得用国内目录覆盖。保持现行下载、验单/通知路由及家长/学生站代理配置。发布后分别检查两域名的 `/privacy/`、`/terms/` 与翻译脚本响应、canonical、七语正文和所有支持邮箱，确认刷新缓存后生效；失败时恢复对应站点的备份。发布结果、产物摘要及备份位置记录在私有生产说明中。
 
-2026-10-26 法律文案候选（未发布）：国际官网七语 AI 说明更新为 ChatGPT（OpenAI）、Claude（Anthropic）、Gemini（Google）等能力，并注明以实际启用配置为准及必要接入/托管/传输处理，不将展示名称等同于线路已切换。隐私政策与条款日期更新为 2026-10-26，三页翻译脚本缓存版本同步。Web 双端 78 语种同步模型说明，联系邮箱所在帮助/法律弹窗补齐站内隐私与条款入口；学生站不新增外域依赖。国际官网邮箱页脚原有两项法律链接已核对保留。官网私有源码的本次差异保存在仓库外 `credentials/international-legal-20261026.patch`，不能漏掉这些静态文件，仅发布 product 并不会更新国际官网。
+2026-10-26 法律文案已发布（配套 `13b2537`）：国际官网七语 AI 说明更新为 ChatGPT（OpenAI）、Claude（Anthropic）、Gemini（Google）等能力，并注明以实际启用配置为准及必要接入/托管/传输处理，不将展示名称等同于线路已切换。隐私政策与条款日期更新为 2026-10-26，三页翻译脚本缓存版本同步。Web 双端 78 语种同步模型说明，联系邮箱所在帮助/法律弹窗补齐站内隐私与条款入口；学生站不新增外域依赖。国际官网邮箱页脚原有两项法律链接已核对保留。官网私有源码的本次差异保存在仓库外 `credentials/international-legal-20261026.patch`，不能漏掉这些静态文件，仅发布 product 并不会更新国际官网。
+
+2026-10-26 发布验收：API/CMS 使用实际运行目录构建增量候选，保留既有 import 位置修复、启动参数、环境覆盖及支付测试名单。核验依赖未变并通过 `pip check`；备份数据库后执行 `0c3e7a9b2d41` → `1d4e6f8a0b2c` → `2e5f7a9b1c3d`，同时上线前一提交的剩余试用时长策略。PostgreSQL 事件写入/幂等/报表探针通过并回滚合成数据。两服务 active、NRestarts=0，最近错误日志为空。Web 从准确提交干净副本 `npm ci` 构建，学生包不含 Firebase，保留旧哈希资源；国际官网仅替换本次四个文件，Caddy 仅切三处 root 与家长 Firebase CSP，学习站 CSP 保持同源。公网三站入口、法律页面和脚本摘要与候选一致，七语隐私/条款模型名称及 Web 联系邮箱旁法律入口经浏览器核对，家长拒绝统计时未加载 Firebase 脚本。原生安装包未重建，真实付款未重测；静态政策更新不切换模型线路。数据库备份、候选与回退配置、线上回执和证据保存在私有生产说明及 `credentials/analytics-legal-release-20261026/`。回退代码保留增量 schema，不以旧备份覆盖新业务数据。
 
 ### 静态传输与会话失效复核
 

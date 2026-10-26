@@ -24,7 +24,7 @@
 
 上述 Firebase 漏斗只代表同意统计的浏览器样本，不提供跨浏览器家庭去重。服务端和学习站现已增加第一方事件，按本次产品决策不设同意门槛，支持家庭去重的激活、学习、结账、30 天转化和留存；详见 [运营漏斗与事件口径](operations-analytics.md)。自动续费、退款和净收入仍需财务事实与账本。不得把 `subscription_verify` 当作 GA `purchase` 事件，或凭付款回跳 URL 发放/统计付款成功。云端已注册事件范围的 `page_name`（Parent Web Page）、`provider`（Billing Provider）、`result`（Operation Result）自定义维度；其他环境部署时检查并复用同名定义。
 
-验证：`npm run check`；使用合成配置 `WEB_TEST_FIREBASE_CONFIG='{"apiKey":"test","appId":"1:123:web:test","projectId":"test","measurementId":"G-TEST"}' npx playwright test tests/analytics.spec.ts` 验证真实 SDK、授权前零外发、撤回、参数脱敏和学生隔离。该测试拦截所有 Google 采集请求。真实私有配置另已通过本地页面授权，云端 DebugView 收到 `page_view`、`session_start`、`first_visit`，确认 `page_location` 为固定本地页面；测试后已撤回本地授权。证据在私有 Firebase 目录，未发布生产站点。
+验证：`npm run check`；使用合成配置 `WEB_TEST_FIREBASE_CONFIG='{"apiKey":"test","appId":"1:123:web:test","projectId":"test","measurementId":"G-TEST"}' npx playwright test tests/analytics.spec.ts` 验证真实 SDK、授权前零外发、撤回、参数脱敏和学生隔离。该测试拦截所有 Google 采集请求。真实私有配置另已通过本地页面授权，云端 DebugView 收到 `page_view`、`session_start`、`first_visit`，确认 `page_location` 为固定本地页面；测试后已撤回本地授权。证据在私有 Firebase 目录。2026-10-26 已随 `13b2537` 发布生产家长站；公网产物与授权/拒绝入口已核对，学习站保持第一方采集及同源隔离。
 
 ## 原生 App
 
