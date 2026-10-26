@@ -47,6 +47,7 @@ def test_request_is_authenticated_confirmed_idempotent_and_family_scoped(client)
         db.get(m.AccountDeletionRequest, fid).created_at = datetime.now(timezone.utc) - timedelta(days=2)
     with SessionLocal.begin() as db:
         complete_deletion(db, fid)
+        assert db.query(m.AnalyticsEvent).filter_by(family_id=fid).count() == 0
     assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 401
     records = client.get('/admin/account-deletions', headers=make_admin(client))
     assert next(r for r in records.json()['items'] if r['family_id'] == fid)['status'] == 'completed'

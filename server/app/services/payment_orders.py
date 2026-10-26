@@ -122,6 +122,12 @@ def settle(order_id: int, transaction: dict, db: Session, *, demo=False):
     sub.paid_amount = yuan(sub.paid_amount_cents)
     sub.provider = order.provider
     order.status, order.transaction_id = "paid", transaction_id
+    from .analytics import record
+    record(db, "subscription_activated", family_id, f"order:{order.id}:active", provider=order.provider,
+           environment="test" if demo else "production")
+    if order.amount_cents > 0:
+        record(db, "payment_confirmed", family_id, f"order:{order.id}:paid", provider=order.provider,
+               environment="test" if demo else "production")
     try:
         db.commit()
     except IntegrityError:

@@ -642,3 +642,17 @@ class StoreTransaction(TimestampMixin, Base):
     # Store-reported prices only; not added to legacy CNY cash totals.
     price_milliunits: Mapped[int | None] = mapped_column(Integer, nullable=True)
     currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+
+
+class AnalyticsEvent(Base):
+    """First-party operations facts; never store free text or external identifiers."""
+    __tablename__ = "analytics_events"
+    __table_args__ = (Index("ix_analytics_event_time", "name", "occurred_at"),
+                     Index("ix_analytics_family_time", "family_id", "occurred_at"))
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    name: Mapped[str] = mapped_column(String(40))
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"))
+    student_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source: Mapped[str] = mapped_column(String(20))
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    properties: Mapped[str] = mapped_column(Text, default="{}")

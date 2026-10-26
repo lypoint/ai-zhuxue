@@ -99,7 +99,9 @@ test("family connects, studies with images, reviews records, grades and rewards 
   const student = await context.newPage();
   student.on("pageerror", (error) => errors.push(error.message));
   const external: string[] = [];
+  const usageEvents: {name:string; properties:Record<string,unknown>}[] = [];
   student.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/browser/student/events") usageEvents.push(request.postDataJSON());
     if (
       !request.url().startsWith(studentURL) &&
       !request.url().startsWith("data:") &&
@@ -109,6 +111,12 @@ test("family connects, studies with images, reviews records, grades and rewards 
   });
   await connect(student, code);
   await ask(student, "Explain math fractions 1/2 + 1/4");
+  await expect.poll(() => usageEvents.map(event => event.name)).toEqual(expect.arrayContaining([
+    "student_page_view", "guide_completed", "question_submitted", "answer_received",
+  ]));
+  expect(usageEvents.every(event => Object.keys(event.properties).every(key => key === "page"))).toBe(true);
+  expect(JSON.stringify(usageEvents)).not.toContain("Explain math");
+  await expect(student.getByRole("button", {name:"Accept All",exact:true})).toHaveCount(0);
   await expect(student.locator(".katex").first()).toBeVisible();
   await expect(student.locator(".katex")).toHaveCount(3);
   await expect(student.locator(".markdown pre code")).toHaveText(String.raw`\(keep this as code\)`);

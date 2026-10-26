@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .api import admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin, browser, paddle_payments, creem_payments
+from .api import analytics, admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin, browser, paddle_payments, creem_payments
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
@@ -66,6 +66,7 @@ app.include_router(admin.router)
 app.include_router(images.router)
 app.include_router(image_admin.router)
 app.include_router(browser.router)
+app.include_router(analytics.router)
 
 
 @app.get("/web", response_class=HTMLResponse, include_in_schema=False)

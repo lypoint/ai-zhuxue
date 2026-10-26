@@ -13,6 +13,7 @@ import "./styles.css";
 const App = lazy(() =>
   __WEB_ROLE__ === "parent" ? import("./parent") : import("./student"),
 );
+const AnalyticsConsent = __WEB_ROLE__ === "parent" ? lazy(() => import("./analytics-consent")) : null;
 const updateLanguage = () => {
   document.title = `AI StudyNest · ${i18n.t(__WEB_ROLE__ === "parent" ? "guardian" : "student")}`;
   document.documentElement.lang = i18n.language;
@@ -51,6 +52,7 @@ void languageReady.then(() => createRoot(document.getElementById("root")!).rende
   <ErrorBoundary>
     <NoticeProvider>
       <BrowserRouter>
+        {AnalyticsConsent && <Suspense fallback={null}><AnalyticsConsent /></Suspense>}
         <Auth>
           {(session, refresh) => (
             <Suspense

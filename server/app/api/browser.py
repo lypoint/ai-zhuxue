@@ -64,7 +64,8 @@ def issue(result, role, response, db):
     db.commit()
     response.set_cookie(cookie_name(role), secret, max_age=settings.web_session_hours * 3600,
                         httponly=True, secure=settings.env == "prod", samesite="strict", path="/")
-    return {"csrf_token": csrf(secret), "role": role}
+    return {"csrf_token": csrf(secret), "role": role,
+            **({"is_new_user": bool(getattr(result, "is_new_user", False))} if role == "parent" else {})}
 
 
 @router.get("/{role}/config")

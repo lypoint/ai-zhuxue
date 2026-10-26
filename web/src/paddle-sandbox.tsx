@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "./api";
 import { ResourceState, useAction, useResource } from "./ui";
+import { track } from "./parent-analytics";
 
 type Catalog = {
   enabled: boolean;
@@ -69,6 +70,9 @@ export default function PaddleSandbox({ reload, provider }: { reload: () => void
       paddle.Environment.set("sandbox");
       paddle.Initialize({ token: clientToken, eventCallback: (event) => {
         if (event.name === "checkout.completed") onCompleted(event.data?.transaction_id);
+        if (event.name === "checkout.loaded") void track("checkout_open", { provider: "paddle_sandbox" });
+        if (event.name === "checkout.closed") void track("checkout_closed", { provider: "paddle_sandbox" });
+        if (event.name === "checkout.error") void track("checkout_error", { provider: "paddle_sandbox" });
       } });
       initialized = true;
     }
@@ -92,9 +96,12 @@ export default function PaddleSandbox({ reload, provider }: { reload: () => void
     });
   }, [clientToken, run, show]);
   if (!catalog.data?.enabled) return catalog.error ? <ResourceState {...catalog} retry={catalog.reload} /> : <p className="notice">{t("noPayment")}</p>;
-  const open = async (product_code: string) => {
-    const result = await api<{ transaction_id: string }>("/parent/paddle/checkout", "POST", { product_code });
-    await show(result.transaction_id);
+  const open = async (product_code: string, seat_count: number) => {
+    void track("begin_checkout", { provider: "paddle_sandbox", seat_count });
+    try {
+      const result = await api<{ transaction_id: string }>("/parent/paddle/checkout", "POST", { product_code });
+      await show(result.transaction_id);
+    } catch (error) { void track("checkout_error", { provider: "paddle_sandbox" }); throw error; }
   };
   return <section className="panel">
     <h2>Paddle Sandbox</h2>
@@ -104,7 +111,7 @@ export default function PaddleSandbox({ reload, provider }: { reload: () => void
       const url = new URL(result.url);
       if (url.protocol !== "https:" || url.hostname !== "sandbox-customer-portal.paddle.com") throw new Error("Invalid Sandbox portal URL.");
       window.location.assign(url.href);
-    })}>{t("cancel")}</button> : catalog.data.items.map(item => <button className="button" key={item.product_code} disabled={busy || confirming} onClick={() => void run(() => open(item.product_code))}>
+    })}>{t("cancel")}</button> : catalog.data.items.map(item => <button className="button" key={item.product_code} disabled={busy || confirming} onClick={() => void run(() => open(item.product_code, item.seat_count))}>
       {item.seat_count} · {t("seats")} · {new Intl.NumberFormat(i18n.language, { style: "currency", currency: item.currency }).format(Number(item.amount) / 100)} / month
     </button>)}
     {pending && <button className="button secondary" disabled={confirming} onClick={() => setConfirming(true)}>{confirming ? t("pending") : t("retry")}</button>}

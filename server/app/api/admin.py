@@ -1154,3 +1154,13 @@ def assessment_audits(page: int = 1, size: int = 50,
                        "actor_id": row.actor_id, "action": row.action,
                        "created_at": row.created_at.isoformat() if row.created_at else None}
                       for row in rows]}
+
+
+@router.get("/analytics/funnels")
+def operations_funnels(start: dt.date, end: dt.date, include_test: bool = False,
+                       principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
+    require_operate(principal)
+    if not 0 <= (end - start).days <= 30 or end > dt.datetime.now(dt.timezone.utc).date():
+        raise HTTPException(422, "Use an inclusive UTC registration cohort of at most 31 days, ending no later than today")
+    from ..services.analytics_report import report
+    return report(db, start, end, include_test=include_test)

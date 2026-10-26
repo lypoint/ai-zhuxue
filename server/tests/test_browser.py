@@ -43,6 +43,19 @@ def child_and_session(client, headers):
     return created.json()["student_id"], {"Origin": settings.web_student_origin, "X-CSRF-Token": result.json()["csrf_token"]}
 
 
+def test_parent_login_distinguishes_signup_from_returning_login(client, monkeypatch):
+    from app.api import auth
+    monkeypatch.setattr(settings, "web_enabled", True)
+    subject = "analytics-" + uuid.uuid4().hex
+    monkeypatch.setattr(auth, "verify_google_identity", lambda _: {"sub": subject})
+    for expected in [True, False]:
+        response = client.post('/browser/parent/login', headers={'Origin': settings.web_parent_origin},
+                               json={'id_token': 'synthetic-google-token-for-analytics'})
+        assert response.status_code == 200, response.text
+        assert response.json()['is_new_user'] is expected
+        assert set(response.json()) == {'csrf_token', 'role', 'is_new_user'}
+
+
 def test_browser_cookie_csrf_origins_role_and_no_payments(web):
     client, headers = web
     cookie = client.cookies.get("ailearning-parent")

@@ -135,6 +135,8 @@ def create_student(body: StudentCreateIn, guardian: Guardian = Depends(current_g
     db.flush()
     from ..api.bind import _new_code
     bind = _new_code(db, guardian.family_id, purpose="new_student", target_student_id=student.id)
+    from ..services.analytics import record
+    record(db, "child_created", guardian.family_id, f"student:{student.id}:created", student_id=student.id)
     db.commit()
     return {"student_id": student.id, "bind_code": bind.code,
             "expires_at": bind.expires_at.isoformat()}

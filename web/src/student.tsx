@@ -1,3 +1,4 @@
+import { enableStudentAnalytics, trackStudent } from "./student-analytics";
 import { useEffect, useRef, useState } from "react";
 import {
   NavLink,
@@ -95,6 +96,11 @@ export default function Student({
   const [menu, setMenu] = useState(false);
   const narrow = useNarrowNav();
   const [availability, setAvailability] = useState<Availability | null>(null);
+  useEffect(() => {
+    enableStudentAnalytics(true);
+    trackStudent("student_page_view", location.pathname);
+    return () => enableStudentAnalytics(false);
+  }, [location.pathname]);
   const [online, setOnline] = useState(navigator.onLine);
   const [guide, setGuide] = useState(() => {
     try {
@@ -338,6 +344,7 @@ export default function Student({
               } catch {
                 /* Acknowledgement remains valid for this page. */
               }
+              trackStudent("guide_completed");
               setGuide(false);
             }}
           >
@@ -636,6 +643,7 @@ function Chat({
         created_at: new Date().toISOString(),
       },
     ]);
+    trackStudent("question_submitted");
     try {
       await stream(
         {
@@ -695,6 +703,7 @@ function Chat({
                   : row,
               ),
             );
+          if (name === "done") trackStudent("answer_received");
           if (name === "done")
             setMessages((rows) =>
               rows.map((row) =>
@@ -710,6 +719,7 @@ function Chat({
         },
       );
     } catch (e) {
+      trackStudent(e instanceof DOMException && e.name === "AbortError" ? "answer_cancelled" : "answer_failed");
       if (sequence === requestNumber.current) {
         const message =
           e instanceof DOMException && e.name === "AbortError"
@@ -1132,6 +1142,7 @@ function Chat({
                     await api("/chat/teachers/selection", "PUT", {
                       teacher_id: teacher.teacher_id,
                     });
+                  trackStudent("teacher_selected");
                   setTeacherId(teacher.teacher_id);
                   teachers.reload();
                   select(null);

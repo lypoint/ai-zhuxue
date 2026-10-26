@@ -190,9 +190,12 @@ def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_su
     db.add(Notification(family_id=family.id, type="system",
                         title="欢迎使用 AI 助学",
                         body="已为您开启 30 天免费试用。请生成绑定码激活孩子端，开启受保护的学习之旅。"))
+    from ..services.analytics import record
+    record(db, "family_registered", family.id, f"family:{family.id}:registered")
+    record(db, "trial_started", family.id, f"family:{family.id}:trial")
     db.commit()
     return TokenOut(token=make_token("guardian", guardian.id, guardian.family_id,
-                                 guardian.token_version), role="guardian")
+                                 guardian.token_version), role="guardian", is_new_user=True)
 
 @router.post("/logout")
 def logout(token: str = __import__("fastapi").Header(default="", alias="Authorization"),
@@ -303,6 +306,8 @@ def student_login(body: StudentLoginIn, db: Session = Depends(get_db)):
         if consumed != 1:
             db.rollback()
             raise HTTPException(409, "bind code already used")
+        from ..services.analytics import record
+        record(db, "device_connected", student.family_id, f"bind:{bind.id}:connected", student_id=student.id)
         db.commit()
     except IntegrityError:
         db.rollback()

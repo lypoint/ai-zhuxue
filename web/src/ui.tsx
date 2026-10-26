@@ -370,20 +370,32 @@ export async function copy(text: string) {
   await navigator.clipboard.writeText(text);
 }
 export function Legal({
-  page,
+  page: initialPage,
   onClose,
 }: {
   page: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const [page, setPage] = useState(initialPage);
+  useEffect(() => setPage(initialPage), [initialPage]);
   const contactEmail = "support@aistudynest.com";
   return (
     <Dialog title={t(page)} onClose={onClose}>
       <p className="prose">{t(page + "Body")}</p>
+      {(page === "privacy" || page === "terms") && <p className="prose">
+        {tx("AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。")}
+      </p>}
+      {__WEB_ROLE__ === "parent" && page === "privacy" && <p className="prose">
+        {tx("允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。")}
+      </p>}
       <p>
         {t("contactUs")}: <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
       </p>
+      <nav className="actions">
+        <button className="text-button" onClick={() => setPage("privacy")} aria-current={page === "privacy" ? "page" : undefined}>{t("privacy")}</button>
+        <button className="text-button" onClick={() => setPage("terms")} aria-current={page === "terms" ? "page" : undefined}>{t("terms")}</button>
+      </nav>
       <p className="muted">{t("visibility")}</p>
     </Dialog>
   );

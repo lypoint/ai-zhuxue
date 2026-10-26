@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { browser, setCSRF } from "./api";
 import { useAction } from "./ui";
+import { track } from "./parent-analytics";
 
 declare global {
   interface Window {
@@ -43,12 +44,24 @@ export default function GoogleSignIn({
         auto_select: false,
         callback: (result) => {
           void run(async () => {
-            const response = await browser<{ csrf_token: string }>(
-              "/login",
-              "POST",
-              { id_token: result.credential },
-            );
+            void track("login_start", { provider: "google" });
+            let response;
+            try {
+              response = await browser<{ csrf_token: string; is_new_user?: boolean }>(
+                "/login",
+                "POST",
+                { id_token: result.credential },
+              );
+            } catch (error) {
+              void track("login", { provider: "google", result: "failure" });
+              throw error;
+            }
             setCSRF(response.csrf_token);
+            void track("login", { provider: "google", result: "success" });
+            if (response.is_new_user) {
+              void track("sign_up", { provider: "google" });
+              void track("trial_start");
+            }
             await onSuccess();
           });
         },

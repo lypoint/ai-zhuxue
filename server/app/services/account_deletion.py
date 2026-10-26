@@ -97,6 +97,7 @@ def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
     for model in (m.BindCode, m.FamilySettings, m.Subscription):
         db.query(model).filter_by(family_id=family_id).delete(synchronize_session=False)
     db.query(m.WebSession).filter_by(family_id=family_id).delete(synchronize_session=False)
+    db.query(m.AnalyticsEvent).filter_by(family_id=family_id).delete(synchronize_session=False)
     for guardian in db.query(m.Guardian).filter_by(family_id=family_id):
         guardian.phone = guardian.google_sub = guardian.username = guardian.password_hash = None
         guardian.nickname = ""

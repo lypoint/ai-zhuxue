@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   NavLink,
   Navigate,
@@ -57,6 +57,7 @@ import Learning from "./learning";
 import Assessments from "./assessments";
 import PaddleSandbox from "./paddle-sandbox";
 import CreemTest from "./creem-test";
+import { analyticsConsent, track } from "./parent-analytics";
 
 type PageProps = {
   family: Family;
@@ -78,6 +79,18 @@ export default function Parent({
   const [menu, setMenu] = useState(false);
   const narrow = useNarrowNav();
   const family = resource.data;
+  const connectedObserved = useRef(false);
+  useEffect(() => {
+    const observe = () => {
+      if (!connectedObserved.current && analyticsConsent() === true && family?.students.some(child => child.current_device)) {
+        connectedObserved.current = true;
+        void track("child_connected_observed");
+      }
+    };
+    observe();
+    window.addEventListener("parent-analytics-consent", observe);
+    return () => window.removeEventListener("parent-analytics-consent", observe);
+  }, [family]);
   const child =
     family?.students.find((row) => row.id === selected) ||
     family?.students.find((row) => row.active) ||
@@ -1329,6 +1342,12 @@ type SubscriptionData = {
 function Subscription({ timezone }: { timezone: string | null }) {
   const { t } = useTranslation();
   const resource = useResource<SubscriptionData>("/parent/subscription");
+  useEffect(() => {
+    const view = () => { void track("view_subscription"); };
+    view();
+    window.addEventListener("parent-analytics-consent", view);
+    return () => window.removeEventListener("parent-analytics-consent", view);
+  }, []);
   return (
     <>
       <Heading title={t("subscription")} />

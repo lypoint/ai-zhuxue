@@ -35,6 +35,7 @@ class StudentPasswordLoginIn(PasswordLoginIn):
 class TokenOut(BaseModel):
     token: str
     role: str  # guardian | student
+    is_new_user: bool = False
     student_id: int | None = None
     student_device_id: int | None = None
     replaced_device_count: int = 0

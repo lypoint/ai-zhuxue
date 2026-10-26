@@ -396,7 +396,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。",
     "下次扣款",
     "扣款日期以支付平台为准。",
-    "不会自动扣款"
+    "不会自动扣款",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。"
   ],
   "zh-Hans": {
     "裁切图片": "裁切图片",
@@ -1382,7 +1384,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "赠送时长不推迟自动扣款；取消自动续订后仍可使用。",
     "下次扣款": "下次扣款",
     "扣款日期以支付平台为准。": "扣款日期以支付平台为准。",
-    "不会自动扣款": "不会自动扣款"
+    "不会自动扣款": "不会自动扣款",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。"
   },
   "zh-Hant": {
     "裁切图片": "裁切圖片",
@@ -2368,7 +2372,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "贈送時間不延後自動扣款；取消自動續訂後仍可使用。",
     "下次扣款": "下次扣款",
     "扣款日期以支付平台为准。": "扣款日期以付款平台為準。",
-    "不会自动扣款": "不會自動扣款"
+    "不会自动扣款": "不會自動扣款",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "允許 Firebase Analytics 收集家長網站的使用事件及瀏覽器識別碼，以分析註冊和訂閱轉換；不傳送孩子資料或學習內容。可隨時關閉。",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI 模型可能包括 ChatGPT、Claude、Gemini，實際以所選老師和啟用的服務為準。"
   },
   "en": {
     "裁切图片": "Crop image",
@@ -3354,7 +3360,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonus time does not delay automatic charges. It remains available after you cancel auto-renewal.",
     "下次扣款": "Next charge",
     "扣款日期以支付平台为准。": "See your payment provider for the charge date.",
-    "不会自动扣款": "No automatic charge"
+    "不会自动扣款": "No automatic charge",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Allow Firebase Analytics to collect parent website usage events and browser identifiers to measure sign-up and subscription conversion. No child details or learning content are sent. You can turn this off anytime.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI models may include ChatGPT, Claude and Gemini, depending on the selected teacher and enabled services."
   },
   "ja": {
     "裁切图片": "画像をトリミング",
@@ -4340,7 +4348,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "特典期間によって自動請求日は延期されません。自動更新を停止した後も利用できます。",
     "下次扣款": "次回請求",
     "扣款日期以支付平台为准。": "請求日は決済サービスでご確認ください。",
-    "不会自动扣款": "自動請求なし"
+    "不会自动扣款": "自動請求なし",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Firebase Analytics に保護者サイトの利用イベントとブラウザ識別子を送信し、登録や購読への移行を分析します。お子さまの情報や学習内容は送信しません。いつでも無効にできます。",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI モデルには ChatGPT、Claude、Gemini などが含まれる場合があり、選択した先生と有効なサービスによって異なります。"
   },
   "ko": {
     "裁切图片": "이미지 자르기",
@@ -5326,7 +5336,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "추가 기간은 자동 결제일을 늦추지 않습니다. 자동 갱신을 취소한 후에도 사용할 수 있습니다.",
     "下次扣款": "다음 결제",
     "扣款日期以支付平台为准。": "결제일은 결제 서비스에서 확인하세요.",
-    "不会自动扣款": "자동 결제 없음"
+    "不会自动扣款": "자동 결제 없음",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "가입 및 구독 전환 분석을 위해 Firebase Analytics에 학부모 웹사이트 사용 이벤트와 브라우저 식별자를 전송하도록 허용합니다. 자녀 정보나 학습 내용은 전송하지 않으며 언제든 끌 수 있습니다.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI 모델에는 ChatGPT, Claude, Gemini 등이 포함될 수 있으며, 선택한 교사와 활성화된 서비스에 따라 달라집니다."
   },
   "de": {
     "裁切图片": "Bild zuschneiden",
@@ -6312,7 +6324,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Die Bonuszeit verschiebt automatische Abbuchungen nicht. Sie bleibt nach Kündigung der automatischen Verlängerung nutzbar.",
     "下次扣款": "Nächste Abbuchung",
     "扣款日期以支付平台为准。": "Das Abbuchungsdatum finden Sie beim Zahlungsanbieter.",
-    "不会自动扣款": "Keine automatische Abbuchung"
+    "不会自动扣款": "Keine automatische Abbuchung",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Erlauben Sie Firebase Analytics, Nutzungsereignisse und Browserkennungen der Eltern-Website zur Analyse von Registrierungen und Abonnements zu erfassen. Kinderdaten und Lerninhalte werden nicht gesendet. Jederzeit abschaltbar.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "KI-Modelle können ChatGPT, Claude und Gemini umfassen, abhängig von der gewählten Lehrkraft und den aktivierten Diensten."
   },
   "es": {
     "裁切图片": "Recortar imagen",
@@ -7298,7 +7312,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El tiempo adicional no retrasa los cobros automáticos. Sigue disponible al cancelar la renovación automática.",
     "下次扣款": "Próximo cobro",
     "扣款日期以支付平台为准。": "Consulta la fecha de cobro con tu proveedor de pagos.",
-    "不会自动扣款": "Sin cobro automático"
+    "不会自动扣款": "Sin cobro automático",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permite que Firebase Analytics recopile eventos de uso del sitio para padres e identificadores del navegador para analizar registros y suscripciones. No se envían datos de menores ni contenido de aprendizaje. Puedes desactivarlo cuando quieras.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Los modelos de IA pueden incluir ChatGPT, Claude y Gemini, según el profesor elegido y los servicios activados."
   },
   "es-US": {
     "裁切图片": "Recortar imagen",
@@ -8284,7 +8300,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El tiempo adicional no retrasa los cobros automáticos. Sigue disponible al cancelar la renovación automática.",
     "下次扣款": "Próximo cobro",
     "扣款日期以支付平台为准。": "Consulta la fecha de cobro con tu proveedor de pagos.",
-    "不会自动扣款": "Sin cobro automático"
+    "不会自动扣款": "Sin cobro automático",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permite que Firebase Analytics recopile eventos de uso del sitio para padres e identificadores del navegador para analizar registros y suscripciones. No se envían datos de menores ni contenido de aprendizaje. Puedes desactivarlo cuando quieras.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Los modelos de IA pueden incluir ChatGPT, Claude y Gemini, según el profesor elegido y los servicios activados."
   },
   "es-419": {
     "裁切图片": "Recortar imagen",
@@ -9270,7 +9288,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El tiempo adicional no retrasa los cobros automáticos. Sigue disponible al cancelar la renovación automática.",
     "下次扣款": "Próximo cobro",
     "扣款日期以支付平台为准。": "Consulta la fecha de cobro con tu proveedor de pagos.",
-    "不会自动扣款": "Sin cobro automático"
+    "不会自动扣款": "Sin cobro automático",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permite que Firebase Analytics recopile eventos de uso del sitio para padres e identificadores del navegador para analizar registros y suscripciones. No se envían datos de menores ni contenido de aprendizaje. Puedes desactivarlo cuando quieras.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Los modelos de IA pueden incluir ChatGPT, Claude y Gemini, según el profesor elegido y los servicios activados."
   },
   "fr-FR": {
     "裁切图片": "Recadrer l'image",
@@ -10256,7 +10276,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Le temps offert ne reporte pas les prélèvements automatiques. Il reste utilisable après l’annulation du renouvellement automatique.",
     "下次扣款": "Prochain prélèvement",
     "扣款日期以支付平台为准。": "Consultez la date de prélèvement auprès du prestataire de paiement.",
-    "不会自动扣款": "Aucun prélèvement automatique"
+    "不会自动扣款": "Aucun prélèvement automatique",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Autorisez Firebase Analytics à recueillir les événements d’utilisation du site parents et les identifiants du navigateur pour analyser les inscriptions et abonnements. Aucune donnée d’enfant ni contenu d’apprentissage n’est envoyé. Désactivation possible à tout moment.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Les modèles d’IA peuvent inclure ChatGPT, Claude et Gemini, selon l’enseignant choisi et les services activés."
   },
   "fr-CA": {
     "裁切图片": "Recadrer l'image",
@@ -11242,7 +11264,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Le temps offert ne reporte pas les prélèvements automatiques. Il reste utilisable après l’annulation du renouvellement automatique.",
     "下次扣款": "Prochain prélèvement",
     "扣款日期以支付平台为准。": "Consultez la date de prélèvement auprès du prestataire de paiement.",
-    "不会自动扣款": "Aucun prélèvement automatique"
+    "不会自动扣款": "Aucun prélèvement automatique",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Autorisez Firebase Analytics à recueillir les événements d’utilisation du site parents et les identifiants du navigateur pour analyser les inscriptions et abonnements. Aucune donnée d’enfant ni contenu d’apprentissage n’est envoyé. Désactivation possible à tout moment.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Les modèles d’IA peuvent inclure ChatGPT, Claude et Gemini, selon l’enseignant choisi et les services activés."
   },
   "pt-BR": {
     "裁切图片": "Cortar imagem",
@@ -12228,7 +12252,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "O tempo bônus não adia cobranças automáticas. Ele continua disponível após cancelar a renovação automática.",
     "下次扣款": "Próxima cobrança",
     "扣款日期以支付平台为准。": "Consulte a data da cobrança no provedor de pagamento.",
-    "不会自动扣款": "Sem cobrança automática"
+    "不会自动扣款": "Sem cobrança automática",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permita que o Firebase Analytics colete eventos de uso do site dos pais e identificadores do navegador para analisar cadastros e assinaturas. Não enviamos dados de crianças nem conteúdo de aprendizagem. Você pode desativar a qualquer momento.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Os modelos de IA podem incluir ChatGPT, Claude e Gemini, conforme o professor escolhido e os serviços ativados."
   },
   "pt-PT": {
     "裁切图片": "Cortar imagem",
@@ -13214,7 +13240,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "O tempo de oferta não adia cobranças automáticas. Continua disponível após cancelar a renovação automática.",
     "下次扣款": "Próxima cobrança",
     "扣款日期以支付平台为准。": "Consulte a data da cobrança no prestador de pagamentos.",
-    "不会自动扣款": "Sem cobrança automática"
+    "不会自动扣款": "Sem cobrança automática",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permita que o Firebase Analytics recolha eventos de utilização do site dos pais e identificadores do navegador para analisar registos e subscrições. Não enviamos dados de crianças nem conteúdos de aprendizagem. Pode desativar a qualquer momento.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Os modelos de IA podem incluir ChatGPT, Claude e Gemini, consoante o professor escolhido e os serviços ativados."
   },
   "it": {
     "裁切图片": "Ritaglia l'immagine",
@@ -14200,7 +14228,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Il tempo bonus non posticipa gli addebiti automatici. Resta disponibile dopo aver annullato il rinnovo automatico.",
     "下次扣款": "Prossimo addebito",
     "扣款日期以支付平台为准。": "Verifica la data di addebito presso il fornitore di pagamento.",
-    "不会自动扣款": "Nessun addebito automatico"
+    "不会自动扣款": "Nessun addebito automatico",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Consenti a Firebase Analytics di raccogliere eventi d’uso del sito genitori e identificatori del browser per analizzare registrazioni e abbonamenti. Non vengono inviati dati dei bambini o contenuti di apprendimento. Puoi disattivarlo in qualsiasi momento.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "I modelli AI possono includere ChatGPT, Claude e Gemini, in base all’insegnante scelto e ai servizi attivati."
   },
   "zh-Hant-HK": {
     "裁切图片": "裁切影像",
@@ -15186,7 +15216,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "贈送時間不延後自動扣款；取消自動續訂後仍可使用。",
     "下次扣款": "下次扣款",
     "扣款日期以支付平台为准。": "扣款日期以付款平台為準。",
-    "不会自动扣款": "不會自動扣款"
+    "不会自动扣款": "不會自動扣款",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "允許 Firebase Analytics 收集家長網站的使用事件及瀏覽器識別碼，以分析註冊和訂閱轉換；不傳送孩子資料或學習內容。可隨時關閉。",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI 模型可能包括 ChatGPT、Claude、Gemini，實際以所選老師和啟用的服務為準。"
   },
   "tr": {
     "裁切图片": "Resmi kırp",
@@ -16172,7 +16204,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Hediye süre otomatik ödemeleri ertelemez. Otomatik yenilemeyi iptal ettikten sonra da kullanılabilir.",
     "下次扣款": "Sonraki ödeme",
     "扣款日期以支付平台为准。": "Ödeme tarihini ödeme sağlayıcınızdan kontrol edin.",
-    "不会自动扣款": "Otomatik ödeme yok"
+    "不会自动扣款": "Otomatik ödeme yok",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Kayıt ve abonelik dönüşümlerini ölçmek için Firebase Analytics'in ebeveyn sitesindeki kullanım olaylarını ve tarayıcı tanımlayıcılarını toplamasına izin verin. Çocuk bilgileri veya öğrenme içeriği gönderilmez. İstediğiniz zaman kapatabilirsiniz.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI modelleri, seçilen öğretmene ve etkin hizmetlere bağlı olarak ChatGPT, Claude ve Gemini içerebilir."
   },
   "ru": {
     "裁切图片": "Обрезать изображение",
@@ -17158,7 +17192,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонусное время не откладывает автоматические списания. Оно доступно и после отмены автопродления.",
     "下次扣款": "Следующее списание",
     "扣款日期以支付平台为准。": "Уточните дату списания у платёжного сервиса.",
-    "不会自动扣款": "Без автоматического списания"
+    "不会自动扣款": "Без автоматического списания",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Разрешите Firebase Analytics собирать события использования сайта для родителей и идентификаторы браузера для анализа регистраций и подписок. Данные детей и учебные материалы не передаются. Можно отключить в любой момент.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Модели ИИ могут включать ChatGPT, Claude и Gemini в зависимости от выбранного учителя и включённых сервисов."
   },
   "ar": {
     "裁切图片": "صورة المحاصيل",
@@ -18144,7 +18180,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "الوقت الإضافي لا يؤجل الخصم التلقائي. يظل متاحًا بعد إلغاء التجديد التلقائي.",
     "下次扣款": "الخصم التالي",
     "扣款日期以支付平台为准。": "تحقق من تاريخ الخصم لدى مزود الدفع.",
-    "不会自动扣款": "لا يوجد خصم تلقائي"
+    "不会自动扣款": "لا يوجد خصم تلقائي",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "اسمح لـ Firebase Analytics بجمع أحداث استخدام موقع الوالدين ومعرّفات المتصفح لتحليل التسجيل والاشتراكات. لا نرسل بيانات الأطفال أو محتوى التعلم. يمكنك إيقاف ذلك في أي وقت.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "قد تشمل نماذج الذكاء الاصطناعي ChatGPT وClaude وGemini، بحسب المعلم المختار والخدمات المفعّلة."
   },
   "vi": {
     "裁切图片": "Cắt ảnh",
@@ -19130,7 +19168,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Thời gian tặng không làm chậm lịch thu tiền tự động. Bạn vẫn dùng được sau khi hủy tự động gia hạn.",
     "下次扣款": "Lần thu tiền tiếp theo",
     "扣款日期以支付平台为准。": "Xem ngày thu tiền tại nhà cung cấp thanh toán.",
-    "不会自动扣款": "Không tự động thu tiền"
+    "不会自动扣款": "Không tự động thu tiền",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Cho phép Firebase Analytics thu thập sự kiện sử dụng trang phụ huynh và mã nhận dạng trình duyệt để phân tích đăng ký tài khoản và thuê bao. Không gửi thông tin trẻ em hoặc nội dung học tập. Bạn có thể tắt bất cứ lúc nào.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Các mô hình AI có thể gồm ChatGPT, Claude và Gemini, tùy giáo viên đã chọn và dịch vụ được bật."
   },
   "th": {
     "裁切图片": "ครอบตัดรูปภาพ",
@@ -20116,7 +20156,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "เวลาที่แถมไม่เลื่อนวันตัดเงินอัตโนมัติ และยังใช้ได้หลังยกเลิกการต่ออายุอัตโนมัติ",
     "下次扣款": "ตัดเงินครั้งถัดไป",
     "扣款日期以支付平台为准。": "ตรวจสอบวันตัดเงินกับผู้ให้บริการชำระเงิน",
-    "不会自动扣款": "ไม่มีการตัดเงินอัตโนมัติ"
+    "不会自动扣款": "ไม่มีการตัดเงินอัตโนมัติ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "อนุญาตให้ Firebase Analytics เก็บเหตุการณ์การใช้งานเว็บไซต์ผู้ปกครองและตัวระบุเบราว์เซอร์ เพื่อวิเคราะห์การลงทะเบียนและสมัครสมาชิก ไม่ส่งข้อมูลเด็กหรือเนื้อหาการเรียนรู้ ปิดได้ทุกเมื่อ",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "โมเดล AI อาจมี ChatGPT, Claude และ Gemini ขึ้นอยู่กับครูที่เลือกและบริการที่เปิดใช้งาน"
   },
   "id": {
     "裁切图片": "Pangkas gambar",
@@ -21102,7 +21144,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Waktu bonus tidak menunda penagihan otomatis. Tetap dapat digunakan setelah perpanjangan otomatis dibatalkan.",
     "下次扣款": "Tagihan berikutnya",
     "扣款日期以支付平台为准。": "Lihat tanggal penagihan di penyedia pembayaran.",
-    "不会自动扣款": "Tanpa penagihan otomatis"
+    "不会自动扣款": "Tanpa penagihan otomatis",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Izinkan Firebase Analytics mengumpulkan peristiwa penggunaan situs orang tua dan pengenal browser untuk menganalisis pendaftaran dan langganan. Data anak dan konten pembelajaran tidak dikirim. Dapat dinonaktifkan kapan saja.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Model AI dapat mencakup ChatGPT, Claude, dan Gemini, tergantung guru yang dipilih dan layanan yang diaktifkan."
   },
   "fil": {
     "裁切图片": "I-crop ang larawan",
@@ -22088,7 +22132,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Hindi ipinagpapaliban ng dagdag na oras ang awtomatikong singil. Magagamit pa rin ito matapos kanselahin ang awtomatikong pag-renew.",
     "下次扣款": "Susunod na singil",
     "扣款日期以支付平台为准。": "Tingnan ang petsa ng singil sa provider ng pagbabayad.",
-    "不会自动扣款": "Walang awtomatikong singil"
+    "不会自动扣款": "Walang awtomatikong singil",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Payagan ang Firebase Analytics na mangolekta ng mga kaganapan sa paggamit ng website ng magulang at mga identifier ng browser para suriin ang pagpaparehistro at subscription. Hindi ipinapadala ang detalye ng bata o nilalaman ng pag-aaral. Maaaring i-off anumang oras.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Maaaring kabilang sa mga AI model ang ChatGPT, Claude at Gemini, depende sa napiling guro at mga pinaganang serbisyo."
   },
   "tl": {
     "裁切图片": "I-crop ang larawan",
@@ -23074,7 +23120,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Hindi ipinagpapaliban ng dagdag na oras ang awtomatikong singil. Magagamit pa rin ito matapos kanselahin ang awtomatikong pag-renew.",
     "下次扣款": "Susunod na singil",
     "扣款日期以支付平台为准。": "Tingnan ang petsa ng singil sa provider ng pagbabayad.",
-    "不会自动扣款": "Walang awtomatikong singil"
+    "不会自动扣款": "Walang awtomatikong singil",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Payagan ang Firebase Analytics na mangolekta ng mga kaganapan sa paggamit ng website ng magulang at mga identifier ng browser para suriin ang pagpaparehistro at subscription. Hindi ipinapadala ang detalye ng bata o nilalaman ng pag-aaral. Maaaring i-off anumang oras.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Maaaring kabilang sa mga AI model ang ChatGPT, Claude at Gemini, depende sa napiling guro at mga pinaganang serbisyo."
   },
   "ms-MY": {
     "裁切图片": "Pangkas imej",
@@ -24060,7 +24108,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Masa bonus tidak menangguhkan caj automatik. Ia masih boleh digunakan selepas pembaharuan automatik dibatalkan.",
     "下次扣款": "Caj seterusnya",
     "扣款日期以支付平台为准。": "Semak tarikh caj dengan penyedia pembayaran.",
-    "不会自动扣款": "Tiada caj automatik"
+    "不会自动扣款": "Tiada caj automatik",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Benarkan Firebase Analytics mengumpul peristiwa penggunaan laman ibu bapa dan pengecam pelayar untuk menganalisis pendaftaran dan langganan. Maklumat anak atau kandungan pembelajaran tidak dihantar. Boleh dimatikan pada bila-bila masa.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Model AI mungkin merangkumi ChatGPT, Claude dan Gemini, bergantung pada guru yang dipilih dan perkhidmatan yang diaktifkan."
   },
   "ms": {
     "裁切图片": "Pangkas imej",
@@ -25046,7 +25096,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Masa bonus tidak menangguhkan caj automatik. Ia masih boleh digunakan selepas pembaharuan automatik dibatalkan.",
     "下次扣款": "Caj seterusnya",
     "扣款日期以支付平台为准。": "Semak tarikh caj dengan penyedia pembayaran.",
-    "不会自动扣款": "Tiada caj automatik"
+    "不会自动扣款": "Tiada caj automatik",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Benarkan Firebase Analytics mengumpul peristiwa penggunaan laman ibu bapa dan pengecam pelayar untuk menganalisis pendaftaran dan langganan. Maklumat anak atau kandungan pembelajaran tidak dihantar. Boleh dimatikan pada bila-bila masa.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Model AI mungkin merangkumi ChatGPT, Claude dan Gemini, bergantung pada guru yang dipilih dan perkhidmatan yang diaktifkan."
   },
   "nl": {
     "裁切图片": "Afbeelding bijsnijden",
@@ -26032,7 +26084,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustijd stelt automatische afschrijvingen niet uit. Deze blijft beschikbaar nadat je automatisch verlengen opzegt.",
     "下次扣款": "Volgende afschrijving",
     "扣款日期以支付平台为准。": "Bekijk de afschrijfdatum bij je betaalprovider.",
-    "不会自动扣款": "Geen automatische afschrijving"
+    "不会自动扣款": "Geen automatische afschrijving",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Sta Firebase Analytics toe gebruiksgebeurtenissen van de ouderwebsite en browser-ID’s te verzamelen om registraties en abonnementen te analyseren. Gegevens van kinderen en leerinhoud worden niet verstuurd. Je kunt dit altijd uitschakelen.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-modellen kunnen ChatGPT, Claude en Gemini omvatten, afhankelijk van de gekozen docent en ingeschakelde diensten."
   },
   "pl": {
     "裁切图片": "Przytnij obraz",
@@ -27018,7 +27072,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Czas bonusowy nie opóźnia automatycznych opłat. Pozostaje dostępny po wyłączeniu automatycznego odnawiania.",
     "下次扣款": "Następna opłata",
     "扣款日期以支付平台为准。": "Sprawdź datę opłaty u dostawcy płatności.",
-    "不会自动扣款": "Brak automatycznej opłaty"
+    "不会自动扣款": "Brak automatycznej opłaty",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Zezwól Firebase Analytics na zbieranie zdarzeń użycia strony rodzica i identyfikatorów przeglądarki do analizy rejestracji i subskrypcji. Dane dzieci i treści nauki nie są wysyłane. Możesz to wyłączyć w dowolnym momencie.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Modele AI mogą obejmować ChatGPT, Claude i Gemini, zależnie od wybranego nauczyciela i włączonych usług."
   },
   "cs": {
     "裁切图片": "Oříznout obrázek",
@@ -28004,7 +28060,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusový čas neodkládá automatické platby. Zůstává dostupný po zrušení automatického obnovení.",
     "下次扣款": "Další platba",
     "扣款日期以支付平台为准。": "Datum platby ověřte u poskytovatele plateb.",
-    "不会自动扣款": "Bez automatické platby"
+    "不会自动扣款": "Bez automatické platby",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Povolte Firebase Analytics sběr událostí používání webu pro rodiče a identifikátorů prohlížeče pro analýzu registrací a předplatného. Údaje dětí ani obsah učení se neodesílají. Funkci lze kdykoli vypnout.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Modely AI mohou zahrnovat ChatGPT, Claude a Gemini podle zvoleného učitele a zapnutých služeb."
   },
   "ro": {
     "裁切图片": "Decupați imaginea",
@@ -28990,7 +29048,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Timpul bonus nu amână plățile automate. Rămâne disponibil după anularea reînnoirii automate.",
     "下次扣款": "Următoarea plată",
     "扣款日期以支付平台为准。": "Verifică data plății la furnizorul de plăți.",
-    "不会自动扣款": "Fără plată automată"
+    "不会自动扣款": "Fără plată automată",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permite Firebase Analytics să colecteze evenimente de utilizare a site-ului părinților și identificatori ai browserului pentru analiza înregistrărilor și abonamentelor. Nu trimitem date despre copii sau conținut de învățare. Poți dezactiva oricând.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Modelele AI pot include ChatGPT, Claude și Gemini, în funcție de profesorul ales și serviciile activate."
   },
   "hu": {
     "裁切图片": "Kép körbevágása",
@@ -29976,7 +30036,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "A bónuszidő nem halasztja el az automatikus terheléseket. Az automatikus megújítás lemondása után is felhasználható.",
     "下次扣款": "Következő terhelés",
     "扣款日期以支付平台为准。": "A terhelés dátumát a fizetési szolgáltatónál ellenőrizheti.",
-    "不会自动扣款": "Nincs automatikus terhelés"
+    "不会自动扣款": "Nincs automatikus terhelés",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Engedélyezze a Firebase Analytics számára a szülői webhely használati eseményeinek és böngészőazonosítóinak gyűjtését a regisztrációk és előfizetések elemzéséhez. Gyermekadatokat és tananyagot nem küldünk. Bármikor kikapcsolható.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Az AI-modellek között szerepelhet a ChatGPT, Claude és Gemini, a választott tanártól és az engedélyezett szolgáltatásoktól függően."
   },
   "el": {
     "裁切图片": "Περικοπή εικόνας",
@@ -30962,7 +31024,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Ο πρόσθετος χρόνος δεν αναβάλλει τις αυτόματες χρεώσεις. Παραμένει διαθέσιμος μετά την ακύρωση της αυτόματης ανανέωσης.",
     "下次扣款": "Επόμενη χρέωση",
     "扣款日期以支付平台为准。": "Ελέγξτε την ημερομηνία χρέωσης στον πάροχο πληρωμών.",
-    "不会自动扣款": "Χωρίς αυτόματη χρέωση"
+    "不会自动扣款": "Χωρίς αυτόματη χρέωση",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Επιτρέψτε στο Firebase Analytics να συλλέγει συμβάντα χρήσης του ιστοτόπου γονέων και αναγνωριστικά προγράμματος περιήγησης για ανάλυση εγγραφών και συνδρομών. Δεν αποστέλλονται στοιχεία παιδιών ή περιεχόμενο μάθησης. Απενεργοποιείται οποτεδήποτε.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Τα μοντέλα AI μπορεί να περιλαμβάνουν ChatGPT, Claude και Gemini, ανάλογα με τον επιλεγμένο εκπαιδευτικό και τις ενεργές υπηρεσίες."
   },
   "sv": {
     "裁切图片": "Beskär bilden",
@@ -31948,7 +32012,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustiden skjuter inte upp automatiska debiteringar. Den finns kvar efter att automatisk förnyelse har avslutats.",
     "下次扣款": "Nästa debitering",
     "扣款日期以支付平台为准。": "Se debiteringsdatum hos din betalningsleverantör.",
-    "不会自动扣款": "Ingen automatisk debitering"
+    "不会自动扣款": "Ingen automatisk debitering",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Tillåt Firebase Analytics att samla in användningshändelser på föräldrawebbplatsen och webbläsaridentifierare för att analysera registreringar och abonnemang. Inga barnuppgifter eller lärinnehåll skickas. Kan stängas av när som helst.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-modeller kan omfatta ChatGPT, Claude och Gemini, beroende på vald lärare och aktiverade tjänster."
   },
   "da": {
     "裁切图片": "Beskær billede",
@@ -32934,7 +33000,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustiden udskyder ikke automatiske betalinger. Den kan stadig bruges efter opsigelse af automatisk fornyelse.",
     "下次扣款": "Næste betaling",
     "扣款日期以支付平台为准。": "Se betalingsdatoen hos din betalingsudbyder.",
-    "不会自动扣款": "Ingen automatisk betaling"
+    "不会自动扣款": "Ingen automatisk betaling",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Tillad Firebase Analytics at indsamle brugshændelser på forældrewebstedet og browser-id'er for at analysere tilmeldinger og abonnementer. Børneoplysninger og læringsindhold sendes ikke. Kan slås fra når som helst.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-modeller kan omfatte ChatGPT, Claude og Gemini afhængigt af den valgte lærer og aktiverede tjenester."
   },
   "nb": {
     "裁切图片": "Beskjær bildet",
@@ -33920,7 +33988,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustiden utsetter ikke automatiske belastninger. Den kan fortsatt brukes etter at automatisk fornyelse er avsluttet.",
     "下次扣款": "Neste belastning",
     "扣款日期以支付平台为准。": "Se belastningsdatoen hos betalingsleverandøren.",
-    "不会自动扣款": "Ingen automatisk belastning"
+    "不会自动扣款": "Ingen automatisk belastning",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Tillat Firebase Analytics å samle inn brukshendelser på foreldrenettstedet og nettleseridentifikatorer for å analysere registreringer og abonnementer. Ingen opplysninger om barn eller læringsinnhold sendes. Kan slås av når som helst.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-modeller kan omfatte ChatGPT, Claude og Gemini, avhengig av valgt lærer og aktiverte tjenester."
   },
   "fi": {
     "裁切图片": "Rajaa kuva",
@@ -34906,7 +34976,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusaika ei siirrä automaattisia veloituksia. Se on käytettävissä automaattisen uusinnan perumisen jälkeen.",
     "下次扣款": "Seuraava veloitus",
     "扣款日期以支付平台为准。": "Tarkista veloituspäivä maksupalvelusta.",
-    "不会自动扣款": "Ei automaattista veloitusta"
+    "不会自动扣款": "Ei automaattista veloitusta",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Salli Firebase Analyticsin kerätä vanhempien sivuston käyttötapahtumia ja selaintunnisteita rekisteröitymisten ja tilausten analysointiin. Lasten tietoja tai oppimissisältöä ei lähetetä. Voit poistaa käytöstä milloin tahansa.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-malleihin voivat kuulua ChatGPT, Claude ja Gemini valitun opettajan ja käytössä olevien palvelujen mukaan."
   },
   "uk": {
     "裁切图片": "Обрізати зображення",
@@ -35892,7 +35964,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонусний час не відкладає автоматичні списання. Він доступний і після скасування автоматичного поновлення.",
     "下次扣款": "Наступне списання",
     "扣款日期以支付平台为准。": "Уточніть дату списання в платіжному сервісі.",
-    "不会自动扣款": "Без автоматичного списання"
+    "不会自动扣款": "Без автоматичного списання",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Дозвольте Firebase Analytics збирати події використання сайту для батьків та ідентифікатори браузера для аналізу реєстрацій і підписок. Дані дітей і навчальний вміст не передаються. Можна вимкнути будь-коли.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Моделі ШІ можуть включати ChatGPT, Claude і Gemini залежно від обраного вчителя та ввімкнених сервісів."
   },
   "he": {
     "裁切图片": "חתוך תמונה",
@@ -36878,7 +36952,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "זמן הבונוס אינו דוחה חיובים אוטומטיים. הוא נשאר זמין לאחר ביטול החידוש האוטומטי.",
     "下次扣款": "החיוב הבא",
     "扣款日期以支付平台为准。": "בדקו את תאריך החיוב אצל ספק התשלום.",
-    "不会自动扣款": "ללא חיוב אוטומטי"
+    "不会自动扣款": "ללא חיוב אוטומטי",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "אפשרו ל-Firebase Analytics לאסוף אירועי שימוש באתר ההורים ומזהי דפדפן לניתוח הרשמות ומינויים. פרטי ילדים ותוכן לימודי אינם נשלחים. ניתן לכבות בכל עת.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "מודלי AI עשויים לכלול את ChatGPT, Claude ו-Gemini, בהתאם למורה שנבחר ולשירותים שהופעלו."
   },
   "hi": {
     "裁切图片": "छवि काटें",
@@ -37864,7 +37940,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "बोनस समय से ऑटोमैटिक भुगतान की तारीख नहीं बदलती। ऑटो-रिन्यू बंद करने के बाद भी इसका उपयोग कर सकते हैं।",
     "下次扣款": "अगला भुगतान",
     "扣款日期以支付平台为准。": "भुगतान की तारीख अपने भुगतान प्रदाता से देखें।",
-    "不会自动扣款": "कोई ऑटोमैटिक भुगतान नहीं"
+    "不会自动扣款": "कोई ऑटोमैटिक भुगतान नहीं",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "पंजीकरण और सदस्यता में बदलाव का विश्लेषण करने के लिए Firebase Analytics को अभिभावक वेबसाइट के उपयोग इवेंट और ब्राउज़र पहचानकर्ता एकत्र करने दें। बच्चे की जानकारी या पढ़ाई की सामग्री नहीं भेजी जाती। इसे कभी भी बंद कर सकते हैं।",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "चुने गए शिक्षक और सक्षम सेवाओं के आधार पर AI मॉडल में ChatGPT, Claude और Gemini शामिल हो सकते हैं।"
   },
   "bn": {
     "裁切图片": "ছবি ক্রপ করুন",
@@ -38850,7 +38928,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "বোনাস সময় স্বয়ংক্রিয় পেমেন্ট পিছিয়ে দেয় না। স্বয়ংক্রিয় নবায়ন বাতিলের পরও এটি ব্যবহার করা যায়।",
     "下次扣款": "পরবর্তী পেমেন্ট",
     "扣款日期以支付平台为准。": "পেমেন্টের তারিখ পেমেন্ট প্রদানকারীর কাছে দেখুন।",
-    "不会自动扣款": "স্বয়ংক্রিয় পেমেন্ট নেই"
+    "不会自动扣款": "স্বয়ংক্রিয় পেমেন্ট নেই",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "নিবন্ধন ও সাবস্ক্রিপশন বিশ্লেষণের জন্য Firebase Analytics-কে অভিভাবক ওয়েবসাইটের ব্যবহার ইভেন্ট ও ব্রাউজার শনাক্তকারী সংগ্রহের অনুমতি দিন। শিশুর তথ্য বা শেখার বিষয়বস্তু পাঠানো হয় না। যেকোনো সময় বন্ধ করতে পারেন।",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "নির্বাচিত শিক্ষক ও চালু পরিষেবার ওপর নির্ভর করে AI মডেলের মধ্যে ChatGPT, Claude ও Gemini থাকতে পারে।"
   },
   "ur": {
     "裁切图片": "تصویر کو تراشیں۔",
@@ -39836,7 +39916,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "بونس وقت خودکار ادائیگی کو مؤخر نہیں کرتا۔ خودکار تجدید منسوخ کرنے کے بعد بھی اسے استعمال کر سکتے ہیں۔",
     "下次扣款": "اگلی ادائیگی",
     "扣款日期以支付平台为准。": "ادائیگی کی تاریخ اپنے ادائیگی فراہم کنندہ سے دیکھیں۔",
-    "不会自动扣款": "کوئی خودکار ادائیگی نہیں"
+    "不会自动扣款": "کوئی خودکار ادائیگی نہیں",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "رجسٹریشن اور سبسکرپشن کا تجزیہ کرنے کے لیے Firebase Analytics کو والدین کی ویب سائٹ کے استعمال کے واقعات اور براؤزر شناخت کنندگان جمع کرنے دیں۔ بچے کی معلومات یا تعلیمی مواد نہیں بھیجا جاتا۔ کسی بھی وقت بند کر سکتے ہیں۔",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "منتخب استاد اور فعال خدمات کے لحاظ سے AI ماڈلز میں ChatGPT، Claude اور Gemini شامل ہو سکتے ہیں۔"
   },
   "fa": {
     "裁切图片": "برش تصویر",
@@ -40822,7 +40904,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "زمان هدیه برداشت خودکار را به تأخیر نمی‌اندازد. پس از لغو تمدید خودکار نیز قابل استفاده است.",
     "下次扣款": "برداشت بعدی",
     "扣款日期以支付平台为准。": "تاریخ برداشت را نزد ارائه‌دهنده پرداخت بررسی کنید.",
-    "不会自动扣款": "بدون برداشت خودکار"
+    "不会自动扣款": "بدون برداشت خودکار",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "به Firebase Analytics اجازه دهید رویدادهای استفاده از وب‌سایت والدین و شناسه‌های مرورگر را برای تحلیل ثبت‌نام و اشتراک جمع‌آوری کند. اطلاعات کودک یا محتوای یادگیری ارسال نمی‌شود. هر زمان می‌توانید آن را خاموش کنید.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "مدل‌های هوش مصنوعی ممکن است شامل ChatGPT، Claude و Gemini باشند؛ بسته به معلم انتخاب‌شده و خدمات فعال."
   },
   "ta": {
     "裁切图片": "படத்தை செதுக்கு",
@@ -41808,7 +41892,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "கூடுதல் நேரம் தானியங்கி கட்டணத்தைத் தள்ளிப்போடாது. தானியங்கி புதுப்பிப்பை ரத்து செய்த பிறகும் பயன்படுத்தலாம்.",
     "下次扣款": "அடுத்த கட்டணம்",
     "扣款日期以支付平台为准。": "கட்டணத் தேதியை உங்கள் கட்டண வழங்குநரிடம் பார்க்கவும்.",
-    "不会自动扣款": "தானியங்கி கட்டணம் இல்லை"
+    "不会自动扣款": "தானியங்கி கட்டணம் இல்லை",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "பதிவு மற்றும் சந்தா மாற்றங்களை ஆய்வு செய்ய, பெற்றோர் இணையதளப் பயன்பாட்டு நிகழ்வுகள் மற்றும் உலாவி அடையாளங்களை Firebase Analytics சேகரிக்க அனுமதிக்கவும். குழந்தை விவரங்கள் அல்லது கற்றல் உள்ளடக்கம் அனுப்பப்படாது. எப்போது வேண்டுமானாலும் அணைக்கலாம்.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "தேர்ந்தெடுத்த ஆசிரியர் மற்றும் இயக்கப்பட்ட சேவைகளைப் பொறுத்து AI மாதிரிகளில் ChatGPT, Claude, Gemini இருக்கலாம்."
   },
   "te": {
     "裁切图片": "చిత్రాన్ని కత్తిరించండి",
@@ -42794,7 +42880,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "బోనస్ సమయం ఆటోమేటిక్ చెల్లింపులను వాయిదా వేయదు. ఆటో రెన్యూవల్ రద్దు చేసిన తర్వాత కూడా ఉపయోగించవచ్చు.",
     "下次扣款": "తదుపరి చెల్లింపు",
     "扣款日期以支付平台为准。": "చెల్లింపు తేదీని మీ చెల్లింపు ప్రొవైడర్ వద్ద చూడండి.",
-    "不会自动扣款": "ఆటోమేటిక్ చెల్లింపు లేదు"
+    "不会自动扣款": "ఆటోమేటిక్ చెల్లింపు లేదు",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "నమోదులు, సబ్‌స్క్రిప్షన్ల విశ్లేషణ కోసం తల్లిదండ్రుల వెబ్‌సైట్ వినియోగ ఈవెంట్లు, బ్రౌజర్ గుర్తింపులను Firebase Analytics సేకరించడానికి అనుమతించండి. పిల్లల వివరాలు లేదా అభ్యాస విషయం పంపబడదు. ఎప్పుడైనా ఆపవచ్చు.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "ఎంచుకున్న ఉపాధ్యాయుడు, ప్రారంభించిన సేవల ఆధారంగా AI మోడళ్లలో ChatGPT, Claude, Gemini ఉండవచ్చు."
   },
   "mr": {
     "裁切图片": "प्रतिमा क्रॉप करा",
@@ -43780,7 +43868,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "बोनस वेळेमुळे स्वयंचलित पेमेंट पुढे ढकलले जात नाही. स्वयंचलित नूतनीकरण रद्द केल्यानंतरही तो वापरता येतो.",
     "下次扣款": "पुढील पेमेंट",
     "扣款日期以支付平台为准。": "पेमेंटची तारीख पेमेंट प्रदात्याकडे तपासा.",
-    "不会自动扣款": "स्वयंचलित पेमेंट नाही"
+    "不会自动扣款": "स्वयंचलित पेमेंट नाही",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "नोंदणी व सदस्यता विश्लेषणासाठी Firebase Analytics ला पालक वेबसाइटवरील वापराच्या घटना आणि ब्राउझर ओळखचिन्हे गोळा करू द्या. मुलांची माहिती किंवा शिक्षण सामग्री पाठवली जात नाही. कधीही बंद करता येते.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "निवडलेले शिक्षक व सुरू केलेल्या सेवांनुसार AI मॉडेलमध्ये ChatGPT, Claude आणि Gemini असू शकतात."
   },
   "gu": {
     "裁切图片": "છબી કાપો",
@@ -44766,7 +44856,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "બોનસ સમય આપમેળે થતી ચુકવણીને મુલતવી રાખતો નથી. આપમેળે નવીકરણ રદ કર્યા પછી પણ તેનો ઉપયોગ કરી શકાય છે.",
     "下次扣款": "આગામી ચુકવણી",
     "扣款日期以支付平台为准。": "ચુકવણીની તારીખ તમારા ચુકવણી પ્રદાતા પાસે તપાસો.",
-    "不会自动扣款": "આપમેળે ચુકવણી નહીં"
+    "不会自动扣款": "આપમેળે ચુકવણી નહીં",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "નોંધણી અને સબ્સ્ક્રિપ્શનનું વિશ્લેષણ કરવા Firebase Analytics ને માતાપિતાની વેબસાઇટના ઉપયોગની ઘટનાઓ અને બ્રાઉઝર ઓળખ એકત્ર કરવા દો. બાળકની વિગતો કે શીખવાની સામગ્રી મોકલાતી નથી. ગમે ત્યારે બંધ કરી શકો છો.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "પસંદ કરેલા શિક્ષક અને સક્રિય સેવાઓ પ્રમાણે AI મોડેલમાં ChatGPT, Claude અને Gemini હોઈ શકે છે."
   },
   "kn": {
     "裁切图片": "ಚಿತ್ರವನ್ನು ಕ್ರಾಪ್ ಮಾಡಿ",
@@ -45752,7 +45844,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ಬೋನಸ್ ಸಮಯ ಸ್ವಯಂಚಾಲಿತ ಪಾವತಿಯನ್ನು ಮುಂದೂಡುವುದಿಲ್ಲ. ಸ್ವಯಂಚಾಲಿತ ನವೀಕರಣ ರದ್ದಾದ ನಂತರವೂ ಬಳಸಬಹುದು.",
     "下次扣款": "ಮುಂದಿನ ಪಾವತಿ",
     "扣款日期以支付平台为准。": "ಪಾವತಿ ದಿನಾಂಕವನ್ನು ಪಾವತಿ ಪೂರೈಕೆದಾರರ ಬಳಿ ಪರಿಶೀಲಿಸಿ.",
-    "不会自动扣款": "ಸ್ವಯಂಚಾಲಿತ ಪಾವತಿ ಇಲ್ಲ"
+    "不会自动扣款": "ಸ್ವಯಂಚಾಲಿತ ಪಾವತಿ ಇಲ್ಲ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "ನೋಂದಣಿ ಮತ್ತು ಚಂದಾದಾರಿಕೆ ವಿಶ್ಲೇಷಣೆಗೆ ಪೋಷಕರ ವೆಬ್‌ಸೈಟ್ ಬಳಕೆಯ ಈವೆಂಟ್‌ಗಳು ಮತ್ತು ಬ್ರೌಸರ್ ಗುರುತುಗಳನ್ನು Firebase Analytics ಸಂಗ್ರಹಿಸಲು ಅನುಮತಿಸಿ. ಮಕ್ಕಳ ವಿವರಗಳು ಅಥವಾ ಕಲಿಕೆಯ ವಿಷಯವನ್ನು ಕಳುಹಿಸುವುದಿಲ್ಲ. ಯಾವಾಗ ಬೇಕಾದರೂ ಆಫ್ ಮಾಡಬಹುದು.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "ಆಯ್ದ ಶಿಕ್ಷಕರು ಮತ್ತು ಸಕ್ರಿಯ ಸೇವೆಗಳ ಆಧಾರದಲ್ಲಿ AI ಮಾದರಿಗಳಲ್ಲಿ ChatGPT, Claude ಮತ್ತು Gemini ಇರಬಹುದು."
   },
   "ml": {
     "裁切图片": "ചിത്രം ക്രോപ്പ് ചെയ്യുക",
@@ -46738,7 +46832,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ബോണസ് സമയം സ്വയമേവയുള്ള പേയ്‌മെന്റ് നീട്ടില്ല. സ്വയമേവ പുതുക്കൽ റദ്ദാക്കിയ ശേഷവും ഉപയോഗിക്കാം.",
     "下次扣款": "അടുത്ത പേയ്‌മെന്റ്",
     "扣款日期以支付平台为准。": "പേയ്‌മെന്റ് തീയതി പേയ്‌മെന്റ് ദാതാവിൽ പരിശോധിക്കുക.",
-    "不会自动扣款": "സ്വയമേവ പേയ്‌മെന്റ് ഇല്ല"
+    "不会自动扣款": "സ്വയമേവ പേയ്‌മെന്റ് ഇല്ല",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "രജിസ്ട്രേഷനും സബ്‌സ്‌ക്രിപ്ഷനും വിശകലനം ചെയ്യാൻ രക്ഷിതാക്കളുടെ വെബ്‌സൈറ്റ് ഉപയോഗ ഇവന്റുകളും ബ്രൗസർ ഐഡികളും ശേഖരിക്കാൻ Firebase Analytics-നെ അനുവദിക്കുക. കുട്ടികളുടെ വിവരങ്ങളോ പഠന ഉള്ളടക്കമോ അയയ്ക്കില്ല. എപ്പോൾ വേണമെങ്കിലും ഓഫ് ചെയ്യാം.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "തിരഞ്ഞെടുത്ത അധ്യാപകനും പ്രവർത്തനക്ഷമമാക്കിയ സേവനങ്ങളും അനുസരിച്ച് AI മോഡലുകളിൽ ChatGPT, Claude, Gemini എന്നിവ ഉൾപ്പെട്ടേക്കാം."
   },
   "pa": {
     "裁切图片": "ਚਿੱਤਰ ਨੂੰ ਕੱਟੋ",
@@ -47724,7 +47820,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ਬੋਨਸ ਸਮਾਂ ਆਟੋਮੈਟਿਕ ਭੁਗਤਾਨ ਨੂੰ ਅੱਗੇ ਨਹੀਂ ਪਾਉਂਦਾ। ਆਟੋ ਰੀਨਿਊ ਰੱਦ ਕਰਨ ਤੋਂ ਬਾਅਦ ਵੀ ਵਰਤਿਆ ਜਾ ਸਕਦਾ ਹੈ।",
     "下次扣款": "ਅਗਲਾ ਭੁਗਤਾਨ",
     "扣款日期以支付平台为准。": "ਭੁਗਤਾਨ ਦੀ ਤਾਰੀਖ ਆਪਣੇ ਭੁਗਤਾਨ ਪ੍ਰਦਾਤਾ ਕੋਲ ਦੇਖੋ।",
-    "不会自动扣款": "ਕੋਈ ਆਟੋਮੈਟਿਕ ਭੁਗਤਾਨ ਨਹੀਂ"
+    "不会自动扣款": "ਕੋਈ ਆਟੋਮੈਟਿਕ ਭੁਗਤਾਨ ਨਹੀਂ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਅਤੇ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰਨ ਲਈ Firebase Analytics ਨੂੰ ਮਾਪਿਆਂ ਦੀ ਵੈੱਬਸਾਈਟ ਦੇ ਵਰਤੋਂ ਇਵੈਂਟ ਅਤੇ ਬ੍ਰਾਊਜ਼ਰ ਪਛਾਣ ਇਕੱਠੀ ਕਰਨ ਦਿਓ। ਬੱਚੇ ਦੀ ਜਾਣਕਾਰੀ ਜਾਂ ਸਿੱਖਣ ਦੀ ਸਮੱਗਰੀ ਨਹੀਂ ਭੇਜੀ ਜਾਂਦੀ। ਕਦੇ ਵੀ ਬੰਦ ਕਰ ਸਕਦੇ ਹੋ।",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "ਚੁਣੇ ਅਧਿਆਪਕ ਅਤੇ ਚਾਲੂ ਸੇਵਾਵਾਂ ਅਨੁਸਾਰ AI ਮਾਡਲਾਂ ਵਿੱਚ ChatGPT, Claude ਅਤੇ Gemini ਸ਼ਾਮਲ ਹੋ ਸਕਦੇ ਹਨ।"
   },
   "ne": {
     "裁切图片": "छवि क्रप गर्नुहोस्",
@@ -48710,7 +48808,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "बोनस समयले स्वचालित भुक्तानी सार्दैन। स्वचालित नवीकरण रद्द गरेपछि पनि प्रयोग गर्न सकिन्छ।",
     "下次扣款": "अर्को भुक्तानी",
     "扣款日期以支付平台为准。": "भुक्तानी मिति आफ्नो भुक्तानी प्रदायकसँग हेर्नुहोस्।",
-    "不会自动扣款": "स्वचालित भुक्तानी हुँदैन"
+    "不会自动扣款": "स्वचालित भुक्तानी हुँदैन",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "दर्ता र सदस्यता विश्लेषणका लागि Firebase Analytics लाई अभिभावक वेबसाइटको प्रयोग घटना र ब्राउजर पहिचान सङ्कलन गर्न दिनुहोस्। बालबालिकाको विवरण वा सिकाइ सामग्री पठाइँदैन। जुनसुकै बेला बन्द गर्न सक्नुहुन्छ।",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "छानिएका शिक्षक र सक्रिय सेवाका आधारमा AI मोडेलमा ChatGPT, Claude र Gemini समावेश हुन सक्छन्।"
   },
   "si": {
     "裁切图片": "රූපය කප්පාදු කරන්න",
@@ -49696,7 +49796,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "අමතර කාලය ස්වයංක්‍රීය අය කිරීම් කල් නොදමයි. ස්වයංක්‍රීය අලුත් කිරීම අවලංගු කළ පසුවත් භාවිත කළ හැක.",
     "下次扣款": "ඊළඟ අය කිරීම",
     "扣款日期以支付平台为准。": "අය කරන දිනය ගෙවීම් සපයන්නාගෙන් බලන්න.",
-    "不会自动扣款": "ස්වයංක්‍රීය අය කිරීමක් නැත"
+    "不会自动扣款": "ස්වයංක්‍රීය අය කිරීමක් නැත",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "ලියාපදිංචිවීම් සහ දායකත්ව විශ්ලේෂණයට දෙමාපිය වෙබ් අඩවියේ භාවිත සිදුවීම් සහ බ්‍රවුසර හඳුනාගැනීම් රැස් කිරීමට Firebase Analytics හට ඉඩ දෙන්න. දරුවන්ගේ තොරතුරු හෝ ඉගෙනුම් අන්තර්ගත යවන්නේ නැත. ඕනෑම විටක අක්‍රිය කළ හැක.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "තෝරාගත් ගුරුවරයා සහ සක්‍රිය සේවා අනුව AI ආකෘතිවලට ChatGPT, Claude සහ Gemini ඇතුළත් විය හැක."
   },
   "hr": {
     "裁切图片": "Izreži sliku",
@@ -50682,7 +50784,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonus vrijeme ne odgađa automatske naplate. Ostaje dostupno nakon otkazivanja automatske obnove.",
     "下次扣款": "Sljedeća naplata",
     "扣款日期以支付平台为准。": "Datum naplate provjerite kod pružatelja plaćanja.",
-    "不会自动扣款": "Bez automatske naplate"
+    "不会自动扣款": "Bez automatske naplate",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Dopustite da Firebase Analytics prikuplja događaje korištenja roditeljske stranice i identifikatore preglednika za analizu registracija i pretplata. Podaci o djeci i sadržaj učenja ne šalju se. Možete isključiti u bilo kojem trenutku.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI modeli mogu uključivati ChatGPT, Claude i Gemini, ovisno o odabranom učitelju i omogućenim uslugama."
   },
   "sk": {
     "裁切图片": "Orezať obrázok",
@@ -51668,7 +51772,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusový čas neodkladá automatické platby. Zostáva dostupný po zrušení automatického obnovenia.",
     "下次扣款": "Ďalšia platba",
     "扣款日期以支付平台为准。": "Dátum platby overte u poskytovateľa platieb.",
-    "不会自动扣款": "Bez automatickej platby"
+    "不会自动扣款": "Bez automatickej platby",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Povoľte Firebase Analytics zbierať udalosti používania rodičovskej stránky a identifikátory prehliadača na analýzu registrácií a predplatného. Údaje detí ani obsah učenia sa neodosielajú. Funkciu možno kedykoľvek vypnúť.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Modely AI môžu zahŕňať ChatGPT, Claude a Gemini podľa zvoleného učiteľa a zapnutých služieb."
   },
   "sl": {
     "裁切图片": "Obreži sliko",
@@ -52654,7 +52760,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusni čas ne odloži samodejnih bremenitev. Ostane na voljo po preklicu samodejnega podaljšanja.",
     "下次扣款": "Naslednja bremenitev",
     "扣款日期以支付平台为准。": "Datum bremenitve preverite pri ponudniku plačil.",
-    "不会自动扣款": "Brez samodejne bremenitve"
+    "不会自动扣款": "Brez samodejne bremenitve",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Dovolite Firebase Analytics zbiranje dogodkov uporabe spletnega mesta za starše in identifikatorjev brskalnika za analizo registracij in naročnin. Podatki otrok in učna vsebina se ne pošiljajo. Kadar koli lahko izklopite.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Modeli AI lahko vključujejo ChatGPT, Claude in Gemini, odvisno od izbranega učitelja in omogočenih storitev."
   },
   "sr": {
     "裁切图片": "Изрежите слику",
@@ -53640,7 +53748,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус време не одлаже аутоматску наплату. Доступно је и након отказивања аутоматског обнављања.",
     "下次扣款": "Следећа наплата",
     "扣款日期以支付平台为准。": "Датум наплате проверите код пружаоца плаћања.",
-    "不会自动扣款": "Без аутоматске наплате"
+    "不会自动扣款": "Без аутоматске наплате",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Дозволите да Firebase Analytics прикупља догађаје коришћења родитељског сајта и идентификаторе прегледача ради анализе регистрација и претплата. Подаци о деци и садржај учења се не шаљу. Можете искључити у сваком тренутку.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI модели могу укључивати ChatGPT, Claude и Gemini, у зависности од изабраног наставника и омогућених услуга."
   },
   "bg": {
     "裁切图片": "Изрязване на изображението",
@@ -54626,7 +54736,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус времето не отлага автоматичните плащания. То остава достъпно след отказ от автоматично подновяване.",
     "下次扣款": "Следващо плащане",
     "扣款日期以支付平台为准。": "Проверете датата на плащане при доставчика на плащания.",
-    "不会自动扣款": "Без автоматично плащане"
+    "不会自动扣款": "Без автоматично плащане",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Разрешете на Firebase Analytics да събира събития за използване на родителския сайт и идентификатори на браузъра за анализ на регистрации и абонаменти. Не се изпращат данни за деца или учебно съдържание. Може да се изключи по всяко време.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI моделите могат да включват ChatGPT, Claude и Gemini според избрания учител и активираните услуги."
   },
   "be": {
     "裁切图片": "Абрэзаць малюнак",
@@ -55612,7 +55724,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонусны час не адкладае аўтаматычныя спісанні. Ён даступны пасля адмены аўтаматычнага падаўжэння.",
     "下次扣款": "Наступнае спісанне",
     "扣款日期以支付平台为准。": "Удакладніце дату спісання ў плацежным сэрвісе.",
-    "不会自动扣款": "Без аўтаматычнага спісання"
+    "不会自动扣款": "Без аўтаматычнага спісання",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Дазвольце Firebase Analytics збіраць падзеі выкарыстання сайта для бацькоў і ідэнтыфікатары браўзера для аналізу рэгістрацый і падпісак. Звесткі пра дзяцей і навучальны змест не перадаюцца. Можна выключыць у любы час.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Мадэлі ШІ могуць уключаць ChatGPT, Claude і Gemini ў залежнасці ад выбранага настаўніка і ўключаных сэрвісаў."
   },
   "lt": {
     "裁切图片": "Apkarpyti vaizdą",
@@ -56598,7 +56712,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Papildomas laikas neatideda automatinių mokėjimų. Jis lieka pasiekiamas išjungus automatinį pratęsimą.",
     "下次扣款": "Kitas mokėjimas",
     "扣款日期以支付平台为准。": "Mokėjimo datą patikrinkite pas mokėjimo paslaugų teikėją.",
-    "不会自动扣款": "Be automatinio mokėjimo"
+    "不会自动扣款": "Be automatinio mokėjimo",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Leiskite Firebase Analytics rinkti tėvų svetainės naudojimo įvykius ir naršyklės identifikatorius registracijų ir prenumeratų analizei. Vaikų duomenys ir mokymosi turinys nesiunčiami. Galite bet kada išjungti.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI modeliai gali apimti ChatGPT, Claude ir Gemini, priklausomai nuo pasirinkto mokytojo ir įjungtų paslaugų."
   },
   "lv": {
     "裁切图片": "Apgriezt attēlu",
@@ -57584,7 +57700,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusa laiks neatliek automātiskos maksājumus. Tas paliek pieejams pēc automātiskās atjaunošanas atcelšanas.",
     "下次扣款": "Nākamais maksājums",
     "扣款日期以支付平台为准。": "Maksājuma datumu pārbaudiet pie maksājumu pakalpojuma sniedzēja.",
-    "不会自动扣款": "Bez automātiska maksājuma"
+    "不会自动扣款": "Bez automātiska maksājuma",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Atļaujiet Firebase Analytics vākt vecāku vietnes lietošanas notikumus un pārlūka identifikatorus reģistrāciju un abonementu analīzei. Bērnu dati un mācību saturs netiek sūtīti. Varat izslēgt jebkurā laikā.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI modeļi var ietvert ChatGPT, Claude un Gemini atkarībā no izvēlētā skolotāja un ieslēgtajiem pakalpojumiem."
   },
   "et": {
     "裁切图片": "Kärbi pilti",
@@ -58570,7 +58688,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Boonusaeg ei lükka automaatseid makseid edasi. See jääb kasutatavaks pärast automaatse pikendamise tühistamist.",
     "下次扣款": "Järgmine makse",
     "扣款日期以支付平台为准。": "Maksekuupäeva vaata makseteenuse pakkuja juurest.",
-    "不会自动扣款": "Automaatset makset ei ole"
+    "不会自动扣款": "Automaatset makset ei ole",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Lubage Firebase Analyticsil koguda vanemate veebisaidi kasutussündmusi ja brauseri identifikaatoreid registreerumiste ja tellimuste analüüsiks. Laste andmeid ega õppesisu ei saadeta. Saate selle igal ajal välja lülitada.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI mudelid võivad hõlmata ChatGPT-d, Claude’i ja Geminit olenevalt valitud õpetajast ja lubatud teenustest."
   },
   "mk": {
     "裁切图片": "Исечете ја сликата",
@@ -59556,7 +59676,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус времето не ја одложува автоматската наплата. Останува достапно по откажување на автоматското обновување.",
     "下次扣款": "Следна наплата",
     "扣款日期以支付平台为准。": "Датумот на наплата проверете го кај давателот на плаќања.",
-    "不会自动扣款": "Без автоматска наплата"
+    "不会自动扣款": "Без автоматска наплата",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Дозволете Firebase Analytics да собира настани за користење на родителската страница и идентификатори на прелистувачот за анализа на регистрации и претплати. Не се испраќаат податоци за деца или содржина за учење. Може да исклучите во секое време.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI моделите може да вклучуваат ChatGPT, Claude и Gemini, зависно од избраниот наставник и овозможените услуги."
   },
   "sq": {
     "裁切图片": "Pritini imazhin",
@@ -60542,7 +60664,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Koha bonus nuk shtyn pagesat automatike. Mbetet e disponueshme pas anulimit të rinovimit automatik.",
     "下次扣款": "Pagesa e radhës",
     "扣款日期以支付平台为准。": "Kontrolloni datën e pagesës te ofruesi i pagesave.",
-    "不会自动扣款": "Pa pagesë automatike"
+    "不会自动扣款": "Pa pagesë automatike",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Lejoni Firebase Analytics të mbledhë ngjarje përdorimi të faqes së prindërve dhe identifikues të shfletuesit për analizën e regjistrimeve dhe abonimeve. Nuk dërgohen të dhëna fëmijësh ose përmbajtje mësimore. Mund ta çaktivizoni kurdo.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Modelet AI mund të përfshijnë ChatGPT, Claude dhe Gemini, sipas mësuesit të zgjedhur dhe shërbimeve të aktivizuara."
   },
   "az-Cyrl": {
     "裁切图片": "Ҹроп имаҝе",
@@ -61528,7 +61652,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус вахты автоматик өдәнишләри тәхирә салмыр. Автоматик јениләмә ләғв едилдикдән сонра да истифадә олуна биләр.",
     "下次扣款": "Нөвбәти өдәниш",
     "扣款日期以支付平台为准。": "Өдәниш тарихини өдәниш тәҹһизатчысында јохлајын.",
-    "不会自动扣款": "Автоматик өдәниш јохдур"
+    "不会自动扣款": "Автоматик өдәниш јохдур",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Гејдијјат вә абунәлик тәһлили үчүн Firebase Analytics-ин валидејн сајтынын истифадә һадисәләрини вә браузер идентификаторларыны топламасына иҹазә верин. Ушаг мә'луматлары вә тәдрис мәзмуну ҝөндәрилмир. Истәнилән вахт сөндүрә биләрсиниз.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI моделләринә сечилмиш мүәллимдән вә актив хидмәтләрдән асылы олараг ChatGPT, Claude вә Gemini дахил ола биләр."
   },
   "kk": {
     "裁切图片": "Кескінді қию",
@@ -62514,7 +62640,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус уақыт автоматты төлемдерді кейінге қалдырмайды. Автоматты жаңартудан бас тартқаннан кейін де қолжетімді.",
     "下次扣款": "Келесі төлем",
     "扣款日期以支付平台为准。": "Төлем күнін төлем қызметінен тексеріңіз.",
-    "不会自动扣款": "Автоматты төлем жоқ"
+    "不会自动扣款": "Автоматты төлем жоқ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Тіркелулер мен жазылымдарды талдау үшін Firebase Analytics қызметіне ата-аналар сайтының пайдалану оқиғалары мен браузер идентификаторларын жинауға рұқсат беріңіз. Балалардың деректері мен оқу мазмұны жіберілмейді. Кез келген уақытта өшіруге болады.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI модельдеріне таңдалған мұғалім мен қосылған қызметтерге қарай ChatGPT, Claude және Gemini кіруі мүмкін."
   },
   "ky": {
     "裁切图片": "Сүрөттү кесип",
@@ -63500,7 +63628,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонустук убакыт автоматтык төлөмдөрдү жылдырбайт. Автоматтык узартууну токтоткондон кийин да колдонсо болот.",
     "下次扣款": "Кийинки төлөм",
     "扣款日期以支付平台为准。": "Төлөм күнүн төлөм кызматынан текшериңиз.",
-    "不会自动扣款": "Автоматтык төлөм жок"
+    "不会自动扣款": "Автоматтык төлөм жок",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Каттоо жана жазылууларды талдоо үчүн Firebase Analytics кызматына ата-энелер сайтынын колдонуу окуяларын жана браузер идентификаторлорун чогултууга уруксат бериңиз. Балдардын маалыматы же окуу мазмуну жөнөтүлбөйт. Каалаган убакта өчүрсө болот.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI моделдерине тандалган мугалимге жана иштетилген кызматтарга жараша ChatGPT, Claude жана Gemini кириши мүмкүн."
   },
   "hy": {
     "裁切图片": "Կտրել պատկերը",
@@ -64486,7 +64616,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Բոնուսային ժամանակը չի հետաձգում ավտոմատ վճարումները։ Այն հասանելի է ավտոմատ երկարաձգումը չեղարկելուց հետո։",
     "下次扣款": "Հաջորդ վճարում",
     "扣款日期以支付平台为准。": "Վճարման ամսաթիվը ստուգեք վճարային ծառայությունում։",
-    "不会自动扣款": "Ավտոմատ վճարում չկա"
+    "不会自动扣款": "Ավտոմատ վճարում չկա",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Թույլատրեք Firebase Analytics-ին հավաքել ծնողների կայքի օգտագործման իրադարձություններն ու զննարկչի նույնացուցիչները՝ գրանցումներն ու բաժանորդագրությունները վերլուծելու համար։ Երեխաների տվյալներ կամ ուսումնական բովանդակություն չեն ուղարկվում։ Կարող եք անջատել ցանկացած պահի։",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI մոդելները կարող են ներառել ChatGPT, Claude և Gemini՝ կախված ընտրված ուսուցչից և միացված ծառայություններից։"
   },
   "ka": {
     "裁切图片": "სურათის ამოჭრა",
@@ -65472,7 +65604,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ბონუს დრო არ გადადებს ავტომატურ ჩამოჭრას. ის ხელმისაწვდომია ავტომატური განახლების გაუქმების შემდეგაც.",
     "下次扣款": "შემდეგი ჩამოჭრა",
     "扣款日期以支付平台为准。": "ჩამოჭრის თარიღი შეამოწმეთ გადახდის პროვაიდერთან.",
-    "不会自动扣款": "ავტომატური ჩამოჭრა არ არის"
+    "不会自动扣款": "ავტომატური ჩამოჭრა არ არის",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "ნება დართეთ Firebase Analytics-ს შეაგროვოს მშობლების ვებსაიტის გამოყენების მოვლენები და ბრაუზერის იდენტიფიკატორები რეგისტრაციებისა და გამოწერების ანალიზისთვის. ბავშვის მონაცემები ან სასწავლო შინაარსი არ იგზავნება. გამორთვა ნებისმიერ დროს შეგიძლიათ.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI მოდელები შეიძლება მოიცავდეს ChatGPT-ს, Claude-სა და Gemini-ს, არჩეული მასწავლებლისა და ჩართული სერვისების მიხედვით."
   },
   "is": {
     "裁切图片": "Skera mynd",
@@ -66458,7 +66592,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bónustími frestar ekki sjálfvirkum gjaldfærslum. Hann er áfram tiltækur eftir að sjálfvirk endurnýjun er stöðvuð.",
     "下次扣款": "Næsta gjaldfærsla",
     "扣款日期以支付平台为准。": "Skoðaðu dagsetningu gjaldfærslu hjá greiðsluþjónustunni.",
-    "不会自动扣款": "Engin sjálfvirk gjaldfærsla"
+    "不会自动扣款": "Engin sjálfvirk gjaldfærsla",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Leyfðu Firebase Analytics að safna notkunaratburðum á foreldrasíðunni og auðkennum vafra til að greina skráningar og áskriftir. Engar upplýsingar um börn eða námsefni eru send. Þú getur slökkt hvenær sem er.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-líkön geta verið ChatGPT, Claude og Gemini, eftir völdum kennara og virkjuðum þjónustum."
   },
   "ca": {
     "裁切图片": "Retalla la imatge",
@@ -67444,7 +67580,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El temps addicional no ajorna els cobraments automàtics. Continua disponible després de cancel·lar la renovació automàtica.",
     "下次扣款": "Proper cobrament",
     "扣款日期以支付平台为准。": "Consulta la data de cobrament al proveïdor de pagaments.",
-    "不会自动扣款": "Sense cobrament automàtic"
+    "不会自动扣款": "Sense cobrament automàtic",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permet que Firebase Analytics reculli esdeveniments d’ús del web de pares i identificadors del navegador per analitzar registres i subscripcions. No s’envien dades d’infants ni contingut d’aprenentatge. Ho pots desactivar quan vulguis.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Els models d’IA poden incloure ChatGPT, Claude i Gemini, segons el professor escollit i els serveis activats."
   },
   "eu": {
     "裁切图片": "Moztu irudia",
@@ -68430,7 +68568,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonus denborak ez ditu karga automatikoak atzeratzen. Berritze automatikoa bertan behera utzi ondoren ere erabilgarri dago.",
     "下次扣款": "Hurrengo karga",
     "扣款日期以支付平台为准。": "Kontsultatu kargaren data ordainketa-hornitzailean.",
-    "不会自动扣款": "Karga automatikorik ez"
+    "不会自动扣款": "Karga automatikorik ez",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Baimendu Firebase Analytics-ek gurasoen webguneko erabilera-gertaerak eta arakatzaile-identifikatzaileak biltzea, erregistroak eta harpidetzak aztertzeko. Ez da haurren daturik edo ikaskuntza-edukirik bidaltzen. Edonoiz desaktiba dezakezu.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI ereduen artean ChatGPT, Claude eta Gemini egon daitezke, hautatutako irakaslearen eta gaitutako zerbitzuen arabera."
   },
   "gl": {
     "裁切图片": "Recortar imaxe",
@@ -69416,7 +69556,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "O tempo adicional non atrasa os cobros automáticos. Segue dispoñible tras cancelar a renovación automática.",
     "下次扣款": "Próximo cobro",
     "扣款日期以支付平台为准。": "Consulta a data do cobro co provedor de pagamentos.",
-    "不会自动扣款": "Sen cobro automático"
+    "不会自动扣款": "Sen cobro automático",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Permite que Firebase Analytics recolla eventos de uso do sitio para pais e identificadores do navegador para analizar rexistros e subscricións. Non se envían datos de menores nin contido de aprendizaxe. Podes desactivalo cando queiras.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Os modelos de IA poden incluír ChatGPT, Claude e Gemini, segundo o profesor elixido e os servizos activados."
   },
   "af": {
     "裁切图片": "Sny prent",
@@ -70402,7 +70544,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustyd stel nie outomatiese heffings uit nie. Dit bly beskikbaar nadat outomatiese hernuwing gekanselleer is.",
     "下次扣款": "Volgende heffing",
     "扣款日期以支付平台为准。": "Sien die heffingsdatum by jou betalingsverskaffer.",
-    "不会自动扣款": "Geen outomatiese heffing nie"
+    "不会自动扣款": "Geen outomatiese heffing nie",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Laat Firebase Analytics toe om gebruiksgebeure op die ouerwebwerf en blaaieridentifiseerders te versamel om registrasies en intekeninge te ontleed. Geen kinderbesonderhede of leerinhoud word gestuur nie. Jy kan dit enige tyd afskakel.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI-modelle kan ChatGPT, Claude en Gemini insluit, afhangend van die gekose onderwyser en geaktiveerde dienste."
   },
   "sw": {
     "裁切图片": "Punguza picha",
@@ -71388,7 +71532,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Muda wa ziada hauahirishi makato ya kiotomatiki. Unaendelea kupatikana baada ya kughairi usasishaji wa kiotomatiki.",
     "下次扣款": "Makato yanayofuata",
     "扣款日期以支付平台为准。": "Angalia tarehe ya makato kwa mtoa huduma wa malipo.",
-    "不会自动扣款": "Hakuna makato ya kiotomatiki"
+    "不会自动扣款": "Hakuna makato ya kiotomatiki",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Ruhusu Firebase Analytics kukusanya matukio ya matumizi ya tovuti ya wazazi na vitambulishi vya kivinjari ili kuchanganua usajili na usajili wa kulipia. Taarifa za watoto au maudhui ya kujifunza hazitumwi. Unaweza kuzima wakati wowote.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Miundo ya AI inaweza kujumuisha ChatGPT, Claude na Gemini, kulingana na mwalimu aliyechaguliwa na huduma zilizowezeshwa."
   },
   "zu": {
     "裁切图片": "Nqampuna isithombe",
@@ -72374,7 +72520,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Isikhathi sebhonasi asibambezeli ukukhokhiswa okuzenzakalelayo. Sisatholakala ngemva kokukhansela ukuvuselela okuzenzakalelayo.",
     "下次扣款": "Inkokhiso elandelayo",
     "扣款日期以支付平台为准。": "Hlola usuku lokukhokhiswa kumhlinzeki wezinkokhelo.",
-    "不会自动扣款": "Akukho ukukhokhiswa okuzenzakalelayo"
+    "不会自动扣款": "Akukho ukukhokhiswa okuzenzakalelayo",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Vumela i-Firebase Analytics iqoqe izehlakalo zokusebenzisa iwebhusayithi yabazali nezihlonzi zesiphequluli ukuze ihlaziye ukubhalisa nokubhalisela isevisi. Imininingwane yezingane nokuqukethwe kokufunda akuthunyelwa. Ungakuvala noma nini.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "Amamodeli e-AI angafaka i-ChatGPT, i-Claude ne-Gemini, kuye ngothisha okhethiwe nezinsiza ezivuliwe."
   },
   "am": {
     "裁切图片": "ምስል ይከርክሙ",
@@ -73360,7 +73508,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "የስጦታ ጊዜ ራስ-ሰር ክፍያን አያዘገይም። ራስ-ሰር እድሳትን ከሰረዙ በኋላም ይገኛል።",
     "下次扣款": "ቀጣይ ክፍያ",
     "扣款日期以支付平台为准。": "የክፍያ ቀንን ከክፍያ አቅራቢዎ ያረጋግጡ።",
-    "不会自动扣款": "ራስ-ሰር ክፍያ የለም"
+    "不会自动扣款": "ራስ-ሰር ክፍያ የለም",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "ምዝገባና ደንበኝነትን ለመተንተን Firebase Analytics የወላጆች ድረ ገጽ አጠቃቀም ክስተቶችንና የአሳሽ መለያዎችን እንዲሰበስብ ይፍቀዱ። የልጆች መረጃ ወይም የትምህርት ይዘት አይላክም። በማንኛውም ጊዜ ማጥፋት ይችላሉ።",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "የAI ሞዴሎች በተመረጠው መምህር እና በነቁ አገልግሎቶች መሠረት ChatGPT፣ Claude እና Gemini ሊያካትቱ ይችላሉ።"
   },
   "km": {
     "裁切图片": "រូបភាពច្រឹប",
@@ -74346,7 +74496,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ពេលបន្ថែមមិនពន្យារការគិតប្រាក់ស្វ័យប្រវត្តិទេ។ វានៅតែអាចប្រើបានបន្ទាប់ពីបោះបង់ការបន្តស្វ័យប្រវត្តិ។",
     "下次扣款": "ការគិតប្រាក់បន្ទាប់",
     "扣款日期以支付平台为准。": "ពិនិត្យកាលបរិច្ឆេទគិតប្រាក់ជាមួយអ្នកផ្តល់សេវាទូទាត់។",
-    "不会自动扣款": "គ្មានការគិតប្រាក់ស្វ័យប្រវត្តិ"
+    "不会自动扣款": "គ្មានការគិតប្រាក់ស្វ័យប្រវត្តិ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "អនុញ្ញាតឱ្យ Firebase Analytics ប្រមូលព្រឹត្តិការណ៍ប្រើប្រាស់គេហទំព័រឪពុកម្តាយ និងលេខសម្គាល់កម្មវិធីរុករក ដើម្បីវិភាគការចុះឈ្មោះ និងការជាវ។ មិនផ្ញើព័ត៌មានកុមារ ឬខ្លឹមសារសិក្សាទេ។ អ្នកអាចបិទបានគ្រប់ពេល។",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "ម៉ូដែល AI អាចរួមមាន ChatGPT, Claude និង Gemini អាស្រ័យលើគ្រូដែលបានជ្រើស និងសេវាដែលបានបើក។"
   },
   "lo": {
     "裁切图片": "ຕັດຮູບ",
@@ -75332,7 +75484,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ເວລາໂບນັດບໍ່ເລື່ອນການຫັກເງິນອັດຕະໂນມັດ. ຍັງໃຊ້ໄດ້ຫຼັງຍົກເລີກການຕໍ່ອາຍຸອັດຕະໂນມັດ.",
     "下次扣款": "ຫັກເງິນຄັ້ງຕໍ່ໄປ",
     "扣款日期以支付平台为准。": "ກວດວັນຫັກເງິນກັບຜູ້ໃຫ້ບໍລິການຊຳລະເງິນ.",
-    "不会自动扣款": "ບໍ່ມີການຫັກເງິນອັດຕະໂນມັດ"
+    "不会自动扣款": "ບໍ່ມີການຫັກເງິນອັດຕະໂນມັດ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "ອະນຸຍາດໃຫ້ Firebase Analytics ເກັບເຫດການໃຊ້ເວັບໄຊຜູ້ປົກຄອງ ແລະຕົວລະບຸບຣາວເຊີ ເພື່ອວິເຄາະການລົງທະບຽນ ແລະການສະໝັກສະມາຊິກ. ບໍ່ສົ່ງຂໍ້ມູນເດັກ ຫຼືເນື້ອຫາການຮຽນ. ປິດໄດ້ທຸກເວລາ.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "ໂມເດວ AI ອາດລວມມີ ChatGPT, Claude ແລະ Gemini ໂດຍຂຶ້ນກັບຄູທີ່ເລືອກ ແລະ ບໍລິການທີ່ເປີດໃຊ້."
   },
   "my": {
     "裁切图片": "ပုံဖြတ်ယူပါ။",
@@ -76318,7 +76472,9 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "အပိုအချိန်သည် အလိုအလျောက်ငွေဖြတ်ရက်ကို မရွှေ့ပါ။ အလိုအလျောက်သက်တမ်းတိုးခြင်းကို ပယ်ဖျက်ပြီးနောက်လည်း အသုံးပြုနိုင်ပါသည်။",
     "下次扣款": "နောက်တစ်ကြိမ် ငွေဖြတ်ခြင်း",
     "扣款日期以支付平台为准。": "ငွေဖြတ်ရက်ကို ငွေပေးချေမှုဝန်ဆောင်မှုတွင် စစ်ဆေးပါ။",
-    "不会自动扣款": "အလိုအလျောက်ငွေဖြတ်ခြင်း မရှိပါ"
+    "不会自动扣款": "အလိုအလျောက်ငွေဖြတ်ခြင်း မရှိပါ",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "မှတ်ပုံတင်ခြင်းနှင့် စာရင်းသွင်းခြင်းကို ဆန်းစစ်ရန် မိဘဝဘ်ဆိုက် အသုံးပြုမှုဖြစ်ရပ်များနှင့် ဘရောက်ဇာအမှတ်အသားများကို Firebase Analytics က စုဆောင်းခွင့်ပြုပါ။ ကလေးအချက်အလက် သို့မဟုတ် သင်ယူမှုအကြောင်းအရာ မပို့ပါ။ အချိန်မရွေး ပိတ်နိုင်ပါသည်။",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "ရွေးချယ်ထားသော ဆရာနှင့် ဖွင့်ထားသော ဝန်ဆောင်မှုများအပေါ် မူတည်၍ AI မော်ဒယ်များတွင် ChatGPT၊ Claude နှင့် Gemini ပါဝင်နိုင်သည်။"
   },
   "mn": {
     "裁切图片": "Зургийг тайрах",
@@ -77304,6 +77460,8 @@
     "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Урамшууллын хугацаа автомат төлбөрийг хойшлуулахгүй. Автомат сунгалтыг цуцалсны дараа ч ашиглаж болно.",
     "下次扣款": "Дараагийн төлбөр",
     "扣款日期以支付平台为准。": "Төлбөрийн огноог төлбөрийн үйлчилгээ үзүүлэгчээс шалгана уу.",
-    "不会自动扣款": "Автомат төлбөргүй"
+    "不会自动扣款": "Автомат төлбөргүй",
+    "允许 Firebase Analytics 收集家长网站的使用事件和浏览器标识，用于分析注册与订阅转化；不上传孩子信息或学习内容。可随时关闭。": "Бүртгэл болон захиалгыг шинжлэхийн тулд Firebase Analytics-д эцэг эхийн сайтын хэрэглээний үйл явдал, хөтчийн танигчийг цуглуулахыг зөвшөөрнө үү. Хүүхдийн мэдээлэл, сургалтын агуулга илгээгдэхгүй. Хэзээ ч унтрааж болно.",
+    "AI 模型可能包括 ChatGPT、Claude、Gemini，实际以所选老师和启用的服务为准。": "AI загварт сонгосон багш болон идэвхжүүлсэн үйлчилгээнээс хамааран ChatGPT, Claude, Gemini багтаж болно."
   }
 }

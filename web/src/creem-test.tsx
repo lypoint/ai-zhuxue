@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "./api";
 import { ResourceState, useAction, useResource } from "./ui";
+import { track } from "./parent-analytics";
 
 type Catalog = { enabled: boolean; items: { product_code: string; seat_count: number; amount: string; currency: string }[] };
 
@@ -30,6 +31,7 @@ export default function CreemTest({ reload, provider }: { reload: () => void; pr
     const parsed = new URL(url);
     if (parsed.protocol !== "https:" || !["creem.io", "www.creem.io"].includes(parsed.host) ||
         !(checkout ? parsed.pathname.startsWith("/test/") : parsed.pathname.startsWith("/test/my-orders/"))) throw new Error("Invalid Creem test URL.");
+    if (checkout) void track("checkout_open", { provider: "creem_test" });
     location.assign(parsed.href);
   };
   return <section className="panel">
@@ -38,8 +40,12 @@ export default function CreemTest({ reload, provider }: { reload: () => void; pr
     {provider === "creem_test" ? <button className="button" disabled={busy} onClick={() => void run(async () => {
       const result = await api<{ url: string }>("/parent/creem/manage"); navigate(result.url, false);
     })}>{t("cancel")}</button> : catalog.data.items.map(item => <button className="button" key={item.product_code} disabled={busy} onClick={() => void run(async () => {
-      const result = await api<{ checkout_id: string; url: string }>("/parent/creem/checkout", "POST", { product_code: item.product_code });
-      sessionStorage.setItem("creem-test-checkout", result.checkout_id); setPending(result.checkout_id); navigate(result.url, true);
+      void track("begin_checkout", { provider: "creem_test", seat_count: item.seat_count });
+      try {
+        const result = await api<{ checkout_id: string; url: string }>("/parent/creem/checkout", "POST", { product_code: item.product_code });
+        sessionStorage.setItem("creem-test-checkout", result.checkout_id); setPending(result.checkout_id);
+        navigate(result.url, true);
+      } catch (error) { void track("checkout_error", { provider: "creem_test" }); throw error; }
     })}>
       {item.seat_count} · {t("seats")} · {new Intl.NumberFormat(i18n.language, { style: "currency", currency: item.currency }).format(Number(item.amount) / 100)} / month
     </button>)}

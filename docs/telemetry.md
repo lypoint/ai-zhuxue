@@ -1,5 +1,33 @@
 # 客户端错误分析与埋点
 
+## 家长 Web Firebase Analytics（2026-10-26）
+
+仅家长 Web 接入 Firebase JS SDK 13.1.0，使用独立 Web 应用。`PARENT_FIREBASE_CONFIG` 在 Vite 家长构建时注入；学生构建不注入配置、不打入 Firebase SDK。真实配置位于仓库外 `credentials/firebase/parent-web-config.json`，本地通过被忽略的 `web/.env.parent.local` 注入，格式见 `web/.env.parent.example`。这是公开 Web SDK 配置，不是管理员凭据；不得放入服务账号私钥或 Measurement Protocol API secret。
+
+初次访问默认不加载 Firebase/gtag，也不补发授权前的事件。家长可选择“仅必要功能”或“全部接受”，并通过页面固定的“数据隐私与合规声明”入口随时修改。选择按浏览器保存在 `parent-analytics-choice`，跨标签页同步。撤回时先设置 GA disable 标志，关闭收集与授权，清除可访问的 GA Cookie；已上传数据不会因本地撤回而被远程删除。存储或 SDK 被阻止时不影响登录、家庭管理与支付。开发模式的事件标记 `debug_mode`，正式构建不启用此标记。
+
+| 事件 | 真实触发点 / 口径 |
+|---|---|
+| `page_view` | 同意后的首次页面及 SPA 页面切换；页面按固定枚举归类 |
+| `login_start`、`login` | 收到 Google 凭证后提交服务端登录、登录 API 成功/失败；不发送凭证 |
+| `sign_up`、`trial_start` | 服务端确认本次新建家长家庭时触发，老账号登录不计注册或重新开始试用 |
+| `child_create` | 家长创建孩子 API 成功/失败；不发送孩子字段 |
+| `bind_code_create` | 新建孩子时成功生成绑定码，或重新生成绑定码的成功/失败；不发送码值 |
+| `child_connected_observed` | 同意后，家长页面在本次挂载中首次从已认证家庭响应看到孩子已连接设备。不发送孩子/家庭 ID；不是服务端真实首次激活时间，刷新页面可再次观察 |
+| `view_subscription` | 登录后的订阅页面展示；在该页面授予授权时也记录 |
+| `begin_checkout`、`checkout_open` | 点击选定名额商品；Paddle 确认 `checkout.loaded`、Creem 发起已校验的支付 URL 跳转。Creem 跨站实际加载不可观测；埋点不阻塞跳转 |
+| `checkout_closed`、`checkout_error` | Paddle 关闭/错误事件；Creem 创建或跳转失败。Creem 离站后取消不会伪造关闭事件 |
+| `subscription_verify` | 服务端验单请求成功/失败，包含重复核验和恢复；不是首次付款、营收或续费事件 |
+| `subscription_manage` | 请求订阅管理入口成功/失败；不等于用户已取消自动续订 |
+
+仅发送枚举 `provider/result/page_name`、有效范围内的 `seat_count/status`。不设置 Analytics User-ID、账号属性或广告属性，不发送家庭/孩子 ID、姓名、邮箱、学习内容、API 请求体、登录令牌、绑定码、支付引用、完整路径、查询串、hash 或 referrer。`page_location` 固定为 Origin 加页面枚举，`page_title` 固定为产品名称。广告存储、广告用户数据、广告个性化、Google signals 均关闭。新 Web 数据流的“增强型衡量”已确认关闭，避免自动表单、出站链接及浏览历史采集绕过固定事件规则。
+
+上述 Firebase 漏斗只代表同意统计的浏览器样本，不提供跨浏览器家庭去重。服务端和学习站现已增加第一方事件，按本次产品决策不设同意门槛，支持家庭去重的激活、学习、结账、30 天转化和留存；详见 [运营漏斗与事件口径](operations-analytics.md)。自动续费、退款和净收入仍需财务事实与账本。不得把 `subscription_verify` 当作 GA `purchase` 事件，或凭付款回跳 URL 发放/统计付款成功。云端已注册事件范围的 `page_name`（Parent Web Page）、`provider`（Billing Provider）、`result`（Operation Result）自定义维度；其他环境部署时检查并复用同名定义。
+
+验证：`npm run check`；使用合成配置 `WEB_TEST_FIREBASE_CONFIG='{"apiKey":"test","appId":"1:123:web:test","projectId":"test","measurementId":"G-TEST"}' npx playwright test tests/analytics.spec.ts` 验证真实 SDK、授权前零外发、撤回、参数脱敏和学生隔离。该测试拦截所有 Google 采集请求。真实私有配置另已通过本地页面授权，云端 DebugView 收到 `page_view`、`session_start`、`first_visit`，确认 `page_location` 为固定本地页面；测试后已撤回本地授权。证据在私有 Firebase 目录，未发布生产站点。
+
+## 原生 App
+
 国内学生端 `app_student`、国内家长端 `app_parent_wechat` 保留空实现；共享业务代码只调用 `app_core` 的 `Telemetry`，不依赖 Firebase，亦不包含任何海外合规与跟踪代码。
 
 海外渠道引入 `overseas_compliance` 模块提供轻量级 GDPR 动态 Consent 管理与合规弹窗：

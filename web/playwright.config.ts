@@ -29,6 +29,7 @@ export default defineConfig({
     },
     {
       command: "WEB_DEV_API=http://127.0.0.1:8810 npm run dev:parent",
+      env: { PARENT_FIREBASE_CONFIG: process.env.WEB_TEST_FIREBASE_CONFIG || "" },
       url: "http://localhost:5173",
       reuseExistingServer: false,
       timeout: 30_000,

@@ -1,8 +1,14 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig(({ mode }) => {
   const role = mode === "student" ? "student" : "parent";
+  const env = loadEnv(mode, process.cwd(), "PARENT_");
+  const firebase = role === "parent" && env.PARENT_FIREBASE_CONFIG
+    ? JSON.parse(env.PARENT_FIREBASE_CONFIG) : null;
+  if (firebase && (!["apiKey", "appId", "projectId", "measurementId"].every(key => typeof firebase[key] === "string" && firebase[key])
+      || !/^\d+:\d+:web:[a-z0-9]+$/i.test(firebase.appId) || !/^G-[A-Z0-9]+$/.test(firebase.measurementId)))
+    throw new Error("PARENT_FIREBASE_CONFIG must contain a Web app apiKey, appId, projectId and measurementId.");
   return {
     plugins: [
       {
@@ -26,7 +32,10 @@ export default defineConfig(({ mode }) => {
         ],
       },
     ],
-    define: { __WEB_ROLE__: JSON.stringify(role) },
+    define: {
+      __WEB_ROLE__: JSON.stringify(role),
+      __PARENT_FIREBASE_CONFIG__: JSON.stringify(firebase),
+    },
     build: {
       outDir: `dist/${role}`,
       target: ["es2020", "safari15"],

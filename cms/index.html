@@ -202,6 +202,19 @@
     <div class="cards" id="cards"></div>
   </section>
 
+  <section data-page="overview" data-admin-only hidden>
+    <h2>运营漏斗与学习留存</h2>
+    <p class="section-note">按家庭去重，以 UTC 注册日期选取最多 31 天的 cohort。仅含埋点上线后新注册家庭；服务端和学习站全量统计，家长页面行为仅含授权样本。未成熟家庭单独列出。</p>
+    <div class="row">
+      <label>注册开始 <input id="operationsStart" type="date"></label>
+      <label>注册结束 <input id="operationsEnd" type="date"></label>
+      <label><input id="operationsTest" type="checkbox"> 包含测试支付</label>
+      <button class="ghost" id="operationsLoad" onclick="loadOperations()">查询漏斗</button>
+      <span id="operationsStatus" role="status"></span>
+    </div>
+    <div id="operationsReport"></div>
+  </section>
+
   <div class="grid2" data-page="safety" data-admin-only hidden>
     <section>
       <h2>围栏处置分布</h2><p class="section-note">按最终处置结果统计安全围栏的运行情况。</p>
@@ -521,6 +534,29 @@ function boot() {
 }
 
 let fenceRequest=0;
+async function loadOperations() {
+  const day = offset => new Date(Date.now() - offset * 86400000).toISOString().slice(0, 10);
+  if (!$('operationsStart').value) $('operationsStart').value = day(60);
+  if (!$('operationsEnd').value) $('operationsEnd').value = day(30);
+  $('operationsLoad').disabled = true;
+  $('operationsStatus').textContent = '加载中…';
+  $('operationsReport').replaceChildren();
+  const percentage = value => value == null ? '—' : (Number(value) * 100).toFixed(1) + '%';
+  const labels = {family_registered:'家庭注册',device_connected:'设备绑定',question_accepted:'服务端收到问题',learning_completed:'有效学习完成',
+    view_subscription:'查看订阅',begin_checkout:'发起结账',payment_confirmed:'已核验正价付款',subscription_activated:'订阅权益激活',student_page_view:'进入学习站',question_submitted:'提交问题',answer_received:'浏览器收到回答'};
+  try {
+    const d = await api('/admin/analytics/funnels?' + new URLSearchParams({start:$('operationsStart').value,end:$('operationsEnd').value,include_test:String($('operationsTest').checked)}));
+    const panels = [['activation','7 天激活（服务端全量）'],['student_experience','7 天学习站操作（已登录家庭）'],
+      ['checkout','30 天结账（家长授权样本）'],['trial_to_paid','30 天转付费（仅金额证明完整的交易）'],['subscription_activation','30 天订阅激活（含金额不可用，不等于付款）']];
+    $('operationsReport').innerHTML = panels.map(([key,title]) => {
+      const f=d[key];
+      return `<h3>${title}</h3><p>成熟家庭 ${Number(f.mature_families)} · 待观察 ${Number(f.pending_families)}</p><div class="table-wrap"><table><thead><tr><th>阶段</th><th>家庭数</th><th>相邻转化率</th><th>累计转化率</th></tr></thead><tbody>${f.steps.map(row=>`<tr><td>${esc(labels[row.event] || row.event)}</td><td>${Number(row.families)}</td><td>${percentage(row.from_previous)}</td><td>${percentage(row.from_start)}</td></tr>`).join('')}</tbody></table></div>`;
+    }).join('') + `<h3>学习留存（首次有效学习日起，按完整 UTC 自然日）</h3><div class="table-wrap"><table><thead><tr><th>留存日</th><th>成熟家庭</th><th>回访学习家庭</th><th>留存率</th></tr></thead><tbody>${d.retention.map(row=>`<tr><td>D${Number(row.day)}</td><td>${Number(row.eligible_families)}</td><td>${Number(row.returned_families)}</td><td>${percentage(row.rate)}</td></tr>`).join('')}</tbody></table></div><p class="section-note">付款以首次核验记录时间计，不是财务到账日；Google 缺少正价金额证明时只记录权益激活，不计入付款转化。此表不计算净收入、退款金额或续费率。删除家庭会移除相关统计。</p>`;
+    $('operationsStatus').textContent = `注册家庭 ${Number(d.registered_families)} · UTC · 截至 ${d.as_of}`;
+  } catch(e) { $('operationsStatus').textContent=e.message; }
+  finally { $('operationsLoad').disabled=false; }
+}
+
 async function loadFence() {
   const request=++fenceRequest;
   const dec = $('fdec').value;

@@ -374,6 +374,20 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
         transaction.state = row.state
         transaction.price_milliunits = result.price_milliunits
         transaction.currency = result.currency
+        db.flush()
+        from .analytics import record as record_event
+        environment = "test" if (result.channel in {"creem_test", "paddle_sandbox"} or
+            (result.channel == "appstore" and (result.chain.startswith("sandbox:") or settings.apple_environment == "Sandbox")) or
+            result.account_token.lower() in test_accounts()) else "production"
+        if result.state == "active":
+            record_event(db, "subscription_activated", owner.family_id, f"transaction:{transaction.id}:active",
+                   provider=result.channel, seat_count=row.seat_count,
+                   environment=environment)
+        if result.state == "active" and (result.price_milliunits or 0) > 0:
+            record_event(db, "payment_confirmed", owner.family_id, f"transaction:{transaction.id}:paid",
+                   provider=result.channel, environment=environment)
+        if result.state == "revoked":
+            record_event(db, "entitlement_revoked", owner.family_id, f"transaction:{transaction.id}:revoked", provider=result.channel)
     if linked:
         linked.state = "replaced"
         linked.auto_renew = False

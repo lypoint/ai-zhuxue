@@ -1,5 +1,10 @@
 export const ROLE = __WEB_ROLE__;
 export const ROOT = `/api/browser/${ROLE}`;
+function recordResult(path: string, method: string, status: number) {
+  if (__WEB_ROLE__ === "parent") window.dispatchEvent(new CustomEvent("parent-api-result", {
+    detail: { path, method, status },
+  }));
+}
 let csrf = "";
 export function setCSRF(value: string) {
   csrf = value;
@@ -34,11 +39,13 @@ export async function request(
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError")
       throw error;
+    recordResult(path, init.method || "GET", 0);
     throw new ApiError(
       0,
       "Network unavailable. Please check the latest state before retrying.",
     );
   }
+  recordResult(path, init.method || "GET", response.status);
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     if (
@@ -54,6 +61,14 @@ export async function request(
     throw new ApiError(response.status, detail);
   }
   return response;
+}
+
+export function browserEvent(name: string, properties: Record<string, string | number> = {}) {
+  if (!csrf) return;
+  try {
+    void request("/events", {method:"POST", keepalive:true,
+      body:JSON.stringify({id:crypto.randomUUID(), name, properties})}).catch(() => {});
+  } catch { /* Telemetry must never interrupt business actions. */ }
 }
 
 export async function api<T = unknown>(

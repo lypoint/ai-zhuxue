@@ -459,6 +459,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                        fence_action="pending", tokens_in=attempt)
     db.add(user_msg)
     db.flush()
+    from ..services.analytics import record
+    record(db, "question_accepted", student.family_id, f"question:{user_msg.id}:accepted", student_id=student.id, mode="single")
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
 
     # 围栏判定（带最近用户消息作上下文：多轮铺垫防御）
@@ -581,6 +583,9 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         db.get(Message, user_msg.id).fence_action = "failed"
         db.commit()
         raise
+    if reply.fence_action != "reject":
+        record(db, "learning_completed", student.family_id, f"question:{user_msg.id}:completed", student_id=student.id, mode="single", action=reply.fence_action)
+        db.commit()
     _auto_image(db, student, conv, reply, body.locale)
     return reply
 
@@ -654,6 +659,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                            fence_action="pending", tokens_in=attempt)
         db.add(user_msg)
         db.flush()
+    from ..services.analytics import record
+    record(db, "question_accepted", student.family_id, f"question:{user_msg.id}:accepted", student_id=student.id, mode="stream")
     db.commit()  # 与普通聊天共用同一预留时点。
 
     effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
@@ -798,6 +805,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                    **({"provider": provider_model["provider"], "model": provider_model["model"]}
                                       if provider_model else {"provider": "unknown", "model": "unknown"}))
                     sdb.add(row)
+                if out_action != "reject":
+                    record(sdb, "learning_completed", family_id, f"question:{user_msg_id}:completed", student_id=student_id, mode="stream", action=out_action)
                 sdb.commit()
                 _auto_image(sdb, sdb.get(Student, student_id), sdb.get(Conversation, conv_id), reply, body.locale)
                 yield sse("done", {"message_id": reply.id, "image_job": reply.image_job,
