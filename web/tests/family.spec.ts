@@ -125,11 +125,15 @@ test("family connects, studies with images, reviews records, grades and rewards 
     .last()
     .getByRole("button", { name: "I understand", exact: true })
     .click();
+  const savedAnswer = student.waitForResponse(response =>
+    response.url().endsWith("/chat/favorites") && response.request().method() === "POST" && response.ok(),
+  );
   await student
     .locator(".message.assistant")
     .last()
     .getByRole("button", { name: "Save answer", exact: true })
     .click();
+  await savedAnswer;
   await student
     .locator(".message.assistant")
     .last()
@@ -745,11 +749,15 @@ test("parent edits grades, saved sources and notification pages work, and switch
   const originalConversation = new URL(student.url()).searchParams.get(
     "conversation",
   );
+  const savedAnswer = student.waitForResponse(response =>
+    response.url().endsWith("/chat/favorites") && response.request().method() === "POST" && response.ok(),
+  );
   await student
     .locator(".message.assistant")
     .last()
     .getByRole("button", { name: "Save answer", exact: true })
     .click();
+  await savedAnswer;
   await student.goto(studentURL + "/favorites");
   const search = student.getByRole("searchbox", {
     name: "Search",
@@ -866,7 +874,7 @@ test("parent edits grades, saved sources and notification pages work, and switch
   );
   await student.goto(studentURL + `/chat?conversation=${originalConversation}`);
   await expect(student.locator(".teacher-select")).toContainText(
-    "Teacher",
+    "Learning guide",
   );
   await expect(
     student.getByRole("button", { name: "Add photo", exact: true }),
@@ -1415,7 +1423,9 @@ test("student timings correlate chat, upload and image reads without sending con
   for (const row of uploads) {
     expect(traces.has(row.trace_id)).toBe(true);
     expect(Object.keys(row).sort()).toEqual(["metrics","operation","result","trace_id"]);
-    expect(row.metrics.browser_total_ms).toBeGreaterThanOrEqual(row.metrics.browser_headers_ms);
+    // WebKit can omit responseStart for image resource timing entries.
+    if (row.metrics.browser_headers_ms !== undefined)
+      expect(row.metrics.browser_total_ms).toBeGreaterThanOrEqual(row.metrics.browser_headers_ms);
     if (row.operation === "chat_stream") {
       expect(row.result).toBe("success");
       expect(row.metrics.browser_first_delta_ms).toBeGreaterThanOrEqual(row.metrics.browser_headers_ms);
