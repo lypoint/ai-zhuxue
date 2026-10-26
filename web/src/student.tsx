@@ -1,3 +1,4 @@
+import { observeImagePerformance } from "./request-performance";
 import { enableStudentAnalytics, trackStudent } from "./student-analytics";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 import {
   api,
+  sendPerformance,
   browser,
   request,
   stream,
@@ -96,6 +98,7 @@ export default function Student({
   const [menu, setMenu] = useState(false);
   const narrow = useNarrowNav();
   const [availability, setAvailability] = useState<Availability | null>(null);
+  useEffect(() => observeImagePerformance(sendPerformance), []);
   useEffect(() => {
     enableStudentAnalytics(true);
     trackStudent("student_page_view", location.pathname);

@@ -215,6 +215,18 @@
     <div id="operationsReport"></div>
   </section>
 
+  <section data-page="overview" data-admin-only hidden>
+    <h2>链路耗时</h2>
+    <p class="section-note">最多查询 7 天，日期以 UTC 为准。按服务器、部署方案、模型、安全模式、输入类型、处理结果及重试情况分组。同一次请求的浏览器和服务端记录会配对显示。两端计时的差值不等于单向网络耗时，也不能直接代表减少一层服务器后的提速。</p>
+    <div class="row">
+      <label>开始 <input id="performanceStart" type="date"></label>
+      <label>结束 <input id="performanceEnd" type="date"></label>
+      <button class="ghost" id="performanceLoad" onclick="loadPerformance()">查询耗时</button>
+      <span id="performanceStatus" role="status"></span>
+    </div>
+    <div id="performanceReport"></div>
+  </section>
+
   <div class="grid2" data-page="safety" data-admin-only hidden>
     <section>
       <h2>围栏处置分布</h2><p class="section-note">按最终处置结果统计安全围栏的运行情况。</p>
@@ -555,6 +567,28 @@ async function loadOperations() {
     $('operationsStatus').textContent = `注册家庭 ${Number(d.registered_families)} · UTC · 截至 ${d.as_of}`;
   } catch(e) { $('operationsStatus').textContent=e.message; }
   finally { $('operationsLoad').disabled=false; }
+}
+
+async function loadPerformance() {
+  const day=offset=>new Date(Date.now()-offset*86400000).toISOString().slice(0,10);
+  if (!$('performanceStart').value) $('performanceStart').value=day(6);
+  if (!$('performanceEnd').value) $('performanceEnd').value=day(0);
+  $('performanceLoad').disabled=true;
+  $('performanceStatus').textContent='加载中…';
+  $('performanceReport').replaceChildren();
+  try {
+    const d=await api('/admin/analytics/performance?'+new URLSearchParams({start:$('performanceStart').value,end:$('performanceEnd').value}));
+    const labels={browser_headers_ms:'浏览器收到响应头',browser_first_delta_ms:'浏览器首字到达',browser_done_ms:'浏览器收到完整回答',browser_total_ms:'浏览器总时间',
+      server_headers_ms:'服务端响应头',server_total_ms:'服务端总时间',server_first_delta_ms:'服务端首字发出',server_done_ms:'服务端回答完成',
+      policy_ms:'订阅和额度检查',prepare_images_ms:'提问图片准备',context_ms:'整理对话上下文',input_review_ms:'输入审核',model_ms:'模型调用总时间',model_first_token_ms:'模型首 token',output_review_ms:'输出复核',persist_ms:'数据库提交',
+      upload_receive_ms:'服务端接收上传',image_sanitize_ms:'图片清理',storage_upload_ms:'存储上传',image_review_ms:'图片审核',storage_read_ms:'存储下载',
+      edge_upstream_headers_ms:'学习站等待上游响应头',edge_api_headers_residual_ms:'学习站↔业务服务响应头差值',browser_edge_headers_residual_ms:'浏览器↔学习站响应头差值',first_delta_path_residual_ms:'首字路径差值'};
+    $('performanceReport').innerHTML=d.groups.map(g=>`<h3>${esc([g.operation,g.node,g.variant,g.model,g.mode,g.input_kind,g.result,g.retry?'重试':'首次'].join(' · '))}</h3>
+      <p>服务端样本 ${Number(g.server_samples)} · 已匹配浏览器记录 ${Number(g.paired_samples)} · 浏览器失败/取消 ${Number(g.browser_errors)} · 计时差值异常 ${Number(g.negative_residual_samples)}</p>
+      <div class="table-wrap"><table><thead><tr><th>计时（毫秒）</th><th>样本数</th><th>P50</th><th>P95</th></tr></thead><tbody>${Object.entries(g.metrics).map(([name,v])=>`<tr><td>${esc(labels[name]||name)}</td><td>${Number(v.samples)}</td><td>${v.p50_ms==null?'—':Number(v.p50_ms).toFixed(1)}</td><td>${v.p95_ms==null?'—':Number(v.p95_ms).toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`).join('') || '<p>此时间范围暂无耗时样本。</p>';
+    $('performanceStatus').textContent=`${d.groups.length} 个分组 · UTC；未测量阶段不显示，不能按 0 处理。`;
+  } catch(e) { $('performanceStatus').textContent=e.message; }
+  finally { $('performanceLoad').disabled=false; }
 }
 
 async function loadFence() {

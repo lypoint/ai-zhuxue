@@ -137,6 +137,16 @@ class FamilySettingsIn(BaseModel):
     notify_fence: bool | None = None  # security 告警不可关闭
 
 
+class StudentLearningSettingsIn(BaseModel):
+    model_config = {"extra": "forbid"}
+    daily_message_cap: int | None = Field(default=None, ge=10, le=1000)
+    daily_minutes_cap: int | None = Field(default=None, ge=0, le=480)
+    quiet_enabled: bool | None = None
+    quiet_start: int | None = Field(default=None, ge=0, le=23)
+    quiet_end: int | None = Field(default=None, ge=0, le=23)
+    notify_fence: bool | None = None
+
+
 class StudentFenceSettingsIn(BaseModel):
     model_config = {"extra": "forbid"}
     forbidden_words: list[str] | None = Field(default=None, max_length=500)

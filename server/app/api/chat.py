@@ -2,7 +2,7 @@
 from typing import Annotated
 import datetime as dt
 
-from ..services import language
+from ..services import language, performance
 
 import json
 
@@ -21,7 +21,7 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       FenceEvent, FenceFeedback, LLMGroup, Message, Student, StudentGrade,
                       StudentGradeVersion, UsageLog)
 from ..schemas import ChatIn, MessageOut
-from ..services import fence, llm, image_chat, image_jobs
+from ..services import fence, llm, image_chat, image_jobs, learning_settings
 from ..services.teacher_channels import current_channel, channel_teachers, default_teacher
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -211,12 +211,14 @@ def _notify(family_id: int, type_: str, title: str, body: str,
             conversation_id: int | None = None, once_per_day: bool = False, db: Session = None):
     """创建家长通知。once_per_day 时同类型同家庭每天最多一条（防骚扰）。
 
-    P2 通知偏好：type_=fence 受 FamilySettings.notify_fence 开关控制；
+    P2 通知偏好：type_=fence 受会话所属孩子的 notify_fence 开关控制；
     security（安全告警）与 quota/system 不受偏好限制。
     """
     from ..models import FamilySettings, Notification
     if type_ == "fence":
-        fs = db.query(FamilySettings).filter_by(family_id=family_id).first()
+        conv = db.get(Conversation, conversation_id) if conversation_id else None
+        student = db.get(Student, conv.student_id) if conv and conv.student_id else None
+        fs = learning_settings.effective(student, db) if student else db.query(FamilySettings).filter_by(family_id=family_id).first()
         if fs and not fs.notify_fence:
             return
     if once_per_day:
@@ -264,7 +266,7 @@ def _rest_status(fs: FamilySettings | None, now: dt.datetime) -> dict:
 
 @router.get("/availability")
 def availability(student: Student = Depends(current_student), db: Session = Depends(get_db)):
-    fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
+    fs = learning_settings.effective(student, db)
     used = _today_seconds(student.id, db)
     cap = fs.daily_minutes_cap if fs else 60
     return {**_rest_status(fs, local_now()), "used_seconds": used,
@@ -288,7 +290,7 @@ def _check_policy(student: Student, db: Session, teacher_id: int | None = None,
     quota_pending = _check_subscription(student, db, teacher_id, channel, retry_message_id=retry_message_id)
     offset = dt.timedelta(hours=settings.tz_offset_hours)
     now_local = local_now()
-    fs = db.query(FamilySettings).filter_by(family_id=student.family_id).first()
+    fs = learning_settings.effective(student, db)
     rest = _rest_status(fs, now_local)
     if rest["resting"]:
         raise HTTPException(423, rest["message"])
@@ -431,6 +433,10 @@ def _auto_image(db, student, conv, reply, locale):
 @router.post("", response_model=MessageOut)
 async def send_message(body: ChatIn, student: Student = Depends(current_student),
                        db: Session = Depends(get_db), channel: Annotated[str, Depends(current_channel)] = "wechat"):
+    trace = performance.bind(student)
+    if trace:
+        trace.input = "image" if body.asset_ids else "text"
+        trace.mode = "single"
     policy_teacher_id = body.teacher_id
     if body.conversation_id is not None and policy_teacher_id is None:
         existing = db.get(Conversation, body.conversation_id)
@@ -439,7 +445,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     if body.conversation_id is None:
         teacher = _teacher(db, student, body.teacher_id, channel)
         policy_teacher_id = teacher.id if teacher else None
-    _check_policy(student, db, policy_teacher_id, channel)
+    with performance.span("policy_ms"):
+        _check_policy(student, db, policy_teacher_id, channel)
 
     if body.conversation_id:
         conv = _student_conversation(db, body.conversation_id, student)
@@ -459,30 +466,35 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                        fence_action="pending", tokens_in=attempt)
     db.add(user_msg)
     db.flush()
+    if trace:
+        trace.message_id, trace.attempt = user_msg.id, attempt
     from ..services.analytics import record
     record(db, "question_accepted", student.family_id, f"question:{user_msg.id}:accepted", student_id=student.id, mode="single")
     db.commit()  # 先占用每日配额，避免并发请求在模型调用期间都通过检查。
 
     # 围栏判定（带最近用户消息作上下文：多轮铺垫防御）
     fence_level = student.fence_level
-    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
+    with performance.span("prepare_images_ms"):
+        effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
                .filter(Conversation.student_id == student.id, Message.role == "user",
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
-        verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
-                                       fence_level=fence_level,
-                                       forbidden_words=json.loads(student.forbidden_words_json),
-                                       recent_user_texts=recent,
-                                       group_id=conv.teacher_group_id)
+        with performance.span("input_review_ms"):
+            verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
+                                           fence_level=fence_level,
+                                           forbidden_words=json.loads(student.forbidden_words_json),
+                                           recent_user_texts=recent,
+                                           group_id=conv.teacher_group_id)
     except Exception:
         db.rollback()
         cur = _is_active_attempt(db, user_msg.id, attempt)
         if cur:
             cur.fence_action = "failed"
-            db.commit()
+            with performance.span("persist_ms"):
+                db.commit()
         detail = "图片问题审核暂不可用，请重试" if body.asset_ids else "问题审核暂不可用，请重试"
         raise HTTPException(503, detail, headers={
             "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
@@ -511,46 +523,53 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         reply = Message(conversation_id=conv.id, role="assistant",
                         content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
         db.add(reply)
-        db.commit()
+        with performance.span("persist_ms"):
+            db.commit()
+        if trace: trace.result = "rejected"
         return reply
 
     # 关键：与 /chat/stream 保持一致的事务边界，先提交输入审核记录（FenceEvent）和家长通知，
     # 避免后续 LLM 调用期间持有未提交状态，并确保审计记录落库不丢失。
-    db.commit()
+    with performance.span("persist_ms"):
+        db.commit()
 
     if not db.query(Conversation).count():
         pass
 
     # 生成回复：allow 直答；rewrite 用引导性改写模板再交给模型
-    history = (db.query(Message).filter(Message.conversation_id == conv.id)
-               .order_by(Message.id.desc()).limit(12).all())
-    history.reverse()
-    messages = [{"role": "system", "content": _system_prompt(student.grade_band, fence_level) + "\n" + language.instruction(body.locale)}]
-    messages[0]["content"] += image_chat.output_instruction(db, conv.teacher_group_id)
-    for m in history[:-1]:
-        if m.role == "assistant" and not m.content.strip():
-            continue
-        messages.append({"role": m.role, "content": image_chat.history_content(db, conv.teacher_group_id, m)})
-    if verdict["decision"] == "rewrite":
-        messages.append({"role": "system", "content": _rewrite_instruction(body)})
-    else:
-        messages.append({"role": "user", "content": image_chat.model_content(db, conv.teacher_group_id, user_msg, effective_content)})
+    with performance.span("context_ms"):
+        history = (db.query(Message).filter(Message.conversation_id == conv.id)
+                   .order_by(Message.id.desc()).limit(12).all())
+        history.reverse()
+        messages = [{"role": "system", "content": _system_prompt(student.grade_band, fence_level) + "\n" + language.instruction(body.locale)}]
+        messages[0]["content"] += image_chat.output_instruction(db, conv.teacher_group_id)
+        for m in history[:-1]:
+            if m.role == "assistant" and not m.content.strip():
+                continue
+            messages.append({"role": m.role, "content": image_chat.history_content(db, conv.teacher_group_id, m)})
+        if verdict["decision"] == "rewrite":
+            messages.append({"role": "system", "content": _rewrite_instruction(body)})
+        else:
+            messages.append({"role": "user", "content": image_chat.model_content(db, conv.teacher_group_id, user_msg, effective_content)})
 
     try:
-        result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
-                                group_id=conv.teacher_group_id, **({"route": image_route} if image_route else {}))
+        with performance.span("model_ms"):
+            result = await llm.chat(messages, purpose="chat", family_id=student.family_id,
+                                    group_id=conv.teacher_group_id, **({"route": image_route} if image_route else {}))
     except llm.LLMUnavailable as e:
         cur = _is_active_attempt(db, user_msg.id, attempt)
         if cur:
             cur.fence_action = "failed"
-            db.commit()
+            with performance.span("persist_ms"):
+                db.commit()
         raise HTTPException(503, f"LLM unavailable: {e}")
     except Exception:
         db.rollback()
         cur = _is_active_attempt(db, user_msg.id, attempt)
         if cur:
             cur.fence_action = "failed"
-            db.commit()
+            with performance.span("persist_ms"):
+                db.commit()
         detail = "图片问题审核暂不可用，请重试" if body.asset_ids else "问题审核暂不可用，请重试"
         raise HTTPException(503, detail, headers={
             "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
@@ -559,7 +578,8 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
         cur = _is_active_attempt(db, user_msg.id, attempt)
         if cur:
             cur.fence_action = "failed"
-            db.commit()
+            with performance.span("persist_ms"):
+                db.commit()
         raise HTTPException(503, "模型没有返回正文，请重试或切换老师")
 
     cur = _is_active_attempt(db, user_msg.id, attempt)
@@ -573,20 +593,27 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     db.add(UsageLog(student_id=student.id, purpose="chat", provider=result["provider"],
                     model=result["model"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"]))
-    db.commit()
+    with performance.span("persist_ms"):
+        db.commit()
     try:
-        reply = await _output_check(result["content"], student, conv.id, reply, db,
-                                    conv.teacher_group_id, locale=body.locale, fence_level=fence_level)
+        with performance.span("output_review_ms"):
+            reply = await _output_check(result["content"], student, conv.id, reply, db,
+                                        conv.teacher_group_id, locale=body.locale, fence_level=fence_level)
     except Exception:
         db.rollback()
         db.delete(db.get(Message, reply.id))
         db.get(Message, user_msg.id).fence_action = "failed"
-        db.commit()
+        with performance.span("persist_ms"):
+            db.commit()
         raise
     if reply.fence_action != "reject":
         record(db, "learning_completed", student.family_id, f"question:{user_msg.id}:completed", student_id=student.id, mode="single", action=reply.fence_action)
-        db.commit()
+        with performance.span("persist_ms"):
+            db.commit()
     _auto_image(db, student, conv, reply, body.locale)
+    if trace:
+        trace.result = "rejected" if reply.fence_action == "reject" else "success"
+        trace.mark("server_done_ms")
     return reply
 
 
@@ -602,6 +629,10 @@ async def send_message_stream(body: ChatIn, live: bool = False,
     replace → {text}（实时输出在最终安全复核被拦截时，替换已显示内容）
     done  → {message_id, tokens_in, tokens_out}
     """
+    trace = performance.bind(student)
+    if trace:
+        trace.input = "image" if body.asset_ids else "text"
+        trace.mode = "realtime" if (live or not settings.stream_recheck_first) and not body.asset_ids else "buffered"
     retry = None
     if body.retry_message_id is not None:
         retry = db.get(Message, body.retry_message_id)
@@ -626,7 +657,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
     if body.conversation_id is None and body.retry_message_id is None:
         teacher = _teacher(db, student, body.teacher_id, channel)
         policy_teacher_id = teacher.id if teacher else None
-    _check_policy(student, db, policy_teacher_id, channel, retry_message_id=body.retry_message_id)
+    with performance.span("policy_ms"):
+        _check_policy(student, db, policy_teacher_id, channel, retry_message_id=body.retry_message_id)
 
     if retry is not None:
         user_msg = (db.query(Message)
@@ -659,11 +691,14 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                            fence_action="pending", tokens_in=attempt)
         db.add(user_msg)
         db.flush()
+    if trace:
+        trace.message_id, trace.attempt = user_msg.id, attempt
     from ..services.analytics import record
     record(db, "question_accepted", student.family_id, f"question:{user_msg.id}:accepted", student_id=student.id, mode="stream")
     db.commit()  # 与普通聊天共用同一预留时点。
 
-    effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
+    with performance.span("prepare_images_ms"):
+        effective_content, image_route = await _prepare_images(body, student, conv, user_msg, db, attempt)
     fence_level = student.fence_level
     recent = [m.content for m in (db.query(Message)
                .join(Conversation, Message.conversation_id == Conversation.id)
@@ -671,17 +706,19 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                        Message.id < user_msg.id)
                .order_by(Message.id.desc()).limit(2).all())][::-1]
     try:
-        verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
-                                       fence_level=fence_level,
-                                       forbidden_words=json.loads(student.forbidden_words_json),
-                                       recent_user_texts=recent,
-                                       group_id=conv.teacher_group_id)
+        with performance.span("input_review_ms"):
+            verdict = await fence.evaluate(effective_content, student.grade_band, student.family_id,
+                                           fence_level=fence_level,
+                                           forbidden_words=json.loads(student.forbidden_words_json),
+                                           recent_user_texts=recent,
+                                           group_id=conv.teacher_group_id)
     except Exception:
         db.rollback()
         cur = _is_active_attempt(db, user_msg.id, attempt)
         if cur:
             cur.fence_action = "failed"
-            db.commit()
+            with performance.span("persist_ms"):
+                db.commit()
         detail = "图片问题审核暂不可用，请重试" if body.asset_ids else "问题审核暂不可用，请重试"
         raise HTTPException(503, detail, headers={
             "X-User-Message-Id": str(user_msg.id), "X-Conversation-Id": str(conv.id)})
@@ -707,10 +744,18 @@ async def send_message_stream(body: ChatIn, live: bool = False,
     grade_band = student.grade_band
     family_id = student.family_id
     teacher_group_id = conv.teacher_group_id
-    db.commit()
+    with performance.span("persist_ms"):
+        db.commit()
 
     async def gen():
         def sse(event, data):
+            if trace:
+                if event in ("delta", "replace") and data.get("text"):
+                    trace.mark("server_first_delta_ms")
+                if event == "error": trace.result = "error"
+                if event == "done":
+                    trace.mark("server_done_ms")
+                    if trace.result == "incomplete": trace.result = "success"
             return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
         from ..db import SessionLocal
@@ -720,6 +765,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                "fence_action": fence_action,
                                "category": verdict["category"]})
             if fence_action == "reject":
+                if trace: trace.result = "rejected"
                 cur_user = _is_active_attempt(sdb, user_msg_id, attempt)
                 if not cur_user:
                     return
@@ -727,25 +773,27 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                 content=language.safe_reply(body.locale, forbidden=verdict.get("reply") == fence.FORBIDDEN_WORD_REPLY), fence_action="reject")
                 sdb.add(reply)
                 cur_user.fence_action = fence_action
-                sdb.commit()
+                with performance.span("persist_ms"):
+                    sdb.commit()
                 yield sse("delta", {"text": reply.content})
                 yield sse("done", {"message_id": reply.id, "tokens_in": 0, "tokens_out": 0})
                 return
 
-            history = (sdb.query(Message).filter(Message.conversation_id == conv_id)
-                       .order_by(Message.id.desc()).limit(12).all())
-            history.reverse()
-            messages = [{"role": "system",
-                         "content": _system_prompt(grade_band, fence_level) + "\n" + language.instruction(body.locale)}]
-            messages[0]["content"] += image_chat.output_instruction(sdb, teacher_group_id)
-            for m in history[:-1]:
-                if m.role == "assistant" and not m.content.strip():
-                    continue
-                messages.append({"role": m.role, "content": image_chat.history_content(sdb, teacher_group_id, m)})
-            if fence_action == "rewrite":
-                messages.append({"role": "system", "content": _rewrite_instruction(body)})
-            else:
-                messages.append({"role": "user", "content": image_chat.model_content(sdb, teacher_group_id, sdb.get(Message, user_msg_id), effective_content)})
+            with performance.span("context_ms"):
+                history = (sdb.query(Message).filter(Message.conversation_id == conv_id)
+                           .order_by(Message.id.desc()).limit(12).all())
+                history.reverse()
+                messages = [{"role": "system",
+                             "content": _system_prompt(grade_band, fence_level) + "\n" + language.instruction(body.locale)}]
+                messages[0]["content"] += image_chat.output_instruction(sdb, teacher_group_id)
+                for m in history[:-1]:
+                    if m.role == "assistant" and not m.content.strip():
+                        continue
+                    messages.append({"role": m.role, "content": image_chat.history_content(sdb, teacher_group_id, m)})
+                if fence_action == "rewrite":
+                    messages.append({"role": "system", "content": _rewrite_instruction(body)})
+                else:
+                    messages.append({"role": "user", "content": image_chat.model_content(sdb, teacher_group_id, sdb.get(Message, user_msg_id), effective_content)})
 
             try:
                 collected, usage, provider_model = [], None, {}
@@ -755,14 +803,15 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                     stream_kwargs["group_id"] = teacher_group_id
                 if image_route:
                     stream_kwargs["route"] = image_route
-                async for chunk in llm.chat_stream(messages, **stream_kwargs):
-                    if "delta" in chunk:
-                        collected.append(chunk["delta"])
-                        provider_model = {"provider": chunk["provider"], "model": chunk["model"]}
-                        if realtime:
-                            yield sse("delta", {"text": chunk["delta"]})
-                    elif "usage" in chunk:
-                        usage = chunk["usage"]
+                with performance.span("model_ms"):
+                    async for chunk in llm.chat_stream(messages, **stream_kwargs):
+                        if "delta" in chunk:
+                            collected.append(chunk["delta"])
+                            provider_model = {"provider": chunk["provider"], "model": chunk["model"]}
+                            if realtime:
+                                yield sse("delta", {"text": chunk["delta"]})
+                        elif "usage" in chunk:
+                            usage = chunk["usage"]
                 content = "".join(collected)
                 if not content.strip():
                     raise llm.LLMUnavailable("模型没有返回正文，请重试或切换老师")
@@ -771,11 +820,13 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                 # 实时模式（stream_recheck_first=false）已送达部分无法撤回，见 api.md 诚实声明。
                 out_action = fence_action
                 if collected:
-                    check = await fence.evaluate(content, grade_band, family_id,
-                                                 group_id=teacher_group_id, fence_level=fence_level)
+                    with performance.span("output_review_ms"):
+                        check = await fence.evaluate(content, grade_band, family_id,
+                                                     group_id=teacher_group_id, fence_level=fence_level)
                     if check["category"] == "sensitive":
                         content = language.safe_reply(body.locale)
                         out_action = "reject"
+                        if trace: trace.result = "rejected"
                         sdb.add(FenceEvent(student_id=student_id, conversation_id=conv_id,
                                            stage="output_check", decision="reject",
                                            category="sensitive",
@@ -807,7 +858,8 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                     sdb.add(row)
                 if out_action != "reject":
                     record(sdb, "learning_completed", family_id, f"question:{user_msg_id}:completed", student_id=student_id, mode="stream", action=out_action)
-                sdb.commit()
+                with performance.span("persist_ms"):
+                    sdb.commit()
                 _auto_image(sdb, sdb.get(Student, student_id), sdb.get(Conversation, conv_id), reply, body.locale)
                 yield sse("done", {"message_id": reply.id, "image_job": reply.image_job,
                                    "tokens_in": usage["tokens_in"] if usage else 0,
@@ -816,14 +868,16 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                 cur = _is_active_attempt(sdb, user_msg_id, attempt)
                 if cur:
                     cur.fence_action = "failed"
-                    sdb.commit()
+                    with performance.span("persist_ms"):
+                        sdb.commit()
                 yield sse("error", {"message": str(e)})
         finally:
             try:
                 cur = _is_active_attempt(sdb, user_msg_id, attempt)
                 if cur:
                     cur.fence_action = "failed"
-                    sdb.commit()
+                    with performance.span("persist_ms"):
+                        sdb.commit()
             except Exception:
                 sdb.rollback()
             finally:

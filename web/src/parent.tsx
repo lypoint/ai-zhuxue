@@ -30,7 +30,6 @@ import {
   type Stats,
   type Message,
   type Conversation,
-  type FamilySettings,
 } from "./api";
 import {
   AccountSettings,
@@ -243,6 +242,7 @@ export default function Parent({
                   element={
                     <Schedule
                       family={family}
+                      child={child}
                       reload={resource.reload}
                       refresh={refresh}
                     />
@@ -402,8 +402,8 @@ function Overview({ family, child }: PageProps) {
                   <small>{t("minutes")}</small>
                 </strong>
                 <small>
-                  {family.settings.daily_minutes_cap
-                    ? `${number(family.settings.daily_minutes_cap)} ${t("minutes")}`
+                  {child.learning_settings.daily_minutes_cap
+                    ? `${number(child.learning_settings.daily_minutes_cap)} ${t("minutes")}`
                     : t("unlimited")}
                 </small>
               </section>
@@ -451,11 +451,11 @@ function Overview({ family, child }: PageProps) {
               <h2>{t("schedule")}</h2>
               <p>
                 {stats.data &&
-                  (family.settings.daily_minutes_cap
+                  (child.learning_settings.daily_minutes_cap
                     ? t("remaining", {
                         count: Math.max(
                           0,
-                          family.settings.daily_minutes_cap -
+                          child.learning_settings.daily_minutes_cap -
                             Math.ceil(
                               (stats.data.today.quota_used_seconds ??
                                 stats.data.today.minutes * 60) / 60,
@@ -464,17 +464,17 @@ function Overview({ family, child }: PageProps) {
                       })
                     : t("unlimited"))}
               </p>
-              {family.settings.daily_minutes_cap > 0 && (
+              {child.learning_settings.daily_minutes_cap > 0 && (
                 <progress
-                  max={family.settings.daily_minutes_cap}
+                  max={child.learning_settings.daily_minutes_cap}
                   value={stats.data?.today.minutes || 0}
                 />
               )}
-              {family.settings.quiet_enabled && (
+              {child.learning_settings.quiet_enabled && (
                 <p>
                   {t("quietPeriod", {
-                    start: family.settings.quiet_start + ":00",
-                    end: family.settings.quiet_end + ":00",
+                    start: child.learning_settings.quiet_start + ":00",
+                    end: child.learning_settings.quiet_end + ":00",
                   })}
                 </p>
               )}
@@ -623,10 +623,10 @@ function Children({ family, child, reload, choose }: PageProps) {
               {t("export")}
             </button>
           </div>
-          <Usage child={child} />
           <BoundarySettings child={child} reload={reload} />
         </section>
       )}
+      {child && <LearningSettings key={child.id} child={child} reload={reload} />}
       {(adding || editing) && (
         <Dialog
           title={t(adding ? "addChild" : "edit")}
@@ -767,33 +767,6 @@ function Children({ family, child, reload, choose }: PageProps) {
   );
 }
 
-function Usage({ child }: { child: Child }) {
-  const { t } = useTranslation();
-  const resource = useResource<{
-    today: { tokens_in: number; tokens_out: number };
-    total: { tokens_in: number; tokens_out: number };
-  }>(`/parent/students/${child.id}/usage`);
-  return (
-    <section className="boundary-form">
-      <h2>{t("modelUsage")}</h2>
-      <ResourceState {...resource} retry={resource.reload} />
-      {resource.data && (
-        <dl>
-          {(["today", "total"] as const).map((period) => (
-            <div key={period}>
-              <dt>{t(period === "today" ? "today" : "all")}</dt>
-              <dd>
-                {t("tokensIn")}: {number(resource.data![period].tokens_in)} ·{" "}
-                {t("tokensOut")}: {number(resource.data![period].tokens_out)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </section>
-  );
-}
-
 function BoundarySettings({
   child,
   reload,
@@ -850,12 +823,14 @@ function BoundarySettings({
 
 function Schedule({
   family,
+  child,
   reload,
   refresh,
 }: {
   family: Family;
   reload: () => void;
   refresh: () => Promise<void>;
+  child?: Child;
 }) {
   const { t } = useTranslation();
   const { run, busy } = useAction();
@@ -903,92 +878,101 @@ function Schedule({
           </button>
         </form>
       </section>
-      <section className="panel">
-        <form
-          onSubmit={(event) => {
-            const data = formData(event);
-            void run(async () => {
-              await api("/parent/settings", "PUT", {
-                daily_minutes_cap: Number(data.daily_minutes_cap),
-                daily_message_cap: Number(data.daily_message_cap),
-                quiet_enabled: data.quiet_enabled === "on",
-                quiet_start: Number(data.quiet_start),
-                quiet_end: Number(data.quiet_end),
-                notify_fence: data.notify_fence === "on",
-              });
-              reload();
-            }, t("changed"));
-          }}
-        >
-          <div className="form-grid">
-            <Field label={t("dailyMinutes")} hint={t("noLimitHint")}>
-              <input
-                name="daily_minutes_cap"
-                type="number"
-                min="0"
-                max="480"
-                step="1"
-                required
-                defaultValue={family.settings.daily_minutes_cap}
-              />
-            </Field>
-            <Field label={t("dailyMessages")}>
-              <input
-                name="daily_message_cap"
-                type="number"
-                min="10"
-                max="1000"
-                step="1"
-                required
-                defaultValue={family.settings.daily_message_cap}
-              />
-            </Field>
-          </div>
-          <label className="check">
-            <input
-              name="quiet_enabled"
-              type="checkbox"
-              defaultChecked={family.settings.quiet_enabled}
-            />
-            {t("quiet")}
-          </label>
-          <div className="form-grid">
-            {["quiet_start", "quiet_end"].map((key) => (
-              <Field
-                key={key}
-                label={t(key === "quiet_start" ? "startHour" : "endHour")}
-              >
-                <select
-                  name={key}
-                  defaultValue={
-                    family.settings[key as keyof FamilySettings] as number
-                  }
-                >
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <option key={hour} value={hour}>
-                      {String(hour).padStart(2, "0")}:00
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            ))}
-          </div>
-          <p className="muted">{t("equalHours")}</p>
-          <label className="check">
-            <input
-              type="checkbox"
-              name="notify_fence"
-              defaultChecked={family.settings.notify_fence}
-            />
-            {t("notifyFence")}
-          </label>
-          <p className="muted">{t("notifyHint")}</p>
-          <button className="primary" disabled={busy}>
-            {t("save")}
-          </button>
-        </form>
-      </section>
+      {child && <LearningSettings key={child.id} child={child} reload={reload} />}
     </>
+  );
+}
+
+function LearningSettings({ child, reload }: { child: Child; reload: () => void }) {
+  const { t } = useTranslation();
+  const { run, busy } = useAction();
+  return (
+    <section className="panel learning-settings">
+      <h2>{child.nickname} · {t("schedule")}</h2>
+      <form
+        onSubmit={(event) => {
+          const data = formData(event);
+          void run(async () => {
+            await api(`/parent/students/${child.id}/learning-settings`, "PUT", {
+              daily_minutes_cap: Number(data.daily_minutes_cap),
+              daily_message_cap: Number(data.daily_message_cap),
+              quiet_enabled: data.quiet_enabled === "on",
+              quiet_start: Number(data.quiet_start),
+              quiet_end: Number(data.quiet_end),
+              notify_fence: data.notify_fence === "on",
+            });
+            reload();
+          }, t("changed"));
+        }}
+      >
+        <div className="form-grid">
+          <Field label={t("dailyMinutes")} hint={t("noLimitHint")}>
+            <input
+              name="daily_minutes_cap"
+              type="number"
+              min="0"
+              max="480"
+              step="1"
+              required
+              defaultValue={child.learning_settings.daily_minutes_cap}
+            />
+          </Field>
+          <Field label={t("dailyMessages")}>
+            <input
+              name="daily_message_cap"
+              type="number"
+              min="10"
+              max="1000"
+              step="1"
+              required
+              defaultValue={child.learning_settings.daily_message_cap}
+            />
+          </Field>
+        </div>
+        <label className="check">
+          <input
+            name="quiet_enabled"
+            type="checkbox"
+            defaultChecked={child.learning_settings.quiet_enabled}
+          />
+          {t("quiet")}
+        </label>
+        <div className="form-grid">
+          {["quiet_start", "quiet_end"].map((key) => (
+            <Field
+              key={key}
+              label={t(key === "quiet_start" ? "startHour" : "endHour")}
+            >
+              <select
+                name={key}
+                defaultValue={
+                  child.learning_settings[key as "quiet_start" | "quiet_end"] as number
+                }
+              >
+                {Array.from({ length: 24 }, (_, hour) => (
+                  <option key={hour} value={hour}>
+                    {String(hour).padStart(2, "0")}:00
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ))}
+        </div>
+        <p className="muted">{t("equalHours")}</p>
+        <label className="check">
+          <input
+            type="checkbox"
+            name="notify_fence"
+            defaultChecked={child.learning_settings.notify_fence}
+          />
+          {t("notifyFence")}
+        </label>
+        <p className="muted">{t("notifyHint")}</p>
+        <button className="primary" disabled={busy}>
+          {t("save")}
+        </button>
+      </form>
+    </section>
   );
 }
 

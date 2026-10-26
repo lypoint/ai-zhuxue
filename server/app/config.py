@@ -1,6 +1,7 @@
 """集中配置：全部来自环境变量，生产通过 docker-compose/.env 注入。"""
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -13,6 +14,8 @@ class Settings(BaseSettings):
     llm_key_secret: str = ""  # LLM api_key 落库加密密钥；空则回落 jwt_secret
     cors_origins: str = ""  # 生产后台页面的完整 Origin，多个用逗号分隔
     upload_dir: str = "./uploads"  # CMS 老师头像
+    performance_node: str = Field(default="primary", pattern=r"^[a-zA-Z0-9_-]{1,32}$")
+    performance_variant: Literal["baseline", "direct"] = "baseline"
     web_enabled: bool = False
     web_parent_origin: str = "http://localhost:5173"
     web_student_origin: str = "http://localhost:5174"

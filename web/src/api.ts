@@ -1,3 +1,4 @@
+import { startPerformance, type PerformanceAttempt, type PerformancePayload } from "./request-performance";
 export const ROLE = __WEB_ROLE__;
 export const ROOT = `/api/browser/${ROLE}`;
 function recordResult(path: string, method: string, status: number) {
@@ -22,8 +23,10 @@ export class ApiError extends Error {
 export async function request(
   path: string,
   init: RequestInit = {},
+  timing?: PerformanceAttempt,
 ): Promise<Response> {
   const headers = new Headers(init.headers);
+  if (timing) headers.set("X-Trace-Id", timing.id);
   if (!["GET", "HEAD"].includes(init.method || "GET"))
     headers.set("X-CSRF-Token", csrf);
   if (init.body && typeof init.body === "string")
@@ -45,6 +48,7 @@ export async function request(
       "Network unavailable. Please check the latest state before retrying.",
     );
   }
+  timing?.headers(response);
   recordResult(path, init.method || "GET", response.status);
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -69,6 +73,11 @@ export function browserEvent(name: string, properties: Record<string, string | n
     void request("/events", {method:"POST", keepalive:true,
       body:JSON.stringify({id:crypto.randomUUID(), name, properties})}).catch(() => {});
   } catch { /* Telemetry must never interrupt business actions. */ }
+}
+
+export function sendPerformance(payload: PerformancePayload) {
+  if (ROLE !== "student" || !csrf) return;
+  void request("/performance", {method:"POST", keepalive:true, body:JSON.stringify(payload)}).catch(() => {});
 }
 
 export async function api<T = unknown>(
@@ -100,58 +109,68 @@ export async function stream(
   signal: AbortSignal,
   event: (name: string, data: Record<string, unknown>) => void,
 ) {
-  const response = await request("/api/chat/stream", {
-    method: "POST",
-    body: JSON.stringify(body),
-    signal,
-  });
-  if (!response.body)
-    throw new ApiError(503, "Streaming is unavailable. Please retry.");
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "",
-    completed = false;
+  const timing = ROLE === "student" ? startPerformance("chat_stream", sendPerformance) : undefined;
   try {
-    while (true) {
-      const { value, done } = await reader.read();
-      buffer += decoder.decode(value, { stream: !done }).replace(/\r/g, "");
-      let split: number;
-      while ((split = buffer.indexOf("\n\n")) >= 0) {
-        const packet = buffer.slice(0, split);
-        buffer = buffer.slice(split + 2);
-        const name = packet
-          .split("\n")
-          .find((line) => line.startsWith("event:"))
-          ?.slice(6)
-          .trim();
-        const data = packet
-          .split("\n")
-          .filter((line) => line.startsWith("data:"))
-          .map((line) => line.slice(5).trimStart())
-          .join("\n");
-        if (name && data) {
-          const payload = JSON.parse(data);
-          event(name, payload);
-          if (name === "done") completed = true;
-          if (name === "error")
-            throw new ApiError(
-              503,
-              String(
-                payload.message ||
-                  "The answer could not be completed. Please retry.",
-              ),
-            );
+    const response = await request("/api/chat/stream", {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal,
+    }, timing);
+    if (!response.body)
+      throw new ApiError(503, "Streaming is unavailable. Please retry.");
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "",
+      completed = false;
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        buffer += decoder.decode(value, { stream: !done }).replace(/\r/g, "");
+        let split: number;
+        while ((split = buffer.indexOf("\n\n")) >= 0) {
+          const packet = buffer.slice(0, split);
+          buffer = buffer.slice(split + 2);
+          const name = packet
+            .split("\n")
+            .find((line) => line.startsWith("event:"))
+            ?.slice(6)
+            .trim();
+          const data = packet
+            .split("\n")
+            .filter((line) => line.startsWith("data:"))
+            .map((line) => line.slice(5).trimStart())
+            .join("\n");
+          if (name && data) {
+            const payload = JSON.parse(data);
+            if ((name === "delta" || name === "replace") && payload.text) timing?.mark("browser_first_delta_ms");
+            if (name === "done") { timing?.mark("browser_done_ms"); if (timing) timing.result = "success"; }
+            event(name, payload);
+            if (name === "done") completed = true;
+            if (name === "error")
+              throw new ApiError(
+                503,
+                String(
+                  payload.message ||
+                    "The answer could not be completed. Please retry.",
+                ),
+              );
+          }
         }
+        if (done) break;
       }
-      if (done) break;
+      if (!completed)
+        throw new ApiError(
+          503,
+          "The connection ended before the answer finished. Please retry.",
+        );
+    } finally {
+      reader.releaseLock();
     }
-    if (!completed)
-      throw new ApiError(
-        503,
-        "The connection ended before the answer finished. Please retry.",
-      );
+  } catch (error) {
+    if (timing) timing.result = error instanceof DOMException && error.name === "AbortError" ? "cancelled" : "error";
+    throw error;
   } finally {
-    reader.releaseLock();
+    timing?.finish();
   }
 }
 
@@ -172,6 +191,7 @@ export type Child = {
   seat_status: string;
   current_device: { name: string; last_seen_at: string | null } | null;
   fence_settings: { fence_level: string; forbidden_words: string[] };
+  learning_settings: Pick<FamilySettings, "daily_message_cap" | "daily_minutes_cap" | "quiet_enabled" | "quiet_start" | "quiet_end" | "notify_fence">;
 };
 export type FamilySettings = {
   daily_message_cap: number;

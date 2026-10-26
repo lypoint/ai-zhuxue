@@ -83,6 +83,12 @@ class Student(TimestampMixin, Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     token_version: Mapped[int] = mapped_column(Integer, default=1)  # 登出即 +1
     last_teacher_group_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    daily_message_cap: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    daily_minutes_cap: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    quiet_enabled: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    quiet_start: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    quiet_end: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notify_fence: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     fence_level: Mapped[str] = mapped_column(String(16), default="strict", server_default="strict")
     forbidden_words_json: Mapped[str] = mapped_column(Text, default="[]", server_default="[]")
 
@@ -656,3 +662,22 @@ class AnalyticsEvent(Base):
     source: Mapped[str] = mapped_column(String(20))
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     properties: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class PerformanceTrace(Base):
+    __tablename__ = "performance_traces"
+    trace_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    source: Mapped[str] = mapped_column(String(10), primary_key=True)
+    family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), primary_key=True)
+    student_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=1)
+    operation: Mapped[str] = mapped_column(String(20))
+    node: Mapped[str] = mapped_column(String(32))
+    variant: Mapped[str] = mapped_column(String(20))
+    model: Mapped[str] = mapped_column(String(120))
+    mode: Mapped[str] = mapped_column(String(12))
+    input_kind: Mapped[str] = mapped_column(String(10))
+    result: Mapped[str] = mapped_column(String(12))
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    metrics: Mapped[str] = mapped_column(Text)

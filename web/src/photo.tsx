@@ -1,7 +1,8 @@
+import { startPerformance } from "./request-performance";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Camera, ImagePlus, X } from "lucide-react";
-import { browser, request, type ImageBlock } from "./api";
+import { browser, request, sendPerformance, ROLE, type ImageBlock } from "./api";
 import { Dialog, Field, useAction, useNotify } from "./ui";
 
 export type Attachment = {
@@ -38,26 +39,30 @@ export function PhotoPicker({
     const query = new URLSearchParams();
     if (conversation) query.set("conversation_id", String(conversation));
     if (teacher !== null) query.set("teacher_id", String(teacher));
+    const timing = ROLE === "student" ? startPerformance("image_upload", sendPerformance) : undefined;
     try {
       const response = await request("/upload?" + query, {
         method: "POST",
         body: attachment.blob,
         headers: { "Content-Type": "application/octet-stream" },
-      });
+      }, timing);
       const asset = (await response.json()) as ImageBlock;
+      if (timing) timing.result = "success";
+      timing?.mark("browser_done_ms");
       setAttachments((rows) =>
         rows.map((row) =>
           row.key === attachment.key ? { ...row, status: "ready", asset } : row,
         ),
       );
     } catch (error) {
+      if (timing) timing.result = "error";
       setAttachments((rows) =>
         rows.map((row) =>
           row.key === attachment.key ? { ...row, status: "failed" } : row,
         ),
       );
       notify(error instanceof Error ? error.message : t("uploadFailed"), true);
-    }
+    } finally { timing?.finish(); }
   };
   const select = (files: FileList | null) => {
     const selected = files?.[0];

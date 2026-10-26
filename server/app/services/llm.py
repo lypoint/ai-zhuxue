@@ -6,6 +6,8 @@
 import json
 from urllib.parse import urlsplit
 
+from . import performance
+
 import httpx
 
 from ..config import settings
@@ -152,6 +154,7 @@ async def chat(messages: list[dict], purpose: str = "chat", max_tokens: int = 40
     """返回 {"content", "tokens_in", "tokens_out", "provider", "model"}；无 Key 时抛 LLMUnavailable。"""
     name, p, key, model = route or _provider(purpose, family_id, group_id)
     max_tokens = _output_limit(p["base_url"], model, max_tokens)
+    if purpose == "chat": performance.model_label(name, model)
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(
             f"{p['base_url']}/chat/completions",
@@ -187,6 +190,9 @@ async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: i
     {"usage": {...}, "provider": ..., "model": ...} 汇总。无 Key 抛 LLMUnavailable。"""
     name, p, key, model = route or _provider(purpose, family_id, group_id)
     max_tokens = _output_limit(p["base_url"], model, max_tokens)
+    if purpose == "chat": performance.model_label(name, model)
+    trace = performance.current.get() if purpose == "chat" else None
+    model_started = trace.clock() if trace else 0
     has_content = False
     finish_reason = None
     async with httpx.AsyncClient(timeout=120) as client:
@@ -216,6 +222,8 @@ async def chat_stream(messages: list[dict], purpose: str = "chat", max_tokens: i
                 choice = (data.get("choices") or [{}])[0]
                 delta = (choice.get("delta") or {}).get("content")
                 if delta:
+                    if trace and not has_content:
+                        trace.metrics["model_first_token_ms"] = (trace.clock() - model_started) * 1000
                     has_content = True
                     yield {"delta": delta, "provider": name, "model": model}
                 finish_reason = choice.get("finish_reason") or finish_reason

@@ -8,7 +8,7 @@ async function mockBusiness(page: Page, connected = false) {
   await page.route("**/api/browser/parent/**", route => {
     const path = new URL(route.request().url()).pathname;
     const json = path.endsWith("/session") ? {role:"parent",id:1,family_id:1,nickname:"Private Parent",csrf_token:"private-csrf"}
-      : path.endsWith("/family") ? {guardian:{id:1,nickname:"Private Parent"},students:connected ? [{id:111,nickname:"Private Child",active:true,grade_band:"8-12",seat_status:"active",fence_settings:{fence_level:"off",forbidden_words:[]},current_device:{name:"Private Device",last_seen_at:"2026-10-26T00:00:00Z"}}] : [],timezone:"UTC",settings:{}}
+      : path.endsWith("/family") ? {guardian:{id:1,nickname:"Private Parent"},students:connected ? [{id:111,nickname:"Private Child",active:true,grade_band:"8-12",seat_status:"active",learning_settings:{daily_minutes_cap:60,daily_message_cap:200,quiet_enabled:false,quiet_start:22,quiet_end:6,notify_fence:true},fence_settings:{fence_level:"off",forbidden_words:[]},current_device:{name:"Private Device",last_seen_at:"2026-10-26T00:00:00Z"}}] : [],timezone:"UTC",settings:{}}
       : path.endsWith("/catalog") ? {enabled:false,items:[]}
       : path.endsWith("/subscription") ? {active:true,plan:"free_trial",expires_at:"2027-01-01T00:00:00Z",seat_count:1,used_seats:0}
       : path.endsWith("/notifications/unread-count") ? {count:0}

@@ -53,6 +53,8 @@ app.add_middleware(RateLimitMiddleware)
 from .local_time import FamilyTimezoneMiddleware
 app.add_middleware(FamilyTimezoneMiddleware)
 app.add_middleware(browser.BrowserMiddleware)
+from .performance import PerformanceMiddleware
+app.add_middleware(PerformanceMiddleware)
 app.include_router(auth.router)
 app.include_router(bind.router)
 app.include_router(chat.router)

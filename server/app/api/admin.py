@@ -1164,3 +1164,13 @@ def operations_funnels(start: dt.date, end: dt.date, include_test: bool = False,
         raise HTTPException(422, "Use an inclusive UTC registration cohort of at most 31 days, ending no later than today")
     from ..services.analytics_report import report
     return report(db, start, end, include_test=include_test)
+
+
+@router.get("/analytics/performance")
+def performance_summary(start: dt.date, end: dt.date,
+                        principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
+    require_operate(principal)
+    if not 0 <= (end - start).days <= 6 or end > dt.datetime.now(dt.timezone.utc).date():
+        raise HTTPException(422, "Choose at most 7 UTC days, ending no later than today")
+    from ..services.performance_report import report
+    return report(db, start, end)

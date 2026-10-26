@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, type ImgHTMLAttributes } from "react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -48,6 +48,15 @@ export function Markdown({ children }: { children: string }) {
     </div>
   );
 }
+// Some browsers omit Server-Timing for image elements; a request nonce also permits pairing.
+function PerformanceImage(props: ImgHTMLAttributes<HTMLImageElement>) {
+  const id = useMemo(() => {
+    try { return ROLE === "student" ? crypto.randomUUID() : ""; } catch { return ""; }
+  }, [props.src]);
+  const src = props.src && id ? `${props.src}${props.src.includes("?") ? "&" : "?"}_trace=${id}` : props.src;
+  return <img {...props} src={src} />;
+}
+
 export function Images({ blocks }: { blocks?: ImageBlock[] }) {
   const [open, setOpen] = useState<ImageBlock | null>(null);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
@@ -77,7 +86,7 @@ export function Images({ blocks }: { blocks?: ImageBlock[] }) {
                   onClick={() => setOpen(block)}
                   aria-label={t("viewImage")}
                 >
-                  <img
+                  <PerformanceImage
                     src={`${ROOT}/media/${block.asset_id}?v=${version}`}
                     alt={
                       block.caption
@@ -100,7 +109,7 @@ export function Images({ blocks }: { blocks?: ImageBlock[] }) {
       )}
       {open && (
         <Dialog title={t("viewImage")} onClose={() => setOpen(null)}>
-          <img
+          <PerformanceImage
             className="full-image"
             src={`${ROOT}/media/${open.asset_id}`}
             alt={open.caption ? contentText(open.caption) : t("viewImage")}

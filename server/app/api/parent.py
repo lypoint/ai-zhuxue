@@ -17,7 +17,8 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
                       Subscription, SubscriptionOrder, WellbeingAssessment, Notification,
                       FenceFeedback)
 from ..schemas import (ConversationOut, FamilySettingsIn, FenceEventOut, MessageOut,
-                       StudentFenceSettingsIn, StudentCreateIn)
+                       StudentFenceSettingsIn, StudentCreateIn, StudentLearningSettingsIn)
+from ..services import learning_settings
 from ..services.teacher_channels import current_channel, channel_teachers
 
 router = APIRouter(prefix="/parent", tags=["parent"])
@@ -57,6 +58,7 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
         "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname},
         "timezone": db.get(Family, guardian.family_id).timezone,
         "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band,
+                      "learning_settings": vars(learning_settings.effective(s, db, settings_row)),
                       "fence_settings": {"fence_level": s.fence_level,
                                          "forbidden_words": json.loads(s.forbidden_words_json)},
                       "active": s.active, "seat_status": s.seat_status,
@@ -474,6 +476,26 @@ def student_usage(student_id: int, guardian: Guardian = Depends(current_guardian
             today["tokens_in"] += log.tokens_in
             today["tokens_out"] += log.tokens_out
     return {"total": total, "today": today}
+
+
+@router.get("/students/{student_id}/learning-settings")
+def get_student_learning_settings(student_id: int, guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
+    return vars(learning_settings.effective(_own_student(guardian, student_id, db), db))
+
+
+@router.put("/students/{student_id}/learning-settings")
+def update_student_learning_settings(student_id: int, body: StudentLearningSettingsIn,
+                                     guardian: Guardian = Depends(current_guardian), db: Session = Depends(get_db)):
+    student = _own_student(guardian, student_id, db)
+    db.query(Family).filter_by(id=guardian.family_id).with_for_update().one()
+    student = db.query(Student).filter_by(id=student.id).populate_existing().with_for_update().one()
+    values = vars(learning_settings.effective(student, db))
+    values.update({name: value for name, value in body.model_dump(exclude_unset=True).items() if value is not None})
+    # Snapshot every field, so a later legacy family-default update cannot alter this child.
+    for name, value in values.items():
+        setattr(student, name, value)
+    db.commit()
+    return values
 
 
 @router.put("/settings")

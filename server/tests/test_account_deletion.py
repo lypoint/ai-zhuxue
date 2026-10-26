@@ -46,7 +46,16 @@ def test_request_is_authenticated_confirmed_idempotent_and_family_scoped(client)
     with SessionLocal.begin() as db:
         db.get(m.AccountDeletionRequest, fid).created_at = datetime.now(timezone.utc) - timedelta(days=2)
     with SessionLocal.begin() as db:
+        from app.services.performance import Trace, save
+        trace = Trace("chat_stream")
+        trace.family_id = fid
+        # The family is already disabled: privacy-preserving writes are refused.
+        save(db, trace)
+        assert db.query(m.PerformanceTrace).filter_by(family_id=fid).count() == 0
+        db.add(m.PerformanceTrace(trace_id=trace.id,source="server",family_id=fid,operation="chat_stream",node="primary",variant="baseline",model="unknown",mode="buffered",input_kind="text",result="success",metrics="{}"))
+        db.flush()
         complete_deletion(db, fid)
+        assert db.query(m.PerformanceTrace).filter_by(family_id=fid).count() == 0
         assert db.query(m.AnalyticsEvent).filter_by(family_id=fid).count() == 0
     assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 401
     records = client.get('/admin/account-deletions', headers=make_admin(client))

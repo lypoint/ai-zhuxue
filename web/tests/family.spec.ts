@@ -949,7 +949,7 @@ test("family profiles and limits persist, replacement disconnects the old browse
       .uncheck();
     const scheduleSaved = page.waitForResponse(
       (response) =>
-        response.url().endsWith("/parent/settings") &&
+        /\/parent\/students\/\d+\/learning-settings$/.test(new URL(response.url()).pathname) &&
         response.request().method() === "PUT",
     );
     await page
@@ -1350,4 +1350,78 @@ test("queued illustrations survive refresh, recover polling and reuse the comple
   await page.goto(parentURL + "/activity");
   await page.locator(".conversation-row").first().click();
   await expect(page.locator(".transcript img")).toBeVisible();
+});
+
+test("child details expose individual learning limits without requesting AI usage", async ({ page }) => {
+  const usageRequests: string[] = [];
+  page.on("request", request => {
+    if (/\/parent\/students\/\d+\/usage$/.test(new URL(request.url()).pathname)) usageRequests.push(request.url());
+  });
+  await login(page);
+  await createChild(page);
+  const settings = page.locator(".learning-settings");
+  await expect(settings.getByRole("heading", {name:"Jamie · Learning schedule",exact:true})).toBeVisible();
+  await settings.getByLabel("Daily learning time (minutes)", {exact:true}).fill("25");
+  await settings.getByLabel("Daily question limit", {exact:true}).fill("40");
+  await settings.locator('[name="quiet_enabled"]').check();
+  await settings.locator('[name="quiet_start"]').selectOption("21");
+  await settings.locator('[name="quiet_end"]').selectOption("7");
+  await settings.getByLabel("Learning boundary notifications", {exact:true}).uncheck();
+  const saved = page.waitForResponse(response => /\/parent\/students\/\d+\/learning-settings$/.test(new URL(response.url()).pathname) && response.request().method() === "PUT");
+  await settings.getByRole("button", {name:"Save changes",exact:true}).click();
+  expect((await saved).ok()).toBe(true);
+  await page.reload();
+  await expect(settings.getByLabel("Daily learning time (minutes)", {exact:true})).toHaveValue("25");
+  await expect(settings.locator('[name="quiet_start"]')).toHaveValue("21");
+  await expect(page.getByRole("heading", {name:"AI usage",exact:true})).toHaveCount(0);
+  await page.goto(parentURL + "/schedule");
+  await expect(settings.getByLabel("Daily learning time (minutes)", {exact:true})).toHaveValue("25");
+  await expect(settings.getByLabel("Daily question limit", {exact:true})).toHaveValue("40");
+  await expect(settings.locator('[name="quiet_enabled"]')).toBeChecked();
+  await expect(settings.locator('[name="quiet_end"]')).toHaveValue("7");
+  await expect(settings.getByLabel("Learning boundary notifications", {exact:true})).not.toBeChecked();
+  expect(usageRequests).toEqual([]);
+});
+
+test("student timings correlate chat, upload and image reads without sending content", async ({ page, context }) => {
+  await context.addInitScript(() => localStorage.setItem("parent-analytics-choice", "denied"));
+  await login(page);
+  const code = await createChild(page);
+  const student = await context.newPage();
+  const traces = new Map<string, string>();
+  const statuses: number[] = [];
+  const uploads: {operation:string; trace_id:string; result:string; metrics:Record<string,number>}[] = [];
+  student.on("response", response => {
+    if (response.url().endsWith("/api/browser/student/performance")) statuses.push(response.status());
+    const id = response.headers()["x-trace-id"];
+    if (id) traces.set(id, response.url());
+  });
+  student.on("request", request => {
+    if (request.url().endsWith("/api/browser/student/performance")) uploads.push(request.postDataJSON());
+  });
+  await connect(student, code);
+  await ask(student, "Explain the denominator in this math problem");
+  const image = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6kH8AAAAASUVORK5CYII=", "base64");
+  await student.locator("input[type=file]").first().setInputFiles({name:"question.png",mimeType:"image/png",buffer:image});
+  await student.getByRole("button", {name:"Use this photo",exact:true}).click();
+  await expect(student.locator(".attachment")).toContainText("Saved");
+  await ask(student, "Explain this math problem in the image");
+  await expect.poll(() => new Set(uploads.map(row => row.operation)).size).toBe(3);
+  await expect.poll(() => statuses.length).toBe(uploads.length);
+  expect(statuses.every(status => status === 204)).toBe(true);
+  const chats = uploads.filter(row => row.operation === "chat_stream");
+  expect(chats).toHaveLength(2);
+  expect(chats[0].trace_id).not.toBe(chats[1].trace_id);
+  for (const row of uploads) {
+    expect(traces.has(row.trace_id)).toBe(true);
+    expect(Object.keys(row).sort()).toEqual(["metrics","operation","result","trace_id"]);
+    expect(row.metrics.browser_total_ms).toBeGreaterThanOrEqual(row.metrics.browser_headers_ms);
+    if (row.operation === "chat_stream") {
+      expect(row.result).toBe("success");
+      expect(row.metrics.browser_first_delta_ms).toBeGreaterThanOrEqual(row.metrics.browser_headers_ms);
+      expect(row.metrics.browser_done_ms).toBeGreaterThanOrEqual(row.metrics.browser_first_delta_ms);
+    }
+  }
+  expect(JSON.stringify(uploads)).not.toContain("denominator");
+  await student.close();
 });

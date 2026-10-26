@@ -34,6 +34,7 @@
         uri strip_prefix /api
         reverse_proxy {$WEB_API_UPSTREAM} {
             header_up Host {hostport}
+            header_down +Server-Timing "edge_upstream_headers;dur={http.reverse_proxy.upstream.latency_ms}"
             flush_interval -1
         }
     }

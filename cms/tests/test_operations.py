@@ -35,3 +35,31 @@ assert.ok(!fields.operationsReport.innerHTML.includes('NaN'));
 '''
     result = subprocess.run([node, '-e', harness], text=True, capture_output=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_performance_panel_escapes_labels_and_preserves_missing_values():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node.js required')
+    html = Path(__file__).resolve().parents[1].joinpath('index.html').read_text()
+    script = html[html.index('async function loadPerformance()'):html.index('async function loadFence()')]
+    harness = r'''
+const assert=require('node:assert/strict');
+const fields={performanceStart:{value:'2026-10-26'},performanceEnd:{value:'2026-10-26'},performanceLoad:{disabled:false},performanceStatus:{},performanceReport:{innerHTML:'',replaceChildren(){this.innerHTML=''}}};
+const $=id=>fields[id];
+const esc=value=>String(value).replaceAll('<','&lt;').replaceAll('>','&gt;');
+async function api(path){assert.ok(path.startsWith('/admin/analytics/performance?')); return {groups:[{
+operation:'chat_stream',model:'<script>unexpected</script>',server_samples:3,paired_samples:2,browser_errors:1,negative_residual_samples:0,
+metrics:{model_ms:{samples:0,p50_ms:null,p95_ms:null}}}]};}
+'''
+    harness += script + r'''
+loadPerformance().then(()=>{
+assert.equal(fields.performanceLoad.disabled,false);
+assert.match(fields.performanceReport.innerHTML,/&lt;script&gt;/);
+assert.ok(!fields.performanceReport.innerHTML.includes('<script>'));
+assert.match(fields.performanceReport.innerHTML,/<td>—<\/td>/);
+assert.ok(!fields.performanceReport.innerHTML.includes('NaN'));
+}).catch(error=>{console.error(error);process.exitCode=1});
+'''
+    result = subprocess.run([node, '-e', harness], text=True, capture_output=True)
+    assert result.returncode == 0, result.stderr

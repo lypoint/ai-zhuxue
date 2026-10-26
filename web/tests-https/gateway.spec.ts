@@ -130,12 +130,18 @@ test("HTTPS gateway enforces role routes, secure host-only cookies, CSP and unbu
     }
     return {
       status: response.status,
+      trace: response.headers.get("X-Trace-Id"),
+      serverTiming: response.headers.get("Server-Timing"),
       first,
       finished: performance.now() - start,
       body,
     };
   }, studentCSRF);
   expect(timing.status).toBe(200);
+  expect(timing.trace).toMatch(/^[0-9a-f-]{36}$/);
+  expect(timing.serverTiming).toContain(`trace;desc="${timing.trace}"`);
+  expect(timing.serverTiming).toMatch(/edge_upstream_headers;dur=[0-9.]+/);
+  expect(timing.serverTiming).not.toContain("{http.");
   expect(timing.body).toContain("event: meta");
   expect(timing.body).toContain("event: done");
   expect(timing.finished - timing.first).toBeGreaterThan(2500);

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import JSONResponse
 
+from ..services import performance
 from ..config import settings
 from ..db import get_db, SessionLocal
 from ..models import BindCode, Family, Guardian, Student, WebSession, utcnow
@@ -169,20 +170,25 @@ async def upload_image(request: Request, conversation_id: int | None = None,
     from ..models import MediaAsset
     from ..services import media
     _, _, student = require_session(request, "student", db)
+    performance.bind(student)
     upload = images.upload(images.UploadIn(conversation_id=conversation_id, teacher_id=teacher_id), student, db, "googleplay")
-    data = bytearray()
-    async for chunk in request.stream():
-        data.extend(chunk)
-        if len(data) > settings.image_max_bytes:
-            raise HTTPException(413, "The image is too large.")
-    clean, width, height = await run_in_threadpool(media.sanitize, bytes(data))
+    with performance.span("upload_receive_ms"):
+        data = bytearray()
+        async for chunk in request.stream():
+            data.extend(chunk)
+            if len(data) > settings.image_max_bytes:
+                raise HTTPException(413, "The image is too large.")
+    with performance.span("image_sanitize_ms"):
+        clean, width, height = await run_in_threadpool(media.sanitize, bytes(data))
     asset = db.get(MediaAsset, upload["asset_id"])
     asset.width, asset.height, asset.byte_size = width, height, len(clean)
     asset.status = "checking"
     db.commit()
     try:
-        await media.store(asset.object_key, clean)
-        asset.status = "ready" if await media.moderate(asset.object_key) else "blocked"
+        with performance.span("storage_upload_ms"):
+            await media.store(asset.object_key, clean)
+        with performance.span("image_review_ms"):
+            asset.status = "ready" if await media.moderate(asset.object_key) else "blocked"
         db.commit()
     except HTTPException:
         raise
@@ -197,10 +203,12 @@ async def upload_image(request: Request, conversation_id: int | None = None,
 async def read_image(role: str, asset_id: str, request: Request, db: Session = Depends(get_db)):
     from . import images
     from ..services import media
-    _, token, _ = require_session(request, role, db)
+    _, token, identity = require_session(request, role, db)
+    if role == "student": performance.bind(identity)
     result = images.read(asset_id, "Bearer " + token, db)
     try:
-        data = await media.fetch_image(result["url"])
+        with performance.span("storage_read_ms"):
+            data = await media.fetch_image(result["url"])
     except HTTPException:
         raise
     except Exception:
