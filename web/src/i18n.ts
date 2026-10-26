@@ -75,11 +75,11 @@ const en: Record<string, string> = {
   notifications: "Notifications",
   grades: "Grades & growth",
   learning: "Learning & rewards",
-  favorites: "Saved moments",
+  favorites: "Saved answers",
   reports: "My reports",
   assessments: "Assessments",
-  welcome: "A little progress, every day.",
-  overviewHint: "A window into your child's learning. A little room to grow.",
+  welcome: "Learning overview",
+  overviewHint: "View your child's learning records and usage.",
   newChat: "New conversation",
   ask: "Ask a question, or add a photo…",
   send: "Send",
@@ -115,7 +115,7 @@ const en: Record<string, string> = {
   connect: "Connect to my family",
   code: "Connection code",
   codeHint: "Enter 8-character code",
-  connectHeading: "Your next question starts here.",
+  connectHeading: "Connect your learning device",
   connectHint:
     "Ask your parent for the connection code from their Parent space.",
   codeHelp:
@@ -125,7 +125,7 @@ const en: Record<string, string> = {
   validUntil: "Valid until",
   replaceWarning:
     "One learning device at a time. Connecting this browser signs the child out of their current learning device. Learning history is kept.",
-  createFamily: "Make room for curiosity.",
+  createFamily: "Add a child",
   setupHint:
     "Create a child profile, confirm your family time zone, then connect a learning device.",
   familyTimezone: "Family time zone",
@@ -209,7 +209,7 @@ const en: Record<string, string> = {
   unpin: "Unpin",
   deleteChat:
     "Remove this conversation from your history? Your parent can still review it.",
-  teacher: "Learning guide",
+  teacher: "Teacher",
   teachers: "Choose a teacher",
   teacherLocked: "This teacher is currently unavailable for your family.",
   noTeachers:
@@ -237,7 +237,7 @@ const en: Record<string, string> = {
   report: "Report this answer",
   reason: "Reason",
   submit: "Submit",
-  removeSaved: "Remove saved moment",
+  removeSaved: "Remove saved answer",
   source: "View source conversation",
   sourceUnavailable: "The original conversation is no longer in your history.",
   boundaries: "Boundary events",
@@ -251,11 +251,11 @@ const en: Record<string, string> = {
   previous: "Previous",
   more: "Next page",
   export: "Export learning data",
-  feedbackNote: "Tell us what needs another look",
+  feedbackNote: "Describe the problem",
   flagged: "Flag for review",
   takeBreak: "Time for a short break",
   breakHint:
-    "Stretch, look away from the screen, or tell someone about the idea you explored.",
+    "Take a break, look away from the screen and move around.",
   quietPeriod: "Quiet time: {{start}}–{{end}}",
   timeUp: "Your learning time for today is used up.",
   draftSaved: "Your draft and conversation are saved.",
@@ -283,7 +283,7 @@ const en: Record<string, string> = {
   academic: "Learning assessment",
   wellbeing: "Wellbeing observations",
   assessmentHint:
-    "These are explainable estimates based on available learning records, not school grades or a diagnosis.",
+    "AI generates these results from learning records. They may be inaccurate and do not replace school assessments or medical diagnoses.",
   evidence: "Evidence",
   acknowledge: "Acknowledge",
   notNeeded: "No action needed",
@@ -305,7 +305,7 @@ const en: Record<string, string> = {
   awaiting: "Waiting for acceptance",
   redemptions: "Redemptions",
   feedbackHistory: "Learning feedback",
-  bookmark: "Save moment",
+  bookmark: "Save answer",
   connected: "Device connected.",
   nameHint: "Use a nickname, not personal contact details.",
   deviceName: "Learning device name",
@@ -317,8 +317,8 @@ const en: Record<string, string> = {
   tokensIn: "Input tokens",
   tokensOut: "Output tokens",
   showDeleted: "Include removed items",
-  newConversation: "What would you like to understand today?",
-  topicHint: "Start with a question. We can work through it together.",
+  newConversation: "What is your question?",
+  topicHint: "Type a question or upload a photo of it.",
   deletedMessage: "This conversation was removed from the student history.",
   invalidCode:
     "This connection code is invalid, expired, or has already been used.",
@@ -335,7 +335,7 @@ const en: Record<string, string> = {
   reconnect: "Reconnect",
   networkError:
     "Network unavailable. Please check the latest state before retrying.",
-  loadingAnswer: "Thinking it through…",
+  loadingAnswer: "Preparing answer…",
   stopped: "Generation stopped. You can retry the saved question.",
   inputHint: "Enter to send · Shift + Enter for a new line",
   cropLeft: "Crop from left (%)",
@@ -394,8 +394,8 @@ const core: Record<string, string[]> = {
     "Espacio del estudiante",
   ],
   welcome: [
-    "每天，多懂一点。",
-    "每天，多懂一點。",
+    "学习概览",
+    "學習概覽",
     "毎日、少しずつ前へ。",
     "매일 조금씩 성장해요.",
     "Jeden Tag ein kleiner Fortschritt.",
@@ -518,6 +518,8 @@ export function tx(source: string): string {
     "欢迎使用 AI 助学": "welcomeNotification",
     "⚠️ 已拦截一条敏感内容": "safetyNotification",
     已拦截一条非学习内容: "offTopicNotification",
+    "30 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。":
+      "trialNotification",
     "已为您开启 30 天免费试用。请生成绑定码激活孩子端，开启受保护的学习之旅。":
       "trialNotification",
   };

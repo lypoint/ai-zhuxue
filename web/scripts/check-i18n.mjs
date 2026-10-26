@@ -68,6 +68,9 @@ for (const [key, value] of Object.entries(english)) {
       (alias && catalog[locale][alias]);
     assert.ok(translated, `Untranslated: ${locale}/${key}`);
     assert.equal(generated[locale].translation[key], translated, `Generated translation mismatch: ${locale}/${key}`);
+    if (key === 'confirmDelete') {
+      assert.ok(translated.includes('DELETE'), `Required deletion literal was translated: ${locale}`);
+    }
     assert.deepEqual(
       (translated.match(/\{\{.*?\}\}/g) || []).sort(),
       (value.match(/\{\{.*?\}\}/g) || []).sort(),

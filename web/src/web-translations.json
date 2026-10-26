@@ -88,8 +88,8 @@
     "Te damos la bienvenida a AI StudyNest"
   ],
   "trialNotification": [
-    "已为您开启 30 天免费试用。请生成连接码，连接孩子的学习设备。",
-    "已為您開啟 30 天免費試用。請產生連接碼，連接孩子的學習裝置。",
+    "30 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。",
+    "30 天免費試用已開始。請在家長端產生綁定碼，再到學生端輸入綁定碼。",
     "30日間の無料体験が始まりました。接続コードを作成し、お子さまの学習端末を接続してください。",
     "30일 무료 체험이 시작되었습니다. 연결 코드를 만들어 자녀의 학습 기기를 연결하세요.",
     "Dein kostenloser Testzeitraum von 30 Tagen hat begonnen. Erstelle einen Verbindungscode, um das Lerngerät deines Kindes zu verbinden.",
@@ -430,12 +430,12 @@
     "Válido hasta"
   ],
   "createFamily": [
-    "给好奇心留点空间。",
-    "給好奇心留點空間。",
-    "好奇心のための場所を。",
-    "호기심이 자랄 공간을 만들어요.",
-    "Raum für Neugier schaffen.",
-    "Dale espacio a la curiosidad."
+    "添加孩子",
+    "新增孩子",
+    "子どもを追加",
+    "자녀 추가",
+    "Kind hinzufügen",
+    "Añadir un hijo"
   ],
   "familyTimezone": [
     "家庭时区",
@@ -539,8 +539,8 @@
     "Condiciones de uso"
   ],
   "signIn": [
-    "登录家庭空间",
-    "登入家庭空間",
+    "登录家长端",
+    "登入家長端",
     "家族スペースにログイン",
     "가족 공간에 로그인",
     "Im Familienbereich anmelden",
@@ -727,20 +727,20 @@
     "Si inicio y fin coinciden, no hay periodo de descanso."
   ],
   "fence": [
-    "学习边界",
-    "學習邊界",
-    "学習の範囲",
-    "학습 경계",
-    "Lerngrenzen",
-    "Límites de aprendizaje"
+    "话题限制",
+    "話題限制",
+    "話題の制限",
+    "대화 주제 제한",
+    "Themenbeschränkungen",
+    "Restricciones de temas"
   ],
   "fenceLevel": [
-    "边界强度",
-    "邊界強度",
-    "制限レベル",
-    "경계 수준",
-    "Stufe der Lerngrenzen",
-    "Nivel de límites"
+    "话题限制程度",
+    "話題限制程度",
+    "話題の制限",
+    "대화 주제 제한",
+    "Themenbeschränkungen",
+    "Restricciones de temas"
   ],
   "off": ["关闭", "關閉", "オフ", "끄기", "Aus", "Desactivado"],
   "forbidden": [
@@ -752,16 +752,16 @@
     "Palabras bloqueadas personalizadas"
   ],
   "notifyFence": [
-    "学习边界通知",
-    "學習邊界通知",
+    "话题限制通知",
+    "話題限制通知",
     "学習範囲に関する通知",
     "학습 경계 알림",
     "Mitteilungen zu Lerngrenzen",
     "Avisos sobre límites de aprendizaje"
   ],
   "notifyHint": [
-    "安全警报始终保持开启。",
-    "安全警報始終保持開啟。",
+    "安全提醒始终开启。",
+    "安全提醒始終開啟。",
     "安全に関する警告は常に有効です。",
     "안전 경고는 항상 활성화됩니다.",
     "Sicherheitswarnungen bleiben immer aktiv.",
@@ -771,10 +771,10 @@
   "teacher": [
     "学习向导",
     "學習嚮導",
-    "学習ガイド",
-    "학습 도우미",
-    "Lernbegleitung",
-    "Guía de aprendizaje"
+    "先生",
+    "선생님",
+    "Lehrkraft",
+    "Profesor"
   ],
   "addPhoto": [
     "添加图片",
@@ -907,8 +907,8 @@
     "Quitar de guardados"
   ],
   "boundaries": [
-    "边界事件",
-    "邊界事件",
+    "话题限制记录",
+    "話題限制紀錄",
     "範囲判定の記録",
     "경계 이벤트",
     "Ereignisse zu Lerngrenzen",
@@ -948,8 +948,8 @@
     "Exportar datos de aprendizaje"
   ],
   "feedbackNote": [
-    "哪些内容需要重新检查？",
-    "哪些內容需要重新檢查？",
+    "请说明问题",
+    "請說明問題",
     "見直しが必要な点を教えてください",
     "다시 검토할 내용을 알려주세요",
     "Was sollten wir noch einmal prüfen?",
@@ -1233,8 +1233,8 @@
     "Volver a conectar"
   ],
   "loadingAnswer": [
-    "正在想一想…",
-    "正在想一想…",
+    "正在准备回答…",
+    "正在準備回答…",
     "考えています…",
     "생각하는 중…",
     "Ich denke darüber nach…",
@@ -1281,32 +1281,32 @@
     "Alto del recorte (%)"
   ],
   "overviewHint": [
-    "了解孩子的学习，也给成长留点空间。",
-    "了解孩子的學習，也給成長留點空間。",
+    "查看孩子的学习记录和使用情况。",
+    "查看孩子的學習紀錄與使用情況。",
     "子どもの学びを見守り、成長の余地を。",
     "자녀의 배움을 살펴보고 성장할 여유를 주세요.",
     "Ein Einblick ins Lernen Ihres Kindes. Raum zum Wachsen.",
     "Una ventana al aprendizaje de tu hijo y espacio para crecer."
   ],
   "connectHeading": [
-    "下一个问题，从这里开始。",
-    "下一個問題，從這裡開始。",
+    "连接学生端",
+    "連接學生端",
     "次の疑問は、ここから。",
     "다음 질문은 여기서 시작해요.",
     "Deine nächste Frage beginnt hier.",
     "Tu próxima pregunta empieza aquí."
   ],
   "connectHint": [
-    "请家长在家长空间生成连接码。",
-    "請家長在家長空間產生連接碼。",
+    "请家长在家长端生成绑定码。",
+    "請家長在家長端產生綁定碼。",
     "保護者スペースで接続コードを発行してもらってください。",
     "보호자 공간에서 연결 코드를 받아 주세요.",
     "Bitte deine Eltern um den Code aus dem Elternbereich.",
     "Pide a tus padres el código de su espacio para padres."
   ],
   "codeHelp": [
-    "家长生成连接码，你在这里输入，无需 Google 账号。",
-    "家長產生連接碼，你在這裡輸入，無需 Google 帳號。",
+    "输入家长端生成的绑定码，无需 Google 账号。",
+    "輸入家長端產生的綁定碼，無需 Google 帳號。",
     "保護者が発行したコードをここに入力します。Googleアカウントは不要です。",
     "보호자가 만든 코드를 여기에 입력하세요. Google 계정은 필요하지 않습니다.",
     "Deine Eltern erstellen den Code, du gibst ihn hier ein. Kein Google-Konto nötig.",
@@ -1433,8 +1433,8 @@
     "Este tutor no está disponible para tu familia en este momento."
   ],
   "noTeachers": [
-    "当前没有可用老师，请询问家长或稍后重试。",
-    "目前沒有可用老師，請詢問家長或稍後重試。",
+    "暂无可用老师，请稍后重试或联系家长。",
+    "暫無可用老師，請稍後重試或聯絡家長。",
     "利用できる先生がいません。保護者に相談するか後で試してください。",
     "이용 가능한 선생님이 없습니다. 보호자에게 문의하거나 나중에 다시 시도하세요.",
     "Zurzeit ist keine Lernbegleitung verfügbar. Frage deine Eltern oder versuche es später.",
@@ -1473,8 +1473,8 @@
     "La conversación original ya no está en tu historial."
   ],
   "breakHint": [
-    "伸伸懒腰，看看远处，或和别人聊聊刚探索的想法。",
-    "伸伸懶腰，看看遠處，或和別人聊聊剛探索的想法。",
+    "休息一下，看看远处，活动活动。",
+    "休息一下，看看遠處，活動活動。",
     "体を伸ばして画面から目を離したり、学んだことを誰かに話してみましょう。",
     "기지개를 켜고 화면에서 눈을 떼거나 방금 배운 내용을 누군가에게 이야기해 보세요.",
     "Streck dich, schau vom Bildschirm weg oder erzähle jemandem von deiner Entdeckung.",
@@ -1489,16 +1489,16 @@
     "Elige una sola asignatura para comparar. Las notas muestran su puntuación máxima original."
   ],
   "assessmentHint": [
-    "这是依据学习记录的可解释估计，不是学校成绩或医学诊断。",
-    "這是依據學習紀錄的可解釋估計，不是學校成績或醫學診斷。",
+    "结果由 AI 根据学习记录生成，可能不准确，不能代替学校评价或医疗诊断。",
+    "結果由 AI 根據學習紀錄產生，可能不準確，不能代替學校評價或醫療診斷。",
     "学習記録に基づく説明可能な推定です。学校の成績や医学的診断ではありません。",
     "학습 기록을 바탕으로 한 설명 가능한 추정이며 학교 성적이나 의학적 진단이 아닙니다.",
     "Dies sind nachvollziehbare Einschätzungen anhand von Lernaufzeichnungen, keine Schulnoten oder Diagnosen.",
     "Son estimaciones explicables basadas en el aprendizaje registrado, no notas escolares ni diagnósticos."
   ],
   "rewardRule": [
-    "每天完成一次学习交流并提交任一种学习反馈，获得一颗参与小行星。修改反馈不会重复奖励。",
-    "每天完成一次學習交流並提交任一種學習回饋，獲得一顆參與小行星。修改回饋不會重複獎勵。",
+    "完成一次学习对话并提交反馈，可获得 1 颗小行星，每天最多 1 颗。修改反馈不会重复奖励。",
+    "完成一次學習對話並提交回饋，可獲得 1 顆小行星，每天最多 1 顆。修改回饋不會重複獎勵。",
     "学習のやり取りを終えてフィードバックを送ると、1日1つ参加の星がもらえます。変更しても追加の星はもらえません。",
     "학습 대화를 마치고 피드백을 보내면 하루에 참여 별 하나를 받습니다. 피드백을 바꿔도 추가 별은 지급되지 않습니다.",
     "Nach einem abgeschlossenen Lerngespräch mit Feedback gibt es täglich einen Teilnahmestern. Geändertes Feedback bringt keine weiteren Sterne.",
@@ -1513,28 +1513,28 @@
     "¿Eliminar este perfil y desconectar sus dispositivos?"
   ],
   "dataKept": [
-    "学习记录会保留供家庭审查，除非明确申请完整删除。",
-    "學習紀錄會保留供家庭審查，除非明確申請完整刪除。",
+    "学习记录仍供家长查看。如需删除，请申请删除账号及关联数据。",
+    "學習紀錄仍供家長查看。如需刪除，請申請刪除帳號及關聯資料。",
     "完全な削除を申請しない限り、家族が確認できるよう学習記録は残ります。",
     "전체 삭제를 요청하지 않으면 가족 검토를 위해 학습 기록이 유지됩니다.",
     "Lernaufzeichnungen bleiben zur Familienprüfung erhalten, sofern keine vollständige Löschung beantragt wird.",
     "Los registros se conservan para revisión familiar salvo que se solicite su eliminación completa."
   ],
   "newConversation": [
-    "今天想弄懂什么？",
-    "今天想弄懂什麼？",
+    "今天有什么问题？",
+    "今天有什麼問題？",
     "今日は何を知りたい？",
     "오늘은 무엇을 알고 싶나요?",
     "Was möchtest du heute verstehen?",
     "¿Qué te gustaría entender hoy?"
   ],
   "topicHint": [
-    "先提个问题，我们一起一步步想清楚。",
-    "先提個問題，我們一起一步步想清楚。",
-    "質問から始めましょう。一緒に考えていけます。",
-    "질문부터 시작해요. 함께 차근차근 알아볼 수 있어요.",
-    "Beginne mit einer Frage. Wir können sie gemeinsam durchgehen.",
-    "Empieza con una pregunta. Podemos resolverla paso a paso."
+    "输入问题，也可以上传题目照片。",
+    "輸入問題，也可以上傳題目照片。",
+    "質問を入力するか、問題の写真を追加してください。",
+    "질문을 입력하거나 문제 사진을 올려 주세요.",
+    "Stelle eine Frage oder lade ein Foto der Aufgabe hoch.",
+    "Escribe una pregunta o sube una foto del ejercicio."
   ],
   "deletedMessage": [
     "此对话已从学生历史中移除。",

@@ -18,7 +18,7 @@ async function login(page: Page) {
     .click();
   await expect(page.locator(".app-shell")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "A little progress, every day." }),
+    page.getByRole("heading", { name: "Learning overview" }),
   ).toBeVisible();
 }
 
@@ -57,7 +57,7 @@ async function connect(page: Page, code: string) {
     .click();
   await expect(
     page.getByRole("heading", {
-      name: "What would you like to understand today?",
+      name: "What is your question?",
     }),
   ).toBeVisible();
 }
@@ -128,7 +128,7 @@ test("family connects, studies with images, reviews records, grades and rewards 
   await student
     .locator(".message.assistant")
     .last()
-    .getByRole("button", { name: "Save moment", exact: true })
+    .getByRole("button", { name: "Save answer", exact: true })
     .click();
   await student
     .locator(".message.assistant")
@@ -301,7 +301,7 @@ test("family connects, studies with images, reviews records, grades and rewards 
   await page.goto(parentURL);
   await expect(
     page.getByRole("heading", {
-      name: "A little progress, every day.",
+      name: "Learning overview",
       exact: true,
     }),
   ).toBeVisible();
@@ -748,7 +748,7 @@ test("parent edits grades, saved sources and notification pages work, and switch
   await student
     .locator(".message.assistant")
     .last()
-    .getByRole("button", { name: "Save moment", exact: true })
+    .getByRole("button", { name: "Save answer", exact: true })
     .click();
   await student.goto(studentURL + "/favorites");
   const search = student.getByRole("searchbox", {
@@ -832,7 +832,7 @@ test("parent edits grades, saved sources and notification pages work, and switch
   await expect(student.locator("dialog")).toContainText("Parent");
   await student.goto(studentURL + "/favorites");
   await student
-    .getByRole("button", { name: "Remove saved moment", exact: true })
+    .getByRole("button", { name: "Remove saved answer", exact: true })
     .click();
   await expect(
     student.getByRole("button", {
@@ -866,7 +866,7 @@ test("parent edits grades, saved sources and notification pages work, and switch
   );
   await student.goto(studentURL + `/chat?conversation=${originalConversation}`);
   await expect(student.locator(".teacher-select")).toContainText(
-    "Learning guide",
+    "Teacher",
   );
   await expect(
     student.getByRole("button", { name: "Add photo", exact: true }),

@@ -381,7 +381,7 @@ async def _output_check(content: str, student: Student, conversation_id: int,
     message.content = language.safe_reply(locale)
     message.fence_action = "reject"
     _notify(student.family_id, "security", "⚠️ 系统复核拦截了一条AI回复",
-            "AI 回复经安全复核被替换为引导话术，建议关注孩子最近的提问内容。",
+            "一条回答未通过安全检查，已替换。请查看孩子最近的提问。",
             conversation_id=conversation_id, db=db)
     db.commit()
     db.refresh(message)
@@ -500,7 +500,7 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
     elif verdict["decision"] == "rewrite":
         # 与 /chat/stream 对齐：改写引导也通知家长（每天最多一条防骚扰）。
         _notify(student.family_id, "fence", "已引导话题回到学习",
-                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
+                f"{student.nickname}提出了学习以外的问题，系统已提示改问学习相关的问题。",
                 conversation_id=conv.id, once_per_day=True, db=db)
 
     if verdict["decision"] == "reject":
@@ -698,7 +698,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                 conversation_id=conv.id, db=db)
     elif verdict["decision"] == "rewrite":
         _notify(student.family_id, "fence", "已引导话题回到学习",
-                f"{student.nickname}聊了点学习之外的内容，已温和引导回学习。",
+                f"{student.nickname}提出了学习以外的问题，系统已提示改问学习相关的问题。",
                 conversation_id=conv.id, once_per_day=True, db=db)
     # 关键：请求级 session 在 StreamingResponse 开始发送前就会被 get_db 关闭，
     # 生成器里继续用它只会丢失数据（user 消息/事件静默不落库）。

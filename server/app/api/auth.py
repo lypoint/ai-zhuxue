@@ -189,7 +189,7 @@ def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_su
     from ..models import Notification
     db.add(Notification(family_id=family.id, type="system",
                         title="欢迎使用 AI 助学",
-                        body="已为您开启 30 天免费试用。请生成绑定码激活孩子端，开启受保护的学习之旅。"))
+                        body="30 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。"))
     from ..services.analytics import record
     record(db, "family_registered", family.id, f"family:{family.id}:registered")
     record(db, "trial_started", family.id, f"family:{family.id}:trial")

@@ -196,7 +196,7 @@
 <div class="workspace">
 <header><b><img class="brand-mark" src="/logo.svg" alt="">AI 助学 CMS · 运营管理</b><span id="adminRole"></span></header>
 <main>
-  <div class="page-heading"><h1 id="pageTitle" tabindex="-1">概览</h1><p id="pageDescription">了解平台运行概况与使用情况。</p></div>
+  <div class="page-heading"><h1 id="pageTitle" tabindex="-1">概览</h1><p id="pageDescription">查看平台运行和使用情况。</p></div>
   <section id="overviewPage" data-page="overview">
     <h2>核心指标</h2>
     <div class="cards" id="cards"></div>
@@ -204,7 +204,7 @@
 
   <section data-page="overview" data-admin-only hidden>
     <h2>运营漏斗与学习留存</h2>
-    <p class="section-note">按家庭去重，以 UTC 注册日期选取最多 31 天的 cohort。仅含埋点上线后新注册家庭；服务端和学习站全量统计，家长页面行为仅含授权样本。未成熟家庭单独列出。</p>
+    <p class="section-note">每个家庭只计一次。按注册日期查询，日期以 UTC 为准，最多查询 31 天。仅统计埋点上线后注册的家庭；家长页面操作仅统计已授权用户。尚未达到观察天数的家庭单独列出，不计入转化率。</p>
     <div class="row">
       <label>注册开始 <input id="operationsStart" type="date"></label>
       <label>注册结束 <input id="operationsEnd" type="date"></label>
@@ -543,15 +543,15 @@ async function loadOperations() {
   $('operationsReport').replaceChildren();
   const percentage = value => value == null ? '—' : (Number(value) * 100).toFixed(1) + '%';
   const labels = {family_registered:'家庭注册',device_connected:'设备绑定',question_accepted:'服务端收到问题',learning_completed:'有效学习完成',
-    view_subscription:'查看订阅',begin_checkout:'发起结账',payment_confirmed:'已核验正价付款',subscription_activated:'订阅权益激活',student_page_view:'进入学习站',question_submitted:'提交问题',answer_received:'浏览器收到回答'};
+    view_subscription:'查看订阅',begin_checkout:'发起结账',payment_confirmed:'已确认非零金额付款',subscription_activated:'订阅已开通',student_page_view:'进入学习站',question_submitted:'提交问题',answer_received:'浏览器收到回答'};
   try {
     const d = await api('/admin/analytics/funnels?' + new URLSearchParams({start:$('operationsStart').value,end:$('operationsEnd').value,include_test:String($('operationsTest').checked)}));
     const panels = [['activation','7 天激活（服务端全量）'],['student_experience','7 天学习站操作（已登录家庭）'],
-      ['checkout','30 天结账（家长授权样本）'],['trial_to_paid','30 天转付费（仅金额证明完整的交易）'],['subscription_activation','30 天订阅激活（含金额不可用，不等于付款）']];
+      ['checkout','30 天结账（家长授权样本）'],['trial_to_paid','30 天付费转化（已核实付款金额）'],['subscription_activation','30 天订阅开通（含未核实金额的订阅，不等于付款）']];
     $('operationsReport').innerHTML = panels.map(([key,title]) => {
       const f=d[key];
-      return `<h3>${title}</h3><p>成熟家庭 ${Number(f.mature_families)} · 待观察 ${Number(f.pending_families)}</p><div class="table-wrap"><table><thead><tr><th>阶段</th><th>家庭数</th><th>相邻转化率</th><th>累计转化率</th></tr></thead><tbody>${f.steps.map(row=>`<tr><td>${esc(labels[row.event] || row.event)}</td><td>${Number(row.families)}</td><td>${percentage(row.from_previous)}</td><td>${percentage(row.from_start)}</td></tr>`).join('')}</tbody></table></div>`;
-    }).join('') + `<h3>学习留存（首次有效学习日起，按完整 UTC 自然日）</h3><div class="table-wrap"><table><thead><tr><th>留存日</th><th>成熟家庭</th><th>回访学习家庭</th><th>留存率</th></tr></thead><tbody>${d.retention.map(row=>`<tr><td>D${Number(row.day)}</td><td>${Number(row.eligible_families)}</td><td>${Number(row.returned_families)}</td><td>${percentage(row.rate)}</td></tr>`).join('')}</tbody></table></div><p class="section-note">付款以首次核验记录时间计，不是财务到账日；Google 缺少正价金额证明时只记录权益激活，不计入付款转化。此表不计算净收入、退款金额或续费率。删除家庭会移除相关统计。</p>`;
+      return `<h3>${title}</h3><p>已满观察期 ${Number(f.mature_families)} · 待观察 ${Number(f.pending_families)}</p><div class="table-wrap"><table><thead><tr><th>阶段</th><th>家庭数</th><th>相邻转化率</th><th>累计转化率</th></tr></thead><tbody>${f.steps.map(row=>`<tr><td>${esc(labels[row.event] || row.event)}</td><td>${Number(row.families)}</td><td>${percentage(row.from_previous)}</td><td>${percentage(row.from_start)}</td></tr>`).join('')}</tbody></table></div>`;
+    }).join('') + `<h3>学习留存（首次有效学习日起，按完整 UTC 自然日）</h3><div class="table-wrap"><table><thead><tr><th>留存日</th><th>已满观察期的家庭</th><th>回访学习家庭</th><th>留存率</th></tr></thead><tbody>${d.retention.map(row=>`<tr><td>D${Number(row.day)}</td><td>${Number(row.eligible_families)}</td><td>${Number(row.returned_families)}</td><td>${percentage(row.rate)}</td></tr>`).join('')}</tbody></table></div><p class="section-note">付款时间取首次核验成功的时间，并非实际到账时间。Google 订阅未能核实付款金额时，只计入订阅开通数，不计入付款转化率。此处不统计净收入、退款金额和续费率。删除家庭账号后，其统计记录也会删除。</p>`;
     $('operationsStatus').textContent = `注册家庭 ${Number(d.registered_families)} · UTC · 截至 ${d.as_of}`;
   } catch(e) { $('operationsStatus').textContent=e.message; }
   finally { $('operationsLoad').disabled=false; }
@@ -755,7 +755,7 @@ function showPage(page, focus = true) {
     else button.removeAttribute('aria-current');
   });
   $('pageTitle').textContent = selected.textContent;
-  $('pageDescription').textContent = ({overview:'查看平台规模、消息活跃情况与使用成本。',families:'查看家庭与学生，管理标签、绑定与会员权益。',feedback:'集中处理误判反馈与学生举报，追踪历史处理结果。',teachers:'管理各渠道默认老师、模型配置与老师能力。',images:'管理共用图片模型，查看读图、生图与复核用量。',safety:'查看安全围栏的处置情况，维护老师共用的围栏配置。',pricing:'配置订阅价格、名额费用与试用期。',users:'管理后台账号及其操作权限。',audit:'追溯后台操作记录与评估审计。'})[page];
+  $('pageDescription').textContent = ({overview:'查看平台规模、消息活跃情况与使用成本。',families:'查看家庭与学生，管理标签、绑定与会员权益。',feedback:'处理误判反馈和学生举报，查看处理记录。',teachers:'管理各渠道默认老师、模型配置与老师能力。',images:'管理共用图片模型，查看读图、生图与复核用量。',safety:'查看安全围栏的处置情况，维护老师共用的围栏配置。',pricing:'配置订阅价格、名额费用与试用期。',users:'管理后台账号及其操作权限。',audit:'查看后台操作记录和评估记录。'})[page];
   sessionStorage.setItem('cms_page', page);
   $('sidebar').classList.remove('nav-open');
   $('menuToggle').setAttribute('aria-expanded', 'false');
@@ -845,7 +845,7 @@ async function loadGroups() {
       <div class="config-head">
         <div class="identity">${g.teacher_avatar_url?`<img class="avatar" src="${esc(g.teacher_avatar_url)}" alt="">`:`<span class="avatar" aria-hidden="true">${esc((g.teacher_name||g.name||'师').slice(0,1))}</span>`}
           <div><h3>${esc(g.teacher_name||'AI 老师')}</h3><small>${esc(g.name)}</small></div></div>
-        <span class="tag ${g.teacher_enabled?'active':'reject'}">${g.teacher_enabled?'已激活':'已停用'}</span>
+        <span class="tag ${g.teacher_enabled?'active':'reject'}">${g.teacher_enabled?'已启用':'已停用'}</span>
       </div>
       <div class="badges">${(g.default_channels||[]).map(channel=>`<span class="tag beta-tag">${CHANNELS[channel]}默认</span>`).join('')}${g.tag?`<span class="tag">${esc(g.tag)} · ${g.tagged_families||0} 个家庭</span>`:''}</div>
       <dl class="config-meta" style="margin-top:16px">
@@ -859,7 +859,7 @@ async function loadGroups() {
         ${ROLE==='super'?`<button class="ghost" onclick="editGroup(${g.id})">模型配置</button><button class="ghost" onclick="editTeacherImages(${g.id})">图片能力</button>`:''}
       </div>
       <details class="secondary-tools"><summary>接口、头像与更多操作</summary><dl class="config-meta" style="margin-top:16px"><div class="wide"><dt>接口地址</dt><dd><code>${esc(g.base_url||g.provider)}</code></dd></div><div><dt>API 密钥</dt><dd>${g.has_key?'已配置':'沿用环境配置'}</dd></div></dl><div class="row"><label class="field" for="avatar_${g.id}">更换老师头像<input id="avatar_${g.id}" type="file" accept="image/png,image/jpeg,image/webp"></label><button class="ghost" onclick="changeAvatar(${g.id})">上传头像</button>
-        ${ROLE==='super'?`<button class="ghost" onclick="${g.teacher_enabled?'deactivate':'activate'}(${g.id})">${g.teacher_enabled?'停用':'激活'}</button><button class="danger" onclick="delGroup(${g.id})">删除老师</button>`:''}
+        ${ROLE==='super'?`<button class="ghost" onclick="${g.teacher_enabled?'deactivate':'activate'}(${g.id})">${g.teacher_enabled?'停用':'启用'}</button><button class="danger" onclick="delGroup(${g.id})">删除老师</button>`:''}
       </div></details>
     </article>`).join('') || '<div class="empty-state">暂无老师分组。创建后即可配置模型、渠道与图片能力。</div>';
 }
@@ -1029,7 +1029,7 @@ async function setTag(familyId, tag) {
 }
 
 const LOG_FIELDS = {name:'名称',base_url:'baseUrl',model_id:'模型 ID',fence_config_id:'围栏',tag:'家庭标签',
-  teacher_channel:'适用渠道',teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'激活状态',teacher_sort_order:'展示排序',
+  teacher_channel:'适用渠道',teacher_name:'老师名字',teacher_avatar_url:'老师头像',teacher_enabled:'启用状态',teacher_sort_order:'展示排序',
   post_trial_daily_free_count:'每日免费回复次数',post_trial_free_enabled:'到期后免费',api_key:'apiKey',provider:'服务类型',
   is_default:'原默认老师',default:'原默认老师',cleared_default_channels:'清除渠道默认'};
 function logDetail(detail) {

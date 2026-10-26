@@ -28,6 +28,16 @@ void main() {
   });
   tearDown(() => AppLanguage.I.select('zh-Hans'));
 
+  test('plain-language copy keeps lookup keys and notification parameters', () {
+    expect(tr('添加孩子，开启学习陪伴'), '添加孩子并连接设备');
+    expect(tr('围栏强度'), '话题限制');
+    expect(tr('一起陪伴 {0} 个孩子的学习与成长', [2]), '已添加 2 个孩子');
+    expect(
+      trMessage('小明聊了点学习之外的内容，已温和引导回学习。'),
+      '小明提出了学习以外的问题，系统已提示改问学习相关的问题。',
+    );
+  });
+
   test('all 78 catalogs preserve every placeholder', () async {
     final raw =
         jsonDecode(
@@ -42,6 +52,11 @@ void main() {
       final translated = (raw[locale.toLanguageTag()] as Map)
           .cast<String, String>();
       expect(translated.keys.toSet(), base.keys.toSet());
+      expect(
+        translated['输入 DELETE 确认'],
+        contains('DELETE'),
+        reason: '$locale must preserve the required confirmation text',
+      );
       for (final source in base.keys) {
         expect(
           translated[source]!.trim().isNotEmpty,
