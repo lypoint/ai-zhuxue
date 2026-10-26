@@ -5,7 +5,7 @@ import json
 import logging
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, urlsplit
@@ -14,12 +14,12 @@ import httpx
 import jwt
 from cryptography.fernet import Fernet
 from fastapi import HTTPException
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import settings
-from ..models import Family, StoreAccount, StoreEvent, StoreSubscription, StoreTransaction
+from ..models import Family, Subscription, StoreAccount, StoreEvent, StoreSubscription, StoreTransaction
 
 log = logging.getLogger(__name__)
 
@@ -109,14 +109,27 @@ class VerifiedSubscription:
     transaction_id: str | None = None
     price_milliunits: int | None = None
     currency: str | None = None
+    first_paid_at: datetime | None = None
+    next_billing_at: datetime | None = None
+    period_started_at: datetime | None = None
 
 
 def naive(value: datetime) -> datetime:
     return value.astimezone(timezone.utc).replace(tzinfo=None) if value.tzinfo else value
 
 
+def entitlement_expiry(row) -> datetime:
+    end = naive(row.expires_at)
+    if isinstance(row, StoreSubscription) and row.state in ("active", "grace", "expired"):
+        end += timedelta(seconds=int(row.trial_extension_seconds or 0))
+    return end
+
+
 def active(row: StoreSubscription) -> bool:
-    return row.state in ("active", "grace") and naive(row.expires_at) > datetime.utcnow()
+    now = datetime.utcnow()
+    eligible = row.state in ("active", "grace") or (
+        row.state == "expired" and naive(row.expires_at) <= now and (row.trial_extension_seconds or 0) > 0)
+    return eligible and entitlement_expiry(row) > now
 
 
 def test_accounts() -> set[str]:
@@ -163,7 +176,7 @@ def _apple_status(reference: str, environment: str) -> VerifiedSubscription:
         if tx.type != "Auto-Renewable Subscription" or not tx.expiresDate:
             raise StoreError("商品不是自动续订订阅")
         seats_for("appstore", tx.productId)
-        state = {1: "active", 4: "grace"}.get(int(status), "inactive")
+        state = {1: "active", 2: "expired", 4: "grace"}.get(int(status), "inactive")
         if tx.revocationDate:
             state = "revoked"
         end = renewal.gracePeriodExpiresDate if state == "grace" else tx.expiresDate
@@ -174,7 +187,11 @@ def _apple_status(reference: str, environment: str) -> VerifiedSubscription:
             str(tx.appAccountToken or "").lower(), tx.productId,
             datetime.fromtimestamp(end / 1000, timezone.utc).replace(tzinfo=None), state,
             int(renewal.autoRenewStatus or 0) == 1, transaction_id=prefix + tx.transactionId,
-            price_milliunits=tx.price, currency=tx.currency)
+            price_milliunits=tx.price, currency=tx.currency,
+            first_paid_at=datetime.fromtimestamp(tx.originalPurchaseDate / 1000, timezone.utc) if getattr(tx, "originalPurchaseDate", None) else None,
+            next_billing_at=datetime.fromtimestamp((getattr(renewal, "renewalDate", None) or tx.expiresDate) / 1000, timezone.utc)
+                if state == "active" else None,
+            period_started_at=datetime.fromtimestamp(tx.purchaseDate / 1000, timezone.utc) if tx.purchaseDate else None)
     except (StoreError, APIException):
         raise
     except Exception:
@@ -263,7 +280,7 @@ async def google_status(reference: str) -> VerifiedSubscription:
     if "testPurchase" in data:
         allow_test_purchase(data.get("externalAccountIdentifiers", {}).get("obfuscatedExternalAccountId", ""))
     state = {"SUBSCRIPTION_STATE_ACTIVE": "active", "SUBSCRIPTION_STATE_IN_GRACE_PERIOD": "grace",
-             "SUBSCRIPTION_STATE_CANCELED": "active"}.get(data.get("subscriptionState"), "inactive")
+             "SUBSCRIPTION_STATE_CANCELED": "active", "SUBSCRIPTION_STATE_EXPIRED": "expired"}.get(data.get("subscriptionState"), "inactive")
     items = [i for i in data.get("lineItems", []) if i.get("expiryTime") and i.get("autoRenewingPlan") is not None]
     if len(items) != 1:
         raise StoreError("订阅必须只有一个自动续订商品")
@@ -276,7 +293,9 @@ async def google_status(reference: str) -> VerifiedSubscription:
         naive(expiry), state, item.get("autoRenewingPlan", {}).get("autoRenewEnabled", False),
         hashlib.sha256(data["linkedPurchaseToken"].encode()).hexdigest() if data.get("linkedPurchaseToken") else None,
         state in ("active", "grace") and naive(expiry) > datetime.utcnow() and data.get("acknowledgementState") == "ACKNOWLEDGEMENT_STATE_PENDING",
-        transaction_id=item.get("latestSuccessfulOrderId") or data.get("latestOrderId"))
+        transaction_id=item.get("latestSuccessfulOrderId") or data.get("latestOrderId"),
+        first_paid_at=datetime.fromisoformat(data["startTime"].replace("Z", "+00:00")) if data.get("startTime") else None,
+        next_billing_at=naive(expiry) if state == "active" else None)
 
 
 async def verify(channel: str, reference: str) -> VerifiedSubscription:
@@ -307,15 +326,42 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
         raise HTTPException(409, "订阅交易链已绑定其他家庭")
     if row is None:
         row = StoreSubscription(family_id=owner.family_id, channel=result.channel, chain_key=result.chain)
+        if linked:
+            row.trial_extension_seconds = min(int(linked.trial_extension_seconds or 0),
+                max(0, int((entitlement_expiry(linked) - datetime.utcnow()).total_seconds())))
         db.add(row)
+    elif result.state == "expired" and naive(result.expires) < naive(row.expires_at):
+        # An early termination must not turn a refund/revocation into bonus access.
+        result = replace(result, state="revoked", auto_renew=False)
+    if row.state == "revoked" and result.state == "expired":
+        result = replace(result, state="revoked", auto_renew=False)
+    if row.expires_at and naive(result.expires) > naive(row.expires_at) and result.period_started_at:
+        spent = max(0, int((naive(result.period_started_at) - naive(row.expires_at)).total_seconds()))
+        row.trial_extension_seconds = max(0, int(row.trial_extension_seconds or 0) - spent)
+    elif row.state == "expired" and naive(result.expires) > naive(row.expires_at):
+        # Keep only unspent bonus time when a lapsed subscription is restarted.
+        row.trial_extension_seconds = min(int(row.trial_extension_seconds or 0),
+            max(0, int((entitlement_expiry(row) - datetime.utcnow()).total_seconds())))
+    # Capture once from the authority's initial purchase time, never from restore time.
+    # Missing authority timestamps can be filled by a subsequent reconciliation.
+    if (result.state == "active" and naive(result.expires) > datetime.utcnow()
+            and result.first_paid_at is not None and naive(result.first_paid_at) <= datetime.utcnow()
+            and row.state != "replaced" and not successor):
+        sub = db.query(Subscription).filter_by(family_id=owner.family_id).with_for_update().one()
+        if sub.plan == "free_trial" and not sub.trial_extension_claimed:
+            row.trial_extension_seconds = max(0, int((naive(sub.expires_at) - naive(result.first_paid_at)).total_seconds()))
+            sub.trial_extension_claimed = True
     row.encrypted_token = cipher().encrypt(result.reference.encode()).decode()
     row.product_id = result.product
     row.seat_count = seats_for(result.channel, result.product)
     row.expires_at = result.expires
     row.state = "replaced" if row.state == "replaced" or successor else result.state
     row.linked_chain = result.linked_chain
-    row.auto_renew = result.auto_renew and row.state not in ("replaced", "revoked")
+    row.auto_renew = result.auto_renew and row.state not in ("replaced", "revoked", "expired")
+    row.next_billing_at = result.next_billing_at if row.auto_renew else None
     row.checked_at = datetime.utcnow()
+    if row.state == "expired" and entitlement_expiry(row) <= datetime.utcnow():
+        row.trial_extension_seconds = 0
     if result.transaction_id:
         transaction = db.query(StoreTransaction).filter_by(channel=result.channel, transaction_id=result.transaction_id).first()
         if transaction and transaction.family_id != owner.family_id:
@@ -349,7 +395,7 @@ def effective(family_id: int, sub, db: Session):
         candidates.append(sub)
     if not candidates:
         return sub
-    return max(candidates, key=lambda r: (r.seat_count, r is not sub or sub.plan != "free_trial", naive(r.expires_at)))
+    return max(candidates, key=lambda r: (r.seat_count, r is not sub or sub.plan != "free_trial", entitlement_expiry(r)))
 
 
 def block_other_channel(family_id: int, channel: str, db: Session):
@@ -447,7 +493,7 @@ async def reconcile_forever():
             with SessionLocal() as db:
                 keys = [e.event_key for e in db.query(StoreEvent).filter(StoreEvent.processed.is_(False), StoreEvent.next_attempt_at <= datetime.utcnow()).order_by(StoreEvent.next_attempt_at).limit(100)]
                 cutoff = datetime.utcnow().timestamp() - 3600
-                ids = [r.id for r in db.query(StoreSubscription).filter(StoreSubscription.state != "replaced", or_(StoreSubscription.auto_renew.is_(True), StoreSubscription.state.in_(["active", "grace"])), StoreSubscription.checked_at < datetime.fromtimestamp(cutoff, timezone.utc).replace(tzinfo=None)).order_by(StoreSubscription.checked_at).limit(100)]
+                ids = [r.id for r in db.query(StoreSubscription).filter(StoreSubscription.state != "replaced", or_(StoreSubscription.auto_renew.is_(True), StoreSubscription.state.in_(["active", "grace"]), and_(StoreSubscription.state == "expired", StoreSubscription.trial_extension_seconds > 0)), StoreSubscription.checked_at < datetime.fromtimestamp(cutoff, timezone.utc).replace(tzinfo=None)).order_by(StoreSubscription.checked_at).limit(100)]
             for key in keys:
                 try:
                     await asyncio.to_thread(process_event, key)

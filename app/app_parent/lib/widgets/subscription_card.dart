@@ -156,6 +156,17 @@ class SubscriptionCard extends StatelessWidget {
                     ? tr("当前订阅仍有效，可升级名额档位，到期后再续订。")
                     : tr("当前订阅仍有效，可立即升级名额或管理自动续订。"),
               ),
+            if (trial) Text(tr("立即付款，剩余试用时长保留。")),
+            if (onManage != null)
+              Text(tr("赠送时长不推迟自动扣款；取消自动续订后仍可使用。")),
+            if (!trial && onManage != null) ...[
+              Text(tr("下次扣款")),
+              Text(sub['auto_renew'] == true
+                  ? sub['next_billing_at'] != null
+                      ? displayDate(sub['next_billing_at'])
+                      : tr("扣款日期以支付平台为准。")
+                  : tr("不会自动扣款")),
+            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 12,

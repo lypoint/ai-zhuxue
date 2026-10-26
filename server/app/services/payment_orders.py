@@ -26,6 +26,7 @@ def payload(order: SubscriptionOrder, db: Session) -> dict:
             "amount_cents": order.amount_cents, "amount": yuan(order.amount_cents),
             "payment_params": json.loads(order.payment_params),
             "billing_rule": snapshot.get("billing_rule", "legacy"),
+            "preserve_remaining_trial": snapshot.get("preserve_remaining_trial", False),
             "billing_period": snapshot.get("billing_period"),
             "currency": snapshot.get("currency", "CNY"),
             "target_seat_count": snapshot.get("target_seat_count"),

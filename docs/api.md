@@ -293,13 +293,18 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 ```json
 {"plan":"free_trial|monthly","active":true,"expires_at":"…","days_left":29,
  "price_cny":66.0,"provider":"mock","paid_amount":0.0,
+ "next_billing_at":null,"billing_period_ends_at":null,"trial_extension_seconds":0,
  "base_monthly_price_cents":6600,"additional_seat_price_cents":3300}
 ```
 
 ### POST /parent/subscription/pay — 续费（骨架期 mock）
 
 仅开发/测试环境支持模拟支付。生产环境在真实支付通道接入前返回 `503`，不生成订单、不变更订阅；`POST /parent/subscription/seats` 购买孩子名额同样返回 `503`。真实支付接入后应由经过验签的支付回调确认订单并发放权益。
-按当前名额档位购买一个自然月；有效付费订阅重复购买同档位返回 `409`，不累加时长。试用期内可开通；既有更晚到期时间保留。正式微信购买走 `/parent/payments/orders`，核验支付后生效。
+按当前名额档位购买一个自然月；有效付费订阅重复购买同档位返回 `409`，不累加时长。试用期内可开通，立即付款生效，剩余试用时长只保留一次：新月周期结束时间加上支付时剩余试用时长，按实际秒数计算，不向下取整为天；原有更晚的付费权益继续保留。正式微信购买走 `/parent/payments/orders`，核验支付后生效。
+
+自动续订来源（Apple/Google、Paddle Sandbox、Creem Test）保持平台原计费周期。首次购买时，使用权威首次购买时间与原试用到期时间计算一次性 `trial_extension_seconds`，权益到期为平台周期结束加该赠送时长；恢复购买不再次赠送，连续续订保留同一段赠送时长。取消自动续订后的正常到期仍可使用赠送时长；退款/撤销、欠费、暂停不靠赠送时长绕过停权。赠送全部用尽后重购不重新赠送。
+
+订阅状态的 `expires_at` 为权益到期；`billing_period_ends_at` 为平台原周期结束；`next_billing_at` 为平台确认的下次扣款日（非自动扣款或未知时为 `null`）；`trial_extension_seconds` 为该来源保留的试用时长。客户端须分别展示权益到期和下次扣款，说明赠送时长不推迟平台扣款，取消自动续订后仍可使用。未知扣款日不得用权益到期日代替。
 
 ### GET /parent/billing/catalog — 统一月度档位定价
 
@@ -308,6 +313,8 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 `kind=seat_add` 可传 `target_seat_count`（1-1000，必须大于当前总名额），表示购买升级后的总名额，而非增加的数量；此时 `count` 只能为默认值 1。重试必须保留同一目标档位，`prepare` 自动恢复已保存的目标。
 
 新订单价格快照标记 `monthly_tier_v1`；订单响应新增 `billing_rule`、`target_seat_count`、`product_code`、`billing_period`、`currency`。订阅状态新增 `can_purchase_subscription`、`has_pending_payment`、`product_code`、`billing_period`、`currency`。
+
+2026-10-26 起新订单额外保存并返回 `preserve_remaining_trial=true`，用于兑现上述剩余试用规则；没有该标记的历史待支付订单按原规则履约。
 
 ## 通知 `/parent/notifications`（P0 安全闭环）
 

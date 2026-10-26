@@ -175,12 +175,20 @@ def verify_subscription(reference: str):
     if entity_id(transaction.get("subscription")) != data["id"]:
         raise store.StoreError("Transaction does not match subscription.")
     paid = transaction.get("status") == "paid" and not transaction.get("refunded_amount")
+    ended_normally = data["status"] == "expired" or (
+        data["status"] == "canceled" and data.get("canceled_at") and
+        datetime.fromisoformat(data["canceled_at"].replace("Z", "+00:00")) >=
+        datetime.fromisoformat(end.replace("Z", "+00:00")))
     return store.VerifiedSubscription(CHANNEL, data["id"], data["id"], token, product_id,
         store.naive(datetime.fromisoformat(end.replace("Z", "+00:00"))),
-        "active" if paid and data["status"] in ("active", "scheduled_cancel") else "inactive",
+        ("active" if data["status"] in ("active", "scheduled_cancel") else
+         "expired" if ended_normally else "inactive") if paid else "revoked",
         paid and data["status"] == "active", transaction_id=transaction["id"],
         price_milliunits=int(transaction["amount_paid"]) * 10 if transaction.get("amount_paid") is not None else None,
-        currency=transaction.get("currency"))
+        currency=transaction.get("currency"),
+        first_paid_at=datetime.fromisoformat(data["created_at"].replace("Z", "+00:00")) if data.get("created_at") else None,
+        next_billing_at=datetime.fromisoformat(data["next_transaction_date"].replace("Z", "+00:00")) if data.get("next_transaction_date") else None,
+        period_started_at=datetime.fromisoformat(data["current_period_start_date"].replace("Z", "+00:00")) if data.get("current_period_start_date") else None)
 
 
 def verify_signature(raw: bytes, header: str):

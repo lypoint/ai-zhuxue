@@ -9,6 +9,11 @@ export const languages: Record<string, string> = Object.fromEntries(
   Object.entries(localeMetadata).map(([tag, value]) => [tag, value.name]),
 );
 const en: Record<string, string> = {
+  trialPaymentPolicy: "Pay now. Your remaining free trial time is preserved.",
+  renewalTrialPolicy: "Bonus time does not delay automatic charges. It remains available after you cancel auto-renewal.",
+  nextBillingLabel: "Next charge",
+  billingDatePending: "See your payment provider for the charge date.",
+  noAutomaticCharge: "No automatic charge",
   confirmFamilyZone:
     "Ask your parent to confirm the family time zone before connecting.",
   imageReviewFailed: "The image did not pass review. Please choose another.",

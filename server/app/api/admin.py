@@ -242,7 +242,7 @@ def update_admin_user(user_id: int, body: dict, principal: AdminPrincipal = Depe
 @router.get("/overview")
 def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
     """核心运营面板：规模、活跃、围栏分布、成本。"""
-    from ..services.store_billing import effective, naive
+    from ..services.store_billing import effective, naive, entitlement_expiry
 
     today_start_utc = (dt.datetime.utcnow() + dt.timedelta(hours=settings.tz_offset_hours)) \
         .replace(hour=0, minute=0, second=0, microsecond=0) - dt.timedelta(hours=settings.tz_offset_hours)
@@ -278,7 +278,7 @@ def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = D
     sub_active = sub_trial = sub_expired = revenue = 0
     for sub in subs:
         source = effective(sub.family_id, sub, db)
-        expires = source.expires_at.replace(tzinfo=None)
+        expires = entitlement_expiry(source)
         if expires > now:
             sub_active += 1
             if source is sub and sub.plan == "free_trial":

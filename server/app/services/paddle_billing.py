@@ -162,11 +162,15 @@ def verify_subscription(reference: str) -> store.VerifiedSubscription:
         raise store.StoreError("Subscription expiry is unavailable.")
     return store.VerifiedSubscription(CHANNEL, data["id"], data["id"], token, price["id"],
         store.naive(datetime.fromisoformat(end.replace("Z", "+00:00"))),
-        "active" if data["status"] == "active" else "inactive",
+        "active" if data["status"] == "active" else "expired" if data["status"] == "canceled" else "inactive",
         data["status"] == "active" and not data.get("scheduled_change"),
         transaction_id=transaction["id"] if transaction else None,
         price_milliunits=int(price["unit_price"]["amount"]) * 10,
-        currency=price["unit_price"]["currency_code"])
+        currency=price["unit_price"]["currency_code"],
+        first_paid_at=datetime.fromisoformat(data["started_at"].replace("Z", "+00:00")) if data.get("started_at") else None,
+        next_billing_at=datetime.fromisoformat(data["next_billed_at"].replace("Z", "+00:00")) if data.get("next_billed_at") else None,
+        period_started_at=datetime.fromisoformat(data["current_billing_period"]["starts_at"].replace("Z", "+00:00"))
+            if (data.get("current_billing_period") or {}).get("starts_at") else None)
 
 
 def verify_signature(raw: bytes, header: str):

@@ -53,6 +53,27 @@ def checkout(client):
     return token
 
 
+def test_authority_dates_preserve_trial_without_delaying_charge(client, sandbox, monkeypatch):
+    token = checkout(client)
+    sandbox['tx']['status'] = 'completed'
+    start = datetime.utcnow()
+    charge = start + timedelta(days=31)
+    original = paddle.request
+    def request(method, path, body=None):
+        data = original(method, path, body)
+        if path.startswith('/subscriptions/'):
+            data.update(started_at=start.isoformat() + 'Z', next_billed_at=charge.isoformat() + 'Z',
+                        current_billing_period={'ends_at': charge.isoformat() + 'Z'})
+        return data
+    monkeypatch.setattr(paddle, 'request', request)
+    response = client.post('/parent/paddle/verify', headers=h(token), json={'transaction_id': TX})
+    assert response.status_code == 200, response.text
+    status = response.json()
+    assert status['trial_extension_seconds'] > 0
+    assert datetime.fromisoformat(status['next_billing_at']).replace(tzinfo=None) == charge
+    assert datetime.fromisoformat(status['expires_at']).replace(tzinfo=None) == charge + timedelta(seconds=status['trial_extension_seconds'])
+
+
 def signed(raw, timestamp=None):
     ts = str(timestamp or int(time.time()))
     digest = hmac.new(settings.paddle_sandbox_webhook_secret.encode(), ts.encode() + b':' + raw, hashlib.sha256).hexdigest()

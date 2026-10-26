@@ -47,6 +47,28 @@ def purchase(client):
     return token, result.json()['checkout_id']
 
 
+def test_authority_dates_preserve_trial_without_delaying_charge(client, creem_test, monkeypatch):
+    token, checkout = purchase(client)
+    creem_test['checkout']['status'] = 'completed'
+    start = datetime.utcnow()
+    charge = start + timedelta(days=31)
+    original = creem.request
+    def request(method, path, body=None):
+        data = original(method, path, body)
+        if path.startswith('/subscriptions?'):
+            data.update(created_at=start.isoformat() + 'Z',
+                        current_period_end_date=charge.isoformat() + 'Z',
+                        next_transaction_date=charge.isoformat() + 'Z')
+        return data
+    monkeypatch.setattr(creem, 'request', request)
+    response = client.post('/parent/creem/verify', headers=h(token), json={'checkout_id': checkout})
+    assert response.status_code == 200, response.text
+    status = response.json()
+    assert status['trial_extension_seconds'] > 0
+    assert datetime.fromisoformat(status['next_billing_at']).replace(tzinfo=None) == charge
+    assert datetime.fromisoformat(status['expires_at']).replace(tzinfo=None) == charge + timedelta(seconds=status['trial_extension_seconds'])
+
+
 def test_disabled_and_live_credentials_rejected(client, monkeypatch):
     token, _ = make_family(client)
     assert client.get('/parent/creem/catalog', headers=h(token)).json()['enabled'] is False

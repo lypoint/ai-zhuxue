@@ -220,6 +220,8 @@ class _PaymentScreenState extends State<PaymentScreen>
             textAlign: TextAlign.center,
           ),
           if (monthlyTier) ...[
+            if (_order['preserve_remaining_trial'] == true)
+              Text(tr("立即付款，剩余试用时长保留。")),
             const SizedBox(height: 12),
             Text(
               _order['kind'] == 'seat_add'

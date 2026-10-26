@@ -157,7 +157,7 @@ def test_durable_unknown_notification_retries_after_account_is_bound(client, sto
         assert db.query(StoreSubscription).filter_by(family_id=family).count() == 1
 
 
-@pytest.mark.parametrize('state,expected', [('SUBSCRIPTION_STATE_ACTIVE','active'), ('SUBSCRIPTION_STATE_IN_GRACE_PERIOD','grace'), ('SUBSCRIPTION_STATE_CANCELED','active'), ('SUBSCRIPTION_STATE_ON_HOLD','inactive'), ('SUBSCRIPTION_STATE_EXPIRED','inactive')])
+@pytest.mark.parametrize('state,expected', [('SUBSCRIPTION_STATE_ACTIVE','active'), ('SUBSCRIPTION_STATE_IN_GRACE_PERIOD','grace'), ('SUBSCRIPTION_STATE_CANCELED','active'), ('SUBSCRIPTION_STATE_ON_HOLD','inactive'), ('SUBSCRIPTION_STATE_EXPIRED','expired')])
 def test_google_gateway_uses_authority_account_expiry_and_ack(stores, monkeypatch, state, expected):
     import asyncio
     calls = []

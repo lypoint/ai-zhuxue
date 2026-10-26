@@ -4,6 +4,8 @@
 
 Creem 是海外 Web 支付备用通道。本实现仅接受 `creem_test_` 密钥，固定调用 `https://test-api.creem.io/v1`，逐项检查权威对象 `mode=test`。正式收款与账号审核不属于本次接入。
 
+2026-10-26 试用策略：继续使用无 Creem 试用的商品，结账立即模拟付款，账户剩余试用时间只赠送一次。会员权益到期与 Creem `current_period_end_date` 分开计算，`next_transaction_date` 单独展示为下次扣款日；赠送时长不修改 Creem 扣款计划，取消续订后仍可使用，退款/撤销后不继续赠送权益。首次购买时间取权威订阅 `created_at`，不取浏览器时间或恢复购买时间。部署候选需要先迁移 `1d4e6f8a0b2c`；尚未执行线上迁移及新策略真实 Test 收银台验收。
+
 ## 配置与商品
 
 `CREEM_TEST_ENABLED` 默认 false。启用需要 `CREEM_TEST_API_KEY`、`CREEM_TEST_WEBHOOK_SECRET` 和已有 `STORE_TOKEN_SECRET`。不得替换原账本加密密钥。生产必须把测试家庭 `/parent/billing/account` 的 UUID 放进独立 `CREEM_TEST_ACCOUNT_TOKENS`；Paddle 和商店测试名单不会自动取得 Creem 权限。非名单家庭看不到测试商品。

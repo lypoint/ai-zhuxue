@@ -2,6 +2,8 @@
 
 2026-10-25：Sandbox 商品、Web 收银台与服务端权益闭环已实现，并使用真实 Paddle 测试卡在本地隔离数据库验收。线上家长 Web 已向指定测试家庭开放 Sandbox，其他家庭入口关闭；本实现不接受 Paddle Live 凭据，不处理真实扣款。
 
+2026-10-26 试用策略：保持结账立即模拟付款，账户剩余试用时长只保留一次；首次购买时间取权威订阅 `started_at`。会员权益到期为平台周期结束加赠送时长，`next_billed_at` 仍为平台下次扣款日。赠送不推迟自动扣款，取消续订后正常周期结束仍可使用；提前取消、退款或异常停权不以赠送绕过。候选需要迁移 `1d4e6f8a0b2c`；该新策略尚未执行线上迁移及真实 Sandbox 收银台复验。
+
 ## 配置
 
 配置见 `server/.env.example`。`PADDLE_SANDBOX_ENABLED` 默认 `false`；启用还需 Sandbox API key、`test_` 客户端 token、回调目标的 secret，以及既有 `STORE_TOKEN_SECRET`。不得生成新密钥覆盖已有账本的加密密钥。

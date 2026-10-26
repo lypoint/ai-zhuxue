@@ -305,6 +305,8 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(tr("订阅按月自动续订，名额升级在商店确认并完成验单后立即生效。升级扣款、旧订阅结算和续订时间以商店确认页面为准。")),
+          Text(tr("立即付款，剩余试用时长保留。")),
+          Text(tr("赠送时长不推迟自动扣款；取消自动续订后仍可使用。")),
           const SizedBox(height: 16),
           if (_error != null) Text(trMessage(_error!)),
           if (billing.message != null) Text(trMessage(billing.message!)),
@@ -352,7 +354,7 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
             onPressed: disabled ? null : () => _action(_load),
             child: Text(tr("刷新订阅商品")),
           ),
-          Text(tr("费用由当前商店账户支付；除非提前在商店取消，否则每月按所选档位自动扣款。取消后可使用至商店确认的到期时间。")),
+          Text(tr("扣款日期以支付平台为准。")),
           const SizedBox(height: 8),
           for (final link in [
             (const String.fromEnvironment('TERMS_URL'), tr("使用条款")),

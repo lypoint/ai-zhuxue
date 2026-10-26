@@ -76,6 +76,7 @@ def quote_monthly_purchase(sub: Subscription, cfg: PricingConfig, kind: str,
         raise HTTPException(422, "支付金额无效")
     base, seat = _config_cents(cfg)
     return cents, {"billing_rule": "monthly_tier_v1", "billing_period": "month",
+                   "preserve_remaining_trial": True,
                    "currency": "CNY", "pricing_version": cfg.version,
                    "product_code": f"family_monthly_{target}",
                    "requested_target_seat_count": target_seat_count,
@@ -84,8 +85,11 @@ def quote_monthly_purchase(sub: Subscription, cfg: PricingConfig, kind: str,
 
 
 def apply_monthly_purchase(sub: Subscription, snapshot: dict, start: dt.datetime):
-    """Replace the tier immediately without stacking periods or shortening paid rights."""
+    """Activate immediately, preserving trial credit once and any longer paid rights."""
     end = next_month(start)
+    if snapshot.get("preserve_remaining_trial") and sub.plan == "free_trial" and not sub.trial_extension_claimed:
+        end += max(dt.timedelta(), sub.expires_at.replace(tzinfo=None) - start)
+        sub.trial_extension_claimed = True
     sub.started_at = start
     sub.expires_at = max(sub.expires_at.replace(tzinfo=None), end)
     sub.seat_count = max(int(sub.seat_count or 1), snapshot["target_seat_count"])
@@ -159,7 +163,7 @@ def get_status(family_id: int, db: Session) -> dict:
     sub = db.query(Subscription).filter_by(family_id=family_id).first()
     if not sub:
         sub = ensure_subscription(family_id, db)
-    from .store_billing import effective
+    from .store_billing import effective, entitlement_expiry, naive
     source = effective(family_id, sub, db)
     store = source is not sub
     seats = source.seat_count
@@ -167,14 +171,20 @@ def get_status(family_id: int, db: Session) -> dict:
     plan = "monthly" if store else sub.plan
     now = dt.datetime.utcnow()
     # 兼容 sqlite naive
-    expires = source.expires_at.replace(tzinfo=None)
+    expires = entitlement_expiry(source)
+    next_billing = source.next_billing_at if store and source.auto_renew else None
+    if next_billing and naive(next_billing) <= now:
+        next_billing = None
     days_left = max(0, (expires - now).days)
     active = expires > now
     cfg = get_pricing_config(db)
     base_cents, seat_cents = _config_cents(cfg)
     pending = db.query(SubscriptionOrder.id).filter_by(family_id=family_id, status="pending").filter(
         SubscriptionOrder.provider.in_(["demo", "wechat"])).first() is not None
-    return {"plan": plan, "active": active, "expires_at": source.expires_at.isoformat(),
+    return {"plan": plan, "active": active, "expires_at": expires.isoformat(),
+            "next_billing_at": next_billing.isoformat() if next_billing else None,
+            "billing_period_ends_at": source.expires_at.isoformat() if store else None,
+            "trial_extension_seconds": int(source.trial_extension_seconds or 0) if store else 0,
             "days_left": days_left, "price_cny": yuan(base_cents),
             "additional_seat_price": yuan(seat_cents),
             "provider": provider, "auto_renew": source.auto_renew if store else False, "paid_amount": yuan(int(sub.paid_amount_cents or to_cents(sub.paid_amount))),
@@ -207,8 +217,8 @@ def post_trial_free_used(student_id: int, db: Session, group_id: int | None = No
     # post-trial allowance when expiry happens later on the same local day.
     sub = db.query(Subscription).filter_by(family_id=family_id).first()
     if sub and sub.expires_at:
-        from .store_billing import effective
-        expires = effective(family_id, sub, db).expires_at.replace(tzinfo=None)
+        from .store_billing import effective, entitlement_expiry
+        expires = entitlement_expiry(effective(family_id, sub, db))
         start_utc = max(start_utc, expires)
     reply_filter = and_(Message.role == "assistant", Message.content != "",
                         or_(Message.fence_action.is_(None), Message.fence_action != "reject"))

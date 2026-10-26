@@ -1322,6 +1322,9 @@ type SubscriptionData = {
   billing_source?: string;
   store?: { platform?: string };
   source?: string;
+  auto_renew?: boolean;
+  next_billing_at?: string | null;
+  trial_extension_seconds?: number;
 };
 function Subscription({ timezone }: { timezone: string | null }) {
   const { t } = useTranslation();
@@ -1329,6 +1332,8 @@ function Subscription({ timezone }: { timezone: string | null }) {
   return (
     <>
       <Heading title={t("subscription")} />
+      <p className="notice">{t("trialPaymentPolicy")}</p>
+      <p className="notice">{t("renewalTrialPolicy")}</p>
       <PaddleSandbox reload={resource.reload} provider={resource.data?.provider} />
       <CreemTest reload={resource.reload} provider={resource.data?.provider} />
       <ResourceState {...resource} retry={resource.reload} />
@@ -1343,6 +1348,14 @@ function Subscription({ timezone }: { timezone: string | null }) {
           <dl>
             <dt>{t("expires")}</dt>
             <dd>{date(resource.data.expires_at, timezone)}</dd>
+            {resource.data.plan === "monthly" && <>
+              <dt>{t("nextBillingLabel")}</dt>
+              <dd>{resource.data.auto_renew
+                ? resource.data.next_billing_at
+                  ? date(resource.data.next_billing_at, timezone)
+                  : t("billingDatePending")
+                : t("noAutomaticCharge")}</dd>
+            </>}
             <dt>{t("seats")}</dt>
             <dd>
               {number(resource.data.used_seats)} /{" "}

@@ -298,6 +298,7 @@ class Subscription(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), unique=True)
     plan: Mapped[str] = mapped_column(String(20), default="free_trial")  # free_trial | monthly | permanent
+    trial_extension_claimed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     paid_amount: Mapped[float] = mapped_column(default=0.0)   # 累计实付（元）
@@ -612,6 +613,8 @@ class StoreSubscription(TimestampMixin, Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     state: Mapped[str] = mapped_column(String(40))
     auto_renew: Mapped[bool] = mapped_column(Boolean, default=False)
+    trial_extension_seconds: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    next_billing_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 

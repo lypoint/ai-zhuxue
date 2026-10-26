@@ -391,7 +391,12 @@
     "请为这位孩子选择围栏强度和违禁词，仅对这位孩子生效，之后可随时修改。",
     "保存并继续",
     "每个违禁词最多 100 个字符，最多 500 个。",
-    "孩子围栏请在各自的孩子卡片中设置。"
+    "孩子围栏请在各自的孩子卡片中设置。",
+    "立即付款，剩余试用时长保留。",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。",
+    "下次扣款",
+    "扣款日期以支付平台为准。",
+    "不会自动扣款"
   ],
   "zh-Hans": {
     "裁切图片": "裁切图片",
@@ -1372,7 +1377,12 @@
     "Read Privacy Policy": "阅读完整隐私政策",
     "Scan parent pairing codes and photograph study questions.": "扫描家长配对码并拍摄学习问题。",
     "Select study question images to send to your teacher.": "选择学习问题图像发送给您的老师。",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "我们仅使用此权限来衡量应用程序稳定性和安装归因，绝不会向第三方广告商出售或共享您的个人数据。"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "我们仅使用此权限来衡量应用程序稳定性和安装归因，绝不会向第三方广告商出售或共享您的个人数据。",
+    "立即付款，剩余试用时长保留。": "立即付款，剩余试用时长保留。",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "赠送时长不推迟自动扣款；取消自动续订后仍可使用。",
+    "下次扣款": "下次扣款",
+    "扣款日期以支付平台为准。": "扣款日期以支付平台为准。",
+    "不会自动扣款": "不会自动扣款"
   },
   "zh-Hant": {
     "裁切图片": "裁切圖片",
@@ -2353,7 +2363,12 @@
     "Read Privacy Policy": "閱讀完整隱私政策",
     "Scan parent pairing codes and photograph study questions.": "掃描家長配對碼並拍攝學習問題。",
     "Select study question images to send to your teacher.": "選擇學習問題圖像發送給您的老師。",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "我們僅使用此權限來衡量應用程式穩定性和安裝歸因，絕不會向第三方廣告商出售或分享您的個人資料。"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "我們僅使用此權限來衡量應用程式穩定性和安裝歸因，絕不會向第三方廣告商出售或分享您的個人資料。",
+    "立即付款，剩余试用时长保留。": "立即付款，剩餘試用時間保留。",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "贈送時間不延後自動扣款；取消自動續訂後仍可使用。",
+    "下次扣款": "下次扣款",
+    "扣款日期以支付平台为准。": "扣款日期以付款平台為準。",
+    "不会自动扣款": "不會自動扣款"
   },
   "en": {
     "裁切图片": "Crop image",
@@ -3334,7 +3349,12 @@
     "Read Privacy Policy": "Read Privacy Policy",
     "Scan parent pairing codes and photograph study questions.": "Scan parent pairing codes and photograph study questions.",
     "Select study question images to send to your teacher.": "Select study question images to send to your teacher.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.",
+    "立即付款，剩余试用时长保留。": "Pay now. Your remaining free trial time is preserved.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonus time does not delay automatic charges. It remains available after you cancel auto-renewal.",
+    "下次扣款": "Next charge",
+    "扣款日期以支付平台为准。": "See your payment provider for the charge date.",
+    "不会自动扣款": "No automatic charge"
   },
   "ja": {
     "裁切图片": "画像をトリミング",
@@ -4315,7 +4335,12 @@
     "Read Privacy Policy": "プライバシーポリシー",
     "Scan parent pairing codes and photograph study questions.": "親のペアリング コードをスキャンし、学習用の質問の写真を撮ります。",
     "Select study question images to send to your teacher.": "教師に送信する学習用の質問画像を選択します。",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "当社はこの権限をアプリの安定性の測定とアトリビューションのインストールにのみ使用し、個人データを第三者の広告主に販売したり共有したりすることはありません。"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "当社はこの権限をアプリの安定性の測定とアトリビューションのインストールにのみ使用し、個人データを第三者の広告主に販売したり共有したりすることはありません。",
+    "立即付款，剩余试用时长保留。": "今すぐ支払い。無料体験の残り時間は保持されます。",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "特典期間によって自動請求日は延期されません。自動更新を停止した後も利用できます。",
+    "下次扣款": "次回請求",
+    "扣款日期以支付平台为准。": "請求日は決済サービスでご確認ください。",
+    "不会自动扣款": "自動請求なし"
   },
   "ko": {
     "裁切图片": "이미지 자르기",
@@ -5296,7 +5321,12 @@
     "Read Privacy Policy": "개인정보 처리방침",
     "Scan parent pairing codes and photograph study questions.": "부모 페어링 코드와 사진 연구 질문을 스캔하세요.",
     "Select study question images to send to your teacher.": "선생님에게 보낼 학습 문제 이미지를 선택하세요.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "당사는 이 권한을 앱 안정성 및 설치 속성 측정에만 사용하며, 귀하의 개인 데이터를 제3자 광고주에게 판매하거나 공유하지 않습니다."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "당사는 이 권한을 앱 안정성 및 설치 속성 측정에만 사용하며, 귀하의 개인 데이터를 제3자 광고주에게 판매하거나 공유하지 않습니다.",
+    "立即付款，剩余试用时长保留。": "지금 결제해도 남은 무료 체험 기간은 유지됩니다.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "추가 기간은 자동 결제일을 늦추지 않습니다. 자동 갱신을 취소한 후에도 사용할 수 있습니다.",
+    "下次扣款": "다음 결제",
+    "扣款日期以支付平台为准。": "결제일은 결제 서비스에서 확인하세요.",
+    "不会自动扣款": "자동 결제 없음"
   },
   "de": {
     "裁切图片": "Bild zuschneiden",
@@ -6277,7 +6307,12 @@
     "Read Privacy Policy": "Datenschutzerklärung lesen",
     "Scan parent pairing codes and photograph study questions.": "Scannen Sie Elternpaarungscodes und fotografieren Sie Lernfragen.",
     "Select study question images to send to your teacher.": "Wählen Sie Bilder von Lernfragen aus, die Sie an Ihren Lehrer senden möchten.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Wir verwenden diese Erlaubnis nur zur Messung der App-Stabilität und zur Installationszuordnung, niemals zum Verkauf oder zur Weitergabe Ihrer personenbezogenen Daten an Drittwerbetreibende."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Wir verwenden diese Erlaubnis nur zur Messung der App-Stabilität und zur Installationszuordnung, niemals zum Verkauf oder zur Weitergabe Ihrer personenbezogenen Daten an Drittwerbetreibende.",
+    "立即付款，剩余试用时长保留。": "Jetzt bezahlen. Die verbleibende kostenlose Testzeit bleibt erhalten.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Die Bonuszeit verschiebt automatische Abbuchungen nicht. Sie bleibt nach Kündigung der automatischen Verlängerung nutzbar.",
+    "下次扣款": "Nächste Abbuchung",
+    "扣款日期以支付平台为准。": "Das Abbuchungsdatum finden Sie beim Zahlungsanbieter.",
+    "不会自动扣款": "Keine automatische Abbuchung"
   },
   "es": {
     "裁切图片": "Recortar imagen",
@@ -7258,7 +7293,12 @@
     "Read Privacy Policy": "Leer política de privacidad",
     "Scan parent pairing codes and photograph study questions.": "Escanee códigos de emparejamiento de padres y fotografíe preguntas de estudio.",
     "Select study question images to send to your teacher.": "Seleccione imágenes de preguntas de estudio para enviárselas a su maestro.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Solo utilizamos este permiso para medir la estabilidad de la aplicación e instalar la atribución, nunca para vender ni compartir sus datos personales con anunciantes externos."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Solo utilizamos este permiso para medir la estabilidad de la aplicación e instalar la atribución, nunca para vender ni compartir sus datos personales con anunciantes externos.",
+    "立即付款，剩余试用时长保留。": "Paga ahora. Se conserva el tiempo restante de prueba gratuita.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El tiempo adicional no retrasa los cobros automáticos. Sigue disponible al cancelar la renovación automática.",
+    "下次扣款": "Próximo cobro",
+    "扣款日期以支付平台为准。": "Consulta la fecha de cobro con tu proveedor de pagos.",
+    "不会自动扣款": "Sin cobro automático"
   },
   "es-US": {
     "裁切图片": "Recortar imagen",
@@ -8239,7 +8279,12 @@
     "Read Privacy Policy": "Leer Política de Privacidad",
     "Scan parent pairing codes and photograph study questions.": "Escanee códigos de emparejamiento de padres y fotografíe preguntas de estudio.",
     "Select study question images to send to your teacher.": "Seleccione imágenes de preguntas de estudio para enviárselas a su maestro.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Solo utilizamos este permiso para medir la estabilidad de la aplicación e instalar la atribución, nunca para vender ni compartir sus datos personales con anunciantes externos."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Solo utilizamos este permiso para medir la estabilidad de la aplicación e instalar la atribución, nunca para vender ni compartir sus datos personales con anunciantes externos.",
+    "立即付款，剩余试用时长保留。": "Paga ahora. Se conserva el tiempo restante de prueba gratuita.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El tiempo adicional no retrasa los cobros automáticos. Sigue disponible al cancelar la renovación automática.",
+    "下次扣款": "Próximo cobro",
+    "扣款日期以支付平台为准。": "Consulta la fecha de cobro con tu proveedor de pagos.",
+    "不会自动扣款": "Sin cobro automático"
   },
   "es-419": {
     "裁切图片": "Recortar imagen",
@@ -9220,7 +9265,12 @@
     "Read Privacy Policy": "Leer Política de Privacidad",
     "Scan parent pairing codes and photograph study questions.": "Escanee códigos de emparejamiento de padres y fotografíe preguntas de estudio.",
     "Select study question images to send to your teacher.": "Seleccione imágenes de preguntas de estudio para enviárselas a su maestro.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Solo utilizamos este permiso para medir la estabilidad de la aplicación e instalar la atribución, nunca para vender ni compartir sus datos personales con anunciantes externos."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Solo utilizamos este permiso para medir la estabilidad de la aplicación e instalar la atribución, nunca para vender ni compartir sus datos personales con anunciantes externos.",
+    "立即付款，剩余试用时长保留。": "Paga ahora. Se conserva el tiempo restante de prueba gratuita.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El tiempo adicional no retrasa los cobros automáticos. Sigue disponible al cancelar la renovación automática.",
+    "下次扣款": "Próximo cobro",
+    "扣款日期以支付平台为准。": "Consulta la fecha de cobro con tu proveedor de pagos.",
+    "不会自动扣款": "Sin cobro automático"
   },
   "fr-FR": {
     "裁切图片": "Recadrer l'image",
@@ -10201,7 +10251,12 @@
     "Read Privacy Policy": "Lire la politique de confidentialité",
     "Scan parent pairing codes and photograph study questions.": "Scannez les codes d’appariement des parents et photographiez les questions d’étude.",
     "Select study question images to send to your teacher.": "Sélectionnez les images de questions d’étude à envoyer à votre professeur.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Nous utilisons cette autorisation uniquement pour mesurer la stabilité des applications et installer l'attribution, jamais pour vendre ou partager vos données personnelles avec des annonceurs tiers."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Nous utilisons cette autorisation uniquement pour mesurer la stabilité des applications et installer l'attribution, jamais pour vendre ou partager vos données personnelles avec des annonceurs tiers.",
+    "立即付款，剩余试用时长保留。": "Payez maintenant. Le temps d’essai gratuit restant est conservé.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Le temps offert ne reporte pas les prélèvements automatiques. Il reste utilisable après l’annulation du renouvellement automatique.",
+    "下次扣款": "Prochain prélèvement",
+    "扣款日期以支付平台为准。": "Consultez la date de prélèvement auprès du prestataire de paiement.",
+    "不会自动扣款": "Aucun prélèvement automatique"
   },
   "fr-CA": {
     "裁切图片": "Recadrer l'image",
@@ -11182,7 +11237,12 @@
     "Read Privacy Policy": "Lire la politique de confidentialité",
     "Scan parent pairing codes and photograph study questions.": "Scannez les codes d’appariement des parents et photographiez les questions d’étude.",
     "Select study question images to send to your teacher.": "Sélectionnez les images de questions d’étude à envoyer à votre professeur.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Nous utilisons cette autorisation uniquement pour mesurer la stabilité des applications et installer l'attribution, jamais pour vendre ou partager vos données personnelles avec des annonceurs tiers."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Nous utilisons cette autorisation uniquement pour mesurer la stabilité des applications et installer l'attribution, jamais pour vendre ou partager vos données personnelles avec des annonceurs tiers.",
+    "立即付款，剩余试用时长保留。": "Payez maintenant. Le temps d’essai gratuit restant est conservé.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Le temps offert ne reporte pas les prélèvements automatiques. Il reste utilisable après l’annulation du renouvellement automatique.",
+    "下次扣款": "Prochain prélèvement",
+    "扣款日期以支付平台为准。": "Consultez la date de prélèvement auprès du prestataire de paiement.",
+    "不会自动扣款": "Aucun prélèvement automatique"
   },
   "pt-BR": {
     "裁切图片": "Cortar imagem",
@@ -12163,7 +12223,12 @@
     "Read Privacy Policy": "Leia a Política de Privacidade",
     "Scan parent pairing codes and photograph study questions.": "Digitalize os códigos de emparelhamento dos pais e fotografe as questões de estudo.",
     "Select study question images to send to your teacher.": "Selecione imagens de perguntas de estudo para enviar ao seu professor.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Usamos essa permissão apenas para medir a estabilidade do aplicativo e instalar atribuição, nunca para vender ou compartilhar seus dados pessoais com anunciantes terceiros."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Usamos essa permissão apenas para medir a estabilidade do aplicativo e instalar atribuição, nunca para vender ou compartilhar seus dados pessoais com anunciantes terceiros.",
+    "立即付款，剩余试用时长保留。": "Pague agora. O tempo restante de teste grátis será mantido.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "O tempo bônus não adia cobranças automáticas. Ele continua disponível após cancelar a renovação automática.",
+    "下次扣款": "Próxima cobrança",
+    "扣款日期以支付平台为准。": "Consulte a data da cobrança no provedor de pagamento.",
+    "不会自动扣款": "Sem cobrança automática"
   },
   "pt-PT": {
     "裁切图片": "Cortar imagem",
@@ -13144,7 +13209,12 @@
     "Read Privacy Policy": "Leia a Política de Privacidade",
     "Scan parent pairing codes and photograph study questions.": "Digitalize os códigos de emparelhamento dos pais e fotografe as questões de estudo.",
     "Select study question images to send to your teacher.": "Selecione imagens de questões de estudo para enviar ao seu professor.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Utilizamos esta permissão apenas para medir a estabilidade da aplicação e instalar atribuição, nunca para vender ou partilhar os seus dados pessoais com anunciantes terceiros."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Utilizamos esta permissão apenas para medir a estabilidade da aplicação e instalar atribuição, nunca para vender ou partilhar os seus dados pessoais com anunciantes terceiros.",
+    "立即付款，剩余试用时长保留。": "Pague agora. O tempo restante de avaliação gratuita é mantido.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "O tempo de oferta não adia cobranças automáticas. Continua disponível após cancelar a renovação automática.",
+    "下次扣款": "Próxima cobrança",
+    "扣款日期以支付平台为准。": "Consulte a data da cobrança no prestador de pagamentos.",
+    "不会自动扣款": "Sem cobrança automática"
   },
   "it": {
     "裁切图片": "Ritaglia l'immagine",
@@ -14125,7 +14195,12 @@
     "Read Privacy Policy": "Leggi l'informativa sulla privacy",
     "Scan parent pairing codes and photograph study questions.": "Scansiona i codici di abbinamento dei genitori e fai domande sullo studio fotografico.",
     "Select study question images to send to your teacher.": "Seleziona le immagini delle domande di studio da inviare al tuo insegnante.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Utilizziamo questa autorizzazione solo per misurare la stabilità dell'app e installare l'attribuzione, mai per vendere o condividere i tuoi dati personali con inserzionisti di terze parti."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Utilizziamo questa autorizzazione solo per misurare la stabilità dell'app e installare l'attribuzione, mai per vendere o condividere i tuoi dati personali con inserzionisti di terze parti.",
+    "立即付款，剩余试用时长保留。": "Paga ora. Il tempo rimanente della prova gratuita viene conservato.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Il tempo bonus non posticipa gli addebiti automatici. Resta disponibile dopo aver annullato il rinnovo automatico.",
+    "下次扣款": "Prossimo addebito",
+    "扣款日期以支付平台为准。": "Verifica la data di addebito presso il fornitore di pagamento.",
+    "不会自动扣款": "Nessun addebito automatico"
   },
   "zh-Hant-HK": {
     "裁切图片": "裁切影像",
@@ -15106,7 +15181,12 @@
     "Read Privacy Policy": "閱讀隱私權政策",
     "Scan parent pairing codes and photograph study questions.": "掃描家長配對碼並拍攝學習問題。",
     "Select study question images to send to your teacher.": "選擇學習問題圖像發送給您的老師。",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "我們僅使用此權限來衡量應用程式穩定性和安裝歸因，絕不會向第三方廣告商出售或分享您的個人資料。"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "我們僅使用此權限來衡量應用程式穩定性和安裝歸因，絕不會向第三方廣告商出售或分享您的個人資料。",
+    "立即付款，剩余试用时长保留。": "立即付款，剩餘試用時間保留。",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "贈送時間不延後自動扣款；取消自動續訂後仍可使用。",
+    "下次扣款": "下次扣款",
+    "扣款日期以支付平台为准。": "扣款日期以付款平台為準。",
+    "不会自动扣款": "不會自動扣款"
   },
   "tr": {
     "裁切图片": "Resmi kırp",
@@ -16087,7 +16167,12 @@
     "Read Privacy Policy": "Gizlilik Politikasını Okuyun",
     "Scan parent pairing codes and photograph study questions.": "Ebeveyn eşleştirme kodlarını tarayın ve çalışma sorularını fotoğraflayın.",
     "Select study question images to send to your teacher.": "Öğretmeninize göndereceğiniz çalışma sorusu resimlerini seçin.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Bu izni yalnızca uygulama stabilitesini ve yükleme ilişkilendirmesini ölçmek için kullanırız; kişisel verilerinizi asla üçüncü taraf reklamverenlere satmaz veya paylaşmayız."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Bu izni yalnızca uygulama stabilitesini ve yükleme ilişkilendirmesini ölçmek için kullanırız; kişisel verilerinizi asla üçüncü taraf reklamverenlere satmaz veya paylaşmayız.",
+    "立即付款，剩余试用时长保留。": "Şimdi ödeyin. Kalan ücretsiz deneme süreniz korunur.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Hediye süre otomatik ödemeleri ertelemez. Otomatik yenilemeyi iptal ettikten sonra da kullanılabilir.",
+    "下次扣款": "Sonraki ödeme",
+    "扣款日期以支付平台为准。": "Ödeme tarihini ödeme sağlayıcınızdan kontrol edin.",
+    "不会自动扣款": "Otomatik ödeme yok"
   },
   "ru": {
     "裁切图片": "Обрезать изображение",
@@ -17068,7 +17153,12 @@
     "Read Privacy Policy": "Прочтите политику конфиденциальности",
     "Scan parent pairing codes and photograph study questions.": "Сканируйте коды сопряжения родителей и фотографируйте учебные вопросы.",
     "Select study question images to send to your teacher.": "Выберите изображения учебных вопросов и отправьте их учителю.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Мы используем это разрешение только для измерения стабильности приложения и установки атрибуции, но никогда не продаем и не передаем ваши личные данные сторонним рекламодателям."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Мы используем это разрешение только для измерения стабильности приложения и установки атрибуции, но никогда не продаем и не передаем ваши личные данные сторонним рекламодателям.",
+    "立即付款，剩余试用时长保留。": "Оплатите сейчас. Оставшееся время бесплатного пробного периода сохранится.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонусное время не откладывает автоматические списания. Оно доступно и после отмены автопродления.",
+    "下次扣款": "Следующее списание",
+    "扣款日期以支付平台为准。": "Уточните дату списания у платёжного сервиса.",
+    "不会自动扣款": "Без автоматического списания"
   },
   "ar": {
     "裁切图片": "صورة المحاصيل",
@@ -18049,7 +18139,12 @@
     "Read Privacy Policy": "اقرأ سياسة الخصوصية",
     "Scan parent pairing codes and photograph study questions.": "قم بمسح رموز الاقتران بين الوالدين وأسئلة الدراسة المصورة.",
     "Select study question images to send to your teacher.": "حدد صور أسئلة الدراسة لإرسالها إلى معلمك.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "نحن نستخدم هذا الإذن فقط لقياس استقرار التطبيق وإسناد التثبيت، ولا نبيع بياناتك الشخصية أو نشاركها أبدًا مع معلنين خارجيين."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "نحن نستخدم هذا الإذن فقط لقياس استقرار التطبيق وإسناد التثبيت، ولا نبيع بياناتك الشخصية أو نشاركها أبدًا مع معلنين خارجيين.",
+    "立即付款，剩余试用时长保留。": "ادفع الآن. سيتم الاحتفاظ بالوقت المتبقي من التجربة المجانية.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "الوقت الإضافي لا يؤجل الخصم التلقائي. يظل متاحًا بعد إلغاء التجديد التلقائي.",
+    "下次扣款": "الخصم التالي",
+    "扣款日期以支付平台为准。": "تحقق من تاريخ الخصم لدى مزود الدفع.",
+    "不会自动扣款": "لا يوجد خصم تلقائي"
   },
   "vi": {
     "裁切图片": "Cắt ảnh",
@@ -19030,7 +19125,12 @@
     "Read Privacy Policy": "Đọc Chính sách quyền riêng tư",
     "Scan parent pairing codes and photograph study questions.": "Quét mã ghép nối của phụ huynh và chụp ảnh các câu hỏi nghiên cứu.",
     "Select study question images to send to your teacher.": "Chọn hình ảnh câu hỏi nghiên cứu để gửi cho giáo viên của bạn.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Chúng tôi chỉ sử dụng quyền này để đo lường độ ổn định của ứng dụng và phân bổ cài đặt, không bao giờ bán hoặc chia sẻ dữ liệu cá nhân của bạn với các nhà quảng cáo bên thứ ba."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Chúng tôi chỉ sử dụng quyền này để đo lường độ ổn định của ứng dụng và phân bổ cài đặt, không bao giờ bán hoặc chia sẻ dữ liệu cá nhân của bạn với các nhà quảng cáo bên thứ ba.",
+    "立即付款，剩余试用时长保留。": "Thanh toán ngay. Thời gian dùng thử miễn phí còn lại được giữ nguyên.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Thời gian tặng không làm chậm lịch thu tiền tự động. Bạn vẫn dùng được sau khi hủy tự động gia hạn.",
+    "下次扣款": "Lần thu tiền tiếp theo",
+    "扣款日期以支付平台为准。": "Xem ngày thu tiền tại nhà cung cấp thanh toán.",
+    "不会自动扣款": "Không tự động thu tiền"
   },
   "th": {
     "裁切图片": "ครอบตัดรูปภาพ",
@@ -20011,7 +20111,12 @@
     "Read Privacy Policy": "อ่านนโยบายความเป็นส่วนตัว",
     "Scan parent pairing codes and photograph study questions.": "สแกนรหัสการจับคู่ของผู้ปกครองและคำถามการศึกษาเกี่ยวกับรูปถ่าย",
     "Select study question images to send to your teacher.": "เลือกรูปภาพคำถามการเรียนที่จะส่งให้คุณครูของคุณ",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "เราใช้การอนุญาตนี้เพื่อวัดความเสถียรของแอปและติดตั้งการระบุแหล่งที่มาเท่านั้น ห้ามขายหรือแชร์ข้อมูลส่วนบุคคลของคุณกับผู้ลงโฆษณาบุคคลที่สาม"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "เราใช้การอนุญาตนี้เพื่อวัดความเสถียรของแอปและติดตั้งการระบุแหล่งที่มาเท่านั้น ห้ามขายหรือแชร์ข้อมูลส่วนบุคคลของคุณกับผู้ลงโฆษณาบุคคลที่สาม",
+    "立即付款，剩余试用时长保留。": "ชำระตอนนี้ โดยคงเวลาทดลองฟรีที่เหลือไว้",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "เวลาที่แถมไม่เลื่อนวันตัดเงินอัตโนมัติ และยังใช้ได้หลังยกเลิกการต่ออายุอัตโนมัติ",
+    "下次扣款": "ตัดเงินครั้งถัดไป",
+    "扣款日期以支付平台为准。": "ตรวจสอบวันตัดเงินกับผู้ให้บริการชำระเงิน",
+    "不会自动扣款": "ไม่มีการตัดเงินอัตโนมัติ"
   },
   "id": {
     "裁切图片": "Pangkas gambar",
@@ -20992,7 +21097,12 @@
     "Read Privacy Policy": "Baca Kebijakan Privasi",
     "Scan parent pairing codes and photograph study questions.": "Pindai kode pasangan orang tua dan foto pertanyaan belajar.",
     "Select study question images to send to your teacher.": "Pilih gambar soal belajar untuk dikirim ke guru Anda.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kami hanya menggunakan izin ini untuk mengukur stabilitas aplikasi dan memasang atribusi, tidak pernah menjual atau membagikan data pribadi Anda dengan pengiklan pihak ketiga."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kami hanya menggunakan izin ini untuk mengukur stabilitas aplikasi dan memasang atribusi, tidak pernah menjual atau membagikan data pribadi Anda dengan pengiklan pihak ketiga.",
+    "立即付款，剩余试用时长保留。": "Bayar sekarang. Sisa waktu uji coba gratis tetap disimpan.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Waktu bonus tidak menunda penagihan otomatis. Tetap dapat digunakan setelah perpanjangan otomatis dibatalkan.",
+    "下次扣款": "Tagihan berikutnya",
+    "扣款日期以支付平台为准。": "Lihat tanggal penagihan di penyedia pembayaran.",
+    "不会自动扣款": "Tanpa penagihan otomatis"
   },
   "fil": {
     "裁切图片": "I-crop ang larawan",
@@ -21973,7 +22083,12 @@
     "Read Privacy Policy": "Basahin ang Patakaran sa Privacy",
     "Scan parent pairing codes and photograph study questions.": "I-scan ang mga code ng pagpapares ng magulang at mga tanong sa pag-aaral ng litrato.",
     "Select study question images to send to your teacher.": "Pumili ng mga larawan ng tanong sa pag-aaral na ipapadala sa iyong guro.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ginagamit lang namin ang pahintulot na ito para sukatin ang katatagan ng app at i-install ang attribution, hindi kailanman ibenta o ibahagi ang iyong personal na data sa mga third-party na advertiser."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ginagamit lang namin ang pahintulot na ito para sukatin ang katatagan ng app at i-install ang attribution, hindi kailanman ibenta o ibahagi ang iyong personal na data sa mga third-party na advertiser.",
+    "立即付款，剩余试用时长保留。": "Magbayad ngayon. Mapapanatili ang natitirang libreng pagsubok.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Hindi ipinagpapaliban ng dagdag na oras ang awtomatikong singil. Magagamit pa rin ito matapos kanselahin ang awtomatikong pag-renew.",
+    "下次扣款": "Susunod na singil",
+    "扣款日期以支付平台为准。": "Tingnan ang petsa ng singil sa provider ng pagbabayad.",
+    "不会自动扣款": "Walang awtomatikong singil"
   },
   "tl": {
     "裁切图片": "I-crop ang larawan",
@@ -22954,7 +23069,12 @@
     "Read Privacy Policy": "Basahin ang Patakaran sa Privacy",
     "Scan parent pairing codes and photograph study questions.": "I-scan ang mga code ng pagpapares ng magulang at mga tanong sa pag-aaral ng litrato.",
     "Select study question images to send to your teacher.": "Pumili ng mga larawan ng tanong sa pag-aaral na ipapadala sa iyong guro.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ginagamit lang namin ang pahintulot na ito para sukatin ang katatagan ng app at i-install ang attribution, hindi kailanman ibenta o ibahagi ang iyong personal na data sa mga third-party na advertiser."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ginagamit lang namin ang pahintulot na ito para sukatin ang katatagan ng app at i-install ang attribution, hindi kailanman ibenta o ibahagi ang iyong personal na data sa mga third-party na advertiser.",
+    "立即付款，剩余试用时长保留。": "Magbayad ngayon. Mapapanatili ang natitirang libreng pagsubok.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Hindi ipinagpapaliban ng dagdag na oras ang awtomatikong singil. Magagamit pa rin ito matapos kanselahin ang awtomatikong pag-renew.",
+    "下次扣款": "Susunod na singil",
+    "扣款日期以支付平台为准。": "Tingnan ang petsa ng singil sa provider ng pagbabayad.",
+    "不会自动扣款": "Walang awtomatikong singil"
   },
   "ms-MY": {
     "裁切图片": "Pangkas imej",
@@ -23935,7 +24055,12 @@
     "Read Privacy Policy": "Baca Dasar Privasi",
     "Scan parent pairing codes and photograph study questions.": "Imbas kod pasangan ibu bapa dan soalan kajian bergambar.",
     "Select study question images to send to your teacher.": "Pilih imej soalan belajar untuk dihantar kepada guru anda.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kami hanya menggunakan kebenaran ini untuk mengukur kestabilan apl dan memasang atribusi, tidak sekali-kali untuk menjual atau berkongsi data peribadi anda dengan pengiklan pihak ketiga."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kami hanya menggunakan kebenaran ini untuk mengukur kestabilan apl dan memasang atribusi, tidak sekali-kali untuk menjual atau berkongsi data peribadi anda dengan pengiklan pihak ketiga.",
+    "立即付款，剩余试用时长保留。": "Bayar sekarang. Baki masa percubaan percuma dikekalkan.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Masa bonus tidak menangguhkan caj automatik. Ia masih boleh digunakan selepas pembaharuan automatik dibatalkan.",
+    "下次扣款": "Caj seterusnya",
+    "扣款日期以支付平台为准。": "Semak tarikh caj dengan penyedia pembayaran.",
+    "不会自动扣款": "Tiada caj automatik"
   },
   "ms": {
     "裁切图片": "Pangkas imej",
@@ -24916,7 +25041,12 @@
     "Read Privacy Policy": "Baca Dasar Privasi",
     "Scan parent pairing codes and photograph study questions.": "Imbas kod pasangan ibu bapa dan soalan kajian bergambar.",
     "Select study question images to send to your teacher.": "Pilih imej soalan belajar untuk dihantar kepada guru anda.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kami hanya menggunakan kebenaran ini untuk mengukur kestabilan apl dan memasang atribusi, tidak sekali-kali untuk menjual atau berkongsi data peribadi anda dengan pengiklan pihak ketiga."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kami hanya menggunakan kebenaran ini untuk mengukur kestabilan apl dan memasang atribusi, tidak sekali-kali untuk menjual atau berkongsi data peribadi anda dengan pengiklan pihak ketiga.",
+    "立即付款，剩余试用时长保留。": "Bayar sekarang. Baki masa percubaan percuma dikekalkan.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Masa bonus tidak menangguhkan caj automatik. Ia masih boleh digunakan selepas pembaharuan automatik dibatalkan.",
+    "下次扣款": "Caj seterusnya",
+    "扣款日期以支付平台为准。": "Semak tarikh caj dengan penyedia pembayaran.",
+    "不会自动扣款": "Tiada caj automatik"
   },
   "nl": {
     "裁切图片": "Afbeelding bijsnijden",
@@ -25897,7 +26027,12 @@
     "Read Privacy Policy": "Lees het privacybeleid",
     "Scan parent pairing codes and photograph study questions.": "Scan ouderkoppelingscodes en fotografeer studievragen.",
     "Select study question images to send to your teacher.": "Selecteer afbeeldingen van studievragen om naar je docent te sturen.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "We gebruiken deze toestemming alleen om de app-stabiliteit te meten en de attributie van installaties te installeren, en nooit om uw persoonlijke gegevens te verkopen of te delen met externe adverteerders."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "We gebruiken deze toestemming alleen om de app-stabiliteit te meten en de attributie van installaties te installeren, en nooit om uw persoonlijke gegevens te verkopen of te delen met externe adverteerders.",
+    "立即付款，剩余试用时长保留。": "Betaal nu. Je resterende gratis proefperiode blijft behouden.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustijd stelt automatische afschrijvingen niet uit. Deze blijft beschikbaar nadat je automatisch verlengen opzegt.",
+    "下次扣款": "Volgende afschrijving",
+    "扣款日期以支付平台为准。": "Bekijk de afschrijfdatum bij je betaalprovider.",
+    "不会自动扣款": "Geen automatische afschrijving"
   },
   "pl": {
     "裁切图片": "Przytnij obraz",
@@ -26878,7 +27013,12 @@
     "Read Privacy Policy": "Przeczytaj Politykę prywatności",
     "Scan parent pairing codes and photograph study questions.": "Zeskanuj kody parowania rodziców i sfotografuj pytania badawcze.",
     "Select study question images to send to your teacher.": "Wybierz obrazy pytań do nauki, które chcesz wysłać do nauczyciela.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Korzystamy z tego uprawnienia wyłącznie w celu pomiaru stabilności aplikacji i przypisania instalacji, nigdy nie sprzedajemy ani nie udostępniamy Twoich danych osobowych reklamodawcom zewnętrznym."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Korzystamy z tego uprawnienia wyłącznie w celu pomiaru stabilności aplikacji i przypisania instalacji, nigdy nie sprzedajemy ani nie udostępniamy Twoich danych osobowych reklamodawcom zewnętrznym.",
+    "立即付款，剩余试用时长保留。": "Zapłać teraz. Pozostały czas bezpłatnego okresu próbnego zostaje zachowany.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Czas bonusowy nie opóźnia automatycznych opłat. Pozostaje dostępny po wyłączeniu automatycznego odnawiania.",
+    "下次扣款": "Następna opłata",
+    "扣款日期以支付平台为准。": "Sprawdź datę opłaty u dostawcy płatności.",
+    "不会自动扣款": "Brak automatycznej opłaty"
   },
   "cs": {
     "裁切图片": "Oříznout obrázek",
@@ -27859,7 +27999,12 @@
     "Read Privacy Policy": "Přečtěte si Zásady ochrany osobních údajů",
     "Scan parent pairing codes and photograph study questions.": "Naskenujte párovací kódy rodičů a vyfotografujte studijní otázky.",
     "Select study question images to send to your teacher.": "Vyberte obrázky studijních otázek, které pošlete svému učiteli.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Toto oprávnění používáme pouze k měření stability aplikace a přiřazení instalace, nikdy k prodeji nebo sdílení vašich osobních údajů s inzerenty třetích stran."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Toto oprávnění používáme pouze k měření stability aplikace a přiřazení instalace, nikdy k prodeji nebo sdílení vašich osobních údajů s inzerenty třetích stran.",
+    "立即付款，剩余试用时长保留。": "Zaplaťte nyní. Zbývající čas bezplatné zkušební doby zůstane zachován.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusový čas neodkládá automatické platby. Zůstává dostupný po zrušení automatického obnovení.",
+    "下次扣款": "Další platba",
+    "扣款日期以支付平台为准。": "Datum platby ověřte u poskytovatele plateb.",
+    "不会自动扣款": "Bez automatické platby"
   },
   "ro": {
     "裁切图片": "Decupați imaginea",
@@ -28840,7 +28985,12 @@
     "Read Privacy Policy": "Citiți Politica de confidențialitate",
     "Scan parent pairing codes and photograph study questions.": "Scanați codurile de asociere ale părinților și fotografiați întrebările de studiu.",
     "Select study question images to send to your teacher.": "Selectați imagini cu întrebări de studiu pentru a le trimite profesorului dvs.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Folosim această permisiune doar pentru a măsura stabilitatea aplicației și pentru a atribui atribuirea instalării, pentru a nu vinde sau partaja niciodată datele dvs. personale cu agenții de publicitate terți."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Folosim această permisiune doar pentru a măsura stabilitatea aplicației și pentru a atribui atribuirea instalării, pentru a nu vinde sau partaja niciodată datele dvs. personale cu agenții de publicitate terți.",
+    "立即付款，剩余试用时长保留。": "Plătește acum. Timpul rămas din perioada de probă gratuită se păstrează.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Timpul bonus nu amână plățile automate. Rămâne disponibil după anularea reînnoirii automate.",
+    "下次扣款": "Următoarea plată",
+    "扣款日期以支付平台为准。": "Verifică data plății la furnizorul de plăți.",
+    "不会自动扣款": "Fără plată automată"
   },
   "hu": {
     "裁切图片": "Kép körbevágása",
@@ -29821,7 +29971,12 @@
     "Read Privacy Policy": "Olvassa el az Adatvédelmi szabályzatot",
     "Scan parent pairing codes and photograph study questions.": "Olvassa be a szülőpárosítási kódokat és fényképezzen tanulmányozási kérdéseket.",
     "Select study question images to send to your teacher.": "Válassza ki a tanulmányi kérdések képeit, amelyeket el szeretne küldeni tanárának.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ezt az engedélyt csak az alkalmazások stabilitásának mérésére és a telepítési hozzárendelésre használjuk, soha nem adjuk el vagy osszuk meg személyes adatait harmadik fél hirdetőkkel."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ezt az engedélyt csak az alkalmazások stabilitásának mérésére és a telepítési hozzárendelésre használjuk, soha nem adjuk el vagy osszuk meg személyes adatait harmadik fél hirdetőkkel.",
+    "立即付款，剩余试用时长保留。": "Fizessen most. Az ingyenes próbaidő hátralévő része megmarad.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "A bónuszidő nem halasztja el az automatikus terheléseket. Az automatikus megújítás lemondása után is felhasználható.",
+    "下次扣款": "Következő terhelés",
+    "扣款日期以支付平台为准。": "A terhelés dátumát a fizetési szolgáltatónál ellenőrizheti.",
+    "不会自动扣款": "Nincs automatikus terhelés"
   },
   "el": {
     "裁切图片": "Περικοπή εικόνας",
@@ -30802,7 +30957,12 @@
     "Read Privacy Policy": "Διαβάστε την Πολιτική Απορρήτου",
     "Scan parent pairing codes and photograph study questions.": "Σαρώστε τους κωδικούς σύζευξης γονέων και φωτογραφίστε ερωτήσεις μελέτης.",
     "Select study question images to send to your teacher.": "Επιλέξτε εικόνες ερωτήσεων μελέτης για αποστολή στον δάσκαλό σας.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Χρησιμοποιούμε αυτήν την άδεια μόνο για να μετρήσουμε τη σταθερότητα της εφαρμογής και να εγκαταστήσουμε την απόδοση, ποτέ για να πουλήσουμε ή να μοιραστούμε τα προσωπικά σας δεδομένα με τρίτους διαφημιστές."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Χρησιμοποιούμε αυτήν την άδεια μόνο για να μετρήσουμε τη σταθερότητα της εφαρμογής και να εγκαταστήσουμε την απόδοση, ποτέ για να πουλήσουμε ή να μοιραστούμε τα προσωπικά σας δεδομένα με τρίτους διαφημιστές.",
+    "立即付款，剩余试用时长保留。": "Πληρώστε τώρα. Ο υπόλοιπος χρόνος δωρεάν δοκιμής διατηρείται.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Ο πρόσθετος χρόνος δεν αναβάλλει τις αυτόματες χρεώσεις. Παραμένει διαθέσιμος μετά την ακύρωση της αυτόματης ανανέωσης.",
+    "下次扣款": "Επόμενη χρέωση",
+    "扣款日期以支付平台为准。": "Ελέγξτε την ημερομηνία χρέωσης στον πάροχο πληρωμών.",
+    "不会自动扣款": "Χωρίς αυτόματη χρέωση"
   },
   "sv": {
     "裁切图片": "Beskär bilden",
@@ -31783,7 +31943,12 @@
     "Read Privacy Policy": "Läs Sekretesspolicy",
     "Scan parent pairing codes and photograph study questions.": "Skanna föräldraparningskoder och fotografera studiefrågor.",
     "Select study question images to send to your teacher.": "Välj bild frågefrågor att skicka till din lärare.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Vi använder endast detta tillstånd för att mäta appstabilitet och installationstillskrivning, för att aldrig sälja eller dela dina personuppgifter med tredjepartsannonsörer."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Vi använder endast detta tillstånd för att mäta appstabilitet och installationstillskrivning, för att aldrig sälja eller dela dina personuppgifter med tredjepartsannonsörer.",
+    "立即付款，剩余试用时长保留。": "Betala nu. Din återstående kostnadsfria provtid behålls.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustiden skjuter inte upp automatiska debiteringar. Den finns kvar efter att automatisk förnyelse har avslutats.",
+    "下次扣款": "Nästa debitering",
+    "扣款日期以支付平台为准。": "Se debiteringsdatum hos din betalningsleverantör.",
+    "不会自动扣款": "Ingen automatisk debitering"
   },
   "da": {
     "裁切图片": "Beskær billede",
@@ -32764,7 +32929,12 @@
     "Read Privacy Policy": "Læs privatlivspolitik",
     "Scan parent pairing codes and photograph study questions.": "Scan forældreparringskoder og fotografiundersøgelsesspørgsmål.",
     "Select study question images to send to your teacher.": "Vælg billeder af undersøgelsesspørgsmål, som du vil sende til din lærer.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Vi bruger kun denne tilladelse til at måle appstabilitet og installationstilskrivning, aldrig til at sælge eller dele dine personlige data med tredjepartsannoncører."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Vi bruger kun denne tilladelse til at måle appstabilitet og installationstilskrivning, aldrig til at sælge eller dele dine personlige data med tredjepartsannoncører.",
+    "立即付款，剩余试用时长保留。": "Betal nu. Din resterende gratis prøveperiode bevares.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustiden udskyder ikke automatiske betalinger. Den kan stadig bruges efter opsigelse af automatisk fornyelse.",
+    "下次扣款": "Næste betaling",
+    "扣款日期以支付平台为准。": "Se betalingsdatoen hos din betalingsudbyder.",
+    "不会自动扣款": "Ingen automatisk betaling"
   },
   "nb": {
     "裁切图片": "Beskjær bildet",
@@ -33745,7 +33915,12 @@
     "Read Privacy Policy": "Les personvernerklæringen",
     "Scan parent pairing codes and photograph study questions.": "Skann foreldreparingskoder og fotografer studiespørsmål.",
     "Select study question images to send to your teacher.": "Velg bilder av studiespørsmål som du vil sende til læreren din.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Vi bruker kun denne tillatelsen til å måle appstabilitet og installeringsattribusjon, aldri til å selge eller dele dine personlige data med tredjepartsannonsører."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Vi bruker kun denne tillatelsen til å måle appstabilitet og installeringsattribusjon, aldri til å selge eller dele dine personlige data med tredjepartsannonsører.",
+    "立即付款，剩余试用时长保留。": "Betal nå. Den gjenværende gratis prøveperioden beholdes.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustiden utsetter ikke automatiske belastninger. Den kan fortsatt brukes etter at automatisk fornyelse er avsluttet.",
+    "下次扣款": "Neste belastning",
+    "扣款日期以支付平台为准。": "Se belastningsdatoen hos betalingsleverandøren.",
+    "不会自动扣款": "Ingen automatisk belastning"
   },
   "fi": {
     "裁切图片": "Rajaa kuva",
@@ -34726,7 +34901,12 @@
     "Read Privacy Policy": "Lue tietosuojakäytäntö",
     "Scan parent pairing codes and photograph study questions.": "Skannaa vanhempien pariliitoskoodit ja valokuvaa opiskelukysymykset.",
     "Select study question images to send to your teacher.": "Valitse opintokysymyksen kuvat lähetettäväksi opettajallesi.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Käytämme tätä lupaa vain sovellusten vakauden mittaamiseen ja asennusten attribuutioon, emme koskaan myy tai jaa henkilötietojasi kolmannen osapuolen mainostajille."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Käytämme tätä lupaa vain sovellusten vakauden mittaamiseen ja asennusten attribuutioon, emme koskaan myy tai jaa henkilötietojasi kolmannen osapuolen mainostajille.",
+    "立即付款，剩余试用时长保留。": "Maksa nyt. Ilmaisen kokeilun jäljellä oleva aika säilyy.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusaika ei siirrä automaattisia veloituksia. Se on käytettävissä automaattisen uusinnan perumisen jälkeen.",
+    "下次扣款": "Seuraava veloitus",
+    "扣款日期以支付平台为准。": "Tarkista veloituspäivä maksupalvelusta.",
+    "不会自动扣款": "Ei automaattista veloitusta"
   },
   "uk": {
     "裁切图片": "Обрізати зображення",
@@ -35707,7 +35887,12 @@
     "Read Privacy Policy": "Прочитайте Політику конфіденційності",
     "Scan parent pairing codes and photograph study questions.": "Відскануйте коди батьків і сфотографуйте навчальні запитання.",
     "Select study question images to send to your teacher.": "Виберіть зображення для вивчення питань, щоб надіслати своєму вчителю.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ми використовуємо цей дозвіл лише для вимірювання стабільності додатка та атрибуції встановлення, а не для продажу чи передачі ваших особистих даних стороннім рекламодавцям."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ми використовуємо цей дозвіл лише для вимірювання стабільності додатка та атрибуції встановлення, а не для продажу чи передачі ваших особистих даних стороннім рекламодавцям.",
+    "立即付款，剩余试用时长保留。": "Сплатіть зараз. Решта часу безкоштовного пробного періоду збережеться.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонусний час не відкладає автоматичні списання. Він доступний і після скасування автоматичного поновлення.",
+    "下次扣款": "Наступне списання",
+    "扣款日期以支付平台为准。": "Уточніть дату списання в платіжному сервісі.",
+    "不会自动扣款": "Без автоматичного списання"
   },
   "he": {
     "裁切图片": "חתוך תמונה",
@@ -36688,7 +36873,12 @@
     "Read Privacy Policy": "קרא את מדיניות הפרטיות",
     "Scan parent pairing codes and photograph study questions.": "סרוק קודי זיווג הורים וצלם שאלות לימוד.",
     "Select study question images to send to your teacher.": "בחר תמונות של שאלות לימוד כדי לשלוח למורה שלך.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "אנו משתמשים בהרשאה זו רק כדי למדוד את יציבות האפליקציה וייחוס להתקנות, לעולם לא כדי למכור או לשתף את הנתונים האישיים שלך עם מפרסמים של צד שלישי."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "אנו משתמשים בהרשאה זו רק כדי למדוד את יציבות האפליקציה וייחוס להתקנות, לעולם לא כדי למכור או לשתף את הנתונים האישיים שלך עם מפרסמים של צד שלישי.",
+    "立即付款，剩余试用时长保留。": "שלמו עכשיו. יתרת תקופת הניסיון החינמית תישמר.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "זמן הבונוס אינו דוחה חיובים אוטומטיים. הוא נשאר זמין לאחר ביטול החידוש האוטומטי.",
+    "下次扣款": "החיוב הבא",
+    "扣款日期以支付平台为准。": "בדקו את תאריך החיוב אצל ספק התשלום.",
+    "不会自动扣款": "ללא חיוב אוטומטי"
   },
   "hi": {
     "裁切图片": "छवि काटें",
@@ -37669,7 +37859,12 @@
     "Read Privacy Policy": "गोपनीयता नीति पढ़ें",
     "Scan parent pairing codes and photograph study questions.": "पेरेंट पेयरिंग कोड को स्कैन करें और अध्ययन प्रश्नों के फोटोग्राफ लें।",
     "Select study question images to send to your teacher.": "अपने शिक्षक को भेजने के लिए अध्ययन प्रश्न छवियों का चयन करें।",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "हम इस अनुमति का उपयोग केवल ऐप स्थिरता को मापने और एट्रिब्यूशन इंस्टॉल करने के लिए करते हैं, कभी भी आपके व्यक्तिगत डेटा को तीसरे पक्ष के विज्ञापनदाताओं के साथ बेचने या साझा करने के लिए नहीं करते हैं।"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "हम इस अनुमति का उपयोग केवल ऐप स्थिरता को मापने और एट्रिब्यूशन इंस्टॉल करने के लिए करते हैं, कभी भी आपके व्यक्तिगत डेटा को तीसरे पक्ष के विज्ञापनदाताओं के साथ बेचने या साझा करने के लिए नहीं करते हैं।",
+    "立即付款，剩余试用时长保留。": "अभी भुगतान करें। मुफ़्त ट्रायल का बचा समय सुरक्षित रहेगा।",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "बोनस समय से ऑटोमैटिक भुगतान की तारीख नहीं बदलती। ऑटो-रिन्यू बंद करने के बाद भी इसका उपयोग कर सकते हैं।",
+    "下次扣款": "अगला भुगतान",
+    "扣款日期以支付平台为准。": "भुगतान की तारीख अपने भुगतान प्रदाता से देखें।",
+    "不会自动扣款": "कोई ऑटोमैटिक भुगतान नहीं"
   },
   "bn": {
     "裁切图片": "ছবি ক্রপ করুন",
@@ -38650,7 +38845,12 @@
     "Read Privacy Policy": "গোপনীয়তা নীতি পড়ুন",
     "Scan parent pairing codes and photograph study questions.": "প্যারেন্ট পেয়ারিং কোড এবং ফটোগ্রাফ স্টাডি প্রশ্ন স্ক্যান করুন।",
     "Select study question images to send to your teacher.": "আপনার শিক্ষককে পাঠাতে অধ্যয়নের প্রশ্নের ছবি নির্বাচন করুন।",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "আমরা শুধুমাত্র অ্যাপের স্থায়িত্ব পরিমাপ করতে এবং অ্যাট্রিবিউশন ইনস্টল করার জন্য এই অনুমতিটি ব্যবহার করি, তৃতীয় পক্ষের বিজ্ঞাপনদাতাদের সাথে আপনার ব্যক্তিগত ডেটা বিক্রি বা ভাগ করতে কখনই নয়।"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "আমরা শুধুমাত্র অ্যাপের স্থায়িত্ব পরিমাপ করতে এবং অ্যাট্রিবিউশন ইনস্টল করার জন্য এই অনুমতিটি ব্যবহার করি, তৃতীয় পক্ষের বিজ্ঞাপনদাতাদের সাথে আপনার ব্যক্তিগত ডেটা বিক্রি বা ভাগ করতে কখনই নয়।",
+    "立即付款，剩余试用时长保留。": "এখনই পেমেন্ট করুন। বিনামূল্যের ট্রায়ালের বাকি সময় বজায় থাকবে।",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "বোনাস সময় স্বয়ংক্রিয় পেমেন্ট পিছিয়ে দেয় না। স্বয়ংক্রিয় নবায়ন বাতিলের পরও এটি ব্যবহার করা যায়।",
+    "下次扣款": "পরবর্তী পেমেন্ট",
+    "扣款日期以支付平台为准。": "পেমেন্টের তারিখ পেমেন্ট প্রদানকারীর কাছে দেখুন।",
+    "不会自动扣款": "স্বয়ংক্রিয় পেমেন্ট নেই"
   },
   "ur": {
     "裁切图片": "تصویر کو تراشیں۔",
@@ -39631,7 +39831,12 @@
     "Read Privacy Policy": "پرائیویسی پالیسی پڑھیں",
     "Scan parent pairing codes and photograph study questions.": "والدین کے جوڑا بنانے کے کوڈز اور تصویری مطالعہ کے سوالات کو اسکین کریں۔",
     "Select study question images to send to your teacher.": "اپنے استاد کو بھیجنے کے لیے مطالعاتی سوال کی تصاویر منتخب کریں۔",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ہم اس اجازت کو صرف ایپ کے استحکام کی پیمائش کرنے اور انتساب کو انسٹال کرنے کے لیے استعمال کرتے ہیں، کبھی بھی تیسرے فریق مشتہرین کے ساتھ آپ کا ذاتی ڈیٹا بیچنے یا شیئر کرنے کے لیے نہیں۔"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ہم اس اجازت کو صرف ایپ کے استحکام کی پیمائش کرنے اور انتساب کو انسٹال کرنے کے لیے استعمال کرتے ہیں، کبھی بھی تیسرے فریق مشتہرین کے ساتھ آپ کا ذاتی ڈیٹا بیچنے یا شیئر کرنے کے لیے نہیں۔",
+    "立即付款，剩余试用时长保留。": "ابھی ادائیگی کریں۔ مفت آزمائش کا باقی وقت محفوظ رہے گا۔",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "بونس وقت خودکار ادائیگی کو مؤخر نہیں کرتا۔ خودکار تجدید منسوخ کرنے کے بعد بھی اسے استعمال کر سکتے ہیں۔",
+    "下次扣款": "اگلی ادائیگی",
+    "扣款日期以支付平台为准。": "ادائیگی کی تاریخ اپنے ادائیگی فراہم کنندہ سے دیکھیں۔",
+    "不会自动扣款": "کوئی خودکار ادائیگی نہیں"
   },
   "fa": {
     "裁切图片": "برش تصویر",
@@ -40612,7 +40817,12 @@
     "Read Privacy Policy": "سیاست حفظ حریم خصوصی را بخوانید",
     "Scan parent pairing codes and photograph study questions.": "کدهای جفت شدن والدین را اسکن کنید و از سوالات مطالعه عکس بگیرید.",
     "Select study question images to send to your teacher.": "تصاویر سوال مطالعه را برای ارسال به معلم خود انتخاب کنید.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ما از این مجوز فقط برای سنجش پایداری برنامه و نصب اسناد استفاده می‌کنیم، هرگز برای فروش یا اشتراک‌گذاری داده‌های شخصی شما با تبلیغ‌کنندگان شخص ثالث."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ما از این مجوز فقط برای سنجش پایداری برنامه و نصب اسناد استفاده می‌کنیم، هرگز برای فروش یا اشتراک‌گذاری داده‌های شخصی شما با تبلیغ‌کنندگان شخص ثالث.",
+    "立即付款，剩余试用时长保留。": "اکنون پرداخت کنید. زمان باقی‌مانده دوره آزمایشی رایگان حفظ می‌شود.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "زمان هدیه برداشت خودکار را به تأخیر نمی‌اندازد. پس از لغو تمدید خودکار نیز قابل استفاده است.",
+    "下次扣款": "برداشت بعدی",
+    "扣款日期以支付平台为准。": "تاریخ برداشت را نزد ارائه‌دهنده پرداخت بررسی کنید.",
+    "不会自动扣款": "بدون برداشت خودکار"
   },
   "ta": {
     "裁切图片": "படத்தை செதுக்கு",
@@ -41593,7 +41803,12 @@
     "Read Privacy Policy": "தனியுரிமைக் கொள்கையைப் படிக்கவும்",
     "Scan parent pairing codes and photograph study questions.": "பெற்றோர் இணைத்தல் குறியீடுகள் மற்றும் புகைப்பட ஆய்வு கேள்விகளை ஸ்கேன் செய்யவும்.",
     "Select study question images to send to your teacher.": "உங்கள் ஆசிரியருக்கு அனுப்ப ஆய்வுக் கேள்விப் படங்களைத் தேர்ந்தெடுக்கவும்.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "பயன்பாட்டின் நிலைத்தன்மையை அளவிடுவதற்கும் பண்புக்கூறை நிறுவுவதற்கும் மட்டுமே இந்த அனுமதியைப் பயன்படுத்துகிறோம், மூன்றாம் தரப்பு விளம்பரதாரர்களுடன் உங்கள் தனிப்பட்ட தரவை விற்கவோ அல்லது பகிரவோ மாட்டோம்."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "பயன்பாட்டின் நிலைத்தன்மையை அளவிடுவதற்கும் பண்புக்கூறை நிறுவுவதற்கும் மட்டுமே இந்த அனுமதியைப் பயன்படுத்துகிறோம், மூன்றாம் தரப்பு விளம்பரதாரர்களுடன் உங்கள் தனிப்பட்ட தரவை விற்கவோ அல்லது பகிரவோ மாட்டோம்.",
+    "立即付款，剩余试用时长保留。": "இப்போதே செலுத்துங்கள். இலவசச் சோதனையின் மீதமுள்ள நேரம் பாதுகாக்கப்படும்.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "கூடுதல் நேரம் தானியங்கி கட்டணத்தைத் தள்ளிப்போடாது. தானியங்கி புதுப்பிப்பை ரத்து செய்த பிறகும் பயன்படுத்தலாம்.",
+    "下次扣款": "அடுத்த கட்டணம்",
+    "扣款日期以支付平台为准。": "கட்டணத் தேதியை உங்கள் கட்டண வழங்குநரிடம் பார்க்கவும்.",
+    "不会自动扣款": "தானியங்கி கட்டணம் இல்லை"
   },
   "te": {
     "裁切图片": "చిత్రాన్ని కత్తిరించండి",
@@ -42574,7 +42789,12 @@
     "Read Privacy Policy": "గోప్యతా విధానాన్ని చదవండి",
     "Scan parent pairing codes and photograph study questions.": "పేరెంట్ జత చేసే కోడ్‌లు మరియు ఫోటో అధ్యయన ప్రశ్నలను స్కాన్ చేయండి.",
     "Select study question images to send to your teacher.": "మీ గురువుకు పంపడానికి అధ్యయన ప్రశ్న చిత్రాలను ఎంచుకోండి.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "మేము అనువర్తన స్థిరత్వాన్ని కొలవడానికి మరియు అట్రిబ్యూషన్‌ని ఇన్‌స్టాల్ చేయడానికి మాత్రమే ఈ అనుమతిని ఉపయోగిస్తాము, మూడవ పక్షం ప్రకటనదారులతో మీ వ్యక్తిగత డేటాను ఎప్పుడూ విక్రయించము లేదా భాగస్వామ్యం చేయము."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "మేము అనువర్తన స్థిరత్వాన్ని కొలవడానికి మరియు అట్రిబ్యూషన్‌ని ఇన్‌స్టాల్ చేయడానికి మాత్రమే ఈ అనుమతిని ఉపయోగిస్తాము, మూడవ పక్షం ప్రకటనదారులతో మీ వ్యక్తిగత డేటాను ఎప్పుడూ విక్రయించము లేదా భాగస్వామ్యం చేయము.",
+    "立即付款，剩余试用时长保留。": "ఇప్పుడే చెల్లించండి. ఉచిత ట్రయల్‌లో మిగిలిన సమయం నిల్వ ఉంటుంది.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "బోనస్ సమయం ఆటోమేటిక్ చెల్లింపులను వాయిదా వేయదు. ఆటో రెన్యూవల్ రద్దు చేసిన తర్వాత కూడా ఉపయోగించవచ్చు.",
+    "下次扣款": "తదుపరి చెల్లింపు",
+    "扣款日期以支付平台为准。": "చెల్లింపు తేదీని మీ చెల్లింపు ప్రొవైడర్ వద్ద చూడండి.",
+    "不会自动扣款": "ఆటోమేటిక్ చెల్లింపు లేదు"
   },
   "mr": {
     "裁切图片": "प्रतिमा क्रॉप करा",
@@ -43555,7 +43775,12 @@
     "Read Privacy Policy": "गोपनीयता धोरण वाचा",
     "Scan parent pairing codes and photograph study questions.": "पालक पेअरिंग कोड आणि छायाचित्र अभ्यास प्रश्न स्कॅन करा.",
     "Select study question images to send to your teacher.": "तुमच्या शिक्षकाला पाठवण्यासाठी अभ्यास प्रश्नाच्या प्रतिमा निवडा.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "आम्ही ही परवानगी केवळ ॲप स्थिरता मोजण्यासाठी आणि विशेषता स्थापित करण्यासाठी वापरतो, तृतीय-पक्ष जाहिरातदारांसह तुमचा वैयक्तिक डेटा कधीही विकू किंवा सामायिक करू नका."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "आम्ही ही परवानगी केवळ ॲप स्थिरता मोजण्यासाठी आणि विशेषता स्थापित करण्यासाठी वापरतो, तृतीय-पक्ष जाहिरातदारांसह तुमचा वैयक्तिक डेटा कधीही विकू किंवा सामायिक करू नका.",
+    "立即付款，剩余试用时长保留。": "आता पैसे भरा. मोफत चाचणीचा उरलेला वेळ जतन होईल.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "बोनस वेळेमुळे स्वयंचलित पेमेंट पुढे ढकलले जात नाही. स्वयंचलित नूतनीकरण रद्द केल्यानंतरही तो वापरता येतो.",
+    "下次扣款": "पुढील पेमेंट",
+    "扣款日期以支付平台为准。": "पेमेंटची तारीख पेमेंट प्रदात्याकडे तपासा.",
+    "不会自动扣款": "स्वयंचलित पेमेंट नाही"
   },
   "gu": {
     "裁切图片": "છબી કાપો",
@@ -44536,7 +44761,12 @@
     "Read Privacy Policy": "ગોપનીયતા નીતિ વાંચો",
     "Scan parent pairing codes and photograph study questions.": "પેરન્ટ પેરિંગ કોડ અને ફોટોગ્રાફ અભ્યાસ પ્રશ્નો સ્કેન કરો.",
     "Select study question images to send to your teacher.": "તમારા શિક્ષકને મોકલવા માટે અભ્યાસ પ્રશ્નની છબીઓ પસંદ કરો.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "અમે આ પરવાનગીનો ઉપયોગ ફક્ત એપની સ્થિરતા માપવા અને એટ્રિબ્યુશન ઇન્સ્ટોલ કરવા માટે કરીએ છીએ, ક્યારેય તમારો વ્યક્તિગત ડેટા તૃતીય-પક્ષ જાહેરાતકર્તાઓ સાથે વેચવા કે શેર કરવા માટે નહીં."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "અમે આ પરવાનગીનો ઉપયોગ ફક્ત એપની સ્થિરતા માપવા અને એટ્રિબ્યુશન ઇન્સ્ટોલ કરવા માટે કરીએ છીએ, ક્યારેય તમારો વ્યક્તિગત ડેટા તૃતીય-પક્ષ જાહેરાતકર્તાઓ સાથે વેચવા કે શેર કરવા માટે નહીં.",
+    "立即付款，剩余试用时长保留。": "હમણાં ચૂકવો. મફત ટ્રાયલનો બાકી સમય જળવાશે.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "બોનસ સમય આપમેળે થતી ચુકવણીને મુલતવી રાખતો નથી. આપમેળે નવીકરણ રદ કર્યા પછી પણ તેનો ઉપયોગ કરી શકાય છે.",
+    "下次扣款": "આગામી ચુકવણી",
+    "扣款日期以支付平台为准。": "ચુકવણીની તારીખ તમારા ચુકવણી પ્રદાતા પાસે તપાસો.",
+    "不会自动扣款": "આપમેળે ચુકવણી નહીં"
   },
   "kn": {
     "裁切图片": "ಚಿತ್ರವನ್ನು ಕ್ರಾಪ್ ಮಾಡಿ",
@@ -45517,7 +45747,12 @@
     "Read Privacy Policy": "ಗೌಪ್ಯತಾ ನೀತಿಯನ್ನು ಓದಿ",
     "Scan parent pairing codes and photograph study questions.": "ಪೇರೆಂಟ್ ಪೇರಿಂಗ್ ಕೋಡ್‌ಗಳು ಮತ್ತು ಛಾಯಾಚಿತ್ರ ಅಧ್ಯಯನ ಪ್ರಶ್ನೆಗಳನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
     "Select study question images to send to your teacher.": "ನಿಮ್ಮ ಶಿಕ್ಷಕರಿಗೆ ಕಳುಹಿಸಲು ಅಧ್ಯಯನ ಪ್ರಶ್ನೆ ಚಿತ್ರಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಿರತೆಯನ್ನು ಅಳೆಯಲು ಮತ್ತು ಗುಣಲಕ್ಷಣವನ್ನು ಸ್ಥಾಪಿಸಲು ಮಾತ್ರ ನಾವು ಈ ಅನುಮತಿಯನ್ನು ಬಳಸುತ್ತೇವೆ, ಮೂರನೇ ವ್ಯಕ್ತಿಯ ಜಾಹೀರಾತುದಾರರೊಂದಿಗೆ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಡೇಟಾವನ್ನು ಎಂದಿಗೂ ಮಾರಾಟ ಮಾಡುವುದಿಲ್ಲ ಅಥವಾ ಹಂಚಿಕೊಳ್ಳುವುದಿಲ್ಲ."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಿರತೆಯನ್ನು ಅಳೆಯಲು ಮತ್ತು ಗುಣಲಕ್ಷಣವನ್ನು ಸ್ಥಾಪಿಸಲು ಮಾತ್ರ ನಾವು ಈ ಅನುಮತಿಯನ್ನು ಬಳಸುತ್ತೇವೆ, ಮೂರನೇ ವ್ಯಕ್ತಿಯ ಜಾಹೀರಾತುದಾರರೊಂದಿಗೆ ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಡೇಟಾವನ್ನು ಎಂದಿಗೂ ಮಾರಾಟ ಮಾಡುವುದಿಲ್ಲ ಅಥವಾ ಹಂಚಿಕೊಳ್ಳುವುದಿಲ್ಲ.",
+    "立即付款，剩余试用时长保留。": "ಈಗ ಪಾವತಿಸಿ. ಉಚಿತ ಪ್ರಯೋಗದ ಉಳಿದ ಸಮಯ ಉಳಿಯುತ್ತದೆ.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ಬೋನಸ್ ಸಮಯ ಸ್ವಯಂಚಾಲಿತ ಪಾವತಿಯನ್ನು ಮುಂದೂಡುವುದಿಲ್ಲ. ಸ್ವಯಂಚಾಲಿತ ನವೀಕರಣ ರದ್ದಾದ ನಂತರವೂ ಬಳಸಬಹುದು.",
+    "下次扣款": "ಮುಂದಿನ ಪಾವತಿ",
+    "扣款日期以支付平台为准。": "ಪಾವತಿ ದಿನಾಂಕವನ್ನು ಪಾವತಿ ಪೂರೈಕೆದಾರರ ಬಳಿ ಪರಿಶೀಲಿಸಿ.",
+    "不会自动扣款": "ಸ್ವಯಂಚಾಲಿತ ಪಾವತಿ ಇಲ್ಲ"
   },
   "ml": {
     "裁切图片": "ചിത്രം ക്രോപ്പ് ചെയ്യുക",
@@ -46498,7 +46733,12 @@
     "Read Privacy Policy": "സ്വകാര്യതാ നയം വായിക്കുക",
     "Scan parent pairing codes and photograph study questions.": "പാരൻ്റ് ജോടിയാക്കൽ കോഡുകളും ഫോട്ടോ പഠന ചോദ്യങ്ങളും സ്കാൻ ചെയ്യുക.",
     "Select study question images to send to your teacher.": "നിങ്ങളുടെ അധ്യാപകന് അയയ്‌ക്കാൻ പഠന ചോദ്യ ചിത്രങ്ങൾ തിരഞ്ഞെടുക്കുക.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ആപ്പ് സ്ഥിരത അളക്കുന്നതിനും ആട്രിബ്യൂഷൻ ഇൻസ്റ്റാൾ ചെയ്യുന്നതിനും മാത്രമാണ് ഞങ്ങൾ ഈ അനുമതി ഉപയോഗിക്കുന്നത്, ഒരിക്കലും നിങ്ങളുടെ സ്വകാര്യ ഡാറ്റ മൂന്നാം കക്ഷി പരസ്യദാതാക്കളുമായി വിൽക്കുകയോ പങ്കിടുകയോ ചെയ്യില്ല."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ആപ്പ് സ്ഥിരത അളക്കുന്നതിനും ആട്രിബ്യൂഷൻ ഇൻസ്റ്റാൾ ചെയ്യുന്നതിനും മാത്രമാണ് ഞങ്ങൾ ഈ അനുമതി ഉപയോഗിക്കുന്നത്, ഒരിക്കലും നിങ്ങളുടെ സ്വകാര്യ ഡാറ്റ മൂന്നാം കക്ഷി പരസ്യദാതാക്കളുമായി വിൽക്കുകയോ പങ്കിടുകയോ ചെയ്യില്ല.",
+    "立即付款，剩余试用时长保留。": "ഇപ്പോൾ പണമടയ്ക്കുക. സൗജന്യ ട്രയലിന്റെ ശേഷിക്കുന്ന സമയം നിലനിൽക്കും.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ബോണസ് സമയം സ്വയമേവയുള്ള പേയ്‌മെന്റ് നീട്ടില്ല. സ്വയമേവ പുതുക്കൽ റദ്ദാക്കിയ ശേഷവും ഉപയോഗിക്കാം.",
+    "下次扣款": "അടുത്ത പേയ്‌മെന്റ്",
+    "扣款日期以支付平台为准。": "പേയ്‌മെന്റ് തീയതി പേയ്‌മെന്റ് ദാതാവിൽ പരിശോധിക്കുക.",
+    "不会自动扣款": "സ്വയമേവ പേയ്‌മെന്റ് ഇല്ല"
   },
   "pa": {
     "裁切图片": "ਚਿੱਤਰ ਨੂੰ ਕੱਟੋ",
@@ -47479,7 +47719,12 @@
     "Read Privacy Policy": "ਹੈ\nਗੋਪਨੀਯਤਾ ਨੀਤੀ ਪੜ੍ਹੋ",
     "Scan parent pairing codes and photograph study questions.": "ਹੈ\nਪੇਰੈਂਟ ਪੇਅਰਿੰਗ ਕੋਡ ਅਤੇ ਫੋਟੋ ਸਟੱਡੀ ਸਵਾਲਾਂ ਨੂੰ ਸਕੈਨ ਕਰੋ।",
     "Select study question images to send to your teacher.": "ਹੈ\nਆਪਣੇ ਅਧਿਆਪਕ ਨੂੰ ਭੇਜਣ ਲਈ ਅਧਿਐਨ ਪ੍ਰਸ਼ਨ ਚਿੱਤਰ ਚੁਣੋ।",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ਹੈ\nਅਸੀਂ ਇਸ ਅਨੁਮਤੀ ਦੀ ਵਰਤੋਂ ਸਿਰਫ਼ ਐਪ ਦੀ ਸਥਿਰਤਾ ਨੂੰ ਮਾਪਣ ਅਤੇ ਵਿਸ਼ੇਸ਼ਤਾ ਸਥਾਪਤ ਕਰਨ ਲਈ ਕਰਦੇ ਹਾਂ, ਕਦੇ ਵੀ ਤੀਜੀ-ਧਿਰ ਦੇ ਵਿਗਿਆਪਨਦਾਤਾਵਾਂ ਨਾਲ ਤੁਹਾਡਾ ਨਿੱਜੀ ਡੇਟਾ ਵੇਚਣ ਜਾਂ ਸਾਂਝਾ ਕਰਨ ਲਈ ਨਹੀਂ।"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ਹੈ\nਅਸੀਂ ਇਸ ਅਨੁਮਤੀ ਦੀ ਵਰਤੋਂ ਸਿਰਫ਼ ਐਪ ਦੀ ਸਥਿਰਤਾ ਨੂੰ ਮਾਪਣ ਅਤੇ ਵਿਸ਼ੇਸ਼ਤਾ ਸਥਾਪਤ ਕਰਨ ਲਈ ਕਰਦੇ ਹਾਂ, ਕਦੇ ਵੀ ਤੀਜੀ-ਧਿਰ ਦੇ ਵਿਗਿਆਪਨਦਾਤਾਵਾਂ ਨਾਲ ਤੁਹਾਡਾ ਨਿੱਜੀ ਡੇਟਾ ਵੇਚਣ ਜਾਂ ਸਾਂਝਾ ਕਰਨ ਲਈ ਨਹੀਂ।",
+    "立即付款，剩余试用时长保留。": "ਹੁਣ ਭੁਗਤਾਨ ਕਰੋ। ਮੁਫ਼ਤ ਟ੍ਰਾਇਲ ਦਾ ਬਾਕੀ ਸਮਾਂ ਬਚਿਆ ਰਹੇਗਾ।",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ਬੋਨਸ ਸਮਾਂ ਆਟੋਮੈਟਿਕ ਭੁਗਤਾਨ ਨੂੰ ਅੱਗੇ ਨਹੀਂ ਪਾਉਂਦਾ। ਆਟੋ ਰੀਨਿਊ ਰੱਦ ਕਰਨ ਤੋਂ ਬਾਅਦ ਵੀ ਵਰਤਿਆ ਜਾ ਸਕਦਾ ਹੈ।",
+    "下次扣款": "ਅਗਲਾ ਭੁਗਤਾਨ",
+    "扣款日期以支付平台为准。": "ਭੁਗਤਾਨ ਦੀ ਤਾਰੀਖ ਆਪਣੇ ਭੁਗਤਾਨ ਪ੍ਰਦਾਤਾ ਕੋਲ ਦੇਖੋ।",
+    "不会自动扣款": "ਕੋਈ ਆਟੋਮੈਟਿਕ ਭੁਗਤਾਨ ਨਹੀਂ"
   },
   "ne": {
     "裁切图片": "छवि क्रप गर्नुहोस्",
@@ -48460,7 +48705,12 @@
     "Read Privacy Policy": "गोपनीयता नीति पढ्नुहोस्",
     "Scan parent pairing codes and photograph study questions.": "अभिभावक जोडी कोड र फोटो अध्ययन प्रश्नहरू स्क्यान गर्नुहोस्।",
     "Select study question images to send to your teacher.": "आफ्नो शिक्षकलाई पठाउन अध्ययन प्रश्न छविहरू चयन गर्नुहोस्।",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "हामी यो अनुमति केवल एप स्थिरता मापन गर्न र एट्रिब्युसन स्थापना गर्न प्रयोग गर्छौं, तेस्रो-पक्ष विज्ञापनदाताहरूसँग तपाईंको व्यक्तिगत डेटा बेच्न वा साझेदारी गर्न कहिल्यै।"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "हामी यो अनुमति केवल एप स्थिरता मापन गर्न र एट्रिब्युसन स्थापना गर्न प्रयोग गर्छौं, तेस्रो-पक्ष विज्ञापनदाताहरूसँग तपाईंको व्यक्तिगत डेटा बेच्न वा साझेदारी गर्न कहिल्यै।",
+    "立即付款，剩余试用时长保留。": "अहिले भुक्तानी गर्नुहोस्। निःशुल्क परीक्षणको बाँकी समय सुरक्षित रहन्छ।",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "बोनस समयले स्वचालित भुक्तानी सार्दैन। स्वचालित नवीकरण रद्द गरेपछि पनि प्रयोग गर्न सकिन्छ।",
+    "下次扣款": "अर्को भुक्तानी",
+    "扣款日期以支付平台为准。": "भुक्तानी मिति आफ्नो भुक्तानी प्रदायकसँग हेर्नुहोस्।",
+    "不会自动扣款": "स्वचालित भुक्तानी हुँदैन"
   },
   "si": {
     "裁切图片": "රූපය කප්පාදු කරන්න",
@@ -49441,7 +49691,12 @@
     "Read Privacy Policy": "රහස්‍යතා ප්‍රතිපත්තිය කියවන්න",
     "Scan parent pairing codes and photograph study questions.": "මාපිය යුගල කේත සහ ඡායාරූප අධ්‍යයන ප්‍රශ්න පරිලෝකනය කරන්න.",
     "Select study question images to send to your teacher.": "ඔබේ ගුරුවරයා වෙත යැවීමට අධ්‍යයන ප්‍රශ්න රූප තෝරන්න.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "අපි මෙම අවසරය භාවිතා කරන්නේ යෙදුම් ස්ථායීතාවය මැනීමට සහ ආරෝපණය ස්ථාපනය කිරීමට පමණි, කිසි විටෙක ඔබේ පුද්ගලික දත්ත තෙවන පාර්ශවීය දැන්වීම්කරුවන් සමඟ විකිණීමට හෝ බෙදා ගැනීමට නොවේ."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "අපි මෙම අවසරය භාවිතා කරන්නේ යෙදුම් ස්ථායීතාවය මැනීමට සහ ආරෝපණය ස්ථාපනය කිරීමට පමණි, කිසි විටෙක ඔබේ පුද්ගලික දත්ත තෙවන පාර්ශවීය දැන්වීම්කරුවන් සමඟ විකිණීමට හෝ බෙදා ගැනීමට නොවේ.",
+    "立即付款，剩余试用时长保留。": "දැන් ගෙවන්න. නොමිලේ අත්හදා බැලීමේ ඉතිරි කාලය රැකේ.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "අමතර කාලය ස්වයංක්‍රීය අය කිරීම් කල් නොදමයි. ස්වයංක්‍රීය අලුත් කිරීම අවලංගු කළ පසුවත් භාවිත කළ හැක.",
+    "下次扣款": "ඊළඟ අය කිරීම",
+    "扣款日期以支付平台为准。": "අය කරන දිනය ගෙවීම් සපයන්නාගෙන් බලන්න.",
+    "不会自动扣款": "ස්වයංක්‍රීය අය කිරීමක් නැත"
   },
   "hr": {
     "裁切图片": "Izreži sliku",
@@ -50422,7 +50677,12 @@
     "Read Privacy Policy": "Pročitajte Politiku privatnosti",
     "Scan parent pairing codes and photograph study questions.": "Skenirajte roditeljske kodove za uparivanje i fotografirajte pitanja za proučavanje.",
     "Select study question images to send to your teacher.": "Odaberite slike pitanja za učenje koje ćete poslati svom učitelju.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ovo dopuštenje koristimo samo za mjerenje stabilnosti aplikacije i atribuciju instaliranja, nikada za prodaju ili dijeljenje vaših osobnih podataka s oglašivačima trećih strana."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ovo dopuštenje koristimo samo za mjerenje stabilnosti aplikacije i atribuciju instaliranja, nikada za prodaju ili dijeljenje vaših osobnih podataka s oglašivačima trećih strana.",
+    "立即付款，剩余试用时长保留。": "Platite sada. Preostalo vrijeme besplatnog probnog razdoblja ostaje sačuvano.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonus vrijeme ne odgađa automatske naplate. Ostaje dostupno nakon otkazivanja automatske obnove.",
+    "下次扣款": "Sljedeća naplata",
+    "扣款日期以支付平台为准。": "Datum naplate provjerite kod pružatelja plaćanja.",
+    "不会自动扣款": "Bez automatske naplate"
   },
   "sk": {
     "裁切图片": "Orezať obrázok",
@@ -51403,7 +51663,12 @@
     "Read Privacy Policy": "Prečítajte si Zásady ochrany osobných údajov",
     "Scan parent pairing codes and photograph study questions.": "Skenujte rodičovské párovacie kódy a fotografujte študijné otázky.",
     "Select study question images to send to your teacher.": "Vyberte obrázky študijných otázok, ktoré chcete poslať svojmu učiteľovi.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Toto povolenie používame iba na meranie stability aplikácie a pripisovanie inštalácie, nikdy na predaj alebo zdieľanie vašich osobných údajov s inzerentmi tretích strán."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Toto povolenie používame iba na meranie stability aplikácie a pripisovanie inštalácie, nikdy na predaj alebo zdieľanie vašich osobných údajov s inzerentmi tretích strán.",
+    "立即付款，剩余试用时长保留。": "Zaplaťte teraz. Zvyšný čas bezplatnej skúšobnej doby sa zachová.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusový čas neodkladá automatické platby. Zostáva dostupný po zrušení automatického obnovenia.",
+    "下次扣款": "Ďalšia platba",
+    "扣款日期以支付平台为准。": "Dátum platby overte u poskytovateľa platieb.",
+    "不会自动扣款": "Bez automatickej platby"
   },
   "sl": {
     "裁切图片": "Obreži sliko",
@@ -52384,7 +52649,12 @@
     "Read Privacy Policy": "Preberite pravilnik o zasebnosti",
     "Scan parent pairing codes and photograph study questions.": "Skenirajte kode za seznanjanje staršev in fotografirajte študijska vprašanja.",
     "Select study question images to send to your teacher.": "Izberite slike vprašanj za študij, ki jih želite poslati učitelju.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "To dovoljenje uporabljamo samo za merjenje stabilnosti aplikacije in dodeljevanje namestitve, nikoli pa ne za prodajo ali skupno rabo vaših osebnih podatkov s tretjimi oglaševalci."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "To dovoljenje uporabljamo samo za merjenje stabilnosti aplikacije in dodeljevanje namestitve, nikoli pa ne za prodajo ali skupno rabo vaših osebnih podatkov s tretjimi oglaševalci.",
+    "立即付款，剩余试用时长保留。": "Plačajte zdaj. Preostali čas brezplačnega preizkusa se ohrani.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusni čas ne odloži samodejnih bremenitev. Ostane na voljo po preklicu samodejnega podaljšanja.",
+    "下次扣款": "Naslednja bremenitev",
+    "扣款日期以支付平台为准。": "Datum bremenitve preverite pri ponudniku plačil.",
+    "不会自动扣款": "Brez samodejne bremenitve"
   },
   "sr": {
     "裁切图片": "Изрежите слику",
@@ -53365,7 +53635,12 @@
     "Read Privacy Policy": "Прочитајте Политику приватности",
     "Scan parent pairing codes and photograph study questions.": "Скенирајте кодове за упаривање родитеља и фотографишите питања за проучавање.",
     "Select study question images to send to your teacher.": "Изаберите слике питања за учење које ћете послати свом наставнику.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ову дозволу користимо само за мерење стабилности апликације и приписивање инсталирања, а никада да продајемо или делимо ваше личне податке са независним оглашивачима."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ову дозволу користимо само за мерење стабилности апликације и приписивање инсталирања, а никада да продајемо или делимо ваше личне податке са независним оглашивачима.",
+    "立即付款，剩余试用时长保留。": "Платите сада. Преостало време бесплатног пробног периода се чува.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус време не одлаже аутоматску наплату. Доступно је и након отказивања аутоматског обнављања.",
+    "下次扣款": "Следећа наплата",
+    "扣款日期以支付平台为准。": "Датум наплате проверите код пружаоца плаћања.",
+    "不会自动扣款": "Без аутоматске наплате"
   },
   "bg": {
     "裁切图片": "Изрязване на изображението",
@@ -54346,7 +54621,12 @@
     "Read Privacy Policy": "Прочетете Политиката за поверителност",
     "Scan parent pairing codes and photograph study questions.": "Сканирайте кодовете за сдвояване на родители и снимайте учебни въпроси.",
     "Select study question images to send to your teacher.": "Изберете изображения на учебни въпроси, които да изпратите на вашия учител.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Използваме това разрешение само за измерване на стабилността на приложението и приписване на инсталиране, никога за продажба или споделяне на вашите лични данни с рекламодатели трети страни."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Използваме това разрешение само за измерване на стабилността на приложението и приписване на инсталиране, никога за продажба или споделяне на вашите лични данни с рекламодатели трети страни.",
+    "立即付款，剩余试用时长保留。": "Платете сега. Оставащото време от безплатния пробен период се запазва.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус времето не отлага автоматичните плащания. То остава достъпно след отказ от автоматично подновяване.",
+    "下次扣款": "Следващо плащане",
+    "扣款日期以支付平台为准。": "Проверете датата на плащане при доставчика на плащания.",
+    "不会自动扣款": "Без автоматично плащане"
   },
   "be": {
     "裁切图片": "Абрэзаць малюнак",
@@ -55327,7 +55607,12 @@
     "Read Privacy Policy": "Прачытайце палітыку прыватнасці",
     "Scan parent pairing codes and photograph study questions.": "Адсканіруйце бацькоўскія коды і сфатаграфуйце навучальныя пытанні.",
     "Select study question images to send to your teacher.": "Выберыце выявы пытанняў для вывучэння, каб адправіць настаўніку.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Мы выкарыстоўваем гэты дазвол толькі для вымярэння стабільнасці праграмы і атрыбуцыі ўсталёўкі, ніколі не для продажу або перадачы вашых асабістых даных староннім рэкламадаўцам."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Мы выкарыстоўваем гэты дазвол толькі для вымярэння стабільнасці праграмы і атрыбуцыі ўсталёўкі, ніколі не для продажу або перадачы вашых асабістых даных староннім рэкламадаўцам.",
+    "立即付款，剩余试用时长保留。": "Аплаціце зараз. Астатні час бясплатнага пробнага перыяду захаваецца.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонусны час не адкладае аўтаматычныя спісанні. Ён даступны пасля адмены аўтаматычнага падаўжэння.",
+    "下次扣款": "Наступнае спісанне",
+    "扣款日期以支付平台为准。": "Удакладніце дату спісання ў плацежным сэрвісе.",
+    "不会自动扣款": "Без аўтаматычнага спісання"
   },
   "lt": {
     "裁切图片": "Apkarpyti vaizdą",
@@ -56308,7 +56593,12 @@
     "Read Privacy Policy": "Skaitykite Privatumo politiką",
     "Scan parent pairing codes and photograph study questions.": "Nuskaitykite tėvų poravimo kodus ir fotografuokite tyrimo klausimus.",
     "Select study question images to send to your teacher.": "Pasirinkite studijų klausimų paveikslėlius, kuriuos norite siųsti savo mokytojui.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Šį leidimą naudojame tik programos stabilumui įvertinti ir diegimo priskyrimui, niekada neparduodame jūsų asmeninių duomenų ir nesidaliname su trečiųjų šalių reklamuotojais."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Šį leidimą naudojame tik programos stabilumui įvertinti ir diegimo priskyrimui, niekada neparduodame jūsų asmeninių duomenų ir nesidaliname su trečiųjų šalių reklamuotojais.",
+    "立即付款，剩余试用时长保留。": "Mokėkite dabar. Likęs nemokamo bandymo laikas išsaugomas.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Papildomas laikas neatideda automatinių mokėjimų. Jis lieka pasiekiamas išjungus automatinį pratęsimą.",
+    "下次扣款": "Kitas mokėjimas",
+    "扣款日期以支付平台为准。": "Mokėjimo datą patikrinkite pas mokėjimo paslaugų teikėją.",
+    "不会自动扣款": "Be automatinio mokėjimo"
   },
   "lv": {
     "裁切图片": "Apgriezt attēlu",
@@ -57289,7 +57579,12 @@
     "Read Privacy Policy": "Izlasiet Privātuma politiku",
     "Scan parent pairing codes and photograph study questions.": "Skenējiet vecāku kodus pārī un fotografējiet pētījuma jautājumus.",
     "Select study question images to send to your teacher.": "Atlasiet mācību jautājumu attēlus, ko nosūtīt skolotājam.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Mēs izmantojam šo atļauju tikai, lai novērtētu lietotņu stabilitāti un instalēšanas attiecinājumu, nekad nepārdotu vai kopīgotu jūsu personas datus ar trešo pušu reklāmdevējiem."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Mēs izmantojam šo atļauju tikai, lai novērtētu lietotņu stabilitāti un instalēšanas attiecinājumu, nekad nepārdotu vai kopīgotu jūsu personas datus ar trešo pušu reklāmdevējiem.",
+    "立即付款，剩余试用时长保留。": "Maksājiet tagad. Atlikušais bezmaksas izmēģinājuma laiks tiks saglabāts.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonusa laiks neatliek automātiskos maksājumus. Tas paliek pieejams pēc automātiskās atjaunošanas atcelšanas.",
+    "下次扣款": "Nākamais maksājums",
+    "扣款日期以支付平台为准。": "Maksājuma datumu pārbaudiet pie maksājumu pakalpojuma sniedzēja.",
+    "不会自动扣款": "Bez automātiska maksājuma"
   },
   "et": {
     "裁切图片": "Kärbi pilti",
@@ -58270,7 +58565,12 @@
     "Read Privacy Policy": "Lugege privaatsuspoliitikat",
     "Scan parent pairing codes and photograph study questions.": "Skannige vanemate sidumiskoode ja pildistage uurimisküsimusi.",
     "Select study question images to send to your teacher.": "Valige õppeküsimuste pildid, mida oma õpetajale saata.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kasutame seda luba ainult rakenduse stabiilsuse mõõtmiseks ja installimise omistamiseks, mitte kunagi teie isikuandmete müümiseks ega jagamiseks kolmandatest osapooltest reklaamijatega."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Kasutame seda luba ainult rakenduse stabiilsuse mõõtmiseks ja installimise omistamiseks, mitte kunagi teie isikuandmete müümiseks ega jagamiseks kolmandatest osapooltest reklaamijatega.",
+    "立即付款，剩余试用时长保留。": "Maksa kohe. Tasuta prooviperioodi järelejäänud aeg säilib.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Boonusaeg ei lükka automaatseid makseid edasi. See jääb kasutatavaks pärast automaatse pikendamise tühistamist.",
+    "下次扣款": "Järgmine makse",
+    "扣款日期以支付平台为准。": "Maksekuupäeva vaata makseteenuse pakkuja juurest.",
+    "不会自动扣款": "Automaatset makset ei ole"
   },
   "mk": {
     "裁切图片": "Исечете ја сликата",
@@ -59251,7 +59551,12 @@
     "Read Privacy Policy": "Прочитајте ја Политиката за приватност",
     "Scan parent pairing codes and photograph study questions.": "Скенирајте ги кодовите за спарување на родители и фотографирајте прашања за проучување.",
     "Select study question images to send to your teacher.": "Изберете слики од прашањата за учење за да ги испратите до вашиот наставник.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Оваа дозвола ја користиме само за да ја мериме стабилноста на апликацијата и да инсталираме атрибуција, никогаш да не ги продаваме или споделуваме вашите лични податоци со огласувачи од трети страни."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Оваа дозвола ја користиме само за да ја мериме стабилноста на апликацијата и да инсталираме атрибуција, никогаш да не ги продаваме или споделуваме вашите лични податоци со огласувачи од трети страни.",
+    "立即付款，剩余试用时长保留。": "Платете сега. Преостанатото време од бесплатниот пробен период се зачувува.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус времето не ја одложува автоматската наплата. Останува достапно по откажување на автоматското обновување.",
+    "下次扣款": "Следна наплата",
+    "扣款日期以支付平台为准。": "Датумот на наплата проверете го кај давателот на плаќања.",
+    "不会自动扣款": "Без автоматска наплата"
   },
   "sq": {
     "裁切图片": "Pritini imazhin",
@@ -60232,7 +60537,12 @@
     "Read Privacy Policy": "Lexoni Politikën e Privatësisë",
     "Scan parent pairing codes and photograph study questions.": "Skanoni kodet e çiftimit të prindërve dhe fotografoni pyetjet e studimit.",
     "Select study question images to send to your teacher.": "Zgjidhni imazhet e pyetjeve të studimit për t'ia dërguar mësuesit tuaj.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ne e përdorim këtë leje vetëm për të matur stabilitetin e aplikacionit dhe për të instaluar atributin, asnjëherë për të shitur ose ndarë të dhënat tuaja personale me reklamues të palëve të treta."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ne e përdorim këtë leje vetëm për të matur stabilitetin e aplikacionit dhe për të instaluar atributin, asnjëherë për të shitur ose ndarë të dhënat tuaja personale me reklamues të palëve të treta.",
+    "立即付款，剩余试用时长保留。": "Paguani tani. Koha e mbetur e provës falas ruhet.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Koha bonus nuk shtyn pagesat automatike. Mbetet e disponueshme pas anulimit të rinovimit automatik.",
+    "下次扣款": "Pagesa e radhës",
+    "扣款日期以支付平台为准。": "Kontrolloni datën e pagesës te ofruesi i pagesave.",
+    "不会自动扣款": "Pa pagesë automatike"
   },
   "az-Cyrl": {
     "裁切图片": "Ҹроп имаҝе",
@@ -61213,7 +61523,12 @@
     "Read Privacy Policy": "Мәхфилик Сијасәтини охујун",
     "Scan parent pairing codes and photograph study questions.": "Валидејн ҹүтләшдирмә кодларыны вә фотошәкил өјрәнмә суалларыны скан един.",
     "Select study question images to send to your teacher.": "Мүәллиминизә ҝөндәрмәк үчүн дәрс суалы шәкилләрини сечин.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Биз бу иҹазәдән јалныз тәтбигин сабитлијини өлчмәк вә атрибусија гурашдырмаг үчүн истифадә едирик, шәхси мәлуматларынызы һеч вахт үчүнҹү тәрәф рекламчылары илә сатмырыг вә ја пајлашмырыг."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Биз бу иҹазәдән јалныз тәтбигин сабитлијини өлчмәк вә атрибусија гурашдырмаг үчүн истифадә едирик, шәхси мәлуматларынызы һеч вахт үчүнҹү тәрәф рекламчылары илә сатмырыг вә ја пајлашмырыг.",
+    "立即付款，剩余试用时长保留。": "Инди өдәјин. Өдәнишсиз сынаг мүддәтинин галан вахты сахланылыр.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус вахты автоматик өдәнишләри тәхирә салмыр. Автоматик јениләмә ләғв едилдикдән сонра да истифадә олуна биләр.",
+    "下次扣款": "Нөвбәти өдәниш",
+    "扣款日期以支付平台为准。": "Өдәниш тарихини өдәниш тәҹһизатчысында јохлајын.",
+    "不会自动扣款": "Автоматик өдәниш јохдур"
   },
   "kk": {
     "裁切图片": "Кескінді қию",
@@ -62194,7 +62509,12 @@
     "Read Privacy Policy": "Құпиялық саясатын оқыңыз",
     "Scan parent pairing codes and photograph study questions.": "Ата-аналық жұптау кодтарын және фотосуреттерді зерттеу сұрақтарын сканерлеңіз.",
     "Select study question images to send to your teacher.": "Мұғалімге жіберу үшін оқу сұрағы суреттерін таңдаңыз.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Біз бұл рұқсатты қолданбаның тұрақтылығын өлшеу және атрибуцияны орнату үшін ғана пайдаланамыз, жеке деректеріңізді ешқашан үшінші тарап жарнама берушілеріне сатпай немесе бөліспейміз."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Біз бұл рұқсатты қолданбаның тұрақтылығын өлшеу және атрибуцияны орнату үшін ғана пайдаланамыз, жеке деректеріңізді ешқашан үшінші тарап жарнама берушілеріне сатпай немесе бөліспейміз.",
+    "立即付款，剩余试用时长保留。": "Қазір төлеңіз. Тегін сынақтың қалған уақыты сақталады.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонус уақыт автоматты төлемдерді кейінге қалдырмайды. Автоматты жаңартудан бас тартқаннан кейін де қолжетімді.",
+    "下次扣款": "Келесі төлем",
+    "扣款日期以支付平台为准。": "Төлем күнін төлем қызметінен тексеріңіз.",
+    "不会自动扣款": "Автоматты төлем жоқ"
   },
   "ky": {
     "裁切图片": "Сүрөттү кесип",
@@ -63175,7 +63495,12 @@
     "Read Privacy Policy": "Купуялык саясатын окуңуз",
     "Scan parent pairing codes and photograph study questions.": "Ата-энелик жупташтыруу коддорун жана сүрөттү изилдөө суроолорун сканерлеңиз.",
     "Select study question images to send to your teacher.": "Мугалимиңизге жөнөтүү үчүн изилдөө суроолорунун сүрөттөрүн тандаңыз.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Бул уруксатты колдонмонун туруктуулугун өлчөө жана атрибуцияны орнотуу үчүн гана колдонобуз, жеке маалыматыңызды эч качан үчүнчү тараптын жарнамачыларына сатпайбыз же бөлүшпөйбүз."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Бул уруксатты колдонмонун туруктуулугун өлчөө жана атрибуцияны орнотуу үчүн гана колдонобуз, жеке маалыматыңызды эч качан үчүнчү тараптын жарнамачыларына сатпайбыз же бөлүшпөйбүз.",
+    "立即付款，剩余试用时长保留。": "Азыр төлөңүз. Акысыз сыноонун калган убактысы сакталат.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Бонустук убакыт автоматтык төлөмдөрдү жылдырбайт. Автоматтык узартууну токтоткондон кийин да колдонсо болот.",
+    "下次扣款": "Кийинки төлөм",
+    "扣款日期以支付平台为准。": "Төлөм күнүн төлөм кызматынан текшериңиз.",
+    "不会自动扣款": "Автоматтык төлөм жок"
   },
   "hy": {
     "裁切图片": "Կտրել պատկերը",
@@ -64156,7 +64481,12 @@
     "Read Privacy Policy": "Կարդացեք Գաղտնիության քաղաքականությունը",
     "Scan parent pairing codes and photograph study questions.": "Սկանավորեք ծնողների զուգավորման կոդերը և լուսանկարեք ուսումնասիրության հարցերը:",
     "Select study question images to send to your teacher.": "Ընտրեք ուսումնական հարցի պատկերները՝ ուղարկելու ձեր ուսուցչին:",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Մենք օգտագործում ենք այս թույլտվությունը միայն հավելվածների կայունությունը չափելու և վերագրումը տեղադրելու համար, երբեք ձեր անձնական տվյալները երրորդ կողմի գովազդատուներին չվաճառելու կամ կիսելու համար:"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Մենք օգտագործում ենք այս թույլտվությունը միայն հավելվածների կայունությունը չափելու և վերագրումը տեղադրելու համար, երբեք ձեր անձնական տվյալները երրորդ կողմի գովազդատուներին չվաճառելու կամ կիսելու համար:",
+    "立即付款，剩余试用时长保留。": "Վճարեք հիմա։ Անվճար փորձաշրջանի մնացած ժամանակը պահպանվում է։",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Բոնուսային ժամանակը չի հետաձգում ավտոմատ վճարումները։ Այն հասանելի է ավտոմատ երկարաձգումը չեղարկելուց հետո։",
+    "下次扣款": "Հաջորդ վճարում",
+    "扣款日期以支付平台为准。": "Վճարման ամսաթիվը ստուգեք վճարային ծառայությունում։",
+    "不会自动扣款": "Ավտոմատ վճարում չկա"
   },
   "ka": {
     "裁切图片": "სურათის ამოჭრა",
@@ -65137,7 +65467,12 @@
     "Read Privacy Policy": "წაიკითხეთ კონფიდენციალურობის პოლიტიკა",
     "Scan parent pairing codes and photograph study questions.": "მშობლის დაწყვილების კოდების სკანირება და სასწავლო კითხვების ფოტოსურათი.",
     "Select study question images to send to your teacher.": "აირჩიეთ სასწავლო კითხვის სურათები, რათა გაუგზავნოთ თქვენს მასწავლებელს.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ჩვენ ვიყენებთ ამ ნებართვას მხოლოდ აპლიკაციის სტაბილურობის შესაფასებლად და ატრიბუციის დასაყენებლად, არასოდეს გავყიდოთ ან გავუზიაროთ თქვენი პერსონალური მონაცემები მესამე მხარის რეკლამის განმთავსებლებს."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ჩვენ ვიყენებთ ამ ნებართვას მხოლოდ აპლიკაციის სტაბილურობის შესაფასებლად და ატრიბუციის დასაყენებლად, არასოდეს გავყიდოთ ან გავუზიაროთ თქვენი პერსონალური მონაცემები მესამე მხარის რეკლამის განმთავსებლებს.",
+    "立即付款，剩余试用时长保留。": "გადაიხადეთ ახლა. უფასო საცდელი პერიოდის დარჩენილი დრო შენარჩუნდება.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ბონუს დრო არ გადადებს ავტომატურ ჩამოჭრას. ის ხელმისაწვდომია ავტომატური განახლების გაუქმების შემდეგაც.",
+    "下次扣款": "შემდეგი ჩამოჭრა",
+    "扣款日期以支付平台为准。": "ჩამოჭრის თარიღი შეამოწმეთ გადახდის პროვაიდერთან.",
+    "不会自动扣款": "ავტომატური ჩამოჭრა არ არის"
   },
   "is": {
     "裁切图片": "Skera mynd",
@@ -66118,7 +66453,12 @@
     "Read Privacy Policy": "Lestu persónuverndarstefnu",
     "Scan parent pairing codes and photograph study questions.": "Skannaðu foreldrapörunarkóða og ljósmyndarannsóknarspurningar.",
     "Select study question images to send to your teacher.": "Veldu myndir af námsspurningum til að senda kennaranum þínum.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Við notum aðeins þetta leyfi til að mæla stöðugleika forrita og uppsetningartilskipun, aldrei til að selja eða deila persónulegum gögnum þínum með þriðja aðila auglýsendum."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Við notum aðeins þetta leyfi til að mæla stöðugleika forrita og uppsetningartilskipun, aldrei til að selja eða deila persónulegum gögnum þínum með þriðja aðila auglýsendum.",
+    "立即付款，剩余试用时长保留。": "Greiddu núna. Eftirstandandi ókeypis prufutími helst.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bónustími frestar ekki sjálfvirkum gjaldfærslum. Hann er áfram tiltækur eftir að sjálfvirk endurnýjun er stöðvuð.",
+    "下次扣款": "Næsta gjaldfærsla",
+    "扣款日期以支付平台为准。": "Skoðaðu dagsetningu gjaldfærslu hjá greiðsluþjónustunni.",
+    "不会自动扣款": "Engin sjálfvirk gjaldfærsla"
   },
   "ca": {
     "裁切图片": "Retalla la imatge",
@@ -67099,7 +67439,12 @@
     "Read Privacy Policy": "Llegeix la política de privadesa",
     "Scan parent pairing codes and photograph study questions.": "Escaneja els codis d'aparellament dels pares i fotografia les preguntes d'estudi.",
     "Select study question images to send to your teacher.": "Seleccioneu imatges de preguntes d'estudi per enviar-les al vostre professor.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Només fem servir aquest permís per mesurar l'estabilitat de l'aplicació i l'atribució de la instal·lació, mai per vendre ni compartir les vostres dades personals amb anunciants de tercers."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Només fem servir aquest permís per mesurar l'estabilitat de l'aplicació i l'atribució de la instal·lació, mai per vendre ni compartir les vostres dades personals amb anunciants de tercers.",
+    "立即付款，剩余试用时长保留。": "Paga ara. Es conserva el temps restant de prova gratuïta.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "El temps addicional no ajorna els cobraments automàtics. Continua disponible després de cancel·lar la renovació automàtica.",
+    "下次扣款": "Proper cobrament",
+    "扣款日期以支付平台为准。": "Consulta la data de cobrament al proveïdor de pagaments.",
+    "不会自动扣款": "Sense cobrament automàtic"
   },
   "eu": {
     "裁切图片": "Moztu irudia",
@@ -68080,7 +68425,12 @@
     "Read Privacy Policy": "Irakurri Pribatutasun Politika",
     "Scan parent pairing codes and photograph study questions.": "Eskaneatu gurasoen parekatze kodeak eta argazki azterketa-galderak.",
     "Select study question images to send to your teacher.": "Hautatu ikasketa galderen irudiak zure irakasleari bidaltzeko.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Baimen hau aplikazioen egonkortasuna neurtzeko eta instalatzeko atribuzioa soilik erabiltzen dugu, inoiz zure datu pertsonalak hirugarrenen iragarleekin saltzeko edo partekatzeko."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Baimen hau aplikazioen egonkortasuna neurtzeko eta instalatzeko atribuzioa soilik erabiltzen dugu, inoiz zure datu pertsonalak hirugarrenen iragarleekin saltzeko edo partekatzeko.",
+    "立即付款，剩余试用时长保留。": "Ordaindu orain. Doako probaren geratzen den denbora gordeko da.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonus denborak ez ditu karga automatikoak atzeratzen. Berritze automatikoa bertan behera utzi ondoren ere erabilgarri dago.",
+    "下次扣款": "Hurrengo karga",
+    "扣款日期以支付平台为准。": "Kontsultatu kargaren data ordainketa-hornitzailean.",
+    "不会自动扣款": "Karga automatikorik ez"
   },
   "gl": {
     "裁切图片": "Recortar imaxe",
@@ -69061,7 +69411,12 @@
     "Read Privacy Policy": "Ler a política de privacidade",
     "Scan parent pairing codes and photograph study questions.": "Escanee os códigos de emparellamento dos pais e fotografe as preguntas de estudo.",
     "Select study question images to send to your teacher.": "Selecciona imaxes de preguntas de estudo para enviar ao teu profesor.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Só usamos este permiso para medir a estabilidade da aplicación e a atribución de instalacións, nunca para vender nin compartir os teus datos persoais con anunciantes de terceiros."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Só usamos este permiso para medir a estabilidade da aplicación e a atribución de instalacións, nunca para vender nin compartir os teus datos persoais con anunciantes de terceiros.",
+    "立即付款，剩余试用时长保留。": "Paga agora. Consérvase o tempo restante da proba gratuíta.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "O tempo adicional non atrasa os cobros automáticos. Segue dispoñible tras cancelar a renovación automática.",
+    "下次扣款": "Próximo cobro",
+    "扣款日期以支付平台为准。": "Consulta a data do cobro co provedor de pagamentos.",
+    "不会自动扣款": "Sen cobro automático"
   },
   "af": {
     "裁切图片": "Sny prent",
@@ -70042,7 +70397,12 @@
     "Read Privacy Policy": "Lees Privaatheidsbeleid",
     "Scan parent pairing codes and photograph study questions.": "Skandeer ouerparingskodes en fotostudievrae.",
     "Select study question images to send to your teacher.": "Kies studievraagprente om aan jou onderwyser te stuur.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ons gebruik hierdie toestemming slegs om programstabiliteit te meet en toeskrywing te installeer, om nooit jou persoonlike data met derdeparty-adverteerders te verkoop of te deel nie."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Ons gebruik hierdie toestemming slegs om programstabiliteit te meet en toeskrywing te installeer, om nooit jou persoonlike data met derdeparty-adverteerders te verkoop of te deel nie.",
+    "立即付款，剩余试用时长保留。": "Betaal nou. Jou oorblywende gratis proeftyd bly behoue.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Bonustyd stel nie outomatiese heffings uit nie. Dit bly beskikbaar nadat outomatiese hernuwing gekanselleer is.",
+    "下次扣款": "Volgende heffing",
+    "扣款日期以支付平台为准。": "Sien die heffingsdatum by jou betalingsverskaffer.",
+    "不会自动扣款": "Geen outomatiese heffing nie"
   },
   "sw": {
     "裁切图片": "Punguza picha",
@@ -71023,7 +71383,12 @@
     "Read Privacy Policy": "Soma Sera ya Faragha",
     "Scan parent pairing codes and photograph study questions.": "Changanua misimbo ya kuoanisha ya wazazi na maswali ya masomo ya picha.",
     "Select study question images to send to your teacher.": "Chagua picha za maswali ya masomo ili kumtumia mwalimu wako.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Tunatumia ruhusa hii tu kupima uthabiti wa programu na sifa za kusakinisha, kutowahi kuuza au kushiriki data yako ya kibinafsi na watangazaji wengine."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Tunatumia ruhusa hii tu kupima uthabiti wa programu na sifa za kusakinisha, kutowahi kuuza au kushiriki data yako ya kibinafsi na watangazaji wengine.",
+    "立即付款，剩余试用时长保留。": "Lipa sasa. Muda uliobaki wa majaribio ya bure utahifadhiwa.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Muda wa ziada hauahirishi makato ya kiotomatiki. Unaendelea kupatikana baada ya kughairi usasishaji wa kiotomatiki.",
+    "下次扣款": "Makato yanayofuata",
+    "扣款日期以支付平台为准。": "Angalia tarehe ya makato kwa mtoa huduma wa malipo.",
+    "不会自动扣款": "Hakuna makato ya kiotomatiki"
   },
   "zu": {
     "裁切图片": "Nqampuna isithombe",
@@ -72004,7 +72369,12 @@
     "Read Privacy Policy": "Funda Inqubomgomo Yobumfihlo",
     "Scan parent pairing codes and photograph study questions.": "Skena amakhodi wokumatanisa kwabazali nemibuzo yokufunda yezithombe.",
     "Select study question images to send to your teacher.": "Khetha izithombe zemibuzo yokufunda ozoyithumela kuthisha wakho.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Sisebenzisa le mvume kuphela ukukala ukuzinza kohlelo lokusebenza nokufaka isibaluli, ukuze singalokothi sithengise noma sabelane ngedatha yakho yomuntu siqu nabakhangisi bezinkampani zangaphandle."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Sisebenzisa le mvume kuphela ukukala ukuzinza kohlelo lokusebenza nokufaka isibaluli, ukuze singalokothi sithengise noma sabelane ngedatha yakho yomuntu siqu nabakhangisi bezinkampani zangaphandle.",
+    "立即付款，剩余试用时长保留。": "Khokha manje. Isikhathi esisele sesivivinyo samahhala siyagcinwa.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Isikhathi sebhonasi asibambezeli ukukhokhiswa okuzenzakalelayo. Sisatholakala ngemva kokukhansela ukuvuselela okuzenzakalelayo.",
+    "下次扣款": "Inkokhiso elandelayo",
+    "扣款日期以支付平台为准。": "Hlola usuku lokukhokhiswa kumhlinzeki wezinkokhelo.",
+    "不会自动扣款": "Akukho ukukhokhiswa okuzenzakalelayo"
   },
   "am": {
     "裁切图片": "ምስል ይከርክሙ",
@@ -72985,7 +73355,12 @@
     "Read Privacy Policy": "የግላዊነት ፖሊሲ ያንብቡ",
     "Scan parent pairing codes and photograph study questions.": "የወላጅ ማጣመሪያ ኮዶችን እና የፎቶግራፍ ጥናት ጥያቄዎችን ይቃኙ።",
     "Select study question images to send to your teacher.": "ለአስተማሪዎ የሚላኩ የጥናት ጥያቄ ምስሎችን ይምረጡ።",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ይህን ፈቃድ የምንጠቀመው የመተግበሪያውን መረጋጋት ለመለካት እና የባለቤትነት ባህሪን ለመጫን ብቻ ነው፣ በጭራሽ የግል ውሂብዎን ለሶስተኛ ወገን አስተዋዋቂዎች ላለማጋራት።"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ይህን ፈቃድ የምንጠቀመው የመተግበሪያውን መረጋጋት ለመለካት እና የባለቤትነት ባህሪን ለመጫን ብቻ ነው፣ በጭራሽ የግል ውሂብዎን ለሶስተኛ ወገን አስተዋዋቂዎች ላለማጋራት።",
+    "立即付款，剩余试用时长保留。": "አሁን ይክፈሉ። የቀረው ነፃ የሙከራ ጊዜ ይጠበቃል።",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "የስጦታ ጊዜ ራስ-ሰር ክፍያን አያዘገይም። ራስ-ሰር እድሳትን ከሰረዙ በኋላም ይገኛል።",
+    "下次扣款": "ቀጣይ ክፍያ",
+    "扣款日期以支付平台为准。": "የክፍያ ቀንን ከክፍያ አቅራቢዎ ያረጋግጡ።",
+    "不会自动扣款": "ራስ-ሰር ክፍያ የለም"
   },
   "km": {
     "裁切图片": "រូបភាពច្រឹប",
@@ -73966,7 +74341,12 @@
     "Read Privacy Policy": "អានគោលការណ៍ឯកជនភាព",
     "Scan parent pairing codes and photograph study questions.": "ស្កេនលេខកូដផ្គូផ្គងមាតាបិតា និងសំណួរសិក្សារូបថត។",
     "Select study question images to send to your teacher.": "ជ្រើសរើសរូបភាពសំណួរសិក្សា ដើម្បីផ្ញើទៅគ្រូរបស់អ្នក។",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "យើងប្រើតែការអនុញ្ញាតនេះដើម្បីវាស់ស្ទង់ស្ថេរភាពកម្មវិធី និងដំឡើងគុណលក្ខណៈ មិនត្រូវលក់ ឬចែករំលែកទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកជាមួយអ្នកផ្សាយពាណិជ្ជកម្មភាគីទីបីឡើយ។"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "យើងប្រើតែការអនុញ្ញាតនេះដើម្បីវាស់ស្ទង់ស្ថេរភាពកម្មវិធី និងដំឡើងគុណលក្ខណៈ មិនត្រូវលក់ ឬចែករំលែកទិន្នន័យផ្ទាល់ខ្លួនរបស់អ្នកជាមួយអ្នកផ្សាយពាណិជ្ជកម្មភាគីទីបីឡើយ។",
+    "立即付款，剩余试用时长保留。": "បង់ប្រាក់ឥឡូវនេះ។ ពេលសាកល្បងឥតគិតថ្លៃដែលនៅសល់ត្រូវបានរក្សាទុក។",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ពេលបន្ថែមមិនពន្យារការគិតប្រាក់ស្វ័យប្រវត្តិទេ។ វានៅតែអាចប្រើបានបន្ទាប់ពីបោះបង់ការបន្តស្វ័យប្រវត្តិ។",
+    "下次扣款": "ការគិតប្រាក់បន្ទាប់",
+    "扣款日期以支付平台为准。": "ពិនិត្យកាលបរិច្ឆេទគិតប្រាក់ជាមួយអ្នកផ្តល់សេវាទូទាត់។",
+    "不会自动扣款": "គ្មានការគិតប្រាក់ស្វ័យប្រវត្តិ"
   },
   "lo": {
     "裁切图片": "ຕັດຮູບ",
@@ -74947,7 +75327,12 @@
     "Read Privacy Policy": "ອ່ານນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ",
     "Scan parent pairing codes and photograph study questions.": "ສະແກນລະຫັດການຈັບຄູ່ຂອງພໍ່ແມ່ ແລະຄຳຖາມສຶກສາການຖ່າຍຮູບ.",
     "Select study question images to send to your teacher.": "ເລືອກຮູບຄຳຖາມເພື່ອສົ່ງໃຫ້ຄູຂອງເຈົ້າ.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ພວກເຮົາພຽງແຕ່ໃຊ້ສິດອະນຸຍາດນີ້ເພື່ອວັດແທກຄວາມສະຖຽນຂອງແອັບ ແລະ ຕິດຕັ້ງແຫຼ່ງທີ່ມາ, ຫ້າມຂາຍ ຫຼື ແບ່ງປັນຂໍ້ມູນສ່ວນຕົວຂອງເຈົ້າກັບຜູ້ໂຄສະນາພາກສ່ວນທີສາມ."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ພວກເຮົາພຽງແຕ່ໃຊ້ສິດອະນຸຍາດນີ້ເພື່ອວັດແທກຄວາມສະຖຽນຂອງແອັບ ແລະ ຕິດຕັ້ງແຫຼ່ງທີ່ມາ, ຫ້າມຂາຍ ຫຼື ແບ່ງປັນຂໍ້ມູນສ່ວນຕົວຂອງເຈົ້າກັບຜູ້ໂຄສະນາພາກສ່ວນທີສາມ.",
+    "立即付款，剩余试用时长保留。": "ຈ່າຍຕອນນີ້. ເວລາທົດລອງຟຣີທີ່ເຫຼືອຈະຖືກເກັບໄວ້.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "ເວລາໂບນັດບໍ່ເລື່ອນການຫັກເງິນອັດຕະໂນມັດ. ຍັງໃຊ້ໄດ້ຫຼັງຍົກເລີກການຕໍ່ອາຍຸອັດຕະໂນມັດ.",
+    "下次扣款": "ຫັກເງິນຄັ້ງຕໍ່ໄປ",
+    "扣款日期以支付平台为准。": "ກວດວັນຫັກເງິນກັບຜູ້ໃຫ້ບໍລິການຊຳລະເງິນ.",
+    "不会自动扣款": "ບໍ່ມີການຫັກເງິນອັດຕະໂນມັດ"
   },
   "my": {
     "裁切图片": "ပုံဖြတ်ယူပါ။",
@@ -75928,7 +76313,12 @@
     "Read Privacy Policy": "ကိုယ်ရေးကိုယ်တာမူဝါဒကို ဖတ်ပါ။",
     "Scan parent pairing codes and photograph study questions.": "မိဘတွဲချိတ်ခြင်းကုဒ်များနှင့် ဓာတ်ပုံလေ့လာမှုမေးခွန်းများကို စကင်န်ဖတ်ပါ။",
     "Select study question images to send to your teacher.": "သင့်ဆရာထံ ပေးပို့ရန် လေ့လာမှုမေးခွန်းပုံများကို ရွေးချယ်ပါ။",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ကျွန်ုပ်တို့သည် အက်ပ်တည်ငြိမ်မှုကို တိုင်းတာရန်နှင့် ထည့်သွင်းရည်ညွှန်းချက်ကို ထည့်သွင်းရန်၊ သင့်ကိုယ်ရေးကိုယ်တာဒေတာကို ပြင်ပကုမ္ပဏီကြော်ငြာသူများနှင့် ဘယ်သောအခါမှ ရောင်းချခြင်း သို့မဟုတ် မျှဝေခြင်းမပြုရန် ဤခွင့်ပြုချက်ကို ကျွန်ုပ်တို့အသုံးပြုပါသည်။"
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "ကျွန်ုပ်တို့သည် အက်ပ်တည်ငြိမ်မှုကို တိုင်းတာရန်နှင့် ထည့်သွင်းရည်ညွှန်းချက်ကို ထည့်သွင်းရန်၊ သင့်ကိုယ်ရေးကိုယ်တာဒေတာကို ပြင်ပကုမ္ပဏီကြော်ငြာသူများနှင့် ဘယ်သောအခါမှ ရောင်းချခြင်း သို့မဟုတ် မျှဝေခြင်းမပြုရန် ဤခွင့်ပြုချက်ကို ကျွန်ုပ်တို့အသုံးပြုပါသည်။",
+    "立即付款，剩余试用时长保留。": "ယခုပေးချေပါ။ လက်ကျန်အခမဲ့စမ်းသပ်ချိန်ကို ထိန်းသိမ်းထားပါမည်။",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "အပိုအချိန်သည် အလိုအလျောက်ငွေဖြတ်ရက်ကို မရွှေ့ပါ။ အလိုအလျောက်သက်တမ်းတိုးခြင်းကို ပယ်ဖျက်ပြီးနောက်လည်း အသုံးပြုနိုင်ပါသည်။",
+    "下次扣款": "နောက်တစ်ကြိမ် ငွေဖြတ်ခြင်း",
+    "扣款日期以支付平台为准。": "ငွေဖြတ်ရက်ကို ငွေပေးချေမှုဝန်ဆောင်မှုတွင် စစ်ဆေးပါ။",
+    "不会自动扣款": "အလိုအလျောက်ငွေဖြတ်ခြင်း မရှိပါ"
   },
   "mn": {
     "裁切图片": "Зургийг тайрах",
@@ -76909,6 +77299,11 @@
     "Read Privacy Policy": "Нууцлалын бодлогыг уншина уу",
     "Scan parent pairing codes and photograph study questions.": "Эцэг эхийн хосолсон код болон гэрэл зураг судлах асуултуудыг сканнердах.",
     "Select study question images to send to your teacher.": "Багшдаа илгээх судалгааны асуултын зургийг сонго.",
-    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Бид энэ зөвшөөрлийг зөвхөн програмын тогтвортой байдлыг хэмжих, хамаарлыг суулгахад ашигладаг бөгөөд таны хувийн мэдээллийг гуравдагч талын сурталчлагчдад хэзээ ч худалдах, хуваалцахгүй."
+    "We only use this permission to measure app stability and install attribution, never to sell or share your personal data with third-party advertisers.": "Бид энэ зөвшөөрлийг зөвхөн програмын тогтвортой байдлыг хэмжих, хамаарлыг суулгахад ашигладаг бөгөөд таны хувийн мэдээллийг гуравдагч талын сурталчлагчдад хэзээ ч худалдах, хуваалцахгүй.",
+    "立即付款，剩余试用时长保留。": "Одоо төлнө үү. Үнэгүй туршилтын үлдсэн хугацаа хадгалагдана.",
+    "赠送时长不推迟自动扣款；取消自动续订后仍可使用。": "Урамшууллын хугацаа автомат төлбөрийг хойшлуулахгүй. Автомат сунгалтыг цуцалсны дараа ч ашиглаж болно.",
+    "下次扣款": "Дараагийн төлбөр",
+    "扣款日期以支付平台为准。": "Төлбөрийн огноог төлбөрийн үйлчилгээ үзүүлэгчээс шалгана уу.",
+    "不会自动扣款": "Автомат төлбөргүй"
   }
 }
