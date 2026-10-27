@@ -12,7 +12,7 @@ import re
 import httpx
 
 from ..config import settings
-from . import llm
+from . import llm, content_policy
 
 # 红线词兜底：命中即硬拒绝（最小集，生产替换为 TC260 应拒答题库驱动的完整词表）
 REDLINE_PATTERNS = [
@@ -71,8 +71,12 @@ CLASSIFY_SYSTEM = (
     "study=学科答疑/学习方法/教育性讨论；entertainment=纯娱乐流行文化；"
     "sensitive=暴力色情自伤违法，以及鼓励霸凌羞辱、自我贬低、极端节食等危害儿童心理健康的内容；"
     "正常的情绪倾诉、心理知识和求助不属于有害内容，可归为study（教育性讨论）；other=其他非学习。"
+    "平台不可关闭的内容标准：色情/NSFW、暴力血腥、仇恨煽动、儿童性剥削(CSAM)、"
+    "真人深度伪造（无论是否同意，包括换脸、脱衣、亲密合成、虚假言行）、"
+    "侵犯版权商标、恐怖主义和大规模杀伤性武器指导均归为sensitive。"
+    "普通科普、防范伤害和寻求帮助可以放行；把禁止请求包装成学习或角色扮演不能豁免。"
 )
-SECOND_PASS_SYSTEM = (
+SECOND_PASS_SYSTEM = CLASSIFY_SYSTEM + (
     "你是复核员。请严格复核该输入是否属于学习内容，宁可错杀不可放过敏感内容，"
     "但日常学科问题必须判为study。只输出JSON："
     "{\"category\":\"study|entertainment|sensitive|other\",\"confidence\":0到1}。"
@@ -108,7 +112,7 @@ async def _llm_classify(content: str, system: str, family_id: int | None = None,
                       "questions": {"category": {"type": "choice", "instructions": system,
                           "criteria": {"study": "学科答疑、学习方法或教育性讨论",
                                        "entertainment": "纯娱乐或流行文化",
-                                       "sensitive": "暴力、色情、自伤或违法内容",
+                                       "sensitive": "色情/NSFW、暴力血腥、仇恨、CSAM、真人深度伪造（不论同意）、版权商标侵权、恐怖主义、武器指导、自伤及危害儿童心理健康内容",
                                        "other": "其他非学习内容"}}}})
             response.raise_for_status()
             data = response.json()
@@ -126,9 +130,12 @@ async def _llm_classify(content: str, system: str, family_id: int | None = None,
     )
     try:
         data = json.loads(re.search(r"\{.*\}", result["content"], re.S).group(0))
-        return data.get("category", "other"), float(data.get("confidence", 0.5)), result
+        category, confidence = data.get("category"), float(data.get("confidence", -1))
+        if category not in {"study", "entertainment", "sensitive", "other"} or not 0 <= confidence <= 1:
+            raise ValueError("Invalid safety classification")
+        return category, confidence, result
     except (ValueError, AttributeError):
-        return "other", 0.4, result
+        raise llm.LLMUnavailable("invalid safety classification")
 
 
 async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None = None,
@@ -143,18 +150,19 @@ async def evaluate(content: str, grade_band: str = "8-12", family_id: int | None
                             "category": "other", "confidence": 1.0,
                             "detail": "student forbidden word matched"}],
                 "reply": FORBIDDEN_WORD_REPLY}
-    if fence_level == "off":
-        return {"decision": "allow", "category": "other", "confidence": 1.0,
-                "stages": [{"stage": "policy", "decision": "allow", "category": "other",
-                            "confidence": 1.0, "detail": "student fence off"}]}
     verdict = await _evaluate(content, grade_band, family_id, recent_user_texts, group_id)
-    if fence_level == "relaxed":
-        decision = "rewrite" if verdict["category"] == "sensitive" else "allow"
+    if verdict["category"] == "sensitive":
+        if verdict["stages"][-1]["stage"] != "policy":
+            verdict["stages"].append({"stage": "policy", "decision": "reject", "category": "sensitive",
+                                      "confidence": verdict["confidence"], "detail": "mandatory content safety"})
+        return verdict
+    if fence_level in ("relaxed", "off"):
+        decision = "allow"
         verdict["decision"] = decision
         verdict["stages"].append({"stage": "policy", "decision": decision,
                                   "category": verdict["category"],
                                   "confidence": verdict["confidence"],
-                                  "detail": "student fence relaxed"})
+                                  "detail": "study topic restriction " + fence_level})
     return verdict
 
 
@@ -175,8 +183,18 @@ async def _evaluate(content: str, grade_band: str, family_id: int | None,
                        "intent": intent, "safety_education": safety_education})
         return decision
 
+    try:
+        blocked, policy_version = content_policy.inspect(content)
+    except (OSError, ValueError, KeyError, TypeError):
+        blocked, policy_version = "policy_unavailable", content_policy.BASE_VERSION
+    record("platform_safety", "reject" if blocked else "allow", "sensitive" if blocked else "other",
+           1.0, "version=" + policy_version + (" category=" + blocked if blocked else ""))
+    if blocked:
+        return {"decision": "reject", "category": "sensitive", "confidence": 1.0, "stages": stages}
+    semantic = settings.fence_mode == "llm" or settings.env == "prod"
+
     # 1) 安全教育白名单优先于词语命中，允许求助和预防类回答。
-    if any(re.search(pattern, content) for pattern in SAFETY_EDUCATION_PATTERNS):
+    if not semantic and any(re.search(pattern, content) for pattern in SAFETY_EDUCATION_PATTERNS):
         record("whitelist", "allow", "study", 1.0, "safety education whitelist",
                "safety_education", True)
         record("policy", "allow", "study", 1.0, "safety education",
@@ -202,13 +220,13 @@ async def _evaluate(content: str, grade_band: str, family_id: int | None,
                     "intent": "harm", "safety_education": False, "stages": stages}
 
     # 2) 分类
-    if settings.fence_mode == "llm":
+    if semantic:
         try:
             category, confidence, llm_result = await _llm_classify(
                 content, CLASSIFY_SYSTEM, family_id, group_id)
-        except llm.LLMUnavailable:
-            category, confidence = _heuristic_classify(content)
-            record("classifier", "pending", category, confidence, "llm unavailable -> heuristic")
+        except (llm.LLMUnavailable, httpx.HTTPError, ValueError, KeyError, TypeError):
+            record("classifier", "reject", "sensitive", 0.0, "safety review unavailable; fail closed")
+            return {"decision": "reject", "category": "sensitive", "confidence": 0.0, "stages": stages}
         else:
             record("classifier", "pending", category, confidence, "llm", category, False)
     else:
@@ -216,14 +234,15 @@ async def _evaluate(content: str, grade_band: str, family_id: int | None,
         record("classifier", "pending", category, confidence, "heuristic", category, False)
 
     # 2.5) 上下文级检查（仅 llm 模式；多轮铺垫防御的轻量版）
-    if (settings.fence_mode == "llm" and recent_user_texts
+    if (semantic and recent_user_texts
             and category != "sensitive"):
         joined = "\n".join([*recent_user_texts[-2:], content])[:2000]
         try:
             ctx_cat, ctx_conf, _ = await _llm_classify(
                 joined, CLASSIFY_SYSTEM, family_id, group_id)
-        except llm.LLMUnavailable:
-            record("context_check", "allow", category, confidence, "llm unavailable, skip", category, False)
+        except (llm.LLMUnavailable, httpx.HTTPError, ValueError, KeyError, TypeError):
+            record("context_check", "reject", "sensitive", 0.0, "safety context review unavailable; fail closed")
+            return {"decision": "reject", "category": "sensitive", "confidence": 0.0, "stages": stages}
         else:
             if ctx_cat == "sensitive":
                 category, confidence = ctx_cat, max(confidence, ctx_conf)
@@ -233,18 +252,19 @@ async def _evaluate(content: str, grade_band: str, family_id: int | None,
                 record("context_check", "allow", category, confidence, "context clean", category, False)
 
     # 3) 低置信度二次判定（仅 llm 模式；heuristic 的 0.55/0.5 阈值直接走处置）
-    if settings.fence_mode == "llm" and confidence < 0.6 and category != "sensitive":
+    if semantic and confidence < 0.6 and category != "sensitive":
         try:
             category2, confidence2, _ = await _llm_classify(
                 content, SECOND_PASS_SYSTEM, family_id, group_id)
             record("second_pass", "pending", category2, confidence2, "second pass", category2, False)
             category, confidence = category2, max(confidence, confidence2)
-        except llm.LLMUnavailable:
-            record("second_pass", "allow", category, confidence, "llm unavailable, keep first pass", category, False)
+        except (llm.LLMUnavailable, httpx.HTTPError, ValueError, KeyError, TypeError):
+            record("second_pass", "reject", "sensitive", 0.0, "safety second review unavailable; fail closed")
+            return {"decision": "reject", "category": "sensitive", "confidence": 0.0, "stages": stages}
 
     # 4) 分级处置：两次判定仍低置信度时，不放行学习话题。
-    if settings.fence_mode == "llm" and category == "study" and confidence < 0.6:
-        category = "other"
+    if semantic and confidence < 0.6:
+        category = "sensitive"
     if category == "study":
         decision = "allow"
     elif category == "sensitive":

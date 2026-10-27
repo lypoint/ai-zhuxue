@@ -184,9 +184,9 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
 `[{conversation_id, title, message_id, role, snippet, fence_action, created_at}]`。跨家庭 404。
 
 ### 生成侧内容安全复核（服务端行为，非端点）
-assistant 生成完成后全文再过一次分类器（stage=`output_check`）：sensitive → 落库替换为拒绝话术 + security 告警。默认先全文复核再回放；实时模式（`live=true` 或 `STREAM_RECHECK_FIRST=false`）已送达终端的部分无法撤回，最终通过 `replace` 替换显示内容并保留安全的存储结果。
+assistant 生成完成后全文再过一次分类器（stage=`output_check`）：sensitive → 落库替换为拒绝话术 + security 告警。所有输出在展示及提交存储前先全文复核；审核不可用时拒绝。`live=true` 和 `STREAM_RECHECK_FIRST=false` 保留兼容但不能绕过审核。
 
-`POST /chat/stream?live=true` 会在模型生成时实时发送 `delta`。最终复核若拦截，服务端发送 `replace: {"text": "..."}`，客户端须替换已显示的回复。未传 `live` 且 `STREAM_RECHECK_FIRST=true`（默认）时先全文复核再回放。
+`POST /chat/stream` 始终先缓冲全文、审核后再发送 `delta`，包括 `live=true`。家长话题围栏 off/relaxed 只放宽话题范围，不能关闭平台安全标准。
 
 ### GET /parent/students/{id}/summary — 学习摘要（P1，家长首页）
 → `200 {"today": {questions, blocked, guided, study, minutes}, "week": {…, active_days}}`

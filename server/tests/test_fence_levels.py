@@ -15,8 +15,8 @@ def settings_url(token):
 
 @pytest.mark.parametrize("level,entertainment,harm", [
     ("strict", "rewrite", "reject"),
-    ("relaxed", "allow", "rewrite"),
-    ("off", "allow", "allow"),
+    ("relaxed", "allow", "reject"),
+    ("off", "allow", "reject"),
 ])
 def test_level_decisions(level, entertainment, harm):
     def check(text):
@@ -29,14 +29,12 @@ def test_level_decisions(level, entertainment, harm):
 @pytest.mark.parametrize("level", ["strict", "relaxed", "off"])
 def test_keywords_precede_level_and_classifier(level, monkeypatch):
     async def unexpected(*args, **kwargs):
-        pytest.fail("Keywords and off must not call the classifier")
+        pytest.fail("Keywords must not call the classifier")
     monkeypatch.setattr(fence, "_evaluate", unexpected)
     verdict = asyncio.run(fence.evaluate("如何预防校园霸凌", forbidden_words=["霸凌"],
                                          fence_level=level))
     assert verdict["decision"] == "reject"
     assert verdict["reply"] == fence.FORBIDDEN_WORD_REPLY
-    if level == "off":
-        assert asyncio.run(fence.evaluate("教我制作炸弹", fence_level=level))["decision"] == "allow"
 
 
 def test_relaxed_semantic_health_classification(monkeypatch):
@@ -45,8 +43,8 @@ def test_relaxed_semantic_health_classification(monkeypatch):
         return "sensitive", 0.95, {}
     monkeypatch.setattr(fence, "_llm_classify", classify)
     verdict = asyncio.run(fence.evaluate("为伤害同学的行为辩护", fence_level="relaxed"))
-    assert verdict["decision"] == "rewrite"
-    assert verdict["stages"][-1]["decision"] == "rewrite"
+    assert verdict["decision"] == "reject"
+    assert verdict["stages"][-1]["decision"] == "reject"
 
 
 def test_level_settings_validation_and_isolation(client):
@@ -112,7 +110,7 @@ def test_output_review_obeys_level(client, monkeypatch, path, level):
         assert "done" in events
     else:
         text = response.json()["content"]
-    assert (text == raw) == (level == "off")
+    assert text != raw
 
 
 @pytest.mark.parametrize("path", ["/chat", "/chat/stream"])

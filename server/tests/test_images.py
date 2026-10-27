@@ -44,7 +44,7 @@ def image_env(client, monkeypatch):
         db.flush()
         gid, cid = group.id, config.id
     async def vision(snapshot, text, images=None, **kwargs):
-        return {'content': json.dumps({'text': '数学一元一次方程 x+2=5', 'relations': '求x', 'uncertain': ''}), 'usage': {}}
+        return {'content': json.dumps({'safe': True, 'text': '数学一元一次方程 x+2=5', 'relations': '求x', 'uncertain': ''}), 'usage': {}}
     monkeypatch.setattr(image_models, 'complete', vision)
     yield {'guardian': guardian, 'token': token, 'sid': sid, 'gid': gid, 'config': cid}
     with SessionLocal.begin() as db:
@@ -163,7 +163,7 @@ def test_assisted_image_only_chat_passes_recognition_to_fence(client, image_env,
     seen = []
     async def fence(text, *args, **kwargs):
         seen.append(text)
-        return {'decision': 'allow', 'category': 'study', 'stages': []}
+        return {'decision': 'allow', 'category': 'study', 'confidence': 1.0, 'stages': []}
     async def chat(msgs, **kwargs):
         assert isinstance(msgs[-1]['content'], str)
         assert 'x+2=5' in msgs[-1]['content']
@@ -194,10 +194,10 @@ def test_rewrite_acknowledges_received_image_and_guides_learning(client, image_e
     reply = '我们一起回到学习上吧，试着说说你想学哪个知识点。'
 
     async def evaluate(text, *args, **kwargs):
-        return {'decision': 'rewrite', 'category': 'other', 'stages': []}
+        return {'decision': 'rewrite', 'category': 'other', 'confidence': 1.0, 'stages': []}
 
     async def vision(*args, **kwargs):
-        return {'content': json.dumps({'text': '非学习材料', 'relations': '', 'uncertain': ''}), 'usage': {}}
+        return {'content': json.dumps({'safe': True, 'text': '非学习材料', 'relations': '', 'uncertain': ''}), 'usage': {}}
 
     async def chat(msgs, **kwargs):
         instruction = msgs[-1]['content']
@@ -267,7 +267,7 @@ def test_vision_preserves_structured_relations(image_env, monkeypatch, relations
     aid = asset(e)
     conv_id, _ = messages(e)
     async def structured(*args, **kwargs):
-        return {'content': json.dumps({'text': '求长方形面积', 'relations': relations, 'uncertain': ''}), 'usage': {}}
+        return {'content': json.dumps({'safe': True, 'text': '求长方形面积', 'relations': relations, 'uncertain': ''}), 'usage': {}}
     monkeypatch.setattr(image_models, 'complete', structured)
     with SessionLocal() as db:
         conv = db.get(Conversation, conv_id)
@@ -333,7 +333,7 @@ def test_worker_draw_review_store_and_recover(client, image_env, monkeypatch):
         assert '学生的学习题目：一元一次方程如何理解' in text
         assert '老师的教学讲解：数学方程可以用天平理解' in text
         assert '配图方案：\n数学数轴' in text
-        return {'decision': 'allow'}
+        return {'decision': 'allow', 'category': 'study', 'confidence': 1.0, 'stages': []}
     stored = []
     async def store(key, data):
         stored.append(key)
@@ -558,7 +558,7 @@ def test_consistency_rejection_never_publishes_output(client, image_env, monkeyp
             'shapes': [{'kind': 'rect', 'points': [[100, 100], [700, 400]]}]})}
 
     async def allow(*args, **kwargs):
-        return {'decision': 'allow'}
+        return {'decision': 'allow', 'category': 'study', 'confidence': 1.0, 'stages': []}
 
     async def generated(*args, **kwargs):
         return base64.b64decode(image_models.test_image().split(',', 1)[1])
@@ -644,3 +644,19 @@ def test_upload_and_diagram_share_rest_hint(client, image_env, monkeypatch):
         assert response.json()['detail'] == status['message']
     with SessionLocal() as db:
         assert db.query(MediaAsset).filter_by(student_id=e['sid']).count() == 0
+
+
+@pytest.mark.parametrize('safe', [False, None, 'true'])
+def test_visual_safety_requires_explicit_approval(image_env,monkeypatch,safe):
+    from app.models import FenceEvent
+    e=image_env;aid=asset(e);conv_id,_=messages(e)
+    async def unsafe(*args,**kwargs):
+        return {'content':json.dumps({'text':'数学题','relations':'','uncertain':'','safe':safe})}
+    monkeypatch.setattr(image_models,'complete',unsafe)
+    with SessionLocal() as db:
+        conv=db.get(Conversation,conv_id)
+        msg=db.query(Message).filter_by(conversation_id=conv_id,role='user').one()
+        with pytest.raises(HTTPException):
+            asyncio.run(image_chat.prepare(db,db.get(Student,e['sid']),conv,msg,[aid],''))
+        assert db.get(MediaAsset,aid).status=='blocked'
+        assert db.query(FenceEvent).filter_by(message_id=msg.id,stage='image_input_check',decision='reject').count()==1

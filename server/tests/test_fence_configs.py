@@ -97,8 +97,8 @@ def test_system_one_fence_uses_native_endpoint(monkeypatch):
     assert verdict["category"] == "study"
     assert verdict["confidence"] == 0.94
     low_confidence = asyncio.run(fence.evaluate("给我讲个笑话", group_id=2))
-    assert low_confidence["decision"] == "rewrite"
-    assert low_confidence["category"] == "other"
+    assert low_confidence["decision"] == "reject"
+    assert low_confidence["category"] == "sensitive"
 
 
 def test_config_edits_are_audited_without_keys(client):

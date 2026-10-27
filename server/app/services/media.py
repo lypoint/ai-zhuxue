@@ -139,7 +139,7 @@ async def moderate(key: str) -> bool:
     return result["result"]["suggestion"] == "pass"
 
 
-async def save_reviewed(db, student_id: int, data: bytes, message_id: int | None = None):
+async def save_reviewed(db, student_id: int, data: bytes, message_id: int | None = None, *, publish: bool = True):
     clean, width, height = await asyncio.to_thread(sanitize, data)
     asset_id = uuid.uuid4().hex
     asset = MediaAsset(id=asset_id, student_id=student_id, message_id=message_id,
@@ -148,9 +148,10 @@ async def save_reviewed(db, student_id: int, data: bytes, message_id: int | None
     db.add(asset)
     db.commit()  # Keep a deletion record even if storage or moderation fails.
     await store(asset.object_key, clean)
-    asset.status = "ready" if await moderate(asset.object_key) else "blocked"
+    approved = await moderate(asset.object_key)
+    asset.status = ("ready" if publish else "checking") if approved else "blocked"
     db.commit()
-    if asset.status != "ready":
+    if not approved:
         raise HTTPException(422, "图片未通过审核，请更换图片")
     return asset
 

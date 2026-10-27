@@ -44,9 +44,9 @@ class Settings(BaseSettings):
     fence_mode: str = "heuristic"
     # 本地时区偏移（小时）：created_at 统一存 UTC，本地日界/时段禁用按此换算；中国=8
     tz_offset_hours: int = 8
-    # 安全优先流式：true=LLM 完成后先全文复核、通过再回放（首字延迟数秒，未成年人产品推荐）
-    # false=实时流出 + 尾部复核（已送达部分无法撤回）
-    stream_recheck_first: bool = True
+    # 兼容旧配置；所有流式输出始终先全文复核再回放。
+    stream_recheck_first: bool = True  # Legacy setting; output review is always required.
+    content_safety_rules_path: str = ""
     fence_daily_message_cap: int = 200    # 每学生每日消息上限（时长管控的服务端部分）
     fence_quiet_enabled: bool = True
     fence_quiet_start: int = 22           # 22:00-6:00 禁用（未成年人模式建设指南）

@@ -30,11 +30,9 @@ def test_recent_texts_accepted_no_crash(client):
         verdict = asyncio.run(fence.evaluate(
             "继续，说下去", "8-12",
             recent_user_texts=["聊化学实验", "怎么制取气体"]))
-        assert verdict["decision"] in ("allow", "rewrite", "reject")
-        stages = [s["stage"] for s in verdict["stages"]]
-        assert "context_check" in stages  # llm 模式必须尝试
-        skip = [s for s in verdict["stages"] if s["stage"] == "context_check"]
-        assert "unavailable" in skip[0]["detail"]
+        assert verdict["decision"] == "reject"
+        assert verdict["category"] == "sensitive"
+        assert any("fail closed" in stage["detail"] for stage in verdict["stages"])
     finally:
         settings.fence_mode = old
 

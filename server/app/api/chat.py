@@ -385,17 +385,20 @@ async def _output_check(content: str, student: Student, conversation_id: int,
                         locale: str = "zh-Hans", fence_level: str = "strict") -> Message:
     """生成侧内容安全复核（TC260 生成合格率保障）：assistant 全文再过一次分类器。
 
-    sensitive → 落库替换为拒绝话术（流式已送达部分无法撤回，家长端与存储保持一致）
+    sensitive → 展示及落库前替换为拒绝话术
     并发 security 告警；记录 output_check FenceEvent 供评测统计。
     """
     verdict = await fence.evaluate(content, student.grade_band, student.family_id,
                                    group_id=group_id, fence_level=fence_level)
-    if verdict["category"] != "sensitive":
-        return message
+    rejected = verdict["category"] == "sensitive"
     db.add(FenceEvent(student_id=student.id, conversation_id=conversation_id,
                       message_id=message.id, stage="output_check",
-                      decision="reject", category="sensitive",
-                      confidence=verdict["confidence"], detail="output re-check"))
+                      decision="reject" if rejected else "allow", category=verdict["category"],
+                      confidence=verdict["confidence"], detail=next((s["detail"] for s in verdict["stages"]
+                          if s["stage"] == "platform_safety"), "output review")))
+    if not rejected:
+        db.commit()
+        return message
     message.content = language.safe_reply(locale)
     message.fence_action = "reject"
     _notify(student.family_id, "security", "⚠️ 系统复核拦截了一条AI回复",
@@ -612,15 +615,18 @@ async def send_message(body: ChatIn, student: Student = Depends(current_student)
                     model=result["model"], tokens_in=result["tokens_in"],
                     tokens_out=result["tokens_out"]))
     with performance.span("persist_ms"):
-        db.commit()
+        db.flush()
     try:
         with performance.span("output_review_ms"):
             reply = await _output_check(result["content"], student, conv.id, reply, db,
                                         conv.teacher_group_id, locale=body.locale, fence_level=fence_level)
     except Exception:
         db.rollback()
-        db.delete(db.get(Message, reply.id))
-        db.get(Message, user_msg.id).fence_action = "failed"
+        cur = _is_active_attempt(db, user_msg.id, attempt)
+        if cur:
+            cur.fence_action = "failed"
+        db.add(UsageLog(student_id=student.id, purpose="chat", provider=result["provider"],
+                        model=result["model"], tokens_in=result["tokens_in"], tokens_out=result["tokens_out"]))
         with performance.span("persist_ms"):
             db.commit()
         raise
@@ -644,13 +650,13 @@ async def send_message_stream(body: ChatIn, live: bool = False,
 
     meta  → {conversation_id, fence_action, category}
     delta → {text}（增量；reject 时为一条完整话术）
-    replace → {text}（实时输出在最终安全复核被拦截时，替换已显示内容）
+    所有 delta 均在全文安全复核后发出；live 参数不跳过审核。
     done  → {message_id, tokens_in, tokens_out}
     """
     trace = performance.bind(student)
     if trace:
         trace.input = "image" if body.asset_ids else "text"
-        trace.mode = "realtime" if (live or not settings.stream_recheck_first) and not body.asset_ids else "buffered"
+        trace.mode = "buffered"
     retry = None
     if body.retry_message_id is not None:
         retry = db.get(Message, body.retry_message_id)
@@ -818,7 +824,6 @@ async def send_message_stream(body: ChatIn, live: bool = False,
 
             try:
                 collected, usage, provider_model = [], None, {}
-                realtime = (live or not settings.stream_recheck_first) and not body.asset_ids
                 stream_kwargs = {"purpose": "chat", "family_id": family_id}
                 if teacher_group_id is not None:
                     stream_kwargs["group_id"] = teacher_group_id
@@ -829,16 +834,12 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                         if "delta" in chunk:
                             collected.append(chunk["delta"])
                             provider_model = {"provider": chunk["provider"], "model": chunk["model"]}
-                            if realtime:
-                                yield sse("delta", {"text": chunk["delta"]})
                         elif "usage" in chunk:
                             usage = chunk["usage"]
                 content = "".join(collected)
                 if not content.strip():
                     raise llm.LLMUnavailable("模型没有返回正文，请重试或切换老师")
-                # 生成侧复核：sensitive → 落库替换为拒绝话术。
-                # 安全优先模式（默认）下复核发生在任何 delta 发出之前，敏感内容不会到达终端；
-                # 实时模式（stream_recheck_first=false）已送达部分无法撤回，见 api.md 诚实声明。
+                # No raw model content is sent or committed before mandatory review.
                 out_action = fence_action
                 if collected:
                     with performance.span("output_review_ms"):
@@ -848,16 +849,11 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                         content = language.safe_reply(body.locale)
                         out_action = "reject"
                         if trace: trace.result = "rejected"
-                        sdb.add(FenceEvent(student_id=student_id, conversation_id=conv_id,
-                                           stage="output_check", decision="reject",
-                                           category="sensitive",
-                                           confidence=check["confidence"],
-                                           detail="output re-check (stream)"))
                         _notify(family_id, "security", "⚠️ 系统复核拦截了一条AI回复",
                                 "AI 回复经安全复核被替换，建议关注孩子最近的提问内容。",
                                 conversation_id=conv_id, db=sdb)
-                        yield sse("replace" if realtime else "delta", {"text": content})
-                    elif not realtime:
+                        yield sse("delta", {"text": content})
+                    else:
                         # 安全优先模式：复核通过，全文按块回放（用户感知仍为逐字，首字延迟数秒）
                         for i in range(0, len(content), 24):
                             yield sse("delta", {"text": content[i:i + 24]})
@@ -869,6 +865,11 @@ async def send_message_stream(body: ChatIn, live: bool = False,
                                 tokens_in=usage["tokens_in"] if usage else 0,
                                 tokens_out=usage["tokens_out"] if usage else 0)
                 sdb.add(reply)
+                sdb.flush()
+                sdb.add(FenceEvent(student_id=student_id, conversation_id=conv_id, message_id=reply.id,
+                                   stage="output_check", decision="reject" if out_action == "reject" else "allow",
+                                   category=check["category"], confidence=check["confidence"],
+                                   detail=next((s["detail"] for s in check["stages"] if s["stage"] == "platform_safety"), "output review")))
                 cur_user.fence_action = fence_action
                 if usage:
                     row = UsageLog(student_id=student_id, purpose="chat",

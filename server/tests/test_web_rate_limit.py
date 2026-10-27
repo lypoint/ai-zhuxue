@@ -26,6 +26,10 @@ def test_read_polling_does_not_consume_message_rate_limit(client, monkeypatch):
     _, token = make_family(client)
     with SessionLocal.begin() as db:
         db.query(RateLimitWindow).delete()
+    from app import ratelimit
+    from types import SimpleNamespace
+    # Keep this request sequence in one fixed minute even across wall-clock boundaries.
+    monkeypatch.setattr(ratelimit, "time", SimpleNamespace(time=lambda: 1793000000))
     monkeypatch.setattr(settings, "env", "dev")
     for _ in range(35):
         assert client.get("/chat/availability", headers=h(token)).status_code == 200

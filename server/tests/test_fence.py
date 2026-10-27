@@ -20,7 +20,7 @@ def test_redline_hard_reject(content):
     assert verdict["decision"] == "reject"
     assert verdict["category"] == "sensitive"
     # 红线必须停在白名单层，不消耗分类成本
-    assert verdict["stages"][0]["stage"] == "whitelist"
+    assert verdict["stages"][1]["stage"] == "whitelist"
 
 
 @pytest.mark.parametrize("content", [
@@ -58,7 +58,7 @@ def test_stages_recorded():
     """每次判定必须留完整审计流水（围栏评测与误拦截分析的数据基础）。"""
     verdict = run(fence.evaluate("帮我讲解一元一次方程"))
     stages = [s["stage"] for s in verdict["stages"]]
-    assert stages == ["classifier", "policy"]
+    assert stages == ["platform_safety", "classifier", "policy"]
     assert all(s["decision"] and s["category"] for s in verdict["stages"])
 
 

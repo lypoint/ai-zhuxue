@@ -105,7 +105,7 @@ def test_safe_first_stream_replays_after_check(client, monkeypatch):
     assert '"message_id"' in resp.text
 
 
-def test_live_stream_keeps_model_chunks(client, monkeypatch):
+def test_live_stream_buffers_until_generation_and_review_complete(client, monkeypatch):
     from app.api.chat import send_message_stream
     from app.db import SessionLocal
     from app.models import Student
@@ -130,11 +130,13 @@ def test_live_stream_keeps_model_chunks(client, monkeypatch):
                                                  live=True, student=row, db=db)
             chunks = response.body_iterator
             assert "event: meta" in await chunks.__anext__()
-            first = await asyncio.wait_for(chunks.__anext__(), timeout=1)
-            assert json.loads(first.split("data: ")[1])["text"] == "光合作用是"
+            pending = asyncio.create_task(chunks.__anext__())
+            await asyncio.sleep(0.02)
+            assert not pending.done(), "unreviewed model chunk escaped"
             continue_generation.set()
-            rest = [chunk async for chunk in chunks]
-            assert any('"text": "植物制造养分的过程"' in chunk for chunk in rest)
+            first = await asyncio.wait_for(pending, timeout=1)
+            rest = [first, *[chunk async for chunk in chunks]]
+            assert "光合作用是植物制造养分的过程" in "".join(rest)
             assert any("event: done" in chunk for chunk in rest)
 
     asyncio.run(check())
@@ -151,7 +153,8 @@ def test_live_stream_replaces_sensitive_output(client, monkeypatch):
     response = client.post("/chat/stream?live=true", headers=h(student),
                            json={"content": "帮我讲解科学课的问题"})
     assert response.status_code == 200
-    assert "event: replace" in response.text
+    assert "制作炸弹需要" not in response.text
+    assert "event: delta" in response.text
     assert "这个问题我不能回答" in response.text
 
 

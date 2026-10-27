@@ -16,7 +16,7 @@ for (const role of ["parent", "student"] as const) {
     for (const title of ["Privacy", "Terms"]) {
       await dialog.getByRole("button", {name:title,exact:true}).click();
       await expect(dialog.getByRole("heading", {name:title,exact:true})).toBeVisible();
-      await expect(dialog).toContainText("ChatGPT, Claude and Gemini");
+      await expect(dialog.locator('a[href="https://aistudynest.com/pricing/#models"]')).toBeVisible();
       await expect(dialog).not.toContainText(/DeepSeek|\bGLM\b|OpenRouter/i);
       const policy = dialog.getByRole("link", {name: `${title} ↗`, exact: true});
       await expect(policy).toHaveAttribute("href", `https://aistudynest.com/${title === "Privacy" ? "privacy" : "terms"}/`);

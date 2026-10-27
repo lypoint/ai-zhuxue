@@ -5,6 +5,7 @@ import json
 import pathlib
 import secrets
 import time
+from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
@@ -16,7 +17,7 @@ from sqlalchemy.orm import Session
 from ..services.teacher_channels import Channel, TeacherChannel, default_teacher, clear_unavailable_defaults
 from ..config import settings
 from ..db import get_db
-from ..models import (ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode, ChannelTeacherDefault, Conversation, Family,
+from ..models import (AccountDeletionRequest, ActiveTime, AdminLog, AdminUser, AssessmentAudit, BindCode, ChannelTeacherDefault, Conversation, Family,
                       FenceConfig, FenceEvent, FenceFeedback, Guardian, LLMGroup, Message, Student,
                       PricingConfig, RateLimitWindow, Subscription, SubscriptionOrder, UsageLog)
 from ..ratelimit import _hit
@@ -95,6 +96,39 @@ def require_operate(principal: AdminPrincipal):
 class LoginIn(BaseModel):
     username: str = Field(min_length=1, max_length=50)
     password: str
+
+
+class ContentPolicyIn(BaseModel):
+    revision: str
+    blocked_terms: dict[str, list[str]]
+
+
+@router.get("/content-policy")
+def get_content_policy(principal: AdminPrincipal = Depends(require_admin)):
+    require_operate(principal)
+    from ..services import content_policy
+    try:
+        return {**content_policy.current(), "base_version": content_policy.BASE_VERSION,
+                "categories": sorted(content_policy.CATEGORIES)}
+    except (OSError, ValueError, KeyError, TypeError):
+        raise HTTPException(503, "内容安全策略不可用")
+
+
+@router.put("/content-policy")
+def update_content_policy(body: ContentPolicyIn, principal: AdminPrincipal = Depends(require_admin),
+                          db: Session = Depends(get_db)):
+    require_manage(principal)
+    from ..services import content_policy
+    try:
+        result = content_policy.update(body.revision, body.blocked_terms)
+    except FileExistsError:
+        raise HTTPException(409, "策略已更新，请重新加载")
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+    except (OSError, RuntimeError, KeyError, TypeError):
+        raise HTTPException(503, "内容安全策略不可写，请检查配置")
+    log(db, principal, "content_policy.update", json.dumps({**result, "base_version": content_policy.BASE_VERSION}, ensure_ascii=False))
+    return result
 
 
 @router.post("/login")
@@ -336,6 +370,8 @@ def families(principal: AdminPrincipal = Depends(require_admin),page: int = 1, s
                          .filter(Conversation.student_id.in_(sids)).scalar() or 0)
         out.append({
             "family_id": fam.id, "tag": fam.tag,
+            "access_disabled": fam.access_disabled,
+            "deletion_requested": db.get(AccountDeletionRequest, fam.id) is not None,
             "created_at": fam.created_at.isoformat() if fam.created_at else None,
             "guardians": [{"phone": gd.phone[:3] + "****" + gd.phone[-4:] if gd.phone else None, "nickname": gd.nickname}
                           for gd in db.query(Guardian).filter_by(family_id=fam.id).all()],
@@ -344,6 +380,47 @@ def families(principal: AdminPrincipal = Depends(require_admin),page: int = 1, s
             "message_count": msg_count,
         })
     return {"total": total, "page": page, "items": out}
+
+
+class FamilyAccessIn(BaseModel):
+    disabled: bool
+    reason: Literal["content_violation", "appeal_accepted"]
+
+
+@router.put("/families/{family_id}/access")
+def set_family_access(family_id: int, body: FamilyAccessIn, principal: AdminPrincipal = Depends(require_admin),
+                      db: Session = Depends(get_db)):
+    require_operate(principal)
+    from ..models import WebSession
+    family = db.query(Family).filter_by(id=family_id).with_for_update().one_or_none()
+    if not family:
+        raise HTTPException(404, "family not found")
+    if db.get(AccountDeletionRequest, family_id):
+        raise HTTPException(409, "注销家庭不能通过申诉恢复")
+    family.access_disabled = body.disabled
+    db.query(WebSession).filter_by(family_id=family_id).delete(synchronize_session=False)
+    db.query(Guardian).filter_by(family_id=family_id).update({Guardian.token_version: Guardian.token_version + 1}, synchronize_session=False)
+    db.query(Student).filter_by(family_id=family_id).update({Student.token_version: Student.token_version + 1}, synchronize_session=False)
+    db.commit()
+    log(db, principal, "family.access", f"family_id={family_id} disabled={body.disabled} reason={body.reason}")
+    return {"ok": True, "access_disabled": family.access_disabled}
+
+
+@router.post("/messages/{message_id}/remove")
+def remove_content(message_id: int, principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
+    require_operate(principal)
+    from ..models import Favorite, MediaAsset
+    message = db.query(Message).filter_by(id=message_id).with_for_update().one_or_none()
+    if not message:
+        raise HTTPException(404, "message not found")
+    message.content = "内容违反使用规范，已移除。"
+    message.fence_action = "reject"
+    message.blocks_json = "[]"
+    db.query(Favorite).filter_by(message_id=message_id).update({Favorite.content: message.content}, synchronize_session=False)
+    db.query(MediaAsset).filter_by(message_id=message_id).update({MediaAsset.status: "deleting"}, synchronize_session=False)
+    db.commit()
+    log(db, principal, "content.remove", f"message_id={message_id}")
+    return {"ok": True}
 
 
 @router.get("/fence-events")

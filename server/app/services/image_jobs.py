@@ -7,7 +7,9 @@ import logging
 from fastapi import HTTPException
 from sqlalchemy import func
 
+from ..models import FenceEvent
 from ..config import settings
+from . import content_policy
 from ..db import SessionLocal
 from ..local_time import local_now, utc_bounds, quota_start
 from ..models import Conversation, Family, ImageJob, LLMGroup, MediaAsset, Message, Student, UsageLog
@@ -78,6 +80,7 @@ async def execute(job_id: int):
         job = db.get(ImageJob, job_id)
         if not job or job.state != "running":
             return
+        asset_id = None
         try:
             student = db.get(Student, job.student_id)
             family = db.get(Family, student.family_id) if student else None
@@ -119,6 +122,11 @@ async def execute(job_id: int):
                            "\n" + " ".join(s.label for s in plan.shapes))
             verdict = await fence.evaluate(review_text,
                 snapshot["grade_band"], student.family_id, group_id=job.teacher_id)
+            db.add(FenceEvent(student_id=student.id, conversation_id=conversation.id, message_id=message.id,
+                stage="image_plan_check", decision="allow" if verdict["decision"] == "allow" else "reject",
+                category=verdict["category"], confidence=verdict["confidence"],
+                detail=next((s["detail"] for s in verdict["stages"] if s["stage"] == "platform_safety"), "plan review")))
+            db.commit()
             if verdict["decision"] != "allow":
                 raise ValueError("diagram plan rejected")
             if plan.kind == "drawing":
@@ -140,7 +148,12 @@ async def execute(job_id: int):
                     model=generation["model_id"], cost=generation["price_out"] + len(references) * generation["price_in"]))
                 db.commit()  # Record a paid output even if transfer or moderation fails later.
                 data = await image_models.fetch_generated(url)
-            asset = await media.save_reviewed(db, student.id, data)
+            asset = await media.save_reviewed(db, student.id, data, publish=False)
+            db.add(FenceEvent(student_id=student.id, conversation_id=conversation.id, message_id=message.id,
+                stage="image_storage_check", decision="allow", category="study", confidence=1.0, detail="Qiniu image moderation passed"))
+            asset_id = asset.id
+            asset.status = "checking"
+            db.commit()
             # A generated illustration is also checked for agreement with the approved explanation.
             style = ("这是概念插画，允许拟人化和象征表达，不要求体现生化过程或全部讲解细节；"
                      "但不得与所选核心知识矛盾。" if plan.kind == "illustration" else
@@ -148,26 +161,43 @@ async def execute(job_id: int):
             review = await image_models.complete(snapshot["reviewer"],
                 '检查图片与讲解的核心知识是否一致，是否有实质的错误文字/数量/关系。'
                 '这是教学示意图，不要求屏幕物理尺寸等于题目厘米数；不凭空推测图中不存在的错误。'
+                '同时审核色情/NSFW、暴力血腥、仇恨、儿童性剥削、侵犯版权商标、恐怖主义及武器指导。'
+                '真人换脸、脱衣、亲密合成或虚假言行无论是否获得同意均禁止。'
+                '仅在内容安全且知识一致时ok=true；普通教材和合理引用不视为侵权。'
                 '仅返回JSON {"ok":true或false,"reason":"一句话说明"}，不要输出思考过程。'
                 f"\n{style}\n讲解：{snapshot['content']}\n图示：{plan.caption}",
                 [media.download_url(asset.object_key)], json_output=True, max_tokens=256)
             image_models.record_usage(db, snapshot["reviewer"], student.id, "image_review", review)
-            if json.loads(review["content"]).get("ok") is not True:
+            approved = json.loads(review["content"]).get("ok") is True
+            db.add(FenceEvent(student_id=student.id, conversation_id=conversation.id, message_id=message.id,
+                stage="image_output_check", decision="allow" if approved else "reject",
+                category="study" if approved else "sensitive", confidence=1.0,
+                detail="visual safety and consistency; model=" + snapshot["reviewer"]["model_id"]))
+            if not approved:
                 asset.status = "blocked"
                 db.commit()
                 raise ValueError("diagram consistency review rejected")
             db.refresh(family)
             db.refresh(student)
             db.refresh(conversation)
-            if family.access_disabled or not student.active or conversation.student_deleted_at or not settings.image_features_enabled:
+            message = db.query(Message).filter_by(id=message.id).populate_existing().with_for_update().one()
+            if message.fence_action in ("reject", "failed") or family.access_disabled or not student.active or conversation.student_deleted_at or not settings.image_features_enabled:
                 asset.status = "deleting"
                 db.commit()
                 raise ValueError("image task cancelled")
+            asset.status = "ready"
             asset.message_id = message.id
             message.blocks_json = json.dumps([*message.content_blocks, media.block(asset, plan.caption)], ensure_ascii=False)
             job.asset_id, job.state, job.error = asset.id, "ready", ""
         except Exception:
             db.rollback()
+            if asset_id:
+                failed_asset = db.get(MediaAsset, asset_id)
+                if failed_asset and failed_asset.student_id and failed_asset.message_id is None and failed_asset.status == "checking":
+                    failed_asset.status = "blocked"
+                    db.add(FenceEvent(student_id=failed_asset.student_id, conversation_id=conversation.id, message_id=message.id, stage="image_output_check",
+                        decision="reject", category="sensitive", confidence=1.0,
+                        detail="visual review failed or unavailable; version=" + content_policy.BASE_VERSION))
             job = db.get(ImageJob, job_id)
             if job:
                 job.state, job.error = "failed", "图示生成失败，可点击重试；文字讲解已保留"

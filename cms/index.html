@@ -271,7 +271,7 @@
     <div id="reportEditor" class="edit-panel" hidden>
       <h3>回复学生举报</h3><details class="text-preview"><summary>查看举报对应的消息</summary><div id="reportContext" class="full-text"></div></details>
       <label class="field" for="reportReply" style="margin-top:18px"><span>回复内容</span><textarea id="reportReply" rows="5" maxlength="1000" placeholder="填写核查结果及处理说明，学生将看到此回复。"></textarea><small>最多 1000 字，保存后该举报进入“已处理”。</small></label>
-      <div class="row"><button id="saveReportReplyButton" onclick="saveReportReply()">保存回复并标记已处理</button><button class="ghost" onclick="$('reportEditor').hidden=true">取消</button></div><div id="reportReplyError" class="err" role="status"></div>
+      <div class="row"><button class="ghost" onclick="removeReportedContent()">移除违规内容</button><button id="saveReportReplyButton" onclick="saveReportReply()">保存回复并标记已处理</button><button class="ghost" onclick="$('reportEditor').hidden=true">取消</button></div><div id="reportReplyError" class="err" role="status"></div>
     </div>
     <div class="row pagination"><button class="ghost" id="reportPrev" onclick="loadReports(reportQueue.page-1)" disabled>上一页</button><span id="reportPagination"></span><button class="ghost" id="reportNext" onclick="loadReports(reportQueue.page+1)" disabled>下一页</button></div>
     </div>
@@ -294,6 +294,12 @@
   </section>
 
   <section id="safetyPage" data-page="safety" data-admin-only hidden>
+    <h2>平台内容安全规则</h2>
+    <p class="section-note">平台安全底线始终生效，关闭学习话题限制不会关闭内容审核。以下附加词可立即更新，不能移除内置底线。保存保留版本与操作记录；请按事件复盘持续维护。</p>
+    <p id="contentPolicyVersion"></p>
+    <div data-super-only><label class="field" for="contentPolicyTerms"><span>附加拦截词（JSON：类别 → 词语数组）</span><textarea id="contentPolicyTerms" rows="8"></textarea></label>
+    <div class="row"><button onclick="saveContentPolicy()">保存安全规则</button><button class="ghost" onclick="loadContentPolicy()">重新加载</button></div></div>
+    <div id="contentPolicyStatus" class="err" role="status"></div>
     <h2>围栏模型</h2>
     <div id="fences" class="config-list"></div>
     <div data-super-only><details class="editor"><summary>＋ 新建围栏配置</summary><div class="editor-body">
@@ -630,7 +636,7 @@ async function loadFamilies(page=familyPage) {
        <td>${esc(f.students.map(s=>s.nickname+(s.active?'':'(注销)')).join(', ')||'—')}</td>
        <td>${f.message_count}</td>
        <td>${constTag}</td>
-       <td><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?` <button class="ghost" onclick="grantMembership(${f.family_id})">赠送会员</button> <button class="ghost" onclick="revokeMembership(${f.family_id})">扣除会员</button>`:''}</td>
+       <td><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?` <button class="ghost" onclick="grantMembership(${f.family_id})">赠送会员</button> <button class="ghost" onclick="revokeMembership(${f.family_id})">扣除会员</button>${!f.deletion_requested?` <button class="ghost" onclick="setFamilyAccess(${f.family_id},${!f.access_disabled})">${f.access_disabled?'申诉通过恢复':'暂停家庭访问'}</button>`:' 注销处理中'}`:''}</td>
        <td>${(f.created_at||'').slice(0,10)}</td></tr>`;
     }).join('') || '<tr><td colspan="7">暂无家庭与学生</td></tr>';
     $('familyPagination').textContent=`第 ${page} / ${Math.max(1,Math.ceil(d.total/10))} 页 · 共 ${d.total} 个家庭`;
@@ -725,6 +731,17 @@ function replyReport(id, current) {
   $('reportEditor').scrollIntoView({block:'center',behavior:'smooth'});
   $('reportReply').focus({preventScroll:true});
 }
+async function setFamilyAccess(id,disabled) {
+  if(!confirm(disabled?'确认因内容违规暂停家庭访问并撤销全部会话？':'确认申诉已核实，恢复家庭访问？')) return;
+  try { await api('/admin/families/'+id+'/access',{method:'PUT',body:JSON.stringify({disabled,reason:disabled?'content_violation':'appeal_accepted'})}); await loadFamilies(); await loadLogs(); }
+  catch(e) { alert(e.message); }
+}
+async function removeReportedContent() {
+  const report=REPORTS.find(row=>row.id===editingReport);
+  if(!report?.message_id || !confirm('确认移除原消息、收藏副本及关联图片？')) return;
+  try { await api('/admin/messages/'+report.message_id+'/remove',{method:'POST'}); $('reportContext').textContent='违规内容已移除，请回复核查结果。'; await loadLogs(); }
+  catch(e) { $('reportReplyError').textContent=e.message; }
+}
 async function saveReportReply() {
   const reply=$('reportReply').value.trim();
   if (!reply || reply.length>1000) { $('reportReplyError').textContent='请填写 1–1000 字回复'; return; }
@@ -807,6 +824,7 @@ async function createUser() {
 }
 
 async function loadFences() {
+  loadContentPolicy();
   FENCES = await api('/admin/fence-configs');
   $('fences').innerHTML = FENCES.map(f => `
     <article class="config-card"><div class="config-head"><div class="identity"><span class="avatar" aria-hidden="true">栏</span><div><h3>${esc(f.name)}</h3><small>安全围栏配置</small></div></div><span class="tag active">密钥已配置</span></div>
@@ -820,6 +838,24 @@ async function loadFences() {
   $('ge_fence').innerHTML = '<option value="">选择围栏配置</option>' +
     FENCES.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
   $('ge_fence').value = editing;
+}
+
+let contentPolicyRevision = '';
+async function loadContentPolicy() {
+  try {
+    const policy = await api('/admin/content-policy');
+    contentPolicyRevision = policy.revision;
+    $('contentPolicyVersion').textContent = `内置版本 ${policy.base_version} · 附加规则 ${policy.revision} · ${policy.updated_at} · 类别：${policy.categories.join(', ')}`;
+    $('contentPolicyTerms').value = JSON.stringify(policy.blocked_terms, null, 2);
+    $('contentPolicyStatus').textContent = '';
+  } catch (error) { $('contentPolicyStatus').textContent = error.message; }
+}
+async function saveContentPolicy() {
+  try {
+    const blocked_terms = JSON.parse($('contentPolicyTerms').value);
+    await api('/admin/content-policy', {method:'PUT', body:JSON.stringify({revision:contentPolicyRevision,blocked_terms})});
+    await loadContentPolicy(); $('contentPolicyStatus').textContent = '规则已保存并生效';
+  } catch (error) { $('contentPolicyStatus').textContent = error.message; }
 }
 
 function editFence(id) {

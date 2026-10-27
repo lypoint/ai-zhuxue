@@ -20,6 +20,30 @@ from ..services.teacher_channels import current_channel
 router = APIRouter(tags=["images"])
 
 
+@router.get("/public/model-disclosure")
+def model_disclosure(db: Session = Depends(get_db)):
+    from ..models import LLMGroup
+    from ..services import image_models
+    rows = db.query(LLMGroup).filter(LLMGroup.teacher_enabled.is_(True),
+        LLMGroup.teacher_channel.in_(("all", "googleplay")), LLMGroup.tag.is_(None)).order_by(LLMGroup.teacher_sort_order, LLMGroup.id).all()
+    teachers = []
+    for row in rows:
+        capabilities = image_chat.capabilities(db, row)
+        generation = vision = None
+        if capabilities["image_output"] and row.image_config_id:
+            try:
+                generation = image_models.available(db, row.image_config_id, "generation").model_id
+            except HTTPException:
+                pass
+        if capabilities["image_output"] and row.vision_config_id:
+            vision = image_models.available(db, row.vision_config_id, "vision").model_id
+        teachers.append({"teacher": row.teacher_name, "chat_model": row.chat_model,
+            "diagram_model": row.chat_model if capabilities["image_output"] and row.diagram_enabled else None,
+            "review_model": vision or (row.chat_model if capabilities["image_output"] else None),
+            "generation_model": generation})
+    return {"teachers": teachers}
+
+
 def _limited(db, key, count):
     allowed = _hit(db, key, count, int(time.time() // 60))
     db.commit()
