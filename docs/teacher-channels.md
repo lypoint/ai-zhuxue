@@ -8,7 +8,8 @@ CMS 的 LLM 分组支持设置适用渠道：`all`（全部渠道）、`wechat`�
 
 - 家长端三个独立入口固定使用各自的渠道，无需额外编译参数。
 - 学生端 Android 默认 `wechat`，iOS 默认 `appstore`；Google Play 学生包必须使用 `--dart-define=APP_CHANNEL=googleplay`。
-- 未携带请求头的旧客户端及 Web 默认为 `wechat`；未知渠道返回 422。
+- 国际 Web 家长端与学生端通过 `/browser/parent/`、`/browser/student/` 访问；服务端 `BrowserMiddleware` 移除客户端传入的渠道头，统一设置 `X-App-Channel: googleplay`。老师名单包含已启用的 `googleplay` 与 `all` 老师，默认老师使用 CMS 的 Google Play 渠道配置；不按浏览器设备或语言切换渠道。
+- 直接调用普通 API、未携带请求头的旧客户端仍默认为 `wechat`；未知渠道返回 422。此缺省规则不适用于上述国际 Web 入口。
 
 ```sh
 cd app/app_student

@@ -236,12 +236,13 @@ export function MessageCard({
             {t("pendingImage")}
           </p>
         )}
-      {message.image_job &&
-        ["failed", "skipped"].includes(message.image_job.state) && (
-          <p className="muted">
-            {tx(message.image_job.error || t("imageUnavailable"))}
-          </p>
-        )}
+      {message.image_job?.state === "failed" && (
+        <p className="muted">
+          {message.image_job.error
+            ? tx(message.image_job.error)
+            : t("imageUnavailable")}
+        </p>
+      )}
     </article>
   );
 }
