@@ -58,6 +58,7 @@ import {
 } from "./ui";
 import { date, number, tx, contentText } from "./i18n";
 import { Favorites, MessageCard } from "./content";
+import { TeacherAvatar } from "./teacher-avatar";
 import { PhotoPicker, type Attachment } from "./photo";
 import Grades from "./grades";
 import Learning from "./learning";
@@ -77,6 +78,7 @@ type Availability = {
 type Teacher = {
   teacher_id: number | null;
   name: string;
+  avatar_url?: string;
   selected: boolean;
   access: string;
   capabilities?: {
@@ -388,6 +390,7 @@ function Chat({
   );
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [convTeacher, setConvTeacher] = useState<number | null>(null);
+  const [convAvatar, setConvAvatar] = useState("");
   const [capabilities, setCapabilities] = useState<{
     image_input: boolean;
     image_output: boolean;
@@ -424,6 +427,9 @@ function Chat({
   const existingTeacher = teachers.data?.find(
     (teacher) => teacher.teacher_id === convTeacher,
   );
+  const avatarUrl = conversation
+    ? existingTeacher ? existingTeacher.avatar_url : convAvatar
+    : chosen?.avatar_url;
   const effectiveCaps = conversation ? capabilities : chosen?.capabilities;
   const blocked =
     availability?.resting || availability?.remaining_seconds === 0;
@@ -444,6 +450,7 @@ function Chat({
     setError("");
     setMessages([]);
     setConversation(null);
+    setConvAvatar("");
     setCapabilities(null);
     setAttachments([]);
     attachmentsRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
@@ -471,19 +478,22 @@ function Chat({
         setMessages(data);
         setConversation(id);
         setCapabilities(caps);
-        const teacher = data[0] as Message & { teacher_id?: number | null };
+        const teacher = data[0] as Message & { teacher_id?: number | null; teacher_avatar_url?: string };
         setConvTeacher(teacher?.teacher_id ?? null);
+        setConvAvatar(teacher?.teacher_avatar_url || "");
       } else {
         const latest = await api<{
           conversation_id: number | null;
           messages: Message[];
           teacher_id: number | null;
+          teacher_avatar_url?: string;
           capabilities?: { image_input: boolean; image_output: boolean };
         }>("/chat/latest");
         if (sequence !== requestNumber.current) return;
         setMessages(latest.messages);
         setConversation(latest.conversation_id);
         setConvTeacher(latest.teacher_id);
+        setConvAvatar(latest.teacher_avatar_url || "");
         setCapabilities(latest.capabilities || null);
       }
     };
@@ -668,6 +678,7 @@ function Chat({
             setConvTeacher(
               conversation ? convTeacher : (chosen?.teacher_id ?? null),
             );
+            if (!conversation) setConvAvatar(chosen?.avatar_url || "");
             setMessages((rows) =>
               rows.map((row) =>
                 row.id === pendingId - 1
@@ -845,7 +856,7 @@ function Chat({
             onClick={() => setTeacherDialog(true)}
             disabled={busy}
           >
-            <Sparkles size={20} />
+            <TeacherAvatar url={avatarUrl} />
             <span>
               {conversation
                 ? contentText(
@@ -911,6 +922,7 @@ function Chat({
               <MessageCard
                 message={message}
                 teacher={conversation ? existingTeacher?.name : chosen?.name}
+                teacherAvatar={avatarUrl || ""}
                 saved={saved.data?.some((row) => row.message_id === message.id)}
                 feedback={feedbacks.data?.[String(message.id)]}
                 busy={actionBusy || busy}
@@ -1153,7 +1165,7 @@ function Chat({
                 })
               }
             >
-              <Sparkles />
+              <TeacherAvatar url={teacher.avatar_url} />
               <span>
                 <strong>{contentText(teacher.name)}</strong>
                 <small>

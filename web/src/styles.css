@@ -971,6 +971,18 @@ dd {
   gap: 10px;
   color: #354e3e;
 }
+.teacher-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.teacher-avatar-placeholder {
+  padding: 6px;
+  background: #edf1e7;
+  color: #64845a;
+}
 .history-toggle {
   display: none;
 }

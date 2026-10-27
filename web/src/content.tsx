@@ -30,6 +30,7 @@ import {
 } from "./ui";
 import { date, tx, contentText } from "./i18n";
 import { normalizeMathMarkdown } from "./math-markdown";
+import { TeacherAvatar } from "./teacher-avatar";
 
 export function Markdown({ children }: { children: string }) {
   return (
@@ -123,6 +124,7 @@ export function Images({ blocks }: { blocks?: ImageBlock[] }) {
 export function MessageCard({
   message,
   teacher,
+  teacherAvatar,
   feedback,
   saved,
   onFeedback,
@@ -134,6 +136,7 @@ export function MessageCard({
 }: {
   message: Message;
   teacher?: string;
+  teacherAvatar?: string;
   feedback?: string;
   saved?: boolean;
   onFeedback?: (action: string) => void;
@@ -156,6 +159,7 @@ export function MessageCard({
       data-message-id={message.id}
     >
       <div className="message-byline">
+        {assistant && teacherAvatar !== undefined && <TeacherAvatar url={teacherAvatar} />}
         {assistant
           ? teacher
             ? contentText(teacher)
