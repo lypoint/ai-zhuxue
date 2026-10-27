@@ -261,3 +261,34 @@ def test_checkout_rejects_product_policy_drift(client, gateway, change):
     response = client.post('/parent/waffo/checkout', headers=h(token), json={'product_code':'family_monthly_2'})
     assert response.status_code == 503
     assert not gateway['creates']
+
+
+@pytest.mark.parametrize('change', ['event_id', 'timestamp', 'both'])
+def test_distinct_lifecycle_notifications_are_not_mistaken_for_retries(client, gateway, change):
+    token, ref = purchase(client)
+    gateway['ready'] = True
+    gateway['order'].update(status='canceling', willRenew=False)
+    order_id = gateway['order']['id']
+    event = {'id': order_id, 'eventId': order_id + '-cancel-1',
+             'timestamp': '2026-10-28T01:00:00.000Z', 'eventType': 'subscription.canceling',
+             'storeId': 'STO_test', 'mode': 'test', 'data': {'orderId': order_id}}
+    def send():
+        raw = json.dumps(event).encode()
+        response = client.post('/payments/waffo/notify', content=raw,
+                               headers={'x-waffo-signature': signature(gateway, raw)})
+        assert response.status_code == 200, response.text
+    send()
+    assert not client.get('/parent/subscription', headers=h(token)).json()['auto_renew']
+    gateway['order'].update(status='active', willRenew=True)
+    verify(client, gateway, token, ref)
+    assert client.get('/parent/subscription', headers=h(token)).json()['auto_renew']
+    gateway['order'].update(status='canceling', willRenew=False)
+    # Retries keep the original eventId and timestamp and must not reapply.
+    send()
+    assert client.get('/parent/subscription', headers=h(token)).json()['auto_renew']
+    if change in ('event_id', 'both'):
+        event['eventId'] = order_id + '-cancel-2'
+    if change in ('timestamp', 'both'):
+        event['timestamp'] = '2026-10-28T01:01:00.000Z'
+    send()
+    assert not client.get('/parent/subscription', headers=h(token)).json()['auto_renew']

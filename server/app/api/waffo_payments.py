@@ -95,10 +95,14 @@ async def notify(request: Request, db: Session = Depends(get_db)):
             raise HTTPException(400, "Unexpected Waffo store or environment.")
         kind, reference = event["eventType"], event["data"].get("orderId")
         if kind.startswith("subscription.") or kind in ("refund.succeeded", "chargeback.created", "chargeback.updated"):
-            if not reference or not isinstance(event["id"], str) or len(event["id"]) > 128:
+            event_id = event.get("eventId", event.get("id"))
+            emitted_at = event.get("timestamp", "")
+            if (not reference or not isinstance(event_id, str) or not event_id or len(event_id) > 128
+                    or not isinstance(emitted_at, str) or len(emitted_at) > 64):
                 raise ValueError()
-            # Event types may share an order ID; retries share both fields.
-            key = "waffo:" + hashlib.sha256((kind + ":" + event["id"]).encode()).hexdigest()
+            # id can remain the order ID across renewals/cancellations. Retries preserve timestamp.
+            identity = kind + ":" + event_id + ((":" + emitted_at) if emitted_at else "")
+            key = "waffo:" + hashlib.sha256(identity.encode()).hexdigest()
             store.enqueue(waffo.CHANNEL, key, reference, db)
             await asyncio.to_thread(store.process_event, key)
         return {"ok": True}
