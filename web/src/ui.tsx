@@ -396,6 +396,9 @@ export function Legal({
         <button className="text-button" onClick={() => setPage("privacy")} aria-current={page === "privacy" ? "page" : undefined}>{t("privacy")}</button>
         <button className="text-button" onClick={() => setPage("terms")} aria-current={page === "terms" ? "page" : undefined}>{t("terms")}</button>
       </nav>
+      {(page === "privacy" || page === "terms") && <p>
+        <a href={`https://aistudynest.com/${page}/`} target="_blank" rel="noopener noreferrer">{t(page)} ↗</a>
+      </p>}
       <p className="muted">{t("visibility")}</p>
     </Dialog>
   );

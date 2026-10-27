@@ -35,7 +35,7 @@ def account_deletion_request(body: dict, guardian: Guardian = Depends(guardian_i
     requested_at = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=timezone.utc)
     result = {"status": "completed" if row.completed_at else "pending",
               "request_id": f"AD-{row.family_id}",
-              "requested_at": requested_at.isoformat(), "processing_days": 30}
+              "requested_at": requested_at.isoformat(), "processing_days": 0 if row.completed_at else 30}
     db.commit()
     return result
 

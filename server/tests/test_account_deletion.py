@@ -26,8 +26,9 @@ def test_request_is_authenticated_confirmed_idempotent_and_family_scoped(client)
     assert client.post(URL, headers=h(parent), json={}).status_code == 422
     assert client.get('/parent/family', headers=h(parent)).status_code == 200
     response = client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'})
-    assert response.status_code == 202 and response.json()['status'] == 'pending'
-    assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).json() == response.json()
+    assert response.status_code == 202 and response.json()['status'] == 'completed'
+    assert response.json()['processing_days'] == 0
+    assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 401
     assert client.get('/parent/family', headers=h(parent)).status_code == 401
     assert client.get('/chat/learning', headers=h(student)).status_code == 401
     fresh = client.post('/auth/guardian/register', json={'phone': phone, 'sms_code': '123456'})
@@ -37,26 +38,20 @@ def test_request_is_authenticated_confirmed_idempotent_and_family_scoped(client)
     records = client.get('/admin/account-deletions', headers=make_admin(client, 'admin'))
     assert records.status_code == 200
     record = next(r for r in records.json()['items'] if r['family_id'] == fid)
-    assert record['status'] == 'pending' and record['guardian_id'] == guardian.id
+    assert record['status'] == 'completed' and record['guardian_id'] == guardian.id
     assert client.get('/admin/account-deletions', headers=make_admin(client, 'support')).status_code == 403
     assert client.get('/parent/family', headers=h(other)).status_code == 200
     with SessionLocal() as db:
         assert db.query(m.AccountDeletionRequest).filter_by(family_id=fid).count() == 1
         assert db.query(m.AdminLog).filter_by(action='account.deletion_requested', detail=f'family_id={fid}').count() == 1
     with SessionLocal.begin() as db:
-        db.get(m.AccountDeletionRequest, fid).created_at = datetime.now(timezone.utc) - timedelta(days=2)
-    with SessionLocal.begin() as db:
         from app.services.performance import Trace, save
         trace = Trace("chat_stream")
         trace.family_id = fid
-        # The family is already disabled: privacy-preserving writes are refused.
         save(db, trace)
         assert db.query(m.PerformanceTrace).filter_by(family_id=fid).count() == 0
-        db.add(m.PerformanceTrace(trace_id=trace.id,source="server",family_id=fid,operation="chat_stream",node="primary",variant="baseline",model="unknown",mode="buffered",input_kind="text",result="success",metrics="{}"))
-        db.flush()
-        complete_deletion(db, fid)
-        assert db.query(m.PerformanceTrace).filter_by(family_id=fid).count() == 0
         assert db.query(m.AnalyticsEvent).filter_by(family_id=fid).count() == 0
+        assert db.query(m.Conversation).join(m.Student, m.Conversation.student_id == m.Student.id).filter(m.Student.family_id == fid).count() == 0
     assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).status_code == 401
     records = client.get('/admin/account-deletions', headers=make_admin(client))
     assert next(r for r in records.json()['items'] if r['family_id'] == fid)['status'] == 'completed'
@@ -136,10 +131,7 @@ def test_complete_erases_personal_data_with_real_foreign_keys_and_preserves_fina
         db.commit()
         request = request_deletion(db, guardian)
         db.commit()
-        with pytest.raises(ValueError, match='24 hours'):
-            complete_deletion(db, family.id)
-        request.created_at = datetime.now(timezone.utc) - timedelta(days=2)
-        db.commit()
+        assert request.completed_at
         complete_deletion(db, family.id)
         db.commit()
         assert complete_deletion(db, family.id).completed_at
@@ -215,3 +207,41 @@ def test_parent_reregistration_can_bind_the_same_physical_device(client):
     assert login.status_code == 200
     assert client.get('/chat/sessions', headers=h(token)).status_code == 401
     assert client.get('/chat/sessions', headers=h(login.json()['token'])).json() == []
+
+
+def test_inflight_request_cannot_recreate_learning_data_after_erasure(client):
+    from fastapi import HTTPException
+    from app.api.deps import require_family_access
+    parent, _ = make_family(client)
+    with SessionLocal() as inflight:
+        guardian = inflight.get(m.Guardian, int(parse_token(parent)['sub']))
+        family_id = guardian.family_id
+        student_id = inflight.query(m.Student).filter_by(family_id=family_id).one().id
+        require_family_access(family_id, inflight)
+        inflight.commit()
+        assert client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'}).json()['status'] == 'completed'
+        inflight.add(m.StudentGrade(student_id=student_id, subject='private', exam_date='2026-10-27', score=1, max_score=2))
+        inflight.flush()
+        with pytest.raises(HTTPException) as error:
+            inflight.commit()
+        assert error.value.status_code == 401
+        inflight.rollback()
+    with SessionLocal() as db:
+        assert db.query(m.StudentGrade).filter_by(student_id=student_id).count() == 0
+
+
+def test_legacy_pending_deletion_completes_on_authenticated_retry(client):
+    parent, student = make_family(client)
+    with SessionLocal.begin() as db:
+        guardian = db.get(m.Guardian, int(parse_token(parent)['sub']))
+        family_id = guardian.family_id
+        db.get(m.Family, family_id).access_disabled = True
+        db.add(m.AccountDeletionRequest(family_id=family_id, guardian_id=guardian.id))
+    result = client.post(URL, headers=h(parent), json={'confirmation': 'DELETE'})
+    assert result.status_code == 202
+    assert result.json()['status'] == 'completed'
+    assert result.json()['processing_days'] == 0
+    assert client.get('/chat/learning', headers=h(student)).status_code == 401
+    with SessionLocal() as db:
+        assert db.get(m.AccountDeletionRequest, family_id).completed_at
+        assert db.get(m.Guardian, int(parse_token(parent)['sub'])).nickname == ''

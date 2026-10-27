@@ -1,5 +1,6 @@
 import jwt as pyjwt
 from fastapi import Depends, Header, HTTPException
+from sqlalchemy import event, select
 from sqlalchemy.orm import Session
 
 from ..db import get_db
@@ -10,6 +11,19 @@ from ..security import parse_token
 def require_family_access(family_id: int, db: Session):
     family = db.get(Family, family_id)
     if not family or family.access_disabled:
+        raise HTTPException(401, "账号已停用，请联系支持")
+    db.info["family_write_id"] = family_id
+
+
+@event.listens_for(Session, "before_commit")
+def _check_family_before_commit(db: Session):
+    family_id = db.info.get("family_write_id")
+    if family_id is None or db.info.get("erasing_family") == family_id:
+        return
+    # Serialize the final write with erasure so an in-flight request cannot restore deleted data.
+    disabled = db.connection().execute(select(Family.access_disabled).where(
+        Family.id == family_id).with_for_update()).scalar_one_or_none()
+    if disabled is None or disabled:
         raise HTTPException(401, "账号已停用，请联系支持")
 
 

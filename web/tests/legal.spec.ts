@@ -18,6 +18,10 @@ for (const role of ["parent", "student"] as const) {
       await expect(dialog.getByRole("heading", {name:title,exact:true})).toBeVisible();
       await expect(dialog).toContainText("ChatGPT, Claude and Gemini");
       await expect(dialog).not.toContainText(/DeepSeek|\bGLM\b|OpenRouter/i);
+      const policy = dialog.getByRole("link", {name: `${title} ↗`, exact: true});
+      await expect(policy).toHaveAttribute("href", `https://aistudynest.com/${title === "Privacy" ? "privacy" : "terms"}/`);
+      await expect(policy).toHaveAttribute("target", "_blank");
+      await expect(policy).toHaveAttribute("rel", "noopener noreferrer");
       expect(page.url()).toBe(origin + "/");
     }
     expect(external).toEqual([]);

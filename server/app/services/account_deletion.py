@@ -1,5 +1,5 @@
-"""Authenticated deletion requests and operator-only personal-data erasure."""
-from datetime import datetime, timedelta, timezone
+"""Authenticated immediate family erasure and operator completion of legacy requests."""
+from datetime import datetime, timezone
 import uuid
 
 from fastapi import HTTPException
@@ -34,11 +34,13 @@ def request_deletion(db: Session, guardian: m.Guardian) -> m.AccountDeletionRequ
     if existing:
         if existing.guardian_id != guardian.id:
             raise HTTPException(403, "请联系 support@gker.net 处理共同家庭的删除申请")
-        return existing
+        db.info["erasing_family"] = family.id
+        return complete_deletion(db, family.id)
     require_family_access(family.id, db)
     # A guardian must never silently delete another adult's shared data.
     if db.query(m.Guardian).filter_by(family_id=family.id).count() != 1:
         raise HTTPException(409, "请联系 support@gker.net 处理共同家庭的删除申请")
+    db.info["erasing_family"] = family.id
     row = m.AccountDeletionRequest(family_id=family.id, guardian_id=guardian.id)
     db.add(row)
     family.access_disabled = True
@@ -54,7 +56,7 @@ def request_deletion(db: Session, guardian: m.Guardian) -> m.AccountDeletionRequ
     db.add(m.AdminLog(admin=f"guardian:{guardian.id}", action="account.deletion_requested",
                       detail=f"family_id={family.id}"))
     db.flush()
-    return row
+    return complete_deletion(db, family.id)
 
 
 def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
@@ -67,10 +69,6 @@ def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
     if not family.access_disabled:
         raise ValueError("Family must remain disabled before erasure")
     now = datetime.now(timezone.utc)
-    requested = row.created_at.replace(tzinfo=timezone.utc) if row.created_at.tzinfo is None else row.created_at
-    # Allow pre-existing chat/assessment requests to finish before the final purge.
-    if now - requested < timedelta(days=1):
-        raise ValueError("Wait at least 24 hours after the request before erasure")
     students = db.query(m.Student).filter_by(family_id=family_id).all()
     ids = [s.id for s in students]
     convs = db.query(m.Conversation.id).filter(m.Conversation.student_id.in_(ids))

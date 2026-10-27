@@ -770,6 +770,7 @@ async def send_message_stream(body: ChatIn, live: bool = False,
 
         from ..db import SessionLocal
         sdb = SessionLocal()
+        sdb.info["family_write_id"] = family_id
         try:
             yield sse("meta", {"conversation_id": conv_id, "user_message_id": user_msg_id,
                                "fence_action": fence_action,
