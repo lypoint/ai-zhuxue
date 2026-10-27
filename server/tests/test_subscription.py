@@ -28,7 +28,7 @@ def test_trial_created_on_register(client):
     g, s = make_family(client)
     d = client.get("/parent/subscription", headers=h(g)).json()
     assert d["plan"] == "free_trial" and d["active"] is True
-    assert 28 <= d["days_left"] <= 30
+    assert 2 <= d["days_left"] <= 3
     assert d["price_cny"] == 66.0
 
 

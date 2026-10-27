@@ -20,7 +20,7 @@ PAGES = {"home", "children", "activity", "schedule", "favorites", "learning", "g
 def safe_properties(values):
     safe = {}
     enums = {"page": PAGES, "result": {"success", "failure"},
-             "provider": {"google", "creem_test", "paddle_sandbox", "appstore", "googleplay", "wechat", "demo"},
+             "provider": {"google", "waffo", "appstore", "googleplay", "wechat", "demo"},
              "environment": {"test", "production"}, "mode": {"stream", "single"},
              "input": {"text", "image"}, "action": {"allow", "rewrite"}}
     for name, allowed in enums.items():

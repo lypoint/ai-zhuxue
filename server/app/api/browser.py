@@ -75,7 +75,7 @@ def config(role: str):
         raise HTTPException(404)
     return {"role": role, "channel": "googleplay", "market": "international",
             "google_client_id": settings.google_login_client_id if role == "parent" else "",
-            "payments_enabled": (settings.paddle_sandbox_enabled or settings.creem_test_enabled) if role == "parent" else False}
+            "payments_enabled": settings.waffo_enabled if role == "parent" else False}
 
 
 @router.post("/parent/login")

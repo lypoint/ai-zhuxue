@@ -4,7 +4,7 @@ const events = ["page_view", "login_start", "login", "sign_up", "trial_start",
   "child_create", "bind_code_create", "child_connected_observed", "view_subscription", "begin_checkout",
   "checkout_open", "checkout_closed", "checkout_error", "subscription_verify", "subscription_manage"] as const;
 export type AnalyticsEvent = typeof events[number];
-type Provider = "google" | "creem_test" | "paddle_sandbox";
+type Provider = "google" | "waffo";
 type Parameters = { result?: "success" | "failure"; provider?: Provider; seat_count?: number; status?: number };
 const pages = ["home", "children", "activity", "schedule", "favorites", "learning", "grades", "assessments", "notifications", "subscription", "settings", "other"] as const;
 export function analyticsPage(path: string): string {
@@ -66,7 +66,7 @@ export async function track(event: AnalyticsEvent, params: Parameters = {}, page
     // Family linkage stays on our server; GA receives only the existing fixed vocabulary.
     if (["page_view", "view_subscription", "begin_checkout", "checkout_open", "checkout_closed", "checkout_error", "subscription_verify", "subscription_manage"].includes(event)) {
       const properties: Record<string, string | number> = {};
-      if (params.provider && ["google", "creem_test", "paddle_sandbox"].includes(params.provider)) properties.provider = params.provider;
+      if (params.provider && ["google", "waffo"].includes(params.provider)) properties.provider = params.provider;
       if (params.result === "success" || params.result === "failure") properties.result = params.result;
       if (Number.isInteger(params.seat_count) && params.seat_count! > 0 && params.seat_count! <= 1000) properties.seat_count = params.seat_count!;
       properties.page = page && (pages as readonly string[]).includes(page) ? page : analyticsPage(location.pathname);
@@ -76,7 +76,7 @@ export async function track(event: AnalyticsEvent, params: Parameters = {}, page
     if (!target || !granted()) return;
     const safe: Record<string, string | number> = {};
     if (params.result === "success" || params.result === "failure") safe.result = params.result;
-    if (["google", "creem_test", "paddle_sandbox"].includes(params.provider || "")) safe.provider = params.provider!;
+    if (["google", "waffo"].includes(params.provider || "")) safe.provider = params.provider!;
     if (Number.isInteger(params.seat_count) && params.seat_count! > 0 && params.seat_count! <= 1000) safe.seat_count = params.seat_count!;
     if (Number.isInteger(params.status) && params.status! >= 0 && params.status! <= 599) safe.status = params.status!;
     const name = page && (pages as readonly string[]).includes(page) ? page : analyticsPage(location.pathname);
@@ -101,10 +101,10 @@ if (__WEB_ROLE__ === "parent") {
       if (result === "success") void track("bind_code_create", { result, status });
     }
     if (method === "POST" && /^\/api\/parent\/students\/\d+\/rebind-code$/.test(path)) void track("bind_code_create", { result, status });
-    const payment = path.match(/^\/api\/parent\/(creem|paddle)\/(verify|manage)$/);
+    const payment = path.match(/^\/api\/parent\/(waffo)\/(verify|manage)$/);
     if (payment && ((method === "POST" && payment[2] === "verify") || (method === "GET" && payment[2] === "manage")))
       void track(payment[2] === "verify" ? "subscription_verify" : "subscription_manage", {
-        result, status, provider: payment[1] === "creem" ? "creem_test" : "paddle_sandbox",
+        result, status, provider: "waffo",
       });
   });
 }

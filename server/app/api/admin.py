@@ -315,7 +315,7 @@ def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = D
         expires = entitlement_expiry(source)
         if expires > now:
             sub_active += 1
-            if source is sub and sub.plan == "free_trial":
+            if source is sub and sub.plan == "free_trial" or getattr(source, "state", None) == "trialing":
                 sub_trial += 1
         else:
             sub_expired += 1

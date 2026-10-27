@@ -8,7 +8,7 @@ process.env.WEB_TEST_HTTPS = "1";
 export default defineConfig({
   ...base,
   testDir: ".",
-  testMatch: ["tests/family.spec.ts", "tests/paddle.spec.ts", "tests/creem.spec.ts", "tests-https/gateway.spec.ts"],
+  testMatch: ["tests/family.spec.ts", "tests/waffo.spec.ts", "tests/subscription-billing.spec.ts", "tests-https/gateway.spec.ts"],
   outputDir: "test-results-https",
   reporter: [
     ["list"],

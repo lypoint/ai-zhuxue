@@ -1,4 +1,4 @@
-"""订阅权益：注册开 30 天免费试用；到期未续费拦截学生端（P0 商业闭环）。
+"""订阅权益：注册开 3 天免费试用；到期未续费拦截学生端（P0 商业闭环）。
 
 支付通道骨架期为 mock；生产接微信/支付宝需商户资质与回调（外部依赖，见 roadmap）。
 """
@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from ..config import settings
 from ..models import PricingConfig, Subscription, SubscriptionOrder
 
-TRIAL_DAYS = 30
+TRIAL_DAYS = 3
 PRICE_CNY = 66.0
 
 
@@ -168,7 +168,7 @@ def get_status(family_id: int, db: Session) -> dict:
     store = source is not sub
     seats = source.seat_count
     provider = source.channel if store else sub.provider
-    plan = "monthly" if store else sub.plan
+    plan = ("subscription_trial" if source.state == "trialing" else "monthly") if store else sub.plan
     now = dt.datetime.utcnow()
     # 兼容 sqlite naive
     expires = entitlement_expiry(source)
@@ -182,6 +182,7 @@ def get_status(family_id: int, db: Session) -> dict:
     pending = db.query(SubscriptionOrder.id).filter_by(family_id=family_id, status="pending").filter(
         SubscriptionOrder.provider.in_(["demo", "wechat"])).first() is not None
     return {"plan": plan, "active": active, "expires_at": expires.isoformat(),
+            "billing_status": source.state if store else sub.plan,
             "next_billing_at": next_billing.isoformat() if next_billing else None,
             "billing_period_ends_at": source.expires_at.isoformat() if store else None,
             "trial_extension_seconds": int(source.trial_extension_seconds or 0) if store else 0,
@@ -190,7 +191,7 @@ def get_status(family_id: int, db: Session) -> dict:
             "provider": provider, "auto_renew": source.auto_renew if store else False, "paid_amount": yuan(int(sub.paid_amount_cents or to_cents(sub.paid_amount))),
             "seat_count": seats, "used_seats": active_seats(family_id, db),
             "monthly_price_cny": yuan(monthly_price_cents(cfg, int(seats or 1))),
-            "currency": "CNY", "billing_period": "month",
+            "currency": "USD" if provider == "waffo" else "CNY", "billing_period": "month",
             "product_code": f"family_monthly_{int(seats or 1)}",
             "can_purchase_subscription": not active or plan == "free_trial",
             "has_pending_payment": pending,

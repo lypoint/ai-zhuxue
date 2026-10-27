@@ -127,7 +127,7 @@ def entitlement_expiry(row) -> datetime:
 
 def active(row: StoreSubscription) -> bool:
     now = datetime.utcnow()
-    eligible = row.state in ("active", "grace") or (
+    eligible = row.state in ("active", "grace", "trialing") or (
         row.state == "expired" and naive(row.expires_at) <= now and (row.trial_extension_seconds or 0) > 0)
     return eligible and entitlement_expiry(row) > now
 
@@ -299,15 +299,14 @@ async def google_status(reference: str) -> VerifiedSubscription:
 
 
 async def verify(channel: str, reference: str) -> VerifiedSubscription:
-    if channel == "creem_test":
-        from .creem_billing import verify_subscription
-        return await asyncio.to_thread(verify_subscription, reference)
-    if channel == "paddle_sandbox":
-        from .paddle_billing import verify_subscription
+    if channel == "waffo":
+        from .waffo_billing import verify_subscription
         return await asyncio.to_thread(verify_subscription, reference)
     if channel == "appstore":
         return await asyncio.to_thread(apple_status, reference)
-    return await google_status(reference)
+    if channel == "googleplay":
+        return await google_status(reference)
+    raise StoreError("Unsupported payment channel")
 
 
 def record(result: VerifiedSubscription, db: Session, family_id: int | None = None) -> StoreSubscription | None:
@@ -344,7 +343,7 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
             max(0, int((entitlement_expiry(row) - datetime.utcnow()).total_seconds())))
     # Capture once from the authority's initial purchase time, never from restore time.
     # Missing authority timestamps can be filled by a subsequent reconciliation.
-    if (result.state == "active" and naive(result.expires) > datetime.utcnow()
+    if (result.channel != "waffo" and result.state == "active" and naive(result.expires) > datetime.utcnow()
             and result.first_paid_at is not None and naive(result.first_paid_at) <= datetime.utcnow()
             and row.state != "replaced" and not successor):
         sub = db.query(Subscription).filter_by(family_id=owner.family_id).with_for_update().one()
@@ -362,6 +361,15 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
     row.checked_at = datetime.utcnow()
     if row.state == "expired" and entitlement_expiry(row) <= datetime.utcnow():
         row.trial_extension_seconds = 0
+    from .analytics import record as record_event
+    environment = "test" if ((result.channel == "waffo" and settings.waffo_environment == "test") or
+        (result.channel == "appstore" and (result.chain.startswith("sandbox:") or settings.apple_environment == "Sandbox")) or
+        result.account_token.lower() in test_accounts()) else "production"
+    if result.channel == "waffo" and row.state in ("active", "trialing") and active(row):
+        # Native free trials activate access even before a payment exists.
+        db.flush()
+        record_event(db, "subscription_activated", owner.family_id, f"waffo-subscription:{row.id}:active",
+                     provider=result.channel, seat_count=row.seat_count, environment=environment)
     if result.transaction_id:
         transaction = db.query(StoreTransaction).filter_by(channel=result.channel, transaction_id=result.transaction_id).first()
         if transaction and transaction.family_id != owner.family_id:
@@ -375,15 +383,11 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
         transaction.price_milliunits = result.price_milliunits
         transaction.currency = result.currency
         db.flush()
-        from .analytics import record as record_event
-        environment = "test" if (result.channel in {"creem_test", "paddle_sandbox"} or
-            (result.channel == "appstore" and (result.chain.startswith("sandbox:") or settings.apple_environment == "Sandbox")) or
-            result.account_token.lower() in test_accounts()) else "production"
-        if result.state == "active":
+        if result.channel != "waffo" and result.state == "active":
             record_event(db, "subscription_activated", owner.family_id, f"transaction:{transaction.id}:active",
                    provider=result.channel, seat_count=row.seat_count,
                    environment=environment)
-        if result.state == "active" and (result.price_milliunits or 0) > 0:
+        if (result.state == "active" or result.channel == "waffo" and result.state == "trialing") and (result.price_milliunits or 0) > 0:
             record_event(db, "payment_confirmed", owner.family_id, f"transaction:{transaction.id}:paid",
                    provider=result.channel, environment=environment)
         if result.state == "revoked":
@@ -507,7 +511,7 @@ async def reconcile_forever():
             with SessionLocal() as db:
                 keys = [e.event_key for e in db.query(StoreEvent).filter(StoreEvent.processed.is_(False), StoreEvent.next_attempt_at <= datetime.utcnow()).order_by(StoreEvent.next_attempt_at).limit(100)]
                 cutoff = datetime.utcnow().timestamp() - 3600
-                ids = [r.id for r in db.query(StoreSubscription).filter(StoreSubscription.state != "replaced", or_(StoreSubscription.auto_renew.is_(True), StoreSubscription.state.in_(["active", "grace"]), and_(StoreSubscription.state == "expired", StoreSubscription.trial_extension_seconds > 0)), StoreSubscription.checked_at < datetime.fromtimestamp(cutoff, timezone.utc).replace(tzinfo=None)).order_by(StoreSubscription.checked_at).limit(100)]
+                ids = [r.id for r in db.query(StoreSubscription).filter(StoreSubscription.state != "replaced", or_(StoreSubscription.auto_renew.is_(True), StoreSubscription.state.in_(["active", "grace", "trialing"]), and_(StoreSubscription.state == "expired", StoreSubscription.trial_extension_seconds > 0)), StoreSubscription.checked_at < datetime.fromtimestamp(cutoff, timezone.utc).replace(tzinfo=None)).order_by(StoreSubscription.checked_at).limit(100)]
             for key in keys:
                 try:
                     await asyncio.to_thread(process_event, key)

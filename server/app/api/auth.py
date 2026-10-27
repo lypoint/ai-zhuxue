@@ -183,13 +183,13 @@ def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_su
     ))
     db.add(guardian)
     db.flush()
-    # P0 商业闭环：注册即开 30 天免费试用
+    # P0 商业闭环：注册即开 3 天免费试用
     subscription.ensure_subscription(family.id, db)
     # 欢迎通知
     from ..models import Notification
     db.add(Notification(family_id=family.id, type="system",
                         title="欢迎使用 AI 助学",
-                        body="30 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。"))
+                        body="3 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。"))
     from ..services.analytics import record
     record(db, "family_registered", family.id, f"family:{family.id}:registered")
     record(db, "trial_started", family.id, f"family:{family.id}:trial")

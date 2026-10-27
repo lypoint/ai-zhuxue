@@ -77,7 +77,7 @@ def test_verified_payment_and_restore_use_one_transaction_fact(client, stores):
 
 def test_ordered_funnels_maturity_utc_retention_and_test_separation(client):
     now = datetime(2026, 10, 26, 12, tzinfo=timezone.utc)
-    registered = now - timedelta(days=40)
+    registered = now - timedelta(days=70)
     with SessionLocal.begin() as db:
         a, b, fresh = Family(), Family(), Family()
         db.add_all([a, b, fresh]); db.flush()
@@ -112,3 +112,16 @@ def test_report_is_admin_only_and_has_bounded_dates(client):
     headers=make_admin(client)
     assert client.get(path, headers=headers).status_code == 200
     assert client.get('/admin/analytics/funnels?start=2026-01-01&end=2026-09-01', headers=headers).status_code == 422
+
+
+def test_waffo_first_payment_after_day_33_counts_in_60_day_window(client):
+    now = datetime(2026, 10, 27, 12, tzinfo=timezone.utc)
+    registered = now - timedelta(days=65)
+    with SessionLocal.begin() as db:
+        family = Family(); db.add(family); db.flush()
+        record(db, 'family_registered', family.id, 'registered', at=registered)
+        record(db, 'payment_confirmed', family.id, 'first-charge',
+               at=registered + timedelta(days=33), environment='production')
+        summary = report(db, registered.date(), registered.date(), now=now)
+        assert summary['trial_to_paid']['window_days'] == 60
+        assert summary['trial_to_paid']['steps'][-1]['families'] == 1

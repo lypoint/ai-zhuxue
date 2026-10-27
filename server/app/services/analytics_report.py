@@ -17,7 +17,7 @@ def report(db, start, end, *, include_test=False, now=None):
         Guardian.family_id == Family.id, Guardian.is_review.is_(True)).exists())
     if not include_test:
         test_tokens = {token.strip().lower() for values in (settings.store_test_account_tokens,
-            settings.creem_test_account_tokens, settings.paddle_sandbox_test_account_tokens)
+            settings.waffo_test_account_tokens)
             for token in values.split(",") if token.strip()}
         allowed = allowed.where(~Family.id.in_(select(StoreAccount.family_id).where(
             StoreAccount.account_token.in_(test_tokens))))
@@ -80,10 +80,10 @@ def report(db, start, end, *, include_test=False, now=None):
     return {"start": start.isoformat(), "end": end.isoformat(), "timezone": "UTC", "as_of": now.isoformat(),
             "include_test": include_test, "registered_families": len(cohort),
             "activation": funnel(["family_registered", "device_connected", "question_accepted", "learning_completed"], 7),
-            "checkout": funnel(["view_subscription", "begin_checkout", "payment_confirmed"], 30, views),
+            "checkout": funnel(["view_subscription", "begin_checkout", "payment_confirmed"], 60, views),
             "student_experience": funnel(["student_page_view", "question_submitted", "answer_received"], 7, entries),
-            "trial_to_paid": funnel(["family_registered", "payment_confirmed"], 30),
-            "subscription_activation": funnel(["family_registered", "subscription_activated"], 30),
+            "trial_to_paid": funnel(["family_registered", "payment_confirmed"], 60),
+            "subscription_activation": funnel(["family_registered", "subscription_activated"], 60),
             "retention": retention,
             "coverage": {"parent_web": "consented authenticated samples", "student_web": "authenticated families, no consent gate", "payments": "positive-price verified transactions; Google price unavailable excluded",
                          "history": "new events only; no historical backfill; erasure removes families"}}

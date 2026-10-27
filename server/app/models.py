@@ -296,7 +296,7 @@ class AdminLog(TimestampMixin, Base):
 
 
 class Subscription(TimestampMixin, Base):
-    """家庭订阅：注册即开 30 天免费试用；到期未续费则学生端被拦截（P0 商业闭环）。
+    """家庭订阅：注册即开 3 天免费试用；到期未续费则学生端被拦截（P0 商业闭环）。
 
     一family一行（当前有效订阅）；支付通道骨架期为 mock，生产接微信/支付宝（需商户资质）。
     """
@@ -327,7 +327,7 @@ class PricingConfig(TimestampMixin, Base):
     # read-compatible mirror for existing deployments and clients.
     base_monthly_price_cents: Mapped[int] = mapped_column(Integer, default=6600)
     additional_seat_price_cents: Mapped[int] = mapped_column(Integer, default=3300)
-    trial_days: Mapped[int] = mapped_column(Integer, default=30)
+    trial_days: Mapped[int] = mapped_column(Integer, default=3)
     post_trial_daily_free_count: Mapped[int] = mapped_column(Integer, default=0)
     version: Mapped[int] = mapped_column(Integer, default=1, unique=True)
 

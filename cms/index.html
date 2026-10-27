@@ -565,7 +565,7 @@ async function loadOperations() {
   try {
     const d = await api('/admin/analytics/funnels?' + new URLSearchParams({start:$('operationsStart').value,end:$('operationsEnd').value,include_test:String($('operationsTest').checked)}));
     const panels = [['activation','7 天激活（服务端全量）'],['student_experience','7 天学习站操作（已登录家庭）'],
-      ['checkout','30 天结账（家长授权样本）'],['trial_to_paid','30 天付费转化（已核实付款金额）'],['subscription_activation','30 天订阅开通（含未核实金额的订阅，不等于付款）']];
+      ['checkout','60 天结账（家长授权样本）'],['trial_to_paid','60 天付费转化（已核实付款金额）'],['subscription_activation','60 天订阅开通（含未核实金额的订阅，不等于付款）']];
     $('operationsReport').innerHTML = panels.map(([key,title]) => {
       const f=d[key];
       return `<h3>${title}</h3><p>已满观察期 ${Number(f.mature_families)} · 待观察 ${Number(f.pending_families)}</p><div class="table-wrap"><table><thead><tr><th>阶段</th><th>家庭数</th><th>相邻转化率</th><th>累计转化率</th></tr></thead><tbody>${f.steps.map(row=>`<tr><td>${esc(labels[row.event] || row.event)}</td><td>${Number(row.families)}</td><td>${percentage(row.from_previous)}</td><td>${percentage(row.from_start)}</td></tr>`).join('')}</tbody></table></div>`;

@@ -54,8 +54,7 @@ import { Favorites, MessageCard } from "./content";
 import Grades from "./grades";
 import Learning from "./learning";
 import Assessments from "./assessments";
-import PaddleSandbox from "./paddle-sandbox";
-import CreemTest from "./creem-test";
+import WaffoBilling from "./waffo-billing";
 import { analyticsConsent, track } from "./parent-analytics";
 
 type PageProps = {
@@ -1314,6 +1313,7 @@ function Notifications({
 type SubscriptionData = {
   active: boolean;
   plan: string;
+  billing_status?: string;
   expires_at: string;
   seat_count: number;
   used_seats: number;
@@ -1339,8 +1339,7 @@ function Subscription({ timezone }: { timezone: string | null }) {
       <Heading title={t("subscription")} />
       <p className="notice">{t("trialPaymentPolicy")}</p>
       <p className="notice">{t("renewalTrialPolicy")}</p>
-      <PaddleSandbox reload={resource.reload} provider={resource.data?.provider} />
-      <CreemTest reload={resource.reload} provider={resource.data?.provider} />
+      <WaffoBilling reload={resource.reload} provider={resource.data?.provider} />
       <ResourceState {...resource} retry={resource.reload} />
       {resource.data && (
         <section className="panel">
@@ -1353,9 +1352,11 @@ function Subscription({ timezone }: { timezone: string | null }) {
           <dl>
             <dt>{t("expires")}</dt>
             <dd>{date(resource.data.expires_at, timezone)}</dd>
-            {resource.data.plan === "monthly" && <>
+            {["monthly", "subscription_trial"].includes(resource.data.plan) && <>
               <dt>{t("nextBillingLabel")}</dt>
-              <dd>{resource.data.auto_renew
+              <dd>{resource.data.billing_status === "grace"
+                ? t("billingDatePending")
+                : resource.data.auto_renew
                 ? resource.data.next_billing_at
                   ? date(resource.data.next_billing_at, timezone)
                   : t("billingDatePending")
@@ -1370,8 +1371,10 @@ function Subscription({ timezone }: { timezone: string | null }) {
             <dd>
               {resource.data.plan === "free_trial"
                 ? t("freeTrial")
-                : resource.data.provider === "paddle_sandbox"
-                  ? "Paddle Sandbox"
+                : resource.data.plan === "subscription_trial"
+                  ? t("subscriptionTrial")
+                : resource.data.provider === "waffo"
+                  ? "Waffo"
                   : resource.data.provider ||
                   resource.data.billing_source ||
                   resource.data.source ||

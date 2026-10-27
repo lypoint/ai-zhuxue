@@ -9,8 +9,13 @@ export const languages: Record<string, string> = Object.fromEntries(
   Object.entries(localeMetadata).map(([tag, value]) => [tag, value.name]),
 );
 const en: Record<string, string> = {
-  trialPaymentPolicy: "Pay now. Your remaining free trial time is preserved.",
-  renewalTrialPolicy: "Bonus time does not delay automatic charges. It remains available after you cancel auto-renewal.",
+  trialPaymentPolicy: "Registration includes 3 free days without a payment method. Eligible families can then start a 30-day Waffo subscription trial.",
+  renewalTrialPolicy: "Your subscription is first charged after its free trial, then renews monthly until canceled. Unused registration trial time is not added.",
+  manageSubscription: "Manage subscription",
+  monthlyBilling: "Monthly",
+  refreshSubscription: "Refresh subscription",
+  subscriptionTrial: "Subscription free trial",
+  testPayments: "Test mode. No real money is charged.",
   nextBillingLabel: "Next charge",
   billingDatePending: "See your payment provider for the charge date.",
   noAutomaticCharge: "No automatic charge",
@@ -38,7 +43,7 @@ const en: Record<string, string> = {
   safetyNotification: "Safety-related content was blocked",
   offTopicNotification: "A question outside learning was blocked",
   trialNotification:
-    "Your 30-day free trial has started. Create a connection code to connect your child's learning device.",
+    "Your 3-day free trial has started. Create a connection code to connect your child's learning device.",
   you: "You",
   student: "Student",
   menu: "Open navigation",
@@ -518,6 +523,8 @@ export function tx(source: string): string {
     "欢迎使用 AI 助学": "welcomeNotification",
     "⚠️ 已拦截一条敏感内容": "safetyNotification",
     已拦截一条非学习内容: "offTopicNotification",
+    "3 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。":
+      "trialNotification",
     "30 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。":
       "trialNotification",
     "已为您开启 30 天免费试用。请生成绑定码激活孩子端，开启受保护的学习之旅。":

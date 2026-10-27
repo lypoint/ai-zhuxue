@@ -20,7 +20,7 @@
     "welcomeNotification": "Bienvenue sur AI StudyNest",
     "safetyNotification": "Un contenu potentiellement dangereux a été bloqué",
     "offTopicNotification": "Une question sans rapport avec les études a été bloquée",
-    "trialNotification": "Votre essai gratuit de 30 jours a commencé. Créez un code de connexion pour connecter l'appareil d'apprentissage de votre enfant.",
+    "trialNotification": "Votre essai gratuit de 3 jours a commencé. Créez un code de connexion pour connecter l'appareil d'apprentissage de votre enfant.",
     "you": "Vous",
     "student": "Élève",
     "menu": "Ouvrir la navigation",
@@ -295,7 +295,14 @@
     "cropLeft": "Recadrer depuis la gauche (%)",
     "cropTop": "Recadrer depuis le haut (%)",
     "cropWidth": "Largeur du recadrage (%)",
-    "cropHeight": "Hauteur du recadrage (%)"
+    "cropHeight": "Hauteur du recadrage (%)",
+    "trialPaymentPolicy": "L'inscription comprend 3 jours gratuits sans mode de paiement. Les familles éligibles peuvent ensuite démarrer un essai d'abonnement Waffo de 30 jours.",
+    "renewalTrialPolicy": "Votre abonnement est d'abord facturé après son essai gratuit, puis se renouvelle mensuellement jusqu'à annulation. La durée d’essai d’inscription inutilisée n’est pas ajoutée.",
+    "manageSubscription": "Gérer l'abonnement",
+    "monthlyBilling": "Mensuel",
+    "refreshSubscription": "Actualiser l'abonnement",
+    "subscriptionTrial": "Essai gratuit par abonnement",
+    "testPayments": "Mode test. Aucun argent réel n'est facturé."
   },
   "fr-CA": {
     "confirmFamilyZone": "Demandez à vos parents de confirmer le fuseau horaire familial avant de vous connecter.",
@@ -318,7 +325,7 @@
     "welcomeNotification": "Bienvenue sur AI StudyNest",
     "safetyNotification": "Un contenu potentiellement dangereux a été bloqué",
     "offTopicNotification": "Une question sans rapport avec les études a été bloquée",
-    "trialNotification": "Votre essai gratuit de 30 jours a commencé. Créez un code de connexion pour connecter l'appareil d'apprentissage de votre enfant.",
+    "trialNotification": "Votre essai gratuit de 3 jours a commencé. Créez un code de connexion pour connecter l'appareil d'apprentissage de votre enfant.",
     "you": "Vous",
     "student": "Élève",
     "menu": "Ouvrir la navigation",
@@ -593,7 +600,14 @@
     "cropLeft": "Recadrer depuis la gauche (%)",
     "cropTop": "Recadrer depuis le haut (%)",
     "cropWidth": "Largeur du recadrage (%)",
-    "cropHeight": "Hauteur du recadrage (%)"
+    "cropHeight": "Hauteur du recadrage (%)",
+    "trialPaymentPolicy": "L'inscription comprend 3 jours gratuits sans mode de paiement. Les familles éligibles peuvent ensuite démarrer un essai d'abonnement Waffo de 30 jours.",
+    "renewalTrialPolicy": "Votre abonnement est d'abord facturé après son essai gratuit, puis se renouvelle mensuellement jusqu'à annulation. La durée d’essai d’inscription inutilisée n’est pas ajoutée.",
+    "manageSubscription": "Gérer l'abonnement",
+    "monthlyBilling": "Mensuel",
+    "refreshSubscription": "Actualiser l'abonnement",
+    "subscriptionTrial": "Essai gratuit par abonnement",
+    "testPayments": "Mode test. Aucun argent réel n'est facturé."
   },
   "pt-BR": {
     "confirmFamilyZone": "Peça aos seus pais para confirmar o fuso horário da família antes de se conectar.",
@@ -616,7 +630,7 @@
     "welcomeNotification": "Bem-vindo ao AI StudyNest",
     "safetyNotification": "Conteúdo relacionado à segurança foi bloqueado",
     "offTopicNotification": "Uma pergunta fora do aprendizado foi bloqueada",
-    "trialNotification": "Seu teste gratuito de 30 dias começou. Crie um código de conexão para conectar o dispositivo de aprendizagem do seu filho.",
+    "trialNotification": "Seu teste gratuito de 3 dias começou. Crie um código de conexão para conectar o dispositivo de aprendizagem do seu filho.",
     "you": "Você",
     "student": "Estudante",
     "menu": "Abrir navegação",
@@ -891,7 +905,14 @@
     "cropLeft": "Cortar da esquerda (%)",
     "cropTop": "Cortar de cima (%)",
     "cropWidth": "Largura de corte (%)",
-    "cropHeight": "Altura de corte (%)"
+    "cropHeight": "Altura de corte (%)",
+    "trialPaymentPolicy": "A inscrição inclui 3 dias grátis sem forma de pagamento. As famílias qualificadas podem então iniciar um teste de assinatura Waffo de 30 dias.",
+    "renewalTrialPolicy": "Sua assinatura é cobrada primeiro após o teste gratuito e depois é renovada mensalmente até ser cancelada. O tempo de teste de registro não utilizado não é adicionado.",
+    "manageSubscription": "Gerenciar assinatura",
+    "monthlyBilling": "Mensalmente",
+    "refreshSubscription": "Atualizar assinatura",
+    "subscriptionTrial": "Teste gratuito de assinatura",
+    "testPayments": "Modo de teste. Nenhum dinheiro real é cobrado."
   },
   "pt-PT": {
     "confirmFamilyZone": "Peça aos seus pais para confirmarem o fuso horário da família antes de se ligarem.",
@@ -914,7 +935,7 @@
     "welcomeNotification": "Bem-vindo ao AI StudyNest",
     "safetyNotification": "Conteúdo relacionado com segurança foi bloqueado",
     "offTopicNotification": "Uma pergunta fora da aprendizagem foi bloqueada",
-    "trialNotification": "O seu teste gratuito de 30 dias começou. Crie um código de ligação para ligar o dispositivo de aprendizagem do seu filho.",
+    "trialNotification": "O seu teste gratuito de 3 dias começou. Crie um código de ligação para ligar o dispositivo de aprendizagem do seu filho.",
     "you": "Você",
     "student": "Estudante",
     "menu": "Abrir navegação",
@@ -1189,7 +1210,14 @@
     "cropLeft": "Cortar da esquerda (%)",
     "cropTop": "Cortar de cima (%)",
     "cropWidth": "Largura de corte (%)",
-    "cropHeight": "Altura de corte (%)"
+    "cropHeight": "Altura de corte (%)",
+    "trialPaymentPolicy": "A inscrição inclui 3 dias grátis sem forma de pagamento. As famílias qualificadas podem então iniciar um teste de assinatura Waffo de 30 dias.",
+    "renewalTrialPolicy": "Sua assinatura é cobrada primeiro após o teste gratuito e depois é renovada mensalmente até ser cancelada. O tempo de teste de registro não utilizado não é adicionado.",
+    "manageSubscription": "Gerenciar assinatura",
+    "monthlyBilling": "Mensalmente",
+    "refreshSubscription": "Atualizar assinatura",
+    "subscriptionTrial": "Teste gratuito de assinatura",
+    "testPayments": "Modo de teste. Nenhum dinheiro real é cobrado."
   },
   "it": {
     "confirmFamilyZone": "Chiedi ai tuoi genitori di confermare il fuso orario della famiglia prima di connettersi.",
@@ -1212,7 +1240,7 @@
     "welcomeNotification": "Benvenuto in AI StudyNest",
     "safetyNotification": "I contenuti relativi alla sicurezza sono stati bloccati",
     "offTopicNotification": "Una domanda esterna all'apprendimento è stata bloccata",
-    "trialNotification": "La tua prova gratuita di 30 giorni è iniziata. Crea un codice di connessione per connettere il dispositivo didattico di tuo figlio.",
+    "trialNotification": "La tua prova gratuita di 3 giorni è iniziata. Crea un codice di connessione per connettere il dispositivo didattico di tuo figlio.",
     "you": "Tu",
     "student": "Studente",
     "menu": "Apri la navigazione",
@@ -1487,7 +1515,14 @@
     "cropLeft": "Ritaglia da sinistra (%)",
     "cropTop": "Ritaglia dall'alto (%)",
     "cropWidth": "Larghezza del raccolto (%)",
-    "cropHeight": "Altezza del raccolto (%)"
+    "cropHeight": "Altezza del raccolto (%)",
+    "trialPaymentPolicy": "La registrazione include 3 giorni gratuiti senza metodo di pagamento. Le famiglie idonee possono quindi iniziare una prova di abbonamento Waffo di 30 giorni.",
+    "renewalTrialPolicy": "Il tuo abbonamento viene addebitato per la prima volta al termine della prova gratuita, quindi si rinnova mensilmente fino all'annullamento. Il tempo di prova della registrazione non utilizzato non viene aggiunto.",
+    "manageSubscription": "Gestisci l'abbonamento",
+    "monthlyBilling": "Mensile",
+    "refreshSubscription": "Aggiorna l'abbonamento",
+    "subscriptionTrial": "Prova gratuita dell'abbonamento",
+    "testPayments": "Modalità di prova. Non viene addebitato denaro reale."
   },
   "zh-Hant-HK": {
     "confirmFamilyZone": "在連接之前請您的父母確認家庭時區。",
@@ -1510,7 +1545,7 @@
     "welcomeNotification": "歡迎來到人工智慧學習巢",
     "safetyNotification": "安全相關內容被屏蔽",
     "offTopicNotification": "學習以外的一個問題被屏蔽了",
-    "trialNotification": "您的 30 天免費試用期已開始。建立連接代碼以連接您孩子的學習設備。",
+    "trialNotification": "您的 3 天免費試用期已開始。建立連接代碼以連接您孩子的學習設備。",
     "you": "你",
     "student": "學生",
     "menu": "打開導航",
@@ -1785,7 +1820,14 @@
     "cropLeft": "從左側裁切 (%)",
     "cropTop": "從頂部裁切 (%)",
     "cropWidth": "裁切寬度 (%)",
-    "cropHeight": "作物高度 (%)"
+    "cropHeight": "作物高度 (%)",
+    "trialPaymentPolicy": "註冊包括 3 天免費，無需付款方式。符合資格的家庭可以開始為期 30 天的 Waffo 訂閱試用。",
+    "renewalTrialPolicy": "您的訂閱在免費試用後首先收費，然後每月續訂，直至取消。未使用的註冊試用時間不計入。",
+    "manageSubscription": "管理訂閱",
+    "monthlyBilling": "每月",
+    "refreshSubscription": "重新整理訂閱",
+    "subscriptionTrial": "訂閱免費試用",
+    "testPayments": "測試模式。不收取真金白銀。"
   },
   "tr": {
     "confirmFamilyZone": "Bağlanmadan önce ebeveyninizden aile saat dilimini onaylamasını isteyin.",
@@ -1808,7 +1850,7 @@
     "welcomeNotification": "AI StudyNest'e hoş geldiniz",
     "safetyNotification": "Güvenlikle ilgili içerik engellendi",
     "offTopicNotification": "Öğrenme dışındaki bir soru engellendi",
-    "trialNotification": "30 günlük ücretsiz deneme süreniz başladı. Çocuğunuzun öğrenme cihazını bağlamak için bir bağlantı kodu oluşturun.",
+    "trialNotification": "3 günlük ücretsiz deneme süreniz başladı. Çocuğunuzun öğrenme cihazını bağlamak için bir bağlantı kodu oluşturun.",
     "you": "sen",
     "student": "Öğrenci",
     "menu": "Gezinmeyi aç",
@@ -2083,7 +2125,14 @@
     "cropLeft": "Soldan kırp (%)",
     "cropTop": "Üstten kırp (%)",
     "cropWidth": "Kırpma genişliği (%)",
-    "cropHeight": "Kırpma yüksekliği (%)"
+    "cropHeight": "Kırpma yüksekliği (%)",
+    "trialPaymentPolicy": "Kayıt, ödeme yöntemi olmayan 3 ücretsiz günü içerir. Uygun aileler daha sonra 30 günlük Waffo abonelik denemesine başlayabilir.",
+    "renewalTrialPolicy": "Aboneliğiniz ilk olarak ücretsiz deneme süresinin ardından ücretlendirilir, ardından iptal edilene kadar aylık olarak yenilenir. Kullanılmayan kayıt deneme süresi eklenmez.",
+    "manageSubscription": "Aboneliği yönet",
+    "monthlyBilling": "Aylık",
+    "refreshSubscription": "Aboneliği yenile",
+    "subscriptionTrial": "Abonelik ücretsiz deneme",
+    "testPayments": "Test modu. Gerçek para alınmaz."
   },
   "ru": {
     "confirmFamilyZone": "Перед подключением попросите родителя подтвердить семейный часовой пояс.",
@@ -2106,7 +2155,7 @@
     "welcomeNotification": "Добро пожаловать в AI StudyNest",
     "safetyNotification": "Контент, связанный с безопасностью, заблокирован.",
     "offTopicNotification": "Вопрос вне обучения был заблокирован",
-    "trialNotification": "Ваша 30-дневная бесплатная пробная версия началась. Создайте код подключения для подключения обучающего устройства вашего ребенка.",
+    "trialNotification": "Ваша 3-дневная бесплатная пробная версия началась. Создайте код подключения для подключения обучающего устройства вашего ребенка.",
     "you": "ты",
     "student": "Студент",
     "menu": "Открыть навигацию",
@@ -2381,7 +2430,14 @@
     "cropLeft": "Обрезать слева (%)",
     "cropTop": "Обрезать сверху (%)",
     "cropWidth": "Ширина обрезки (%)",
-    "cropHeight": "Высота урожая (%)"
+    "cropHeight": "Высота урожая (%)",
+    "trialPaymentPolicy": "Регистрация включает в себя 3 бесплатных дня без способа оплаты. Семьи, соответствующие критериям, могут затем начать 30-дневную пробную подписку Waffo.",
+    "renewalTrialPolicy": "Ваша подписка сначала взимается после бесплатного пробного периода, затем продлевается ежемесячно до отмены. Неиспользованное пробное время регистрации не добавляется.",
+    "manageSubscription": "Управление подпиской",
+    "monthlyBilling": "Ежемесячно",
+    "refreshSubscription": "Обновить подписку",
+    "subscriptionTrial": "Бесплатная пробная подписка",
+    "testPayments": "Тестовый режим. Никаких реальных денег не взимается."
   },
   "ar": {
     "confirmFamilyZone": "اطلب من والديك تأكيد المنطقة الزمنية للعائلة قبل الاتصال.",
@@ -2404,7 +2460,7 @@
     "welcomeNotification": "مرحبًا بك في AI StudyNest",
     "safetyNotification": "تم حظر المحتوى المتعلق بالسلامة",
     "offTopicNotification": "تم حظر سؤال خارج التعلم",
-    "trialNotification": "لقد بدأت النسخة التجريبية المجانية لمدة 30 يومًا. قم بإنشاء رمز اتصال لتوصيل جهاز التعلم الخاص بطفلك.",
+    "trialNotification": "لقد بدأت النسخة التجريبية المجانية لمدة 3 يومًا. قم بإنشاء رمز اتصال لتوصيل جهاز التعلم الخاص بطفلك.",
     "you": "أنت",
     "student": "طالب",
     "menu": "افتح التنقل",
@@ -2679,7 +2735,14 @@
     "cropLeft": "الاقتصاص من اليسار (%)",
     "cropTop": "الاقتصاص من الأعلى (%)",
     "cropWidth": "عرض المحصول (%)",
-    "cropHeight": "ارتفاع المحصول (٪)"
+    "cropHeight": "ارتفاع المحصول (٪)",
+    "trialPaymentPolicy": "يشمل التسجيل 3 أيام مجانية بدون طريقة دفع. يمكن للعائلات المؤهلة بعد ذلك بدء تجربة اشتراك Waffo لمدة 30 يومًا.",
+    "renewalTrialPolicy": "يتم تحصيل رسوم اشتراكك أولاً بعد النسخة التجريبية المجانية، ثم يتم تجديده شهريًا حتى يتم إلغاؤه. لا تتم إضافة الوقت التجريبي للتسجيل غير المستخدم.",
+    "manageSubscription": "إدارة الاشتراك",
+    "monthlyBilling": "شهريا",
+    "refreshSubscription": "تحديث الاشتراك",
+    "subscriptionTrial": "الاشتراك التجريبي المجاني",
+    "testPayments": "وضع الاختبار. لا يتم تحصيل أي أموال حقيقية."
   },
   "vi": {
     "confirmFamilyZone": "Ask your parent to confirm the family time zone before connecting.",
@@ -2702,7 +2765,7 @@
     "welcomeNotification": "Chào mừng đến với AI StudyNest",
     "safetyNotification": "Nội dung liên quan đến an toàn đã bị chặn",
     "offTopicNotification": "Một câu hỏi bên ngoài việc học đã bị chặn",
-    "trialNotification": "Thời gian dùng thử miễn phí 30 ngày của bạn đã bắt đầu. Tạo mã kết nối để kết nối thiết bị học tập của con bạn.",
+    "trialNotification": "Thời gian dùng thử miễn phí 3 ngày của bạn đã bắt đầu. Tạo mã kết nối để kết nối thiết bị học tập của con bạn.",
     "you": "bạn",
     "student": "sinh viên",
     "menu": "Mở điều hướng",
@@ -2977,7 +3040,14 @@
     "cropLeft": "Cắt từ trái (%)",
     "cropTop": "Cắt từ trên xuống (%)",
     "cropWidth": "Chiều rộng cắt (%)",
-    "cropHeight": "Chiều cao cây trồng (%)"
+    "cropHeight": "Chiều cao cây trồng (%)",
+    "trialPaymentPolicy": "Đăng ký bao gồm 3 ngày miễn phí mà không cần phương thức thanh toán. Sau đó, các gia đình đủ điều kiện có thể bắt đầu dùng thử đăng ký Waffo trong 30 ngày.",
+    "renewalTrialPolicy": "Đăng ký của bạn sẽ bị tính phí lần đầu sau khi dùng thử miễn phí, sau đó được gia hạn hàng tháng cho đến khi bị hủy. Thời gian dùng thử đăng ký chưa sử dụng không được thêm vào.",
+    "manageSubscription": "Quản lý đăng ký",
+    "monthlyBilling": "hàng tháng",
+    "refreshSubscription": "Làm mới đăng ký",
+    "subscriptionTrial": "Đăng ký dùng thử miễn phí",
+    "testPayments": "Chế độ thử nghiệm. Không có tiền thật được tính phí."
   },
   "th": {
     "confirmFamilyZone": "ขอให้ผู้ปกครองยืนยันเขตเวลาของครอบครัวก่อนเชื่อมต่อ",
@@ -3000,7 +3070,7 @@
     "welcomeNotification": "ยินดีต้อนรับสู่ AI StudyNest",
     "safetyNotification": "เนื้อหาที่เกี่ยวข้องกับความปลอดภัยถูกบล็อก",
     "offTopicNotification": "คำถามนอกการเรียนรู้ถูกบล็อก",
-    "trialNotification": "การทดลองใช้ฟรี 30 วันของคุณเริ่มต้นแล้ว สร้างรหัสการเชื่อมต่อเพื่อเชื่อมต่ออุปกรณ์การเรียนรู้ของบุตรหลาน",
+    "trialNotification": "การทดลองใช้ฟรี 3 วันของคุณเริ่มต้นแล้ว สร้างรหัสการเชื่อมต่อเพื่อเชื่อมต่ออุปกรณ์การเรียนรู้ของบุตรหลาน",
     "you": "คุณ",
     "student": "นักศึกษา",
     "menu": "เปิดการนำทาง",
@@ -3275,7 +3345,14 @@
     "cropLeft": "ครอบตัดจากซ้าย (%)",
     "cropTop": "ครอบตัดจากด้านบน (%)",
     "cropWidth": "ความกว้างของพืช (%)",
-    "cropHeight": "ความสูงของพืช (%)"
+    "cropHeight": "ความสูงของพืช (%)",
+    "trialPaymentPolicy": "การลงทะเบียนประกอบด้วยวันฟรี 3 วันโดยไม่ต้องชำระเงิน ครอบครัวที่มีสิทธิ์สามารถเริ่มการทดลองสมัครสมาชิก Waffo เป็นเวลา 30 วันได้",
+    "renewalTrialPolicy": "การสมัครของคุณจะถูกเรียกเก็บเงินครั้งแรกหลังจากการทดลองใช้ฟรี จากนั้นจะต่ออายุทุกเดือนจนกว่าจะยกเลิก เวลาทดลองใช้การลงทะเบียนที่ไม่ได้ใช้จะไม่ถูกเพิ่ม",
+    "manageSubscription": "จัดการการสมัครสมาชิก",
+    "monthlyBilling": "รายเดือน",
+    "refreshSubscription": "รีเฟรชการสมัครรับข้อมูล",
+    "subscriptionTrial": "สมัครสมาชิกทดลองใช้ฟรี",
+    "testPayments": "โหมดทดสอบ ไม่มีการคิดเงินจริง"
   },
   "id": {
     "confirmFamilyZone": "Minta orang tuamu untuk mengonfirmasi zona waktu keluarga sebelum terhubung.",
@@ -3298,7 +3375,7 @@
     "welcomeNotification": "Selamat datang di AI StudyNest",
     "safetyNotification": "Konten yang berhubungan dengan keselamatan diblokir",
     "offTopicNotification": "Sebuah pertanyaan di luar pembelajaran diblokir",
-    "trialNotification": "Uji coba gratis 30 hari Anda telah dimulai. Buat kode koneksi untuk menghubungkan perangkat belajar anak Anda.",
+    "trialNotification": "Uji coba gratis 3 hari Anda telah dimulai. Buat kode koneksi untuk menghubungkan perangkat belajar anak Anda.",
     "you": "kamu",
     "student": "Pelajar",
     "menu": "Buka navigasi",
@@ -3573,7 +3650,14 @@
     "cropLeft": "Pangkas dari kiri (%)",
     "cropTop": "Pangkas dari atas (%)",
     "cropWidth": "Lebar pangkas (%)",
-    "cropHeight": "Tinggi tanaman (%)"
+    "cropHeight": "Tinggi tanaman (%)",
+    "trialPaymentPolicy": "Pendaftaran mencakup 3 hari gratis tanpa metode pembayaran. Keluarga yang memenuhi syarat kemudian dapat memulai uji coba berlangganan Waffo selama 30 hari.",
+    "renewalTrialPolicy": "Langganan Anda pertama-tama ditagih setelah uji coba gratisnya, kemudian diperpanjang setiap bulan hingga dibatalkan. Waktu uji coba pendaftaran yang tidak terpakai tidak ditambahkan.",
+    "manageSubscription": "Kelola langganan",
+    "monthlyBilling": "Bulanan",
+    "refreshSubscription": "Segarkan langganan",
+    "subscriptionTrial": "Uji coba gratis berlangganan",
+    "testPayments": "Modus uji. Tidak ada uang nyata yang dikenakan."
   },
   "fil": {
     "confirmFamilyZone": "Hilingin sa iyong magulang na kumpirmahin ang time zone ng pamilya bago kumonekta.",
@@ -3596,7 +3680,7 @@
     "welcomeNotification": "Maligayang pagdating sa AI StudyNest",
     "safetyNotification": "Na-block ang content na nauugnay sa kaligtasan",
     "offTopicNotification": "Na-block ang isang tanong sa labas ng pag-aaral",
-    "trialNotification": "Nagsimula na ang iyong 30-araw na libreng pagsubok. Gumawa ng code ng koneksyon para ikonekta ang device sa pag-aaral ng iyong anak.",
+    "trialNotification": "Nagsimula na ang iyong 3-araw na libreng pagsubok. Gumawa ng code ng koneksyon para ikonekta ang device sa pag-aaral ng iyong anak.",
     "you": "Ikaw",
     "student": "Estudyante",
     "menu": "Buksan ang nabigasyon",
@@ -3871,7 +3955,14 @@
     "cropLeft": "I-crop mula sa kaliwa (%)",
     "cropTop": "I-crop mula sa itaas (%)",
     "cropWidth": "Lapad ng crop (%)",
-    "cropHeight": "Taas ng crop (%)"
+    "cropHeight": "Taas ng crop (%)",
+    "trialPaymentPolicy": "Kasama sa pagpaparehistro ang 3 libreng araw na walang paraan ng pagbabayad. Ang mga kwalipikadong pamilya ay maaaring magsimula ng 30-araw na pagsubok sa subscription sa Waffo.",
+    "renewalTrialPolicy": "Sisingilin muna ang iyong subscription pagkatapos ng libreng trial nito, pagkatapos ay magre-renew buwan-buwan hanggang makansela. Ang hindi nagamit na oras ng pagsubok sa pagpaparehistro ay hindi idinagdag.",
+    "manageSubscription": "Pamahalaan ang subscription",
+    "monthlyBilling": "Buwan-buwan",
+    "refreshSubscription": "I-refresh ang subscription",
+    "subscriptionTrial": "Libreng pagsubok sa subscription",
+    "testPayments": "Test mode. Walang totoong pera ang sinisingil."
   },
   "tl": {
     "confirmFamilyZone": "Hilingin sa iyong magulang na kumpirmahin ang time zone ng pamilya bago kumonekta.",
@@ -3894,7 +3985,7 @@
     "welcomeNotification": "Maligayang pagdating sa AI StudyNest",
     "safetyNotification": "Na-block ang content na nauugnay sa kaligtasan",
     "offTopicNotification": "Na-block ang isang tanong sa labas ng pag-aaral",
-    "trialNotification": "Nagsimula na ang iyong 30-araw na libreng pagsubok. Gumawa ng code ng koneksyon para ikonekta ang device sa pag-aaral ng iyong anak.",
+    "trialNotification": "Nagsimula na ang iyong 3-araw na libreng pagsubok. Gumawa ng code ng koneksyon para ikonekta ang device sa pag-aaral ng iyong anak.",
     "you": "Ikaw",
     "student": "Estudyante",
     "menu": "Buksan ang nabigasyon",
@@ -4169,7 +4260,14 @@
     "cropLeft": "I-crop mula sa kaliwa (%)",
     "cropTop": "I-crop mula sa itaas (%)",
     "cropWidth": "Lapad ng crop (%)",
-    "cropHeight": "Taas ng crop (%)"
+    "cropHeight": "Taas ng crop (%)",
+    "trialPaymentPolicy": "Kasama sa pagpaparehistro ang 3 libreng araw na walang paraan ng pagbabayad. Ang mga kwalipikadong pamilya ay maaaring magsimula ng 30-araw na pagsubok sa subscription sa Waffo.",
+    "renewalTrialPolicy": "Sisingilin muna ang iyong subscription pagkatapos ng libreng trial nito, pagkatapos ay magre-renew buwan-buwan hanggang makansela. Ang hindi nagamit na oras ng pagsubok sa pagpaparehistro ay hindi idinagdag.",
+    "manageSubscription": "Pamahalaan ang subscription",
+    "monthlyBilling": "Buwan-buwan",
+    "refreshSubscription": "I-refresh ang subscription",
+    "subscriptionTrial": "Libreng pagsubok sa subscription",
+    "testPayments": "Test mode. Walang totoong pera ang sinisingil."
   },
   "ms-MY": {
     "confirmFamilyZone": "Minta ibu bapa anda mengesahkan zon waktu keluarga sebelum menyambung.",
@@ -4192,7 +4290,7 @@
     "welcomeNotification": "Selamat datang ke AI StudyNest",
     "safetyNotification": "Kandungan berkaitan keselamatan telah disekat",
     "offTopicNotification": "Soalan di luar pembelajaran telah disekat",
-    "trialNotification": "Percubaan percuma 30 hari anda telah bermula. Buat kod sambungan untuk menyambungkan peranti pembelajaran anak anda.",
+    "trialNotification": "Percubaan percuma 3 hari anda telah bermula. Buat kod sambungan untuk menyambungkan peranti pembelajaran anak anda.",
     "you": "awak",
     "student": "Pelajar",
     "menu": "Buka navigasi",
@@ -4467,7 +4565,14 @@
     "cropLeft": "Pangkas dari kiri (%)",
     "cropTop": "Pangkas dari atas (%)",
     "cropWidth": "Lebar tanaman (%)",
-    "cropHeight": "Ketinggian tanaman (%)"
+    "cropHeight": "Ketinggian tanaman (%)",
+    "trialPaymentPolicy": "Pendaftaran termasuk 3 hari percuma tanpa kaedah pembayaran. Keluarga yang layak kemudiannya boleh memulakan percubaan langganan Waffo selama 30 hari.",
+    "renewalTrialPolicy": "Langganan anda mula-mula dicaj selepas percubaan percumanya, kemudian diperbaharui setiap bulan sehingga dibatalkan. Masa percubaan pendaftaran yang tidak digunakan tidak ditambah.",
+    "manageSubscription": "Urus langganan",
+    "monthlyBilling": "Bulanan",
+    "refreshSubscription": "Muat semula langganan",
+    "subscriptionTrial": "Percubaan percuma langganan",
+    "testPayments": "Mod ujian. Tiada wang sebenar dikenakan."
   },
   "ms": {
     "confirmFamilyZone": "Minta ibu bapa anda mengesahkan zon waktu keluarga sebelum menyambung.",
@@ -4490,7 +4595,7 @@
     "welcomeNotification": "Selamat datang ke AI StudyNest",
     "safetyNotification": "Kandungan berkaitan keselamatan telah disekat",
     "offTopicNotification": "Soalan di luar pembelajaran telah disekat",
-    "trialNotification": "Percubaan percuma 30 hari anda telah bermula. Buat kod sambungan untuk menyambungkan peranti pembelajaran anak anda.",
+    "trialNotification": "Percubaan percuma 3 hari anda telah bermula. Buat kod sambungan untuk menyambungkan peranti pembelajaran anak anda.",
     "you": "awak",
     "student": "Pelajar",
     "menu": "Buka navigasi",
@@ -4765,7 +4870,14 @@
     "cropLeft": "Pangkas dari kiri (%)",
     "cropTop": "Pangkas dari atas (%)",
     "cropWidth": "Lebar tanaman (%)",
-    "cropHeight": "Ketinggian tanaman (%)"
+    "cropHeight": "Ketinggian tanaman (%)",
+    "trialPaymentPolicy": "Pendaftaran termasuk 3 hari percuma tanpa kaedah pembayaran. Keluarga yang layak kemudiannya boleh memulakan percubaan langganan Waffo selama 30 hari.",
+    "renewalTrialPolicy": "Langganan anda mula-mula dicaj selepas percubaan percumanya, kemudian diperbaharui setiap bulan sehingga dibatalkan. Masa percubaan pendaftaran yang tidak digunakan tidak ditambah.",
+    "manageSubscription": "Urus langganan",
+    "monthlyBilling": "Bulanan",
+    "refreshSubscription": "Muat semula langganan",
+    "subscriptionTrial": "Percubaan percuma langganan",
+    "testPayments": "Mod ujian. Tiada wang sebenar dikenakan."
   },
   "nl": {
     "confirmFamilyZone": "Vraag je ouder om de gezinstijdzone te bevestigen voordat je verbinding maakt.",
@@ -4788,7 +4900,7 @@
     "welcomeNotification": "Welkom bij AI StudyNest",
     "safetyNotification": "Veiligheidsgerelateerde inhoud is geblokkeerd",
     "offTopicNotification": "Een vraag buiten het leren is geblokkeerd",
-    "trialNotification": "Uw gratis proefperiode van 30 dagen is gestart. Maak een verbindingscode aan om het leerapparaat van uw kind te verbinden.",
+    "trialNotification": "Uw gratis proefperiode van 3 dagen is gestart. Maak een verbindingscode aan om het leerapparaat van uw kind te verbinden.",
     "you": "Jij",
     "student": "Student",
     "menu": "Navigatie openen",
@@ -5063,7 +5175,14 @@
     "cropLeft": "Bijsnijden vanaf links (%)",
     "cropTop": "Bijsnijden vanaf boven (%)",
     "cropWidth": "Gewasbreedte (%)",
-    "cropHeight": "Gewashoogte (%)"
+    "cropHeight": "Gewashoogte (%)",
+    "trialPaymentPolicy": "Registratie omvat 3 gratis dagen zonder betaalmethode. In aanmerking komende gezinnen kunnen vervolgens een Waffo-proefabonnement van 30 dagen starten.",
+    "renewalTrialPolicy": "Uw abonnement wordt eerst in rekening gebracht na de gratis proefperiode en wordt vervolgens maandelijks verlengd totdat u het opzegt. Ongebruikte registratieproeftijd wordt niet toegevoegd.",
+    "manageSubscription": "Beheer abonnement",
+    "monthlyBilling": "Maandelijks",
+    "refreshSubscription": "Abonnement vernieuwen",
+    "subscriptionTrial": "Gratis proefabonnement",
+    "testPayments": "Testmodus. Er wordt geen echt geld in rekening gebracht."
   },
   "pl": {
     "confirmFamilyZone": "Przed połączeniem poproś rodzica o potwierdzenie rodzinnej strefy czasowej.",
@@ -5086,7 +5205,7 @@
     "welcomeNotification": "Witamy w AI StudyNest",
     "safetyNotification": "Treści związane z bezpieczeństwem zostały zablokowane",
     "offTopicNotification": "Pytanie poza nauką zostało zablokowane",
-    "trialNotification": "Rozpoczął się Twój 30-dniowy bezpłatny okres próbny. Utwórz kod połączenia, aby połączyć urządzenie edukacyjne swojego dziecka.",
+    "trialNotification": "Rozpoczął się Twój 3-dniowy bezpłatny okres próbny. Utwórz kod połączenia, aby połączyć urządzenie edukacyjne swojego dziecka.",
     "you": "Ty",
     "student": "Studenta",
     "menu": "Otwórz nawigację",
@@ -5361,7 +5480,14 @@
     "cropLeft": "Przytnij od lewej (%)",
     "cropTop": "Przytnij od góry (%)",
     "cropWidth": "Szerokość uprawy (%)",
-    "cropHeight": "Wysokość plonu (%)"
+    "cropHeight": "Wysokość plonu (%)",
+    "trialPaymentPolicy": "Rejestracja obejmuje 3 dni bezpłatne bez metody płatności. Kwalifikujące się rodziny mogą następnie rozpocząć 30-dniowy okres próbny subskrypcji Waffo.",
+    "renewalTrialPolicy": "Twoja subskrypcja jest pobierana najpierw po bezpłatnym okresie próbnym, a następnie odnawiana co miesiąc aż do anulowania. Niewykorzystany czas próbny rejestracji nie jest doliczany.",
+    "manageSubscription": "Zarządzaj subskrypcją",
+    "monthlyBilling": "Miesięcznie",
+    "refreshSubscription": "Odśwież subskrypcję",
+    "subscriptionTrial": "Bezpłatna wersja próbna subskrypcji",
+    "testPayments": "Tryb testowy. Żadne prawdziwe pieniądze nie są pobierane."
   },
   "cs": {
     "confirmFamilyZone": "Před připojením požádejte rodiče, aby potvrdili rodinné časové pásmo.",
@@ -5384,7 +5510,7 @@
     "welcomeNotification": "Vítejte v AI StudyNest",
     "safetyNotification": "Obsah související s bezpečností byl zablokován",
     "offTopicNotification": "Otázka mimo učení byla zablokována",
-    "trialNotification": "Vaše 30denní bezplatná zkušební verze začala. Vytvořte připojovací kód pro připojení výukového zařízení vašeho dítěte.",
+    "trialNotification": "Vaše 3denní bezplatná zkušební verze začala. Vytvořte připojovací kód pro připojení výukového zařízení vašeho dítěte.",
     "you": "vy",
     "student": "Student",
     "menu": "Otevřete navigaci",
@@ -5659,7 +5785,14 @@
     "cropLeft": "Oříznout zleva (%)",
     "cropTop": "Oříznout shora (%)",
     "cropWidth": "Šířka oříznutí (%)",
-    "cropHeight": "Výška oříznutí (%)"
+    "cropHeight": "Výška oříznutí (%)",
+    "trialPaymentPolicy": "Registrace zahrnuje 3 volné dny bez způsobu platby. Oprávněné rodiny pak mohou zahájit 30denní zkušební verzi předplatného Waffo.",
+    "renewalTrialPolicy": "Předplatné je nejprve účtováno po bezplatné zkušební verzi a poté se měsíčně obnovuje, dokud nebude zrušeno. Nevyužitá zkušební doba registrace se nepřičítá.",
+    "manageSubscription": "Spravovat předplatné",
+    "monthlyBilling": "Měsíční",
+    "refreshSubscription": "Obnovit předplatné",
+    "subscriptionTrial": "Předplatné bezplatné zkušební verze",
+    "testPayments": "Testovací režim. Nejsou účtovány žádné skutečné peníze."
   },
   "ro": {
     "confirmFamilyZone": "Cereți părintelui să confirme fusul orar al familiei înainte de a vă conecta.",
@@ -5682,7 +5815,7 @@
     "welcomeNotification": "Bun venit la AI StudyNest",
     "safetyNotification": "Conținutul legat de siguranță a fost blocat",
     "offTopicNotification": "O întrebare din afara învățării a fost blocată",
-    "trialNotification": "A început perioada de încercare gratuită de 30 de zile. Creați un cod de conexiune pentru a conecta dispozitivul de învățare al copilului.",
+    "trialNotification": "A început perioada de încercare gratuită de 3 de zile. Creați un cod de conexiune pentru a conecta dispozitivul de învățare al copilului.",
     "you": "tu",
     "student": "Student",
     "menu": "Deschideți navigarea",
@@ -5957,7 +6090,14 @@
     "cropLeft": "Decupați de la stânga (%)",
     "cropTop": "Decupați de sus (%)",
     "cropWidth": "Lățimea decupării (%)",
-    "cropHeight": "Înălțimea culturii (%)"
+    "cropHeight": "Înălțimea culturii (%)",
+    "trialPaymentPolicy": "Înregistrarea include 3 zile gratuite fără o metodă de plată. Familiile eligibile pot începe apoi o perioadă de încercare a abonamentului Waffo de 30 de zile.",
+    "renewalTrialPolicy": "Abonamentul este mai întâi taxat după perioada de încercare gratuită, apoi se reînnoiește lunar până la anulare. Timpul de probă de înregistrare neutilizat nu este adăugat.",
+    "manageSubscription": "Gestionați abonamentul",
+    "monthlyBilling": "Lunar",
+    "refreshSubscription": "Actualizează abonamentul",
+    "subscriptionTrial": "Probă fără abonament",
+    "testPayments": "Modul de testare. Nu se percepe bani reali."
   },
   "hu": {
     "confirmFamilyZone": "Kérd meg szüleidet, hogy erősítsék meg a családi időzónát a csatlakozás előtt.",
@@ -5980,7 +6120,7 @@
     "welcomeNotification": "Üdvözli az AI StudyNest",
     "safetyNotification": "A biztonsággal kapcsolatos tartalmat letiltották",
     "offTopicNotification": "Egy tanuláson kívüli kérdés blokkolva lett",
-    "trialNotification": "A 30 napos ingyenes próbaidőszak elkezdődött. Hozzon létre egy csatlakozási kódot gyermeke tanulóeszközének csatlakoztatásához.",
+    "trialNotification": "A 3 napos ingyenes próbaidőszak elkezdődött. Hozzon létre egy csatlakozási kódot gyermeke tanulóeszközének csatlakoztatásához.",
     "you": "Te",
     "student": "Diák",
     "menu": "Nyissa meg a navigációt",
@@ -6255,7 +6395,14 @@
     "cropLeft": "Vágás balról (%)",
     "cropTop": "Vágás felülről (%)",
     "cropWidth": "Vágás szélessége (%)",
-    "cropHeight": "Vágás magassága (%)"
+    "cropHeight": "Vágás magassága (%)",
+    "trialPaymentPolicy": "A regisztráció 3 ingyenes napot tartalmaz fizetési mód nélkül. A jogosult családok ezután megkezdhetik a 30 napos Waffo-előfizetési próbaidőszakot.",
+    "renewalTrialPolicy": "Előfizetését először az ingyenes próbaidőszak után számítjuk fel, majd havonta megújul, amíg le nem mondja. A fel nem használt regisztrációs próbaidő nem kerül hozzáadásra.",
+    "manageSubscription": "Előfizetés kezelése",
+    "monthlyBilling": "Havonta",
+    "refreshSubscription": "Frissítse az előfizetést",
+    "subscriptionTrial": "Előfizetés ingyenes próbaverzió",
+    "testPayments": "Teszt mód. Valódi pénzt nem számítanak fel."
   },
   "el": {
     "confirmFamilyZone": "Ζητήστε από τον γονέα σας να επιβεβαιώσει τη ζώνη ώρας της οικογένειας πριν συνδεθείτε.",
@@ -6278,7 +6425,7 @@
     "welcomeNotification": "Καλώς ήρθατε στο AI StudyNest",
     "safetyNotification": "Το περιεχόμενο που σχετίζεται με την ασφάλεια αποκλείστηκε",
     "offTopicNotification": "Μια ερώτηση εκτός εκμάθησης αποκλείστηκε",
-    "trialNotification": "Η δωρεάν δοκιμή 30 ημερών ξεκίνησε. Δημιουργήστε έναν κωδικό σύνδεσης για να συνδέσετε τη συσκευή εκμάθησης του παιδιού σας.",
+    "trialNotification": "Η δωρεάν δοκιμή 3 ημερών ξεκίνησε. Δημιουργήστε έναν κωδικό σύνδεσης για να συνδέσετε τη συσκευή εκμάθησης του παιδιού σας.",
     "you": "Εσύ",
     "student": "Φοιτητής",
     "menu": "Ανοίξτε την πλοήγηση",
@@ -6553,7 +6700,14 @@
     "cropLeft": "Περικοπή από αριστερά (%)",
     "cropTop": "Περικοπή από πάνω (%)",
     "cropWidth": "Πλάτος περικοπής (%)",
-    "cropHeight": "Ύψος περικοπής (%)"
+    "cropHeight": "Ύψος περικοπής (%)",
+    "trialPaymentPolicy": "Η εγγραφή περιλαμβάνει 3 δωρεάν ημέρες χωρίς τρόπο πληρωμής. Οι οικογένειες που πληρούν τις προϋποθέσεις μπορούν στη συνέχεια να ξεκινήσουν μια δοκιμή συνδρομής Waffo 30 ημερών.",
+    "renewalTrialPolicy": "Η συνδρομή σας χρεώνεται πρώτα μετά τη δωρεάν δοκιμή της και στη συνέχεια ανανεώνεται κάθε μήνα μέχρι να ακυρωθεί. Ο μη χρησιμοποιημένος δοκιμαστικός χρόνος εγγραφής δεν προστίθεται.",
+    "manageSubscription": "Διαχείριση συνδρομής",
+    "monthlyBilling": "Μηνιαία",
+    "refreshSubscription": "Ανανέωση συνδρομής",
+    "subscriptionTrial": "Δωρεάν δοκιμή συνδρομής",
+    "testPayments": "Λειτουργία δοκιμής. Δεν χρεώνονται πραγματικά χρήματα."
   },
   "sv": {
     "confirmFamilyZone": "Be din förälder att bekräfta familjens tidszon innan du ansluter.",
@@ -6576,7 +6730,7 @@
     "welcomeNotification": "Välkommen till AI StudyNest",
     "safetyNotification": "Säkerhetsrelaterat innehåll blockerades",
     "offTopicNotification": "En fråga utanför lärande blockerades",
-    "trialNotification": "Din 30-dagars gratis provperiod har börjat. Skapa en anslutningskod för att ansluta ditt barns inlärningsenhet.",
+    "trialNotification": "Din 3-dagars gratis provperiod har börjat. Skapa en anslutningskod för att ansluta ditt barns inlärningsenhet.",
     "you": "Du",
     "student": "Student",
     "menu": "Öppna navigering",
@@ -6851,7 +7005,14 @@
     "cropLeft": "Beskär från vänster (%)",
     "cropTop": "Beskär från toppen (%)",
     "cropWidth": "Beskärningsbredd (%)",
-    "cropHeight": "Beskärningshöjd (%)"
+    "cropHeight": "Beskärningshöjd (%)",
+    "trialPaymentPolicy": "Registrering inkluderar 3 gratis dagar utan betalningsmetod. Berättigade familjer kan sedan starta en 30-dagars Waffo-prenumeration provperiod.",
+    "renewalTrialPolicy": "Din prenumeration debiteras först efter den kostnadsfria provperioden och förnyas sedan varje månad tills den avslutas. Oanvänd testtid för registrering läggs inte till.",
+    "manageSubscription": "Hantera prenumeration",
+    "monthlyBilling": "Månadsvis",
+    "refreshSubscription": "Uppdatera prenumeration",
+    "subscriptionTrial": "Prenumeration gratis provperiod",
+    "testPayments": "Testläge. Inga riktiga pengar debiteras."
   },
   "da": {
     "confirmFamilyZone": "Bed din forælder om at bekræfte familiens tidszone, før du opretter forbindelse.",
@@ -6874,7 +7035,7 @@
     "welcomeNotification": "Velkommen til AI StudyNest",
     "safetyNotification": "Sikkerhedsrelateret indhold blev blokeret",
     "offTopicNotification": "Et spørgsmål uden for læring blev blokeret",
-    "trialNotification": "Din 30-dages gratis prøveperiode er startet. Opret en forbindelseskode for at forbinde dit barns læringsenhed.",
+    "trialNotification": "Din 3-dages gratis prøveperiode er startet. Opret en forbindelseskode for at forbinde dit barns læringsenhed.",
     "you": "Dig",
     "student": "Student",
     "menu": "Åbn navigation",
@@ -7149,7 +7310,14 @@
     "cropLeft": "Beskær fra venstre (%)",
     "cropTop": "Beskær fra toppen (%)",
     "cropWidth": "Beskæringsbredde (%)",
-    "cropHeight": "Beskæringshøjde (%)"
+    "cropHeight": "Beskæringshøjde (%)",
+    "trialPaymentPolicy": "Tilmelding inkluderer 3 gratis dage uden betalingsmetode. Berettigede familier kan derefter starte en 30-dages Waffo-abonnementsprøve.",
+    "renewalTrialPolicy": "Dit abonnement debiteres først efter dets gratis prøveperiode og fornyes derefter månedligt, indtil det opsiges. Ubrugt registreringsprøvetid tilføjes ikke.",
+    "manageSubscription": "Administrer abonnement",
+    "monthlyBilling": "Månedligt",
+    "refreshSubscription": "Opdater abonnement",
+    "subscriptionTrial": "Abonnement gratis prøveperiode",
+    "testPayments": "Testtilstand. Der opkræves ingen rigtige penge."
   },
   "nb": {
     "confirmFamilyZone": "Be forelderen din bekrefte familiens tidssone før du kobler til.",
@@ -7172,7 +7340,7 @@
     "welcomeNotification": "Velkommen til AI StudyNest",
     "safetyNotification": "Sikkerhetsrelatert innhold ble blokkert",
     "offTopicNotification": "Et spørsmål utenfor læring ble blokkert",
-    "trialNotification": "Din 30-dagers gratis prøveperiode har startet. Opprett en tilkoblingskode for å koble til barnets læringsenhet.",
+    "trialNotification": "Din 3-dagers gratis prøveperiode har startet. Opprett en tilkoblingskode for å koble til barnets læringsenhet.",
     "you": "Du",
     "student": "Student",
     "menu": "Åpne navigasjon",
@@ -7447,7 +7615,14 @@
     "cropLeft": "Beskjær fra venstre (%)",
     "cropTop": "Beskjær fra toppen (%)",
     "cropWidth": "Beskjæringsbredde (%)",
-    "cropHeight": "Beskjæringshøyde (%)"
+    "cropHeight": "Beskjæringshøyde (%)",
+    "trialPaymentPolicy": "Registrering inkluderer 3 gratis dager uten betalingsmåte. Kvalifiserte familier kan deretter starte en 30-dagers Waffo-abonnementprøve.",
+    "renewalTrialPolicy": "Abonnementet ditt belastes først etter den gratis prøveperioden, og fornyes deretter månedlig til det avsluttes. Ubrukt registreringsprøvetid legges ikke til.",
+    "manageSubscription": "Administrer abonnement",
+    "monthlyBilling": "Månedlig",
+    "refreshSubscription": "Oppdater abonnementet",
+    "subscriptionTrial": "Abonnement gratis prøveversjon",
+    "testPayments": "Testmodus. Ingen ekte penger belastes."
   },
   "fi": {
     "confirmFamilyZone": "Pyydä vanhempaasi vahvistamaan perheen aikavyöhyke ennen yhteyden muodostamista.",
@@ -7470,7 +7645,7 @@
     "welcomeNotification": "Tervetuloa AI StudyNestiin",
     "safetyNotification": "Turvallisuuteen liittyvä sisältö estettiin",
     "offTopicNotification": "Oppimisen ulkopuolinen kysymys estettiin",
-    "trialNotification": "30 päivän ilmainen kokeilusi on alkanut. Luo yhteyskoodi lapsesi oppimislaitteen yhdistämiseksi.",
+    "trialNotification": "3 päivän ilmainen kokeilusi on alkanut. Luo yhteyskoodi lapsesi oppimislaitteen yhdistämiseksi.",
     "you": "sinä",
     "student": "Opiskelija",
     "menu": "Avaa navigointi",
@@ -7745,7 +7920,14 @@
     "cropLeft": "Rajaa vasemmalta (%)",
     "cropTop": "Rajaa ylhäältä (%)",
     "cropWidth": "Rajauksen leveys (%)",
-    "cropHeight": "Rajauskorkeus (%)"
+    "cropHeight": "Rajauskorkeus (%)",
+    "trialPaymentPolicy": "Rekisteröityminen sisältää 3 ilmaista päivää ilman maksutapaa. Tukikelpoiset perheet voivat sitten aloittaa 30 päivän Waffo-tilauskokeilun.",
+    "renewalTrialPolicy": "Tilauksesi veloitetaan ensin ilmaisen kokeilujakson jälkeen, minkä jälkeen se uusitaan kuukausittain, kunnes se peruutetaan. Käyttämätöntä rekisteröintikokeiluaikaa ei lisätä.",
+    "manageSubscription": "Hallinnoi tilausta",
+    "monthlyBilling": "Kuukausittain",
+    "refreshSubscription": "Päivitä tilaus",
+    "subscriptionTrial": "Tilaus ilmainen kokeilu",
+    "testPayments": "Testitila. Oikeaa rahaa ei veloiteta."
   },
   "uk": {
     "confirmFamilyZone": "Перед підключенням попросіть батьків підтвердити сімейний часовий пояс.",
@@ -7768,7 +7950,7 @@
     "welcomeNotification": "Ласкаво просимо до AI StudyNest",
     "safetyNotification": "Вміст, пов’язаний з безпекою, заблоковано",
     "offTopicNotification": "Питання за межами навчання заблоковано",
-    "trialNotification": "Ваша 30-денна безкоштовна пробна версія почалася. Створіть код підключення, щоб підключити навчальний пристрій вашої дитини.",
+    "trialNotification": "Ваша 3-денна безкоштовна пробна версія почалася. Створіть код підключення, щоб підключити навчальний пристрій вашої дитини.",
     "you": "Ви",
     "student": "студент",
     "menu": "Відкрити навігацію",
@@ -8043,7 +8225,14 @@
     "cropLeft": "Обрізати зліва (%)",
     "cropTop": "Обрізати зверху (%)",
     "cropWidth": "Ширина обробітку (%)",
-    "cropHeight": "Висота культури (%)"
+    "cropHeight": "Висота культури (%)",
+    "trialPaymentPolicy": "Реєстрація включає 3 безкоштовні дні без способу оплати. Потім сім’ї, які відповідають вимогам, можуть розпочати 30-денну пробну підписку на Waffo.",
+    "renewalTrialPolicy": "Плата за підписку стягується після безкоштовного пробного періоду, а потім поновлюється щомісяця, доки її не буде скасовано. Невикористаний пробний час реєстрації не додається.",
+    "manageSubscription": "Керувати підпискою",
+    "monthlyBilling": "Щомісяця",
+    "refreshSubscription": "Оновити підписку",
+    "subscriptionTrial": "Безкоштовна пробна версія підписки",
+    "testPayments": "Тестовий режим. Реальні гроші не стягуються."
   },
   "he": {
     "confirmFamilyZone": "בקש מההורה שלך לאשר את אזור הזמן המשפחתי לפני ההתחברות.",
@@ -8066,7 +8255,7 @@
     "welcomeNotification": "ברוכים הבאים ל-AI StudyNest",
     "safetyNotification": "תוכן הקשור לבטיחות נחסם",
     "offTopicNotification": "שאלה מחוץ ללמידה נחסמה",
-    "trialNotification": "תקופת הניסיון שלך בחינם ל-30 יום החלה. צור קוד חיבור לחיבור מכשיר הלמידה של ילדך.",
+    "trialNotification": "תקופת הניסיון שלך בחינם ל-3 יום החלה. צור קוד חיבור לחיבור מכשיר הלמידה של ילדך.",
     "you": "אתה",
     "student": "תלמיד",
     "menu": "פתח את הניווט",
@@ -8341,7 +8530,14 @@
     "cropLeft": "חיתוך משמאל (%)",
     "cropTop": "חיתוך מלמעלה (%)",
     "cropWidth": "רוחב חיתוך (%)",
-    "cropHeight": "גובה חיתוך (%)"
+    "cropHeight": "גובה חיתוך (%)",
+    "trialPaymentPolicy": "ההרשמה כוללת 3 ימים חינם ללא אמצעי תשלום. לאחר מכן, משפחות זכאיות יכולות להתחיל ניסיון של 30 יום למנוי Waffo.",
+    "renewalTrialPolicy": "המנוי שלך יחויב לראשונה לאחר תקופת הניסיון בחינם, ולאחר מכן מתחדש מדי חודש עד לביטול. זמן ניסיון רישום שלא מנוצל אינו נוסף.",
+    "manageSubscription": "ניהול מנוי",
+    "monthlyBilling": "חודשי",
+    "refreshSubscription": "רענן את המנוי",
+    "subscriptionTrial": "מנוי ניסיון חינם",
+    "testPayments": "מצב בדיקה. לא גובים כסף אמיתי."
   },
   "hi": {
     "confirmFamilyZone": "जुड़ने से पहले अपने माता-पिता से पारिवारिक समय क्षेत्र की पुष्टि करने के लिए कहें।",
@@ -8364,7 +8560,7 @@
     "welcomeNotification": "एआई स्टडीनेस्ट में आपका स्वागत है",
     "safetyNotification": "सुरक्षा संबंधी सामग्री को ब्लॉक कर दिया गया था",
     "offTopicNotification": "सीखने से बाहर का एक प्रश्न अवरुद्ध कर दिया गया था",
-    "trialNotification": "आपका 30-दिवसीय निःशुल्क परीक्षण प्रारंभ हो गया है. अपने बच्चे के शिक्षण उपकरण को कनेक्ट करने के लिए एक कनेक्शन कोड बनाएं।",
+    "trialNotification": "आपका 3-दिवसीय निःशुल्क परीक्षण प्रारंभ हो गया है. अपने बच्चे के शिक्षण उपकरण को कनेक्ट करने के लिए एक कनेक्शन कोड बनाएं।",
     "you": "आप",
     "student": "छात्र",
     "menu": "नेविगेशन खोलें",
@@ -8639,7 +8835,14 @@
     "cropLeft": "बाएँ से काटें (%)",
     "cropTop": "ऊपर से काटें (%)",
     "cropWidth": "फसल की चौड़ाई (%)",
-    "cropHeight": "फसल की ऊंचाई (%)"
+    "cropHeight": "फसल की ऊंचाई (%)",
+    "trialPaymentPolicy": "पंजीकरण में भुगतान विधि के बिना 3 निःशुल्क दिन शामिल हैं। इसके बाद योग्य परिवार 30-दिवसीय वफ़ो सदस्यता परीक्षण शुरू कर सकते हैं।",
+    "renewalTrialPolicy": "आपकी सदस्यता के नि:शुल्क परीक्षण के बाद सबसे पहले शुल्क लिया जाता है, फिर रद्द होने तक मासिक रूप से नवीनीकृत किया जाता है। अप्रयुक्त पंजीकरण परीक्षण समय नहीं जोड़ा गया है।",
+    "manageSubscription": "सदस्यता प्रबंधित करें",
+    "monthlyBilling": "मासिक",
+    "refreshSubscription": "सदस्यता ताज़ा करें",
+    "subscriptionTrial": "सदस्यता निःशुल्क परीक्षण",
+    "testPayments": "परीक्षण मोड. कोई वास्तविक पैसा नहीं लिया जाता है."
   },
   "bn": {
     "confirmFamilyZone": "সংযোগ করার আগে আপনার অভিভাবককে পারিবারিক সময় অঞ্চল নিশ্চিত করতে বলুন।",
@@ -8662,7 +8865,7 @@
     "welcomeNotification": "AI StudyNest-এ স্বাগতম",
     "safetyNotification": "নিরাপত্তা-সম্পর্কিত কন্টেন্ট ব্লক করা হয়েছে",
     "offTopicNotification": "শেখার বাইরে একটি প্রশ্ন ব্লক করা হয়েছে",
-    "trialNotification": "আপনার 30-দিনের বিনামূল্যের ট্রায়াল শুরু হয়েছে৷ আপনার সন্তানের শেখার ডিভাইস সংযোগ করতে একটি সংযোগ কোড তৈরি করুন।",
+    "trialNotification": "আপনার 3-দিনের বিনামূল্যের ট্রায়াল শুরু হয়েছে৷ আপনার সন্তানের শেখার ডিভাইস সংযোগ করতে একটি সংযোগ কোড তৈরি করুন।",
     "you": "আপনি",
     "student": "ছাত্র",
     "menu": "নেভিগেশন খুলুন",
@@ -8937,7 +9140,14 @@
     "cropLeft": "বাম থেকে কাটা (%)",
     "cropTop": "উপর থেকে ক্রপ করুন (%)",
     "cropWidth": "ক্রপ প্রস্থ (%)",
-    "cropHeight": "ফসলের উচ্চতা (%)"
+    "cropHeight": "ফসলের উচ্চতা (%)",
+    "trialPaymentPolicy": "রেজিস্ট্রেশনে পেমেন্ট পদ্ধতি ছাড়া 3 বিনামূল্যে দিন অন্তর্ভুক্ত রয়েছে। যোগ্য পরিবারগুলি তারপর 30-দিনের ওয়াফো সাবস্ক্রিপশন ট্রায়াল শুরু করতে পারে।",
+    "renewalTrialPolicy": "আপনার সাবস্ক্রিপশন এর বিনামূল্যে ট্রায়ালের পরে প্রথমে চার্জ করা হয়, তারপর বাতিল না হওয়া পর্যন্ত মাসিক পুনর্নবীকরণ করা হয়। অব্যবহৃত রেজিস্ট্রেশন ট্রায়াল সময় যোগ করা হয় না.",
+    "manageSubscription": "সদস্যতা পরিচালনা করুন",
+    "monthlyBilling": "মাসিক",
+    "refreshSubscription": "সদস্যতা রিফ্রেশ করুন",
+    "subscriptionTrial": "সাবস্ক্রিপশন বিনামূল্যে ট্রায়াল",
+    "testPayments": "টেস্ট মোড। কোন প্রকৃত টাকা চার্জ করা হয় না."
   },
   "ur": {
     "confirmFamilyZone": "جڑنے سے پہلے اپنے والدین سے فیملی ٹائم زون کی تصدیق کرنے کو کہیں۔",
@@ -8960,7 +9170,7 @@
     "welcomeNotification": "AI StudyNest میں خوش آمدید",
     "safetyNotification": "حفاظت سے متعلق مواد کو مسدود کر دیا گیا تھا۔",
     "offTopicNotification": "سیکھنے سے باہر ایک سوال کو مسدود کر دیا گیا تھا۔",
-    "trialNotification": "آپ کا 30 دن کا مفت ٹرائل شروع ہو گیا ہے۔ اپنے بچے کے سیکھنے کے آلے کو جوڑنے کے لیے ایک کنکشن کوڈ بنائیں۔",
+    "trialNotification": "آپ کا 3 دن کا مفت ٹرائل شروع ہو گیا ہے۔ اپنے بچے کے سیکھنے کے آلے کو جوڑنے کے لیے ایک کنکشن کوڈ بنائیں۔",
     "you": "آپ",
     "student": "طالب علم",
     "menu": "نیویگیشن کھولیں۔",
@@ -9235,7 +9445,14 @@
     "cropLeft": "بائیں سے کٹائیں (%)",
     "cropTop": "اوپر سے کٹائیں (%)",
     "cropWidth": "فصل کی چوڑائی (%)",
-    "cropHeight": "فصل کی اونچائی (%)"
+    "cropHeight": "فصل کی اونچائی (%)",
+    "trialPaymentPolicy": "رجسٹریشن میں بغیر ادائیگی کے 3 مفت دن شامل ہیں۔ اہل خاندان اس کے بعد 30 دن کا Waffo سبسکرپشن ٹرائل شروع کر سکتے ہیں۔",
+    "renewalTrialPolicy": "آپ کی سبسکرپشن سب سے پہلے اس کے مفت ٹرائل کے بعد وصول کی جاتی ہے، پھر منسوخ ہونے تک ماہانہ تجدید ہوتی ہے۔ غیر استعمال شدہ رجسٹریشن ٹرائل ٹائم شامل نہیں کیا گیا ہے۔",
+    "manageSubscription": "سبسکرپشن کا نظم کریں۔",
+    "monthlyBilling": "ماہانہ",
+    "refreshSubscription": "سبسکرپشن ریفریش کریں۔",
+    "subscriptionTrial": "سبسکرپشن مفت ٹرائل",
+    "testPayments": "ٹیسٹ موڈ کوئی حقیقی رقم وصول نہیں کی جاتی ہے۔"
   },
   "fa": {
     "confirmFamilyZone": "از والدینتان بخواهید قبل از اتصال، منطقه زمانی خانواده را تأیید کنند.",
@@ -9258,7 +9475,7 @@
     "welcomeNotification": "به AI StudyNest خوش آمدید",
     "safetyNotification": "محتوای مرتبط با ایمنی مسدود شد",
     "offTopicNotification": "یک سوال خارج از یادگیری مسدود شد",
-    "trialNotification": "دوره آزمایشی رایگان 30 روزه شما شروع شده است. یک کد اتصال برای اتصال دستگاه یادگیری فرزندتان ایجاد کنید.",
+    "trialNotification": "دوره آزمایشی رایگان 3 روزه شما شروع شده است. یک کد اتصال برای اتصال دستگاه یادگیری فرزندتان ایجاد کنید.",
     "you": "شما",
     "student": "دانشجو",
     "menu": "ناوبری را باز کنید",
@@ -9533,7 +9750,14 @@
     "cropLeft": "برش از چپ (%)",
     "cropTop": "برش از بالا (%)",
     "cropWidth": "عرض برش (%)",
-    "cropHeight": "ارتفاع برش (%)"
+    "cropHeight": "ارتفاع برش (%)",
+    "trialPaymentPolicy": "ثبت نام شامل 3 روز رایگان بدون روش پرداخت می باشد. خانواده‌های واجد شرایط می‌توانند یک دوره آزمایشی 30 روزه اشتراک Waffo را شروع کنند.",
+    "renewalTrialPolicy": "اشتراک شما ابتدا پس از دوره آزمایشی رایگان کسر می‌شود، سپس ماهانه تمدید می‌شود تا زمانی که لغو شود. زمان آزمایشی ثبت نام استفاده نشده اضافه نمی شود.",
+    "manageSubscription": "مدیریت اشتراک",
+    "monthlyBilling": "ماهانه",
+    "refreshSubscription": "اشتراک را تازه کنید",
+    "subscriptionTrial": "اشتراک آزمایشی رایگان",
+    "testPayments": "حالت تست هیچ پول واقعی شارژ نمی شود."
   },
   "ta": {
     "confirmFamilyZone": "இணைக்கும் முன், குடும்ப நேர மண்டலத்தை உறுதிப்படுத்த உங்கள் பெற்றோரிடம் கேளுங்கள்.",
@@ -9556,7 +9780,7 @@
     "welcomeNotification": "AI StudyNest க்கு வரவேற்கிறோம்",
     "safetyNotification": "பாதுகாப்பு தொடர்பான உள்ளடக்கம் தடுக்கப்பட்டது",
     "offTopicNotification": "கற்றலுக்கு வெளியே ஒரு கேள்வி தடுக்கப்பட்டது",
-    "trialNotification": "உங்களின் 30 நாள் இலவச சோதனை தொடங்கியது. உங்கள் குழந்தையின் கற்றல் சாதனத்தை இணைக்க இணைப்புக் குறியீட்டை உருவாக்கவும்.",
+    "trialNotification": "உங்களின் 3 நாள் இலவச சோதனை தொடங்கியது. உங்கள் குழந்தையின் கற்றல் சாதனத்தை இணைக்க இணைப்புக் குறியீட்டை உருவாக்கவும்.",
     "you": "நீங்கள்",
     "student": "மாணவர்",
     "menu": "வழிசெலுத்தலைத் திறக்கவும்",
@@ -9831,7 +10055,14 @@
     "cropLeft": "இடமிருந்து செதுக்கு (%)",
     "cropTop": "மேலிருந்து செதுக்கு (%)",
     "cropWidth": "வெட்டு அகலம் (%)",
-    "cropHeight": "பயிர் உயரம் (%)"
+    "cropHeight": "பயிர் உயரம் (%)",
+    "trialPaymentPolicy": "கட்டணம் செலுத்தும் முறை இல்லாமல் 3 இலவச நாட்களை பதிவு செய்வதில் அடங்கும். தகுதியான குடும்பங்கள் 30 நாள் Waffo சந்தா சோதனையைத் தொடங்கலாம்.",
+    "renewalTrialPolicy": "உங்கள் சந்தா இலவச சோதனைக்குப் பிறகு முதலில் வசூலிக்கப்படும், பின்னர் ரத்து செய்யப்படும் வரை மாதந்தோறும் புதுப்பிக்கப்படும். பயன்படுத்தப்படாத பதிவு சோதனை நேரம் சேர்க்கப்படவில்லை.",
+    "manageSubscription": "சந்தாவை நிர்வகிக்கவும்",
+    "monthlyBilling": "மாதாந்திர",
+    "refreshSubscription": "சந்தாவைப் புதுப்பிக்கவும்",
+    "subscriptionTrial": "சந்தா இலவச சோதனை",
+    "testPayments": "சோதனை முறை. உண்மையான பணம் வசூலிக்கப்படுவதில்லை."
   },
   "te": {
     "confirmFamilyZone": "కనెక్ట్ చేయడానికి ముందు కుటుంబ సమయ మండలిని నిర్ధారించమని మీ తల్లిదండ్రులను అడగండి.",
@@ -9854,7 +10085,7 @@
     "welcomeNotification": "AI StudyNestకి స్వాగతం",
     "safetyNotification": "భద్రతకు సంబంధించిన కంటెంట్ బ్లాక్ చేయబడింది",
     "offTopicNotification": "లెర్నింగ్ వెలుపల ఒక ప్రశ్న బ్లాక్ చేయబడింది",
-    "trialNotification": "మీ 30-రోజుల ఉచిత ట్రయల్ ప్రారంభమైంది. మీ పిల్లల అభ్యాస పరికరాన్ని కనెక్ట్ చేయడానికి కనెక్షన్ కోడ్‌ను సృష్టించండి.",
+    "trialNotification": "మీ 3-రోజుల ఉచిత ట్రయల్ ప్రారంభమైంది. మీ పిల్లల అభ్యాస పరికరాన్ని కనెక్ట్ చేయడానికి కనెక్షన్ కోడ్‌ను సృష్టించండి.",
     "you": "మీరు",
     "student": "విద్యార్థి",
     "menu": "నావిగేషన్ తెరవండి",
@@ -10129,7 +10360,14 @@
     "cropLeft": "ఎడమ నుండి కత్తిరించు (%)",
     "cropTop": "ఎగువ నుండి కత్తిరించు (%)",
     "cropWidth": "క్రాప్ వెడల్పు (%)",
-    "cropHeight": "పంట ఎత్తు (%)"
+    "cropHeight": "పంట ఎత్తు (%)",
+    "trialPaymentPolicy": "చెల్లింపు పద్ధతి లేకుండా నమోదులో 3 ఉచిత రోజులు ఉంటాయి. అర్హత ఉన్న కుటుంబాలు 30-రోజుల వాఫో సబ్‌స్క్రిప్షన్ ట్రయల్‌ని ప్రారంభించవచ్చు.",
+    "renewalTrialPolicy": "మీ సభ్యత్వం ఉచిత ట్రయల్ తర్వాత మొదట ఛార్జ్ చేయబడుతుంది, ఆపై రద్దు చేయబడే వరకు నెలవారీగా పునరుద్ధరించబడుతుంది. ఉపయోగించని నమోదు ట్రయల్ సమయం జోడించబడలేదు.",
+    "manageSubscription": "సభ్యత్వాన్ని నిర్వహించండి",
+    "monthlyBilling": "నెలవారీ",
+    "refreshSubscription": "సభ్యత్వాన్ని రిఫ్రెష్ చేయండి",
+    "subscriptionTrial": "సబ్‌స్క్రిప్షన్ ఉచిత ట్రయల్",
+    "testPayments": "పరీక్ష మోడ్. అసలు డబ్బు వసూలు చేయబడదు."
   },
   "mr": {
     "confirmFamilyZone": "कनेक्ट करण्यापूर्वी तुमच्या पालकांना कौटुंबिक टाइम झोनची पुष्टी करण्यास सांगा.",
@@ -10152,7 +10390,7 @@
     "welcomeNotification": "AI StudyNest मध्ये आपले स्वागत आहे",
     "safetyNotification": "सुरक्षितता-संबंधित सामग्री अवरोधित केली होती",
     "offTopicNotification": "शिकण्याच्या बाहेरील प्रश्न अवरोधित केला होता",
-    "trialNotification": "तुमची 30-दिवसांची विनामूल्य चाचणी सुरू झाली आहे. तुमच्या मुलाचे शिक्षण डिव्हाइस कनेक्ट करण्यासाठी कनेक्शन कोड तयार करा.",
+    "trialNotification": "तुमची 3-दिवसांची विनामूल्य चाचणी सुरू झाली आहे. तुमच्या मुलाचे शिक्षण डिव्हाइस कनेक्ट करण्यासाठी कनेक्शन कोड तयार करा.",
     "you": "आपण",
     "student": "विद्यार्थी",
     "menu": "नेव्हिगेशन उघडा",
@@ -10427,7 +10665,14 @@
     "cropLeft": "डावीकडून क्रॉप करा (%)",
     "cropTop": "वरून क्रॉप करा (%)",
     "cropWidth": "क्रॉप रुंदी (%)",
-    "cropHeight": "पिकाची उंची (%)"
+    "cropHeight": "पिकाची उंची (%)",
+    "trialPaymentPolicy": "नोंदणीमध्ये पेमेंट पद्धतीशिवाय 3 विनामूल्य दिवसांचा समावेश आहे. पात्र कुटुंबे नंतर 30-दिवसीय Waffo सदस्यता चाचणी सुरू करू शकतात.",
+    "renewalTrialPolicy": "तुमच्या सदस्यतेवर प्रथम त्याच्या विनामूल्य चाचणीनंतर शुल्क आकारले जाते, नंतर रद्द होईपर्यंत मासिक नूतनीकरण होते. न वापरलेली नोंदणी चाचणी वेळ जोडलेली नाही.",
+    "manageSubscription": "सदस्यता व्यवस्थापित करा",
+    "monthlyBilling": "मासिक",
+    "refreshSubscription": "सदस्यता रिफ्रेश करा",
+    "subscriptionTrial": "सदस्यता विनामूल्य चाचणी",
+    "testPayments": "चाचणी मोड. कोणतेही वास्तविक पैसे आकारले जात नाहीत."
   },
   "gu": {
     "confirmFamilyZone": "કનેક્ટ કરતા પહેલા તમારા માતાપિતાને કૌટુંબિક સમય ઝોનની પુષ્ટિ કરવા માટે કહો.",
@@ -10450,7 +10695,7 @@
     "welcomeNotification": "AI StudyNest માં આપનું સ્વાગત છે",
     "safetyNotification": "સુરક્ષા-સંબંધિત સામગ્રી અવરોધિત કરવામાં આવી હતી",
     "offTopicNotification": "શીખવાની બહારનો પ્રશ્ન અવરોધિત કરવામાં આવ્યો હતો",
-    "trialNotification": "તમારી 30-દિવસની મફત અજમાયશ શરૂ થઈ ગઈ છે. તમારા બાળકના શિક્ષણ ઉપકરણને કનેક્ટ કરવા માટે કનેક્શન કોડ બનાવો.",
+    "trialNotification": "તમારી 3-દિવસની મફત અજમાયશ શરૂ થઈ ગઈ છે. તમારા બાળકના શિક્ષણ ઉપકરણને કનેક્ટ કરવા માટે કનેક્શન કોડ બનાવો.",
     "you": "તમે",
     "student": "વિદ્યાર્થી",
     "menu": "નેવિગેશન ખોલો",
@@ -10725,7 +10970,14 @@
     "cropLeft": "ડાબેથી કાપો (%)",
     "cropTop": "ઉપરથી કાપો (%)",
     "cropWidth": "કાપવાની પહોળાઈ (%)",
-    "cropHeight": "પાકની ઊંચાઈ (%)"
+    "cropHeight": "પાકની ઊંચાઈ (%)",
+    "trialPaymentPolicy": "નોંધણીમાં ચુકવણી પદ્ધતિ વિના 3 મફત દિવસોનો સમાવેશ થાય છે. પાત્ર પરિવારો પછી 30-દિવસની Waffo સબ્સ્ક્રિપ્શન ટ્રાયલ શરૂ કરી શકે છે.",
+    "renewalTrialPolicy": "તમારું સબ્સ્ક્રિપ્શન તેના મફત અજમાયશ પછી પ્રથમ શુલ્ક લેવામાં આવે છે, પછી રદ ન થાય ત્યાં સુધી માસિક રિન્યૂ થાય છે. બિનઉપયોગી નોંધણી ટ્રાયલ સમય ઉમેરવામાં આવ્યો નથી.",
+    "manageSubscription": "સબ્સ્ક્રિપ્શન મેનેજ કરો",
+    "monthlyBilling": "માસિક",
+    "refreshSubscription": "સબ્સ્ક્રિપ્શન રિફ્રેશ કરો",
+    "subscriptionTrial": "સબ્સ્ક્રિપ્શન મફત અજમાયશ",
+    "testPayments": "ટેસ્ટ મોડ. કોઈ વાસ્તવિક પૈસા લેવામાં આવતા નથી."
   },
   "kn": {
     "confirmFamilyZone": "ಸಂಪರ್ಕಿಸುವ ಮೊದಲು ಕುಟುಂಬದ ಸಮಯ ವಲಯವನ್ನು ಖಚಿತಪಡಿಸಲು ನಿಮ್ಮ ಪೋಷಕರನ್ನು ಕೇಳಿ.",
@@ -10748,7 +11000,7 @@
     "welcomeNotification": "AI StudyNest ಗೆ ಸುಸ್ವಾಗತ",
     "safetyNotification": "ಸುರಕ್ಷತೆ-ಸಂಬಂಧಿತ ವಿಷಯವನ್ನು ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ",
     "offTopicNotification": "ಕಲಿಕೆಯ ಹೊರಗಿನ ಪ್ರಶ್ನೆಯನ್ನು ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ",
-    "trialNotification": "ನಿಮ್ಮ 30 ದಿನಗಳ ಉಚಿತ ಪ್ರಯೋಗ ಪ್ರಾರಂಭವಾಗಿದೆ. ನಿಮ್ಮ ಮಗುವಿನ ಕಲಿಕೆಯ ಸಾಧನವನ್ನು ಸಂಪರ್ಕಿಸಲು ಸಂಪರ್ಕ ಕೋಡ್ ಅನ್ನು ರಚಿಸಿ.",
+    "trialNotification": "ನಿಮ್ಮ 3 ದಿನಗಳ ಉಚಿತ ಪ್ರಯೋಗ ಪ್ರಾರಂಭವಾಗಿದೆ. ನಿಮ್ಮ ಮಗುವಿನ ಕಲಿಕೆಯ ಸಾಧನವನ್ನು ಸಂಪರ್ಕಿಸಲು ಸಂಪರ್ಕ ಕೋಡ್ ಅನ್ನು ರಚಿಸಿ.",
     "you": "ನೀವು",
     "student": "ವಿದ್ಯಾರ್ಥಿ",
     "menu": "ನ್ಯಾವಿಗೇಶನ್ ತೆರೆಯಿರಿ",
@@ -11023,7 +11275,14 @@
     "cropLeft": "ಎಡದಿಂದ ಕ್ರಾಪ್ ಮಾಡಿ (%)",
     "cropTop": "ಮೇಲಿನಿಂದ ಕ್ರಾಪ್ ಮಾಡಿ (%)",
     "cropWidth": "ಕ್ರಾಪ್ ಅಗಲ (%)",
-    "cropHeight": "ಬೆಳೆಯ ಎತ್ತರ (%)"
+    "cropHeight": "ಬೆಳೆಯ ಎತ್ತರ (%)",
+    "trialPaymentPolicy": "ಪಾವತಿ ವಿಧಾನವಿಲ್ಲದೆ ನೋಂದಣಿಯು 3 ಉಚಿತ ದಿನಗಳನ್ನು ಒಳಗೊಂಡಿದೆ. ಅರ್ಹ ಕುಟುಂಬಗಳು ನಂತರ 30-ದಿನದ Waffo ಚಂದಾದಾರಿಕೆ ಪ್ರಯೋಗವನ್ನು ಪ್ರಾರಂಭಿಸಬಹುದು.",
+    "renewalTrialPolicy": "ಉಚಿತ ಪ್ರಯೋಗದ ನಂತರ ನಿಮ್ಮ ಚಂದಾದಾರಿಕೆಗೆ ಮೊದಲು ಶುಲ್ಕ ವಿಧಿಸಲಾಗುತ್ತದೆ, ನಂತರ ರದ್ದುಗೊಳ್ಳುವವರೆಗೆ ಮಾಸಿಕ ನವೀಕರಿಸಲಾಗುತ್ತದೆ. ಬಳಕೆಯಾಗದ ನೋಂದಣಿ ಪ್ರಾಯೋಗಿಕ ಸಮಯವನ್ನು ಸೇರಿಸಲಾಗಿಲ್ಲ.",
+    "manageSubscription": "ಚಂದಾದಾರಿಕೆಯನ್ನು ನಿರ್ವಹಿಸಿ",
+    "monthlyBilling": "ಮಾಸಿಕ",
+    "refreshSubscription": "ಚಂದಾದಾರಿಕೆಯನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+    "subscriptionTrial": "ಚಂದಾದಾರಿಕೆ ಉಚಿತ ಪ್ರಯೋಗ",
+    "testPayments": "ಪರೀಕ್ಷಾ ಮೋಡ್. ಯಾವುದೇ ನೈಜ ಹಣವನ್ನು ವಿಧಿಸಲಾಗುವುದಿಲ್ಲ."
   },
   "ml": {
     "confirmFamilyZone": "ബന്ധിപ്പിക്കുന്നതിന് മുമ്പ് കുടുംബ സമയ മേഖല സ്ഥിരീകരിക്കാൻ രക്ഷിതാവിനോട് ആവശ്യപ്പെടുക.",
@@ -11046,7 +11305,7 @@
     "welcomeNotification": "AI StudyNest-ലേക്ക് സ്വാഗതം",
     "safetyNotification": "സുരക്ഷയുമായി ബന്ധപ്പെട്ട ഉള്ളടക്കം തടഞ്ഞു",
     "offTopicNotification": "പഠനത്തിന് പുറത്തുള്ള ഒരു ചോദ്യം തടഞ്ഞു",
-    "trialNotification": "നിങ്ങളുടെ 30 ദിവസത്തെ സൗജന്യ ട്രയൽ ആരംഭിച്ചു. നിങ്ങളുടെ കുട്ടിയുടെ പഠന ഉപകരണം ബന്ധിപ്പിക്കുന്നതിന് ഒരു കണക്ഷൻ കോഡ് സൃഷ്‌ടിക്കുക.",
+    "trialNotification": "നിങ്ങളുടെ 3 ദിവസത്തെ സൗജന്യ ട്രയൽ ആരംഭിച്ചു. നിങ്ങളുടെ കുട്ടിയുടെ പഠന ഉപകരണം ബന്ധിപ്പിക്കുന്നതിന് ഒരു കണക്ഷൻ കോഡ് സൃഷ്‌ടിക്കുക.",
     "you": "നിങ്ങൾ",
     "student": "വിദ്യാർത്ഥി",
     "menu": "നാവിഗേഷൻ തുറക്കുക",
@@ -11321,7 +11580,14 @@
     "cropLeft": "ഇടത്തുനിന്ന് മുറിക്കുക (%)",
     "cropTop": "മുകളിൽ നിന്ന് മുറിക്കുക (%)",
     "cropWidth": "ക്രോപ്പ് വീതി (%)",
-    "cropHeight": "വിള ഉയരം (%)"
+    "cropHeight": "വിള ഉയരം (%)",
+    "trialPaymentPolicy": "പേയ്‌മെൻ്റ് രീതിയില്ലാതെ രജിസ്‌ട്രേഷനിൽ 3 സൗജന്യ ദിവസങ്ങൾ ഉൾപ്പെടുന്നു. യോഗ്യരായ കുടുംബങ്ങൾക്ക് 30 ദിവസത്തെ Waffo സബ്‌സ്‌ക്രിപ്‌ഷൻ ട്രയൽ ആരംഭിക്കാം.",
+    "renewalTrialPolicy": "സൗജന്യ ട്രയലിന് ശേഷം നിങ്ങളുടെ സബ്‌സ്‌ക്രിപ്‌ഷന് ആദ്യം നിരക്ക് ഈടാക്കും, തുടർന്ന് റദ്ദാക്കുന്നത് വരെ പ്രതിമാസം പുതുക്കും. ഉപയോഗിക്കാത്ത രജിസ്ട്രേഷൻ ട്രയൽ സമയം ചേർത്തിട്ടില്ല.",
+    "manageSubscription": "സബ്സ്ക്രിപ്ഷൻ നിയന്ത്രിക്കുക",
+    "monthlyBilling": "പ്രതിമാസ",
+    "refreshSubscription": "സബ്‌സ്‌ക്രിപ്‌ഷൻ പുതുക്കുക",
+    "subscriptionTrial": "സബ്സ്ക്രിപ്ഷൻ സൗജന്യ ട്രയൽ",
+    "testPayments": "ടെസ്റ്റ് മോഡ്. യഥാർത്ഥ പണമൊന്നും ഈടാക്കില്ല."
   },
   "pa": {
     "confirmFamilyZone": "ਹੈ\nਕਨੈਕਟ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਆਪਣੇ ਮਾਤਾ-ਪਿਤਾ ਨੂੰ ਪਰਿਵਾਰਕ ਸਮਾਂ ਖੇਤਰ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ ਲਈ ਕਹੋ।",
@@ -11344,7 +11610,7 @@
     "welcomeNotification": "ਹੈ\nAI StudyNest ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ",
     "safetyNotification": "ਹੈ\nਸੁਰੱਖਿਆ-ਸਬੰਧਤ ਸਮੱਗਰੀ ਨੂੰ ਬਲੌਕ ਕੀਤਾ ਗਿਆ ਸੀ",
     "offTopicNotification": "ਹੈ\nਸਿੱਖਣ ਤੋਂ ਬਾਹਰ ਇੱਕ ਸਵਾਲ ਬਲੌਕ ਕੀਤਾ ਗਿਆ ਸੀ",
-    "trialNotification": "ਤੁਹਾਡੀ 30-ਦਿਨ ਦੀ ਮੁਫ਼ਤ ਅਜ਼ਮਾਇਸ਼ ਸ਼ੁਰੂ ਹੋ ਗਈ ਹੈ। ਆਪਣੇ ਬੱਚੇ ਦੇ ਸਿੱਖਣ ਵਾਲੇ ਯੰਤਰ ਨੂੰ ਕਨੈਕਟ ਕਰਨ ਲਈ ਇੱਕ ਕਨੈਕਸ਼ਨ ਕੋਡ ਬਣਾਓ।",
+    "trialNotification": "ਤੁਹਾਡੀ 3-ਦਿਨ ਦੀ ਮੁਫ਼ਤ ਅਜ਼ਮਾਇਸ਼ ਸ਼ੁਰੂ ਹੋ ਗਈ ਹੈ। ਆਪਣੇ ਬੱਚੇ ਦੇ ਸਿੱਖਣ ਵਾਲੇ ਯੰਤਰ ਨੂੰ ਕਨੈਕਟ ਕਰਨ ਲਈ ਇੱਕ ਕਨੈਕਸ਼ਨ ਕੋਡ ਬਣਾਓ।",
     "you": "ਹੈ\nਤੁਹਾਨੂੰ",
     "student": "ਹੈ\nਵਿਦਿਆਰਥੀ",
     "menu": "ਹੈ\nਨੈਵੀਗੇਸ਼ਨ ਖੋਲ੍ਹੋ",
@@ -11619,7 +11885,14 @@
     "cropLeft": "ਹੈ\nਖੱਬੇ ਤੋਂ ਕੱਟੋ (%)",
     "cropTop": "ਹੈ\nਸਿਖਰ ਤੋਂ ਕੱਟੋ (%)",
     "cropWidth": "ਹੈ\nਕੱਟਣ ਦੀ ਚੌੜਾਈ (%)",
-    "cropHeight": "ਹੈ\nਫਸਲ ਦੀ ਉਚਾਈ (%)"
+    "cropHeight": "ਹੈ\nਫਸਲ ਦੀ ਉਚਾਈ (%)",
+    "trialPaymentPolicy": "ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਵਿੱਚ ਬਿਨਾਂ ਭੁਗਤਾਨ ਵਿਧੀ ਦੇ 3 ਮੁਫਤ ਦਿਨ ਸ਼ਾਮਲ ਹਨ। ਯੋਗ ਪਰਿਵਾਰ ਫਿਰ 30-ਦਿਨ ਦੀ Waffo ਗਾਹਕੀ ਦੀ ਅਜ਼ਮਾਇਸ਼ ਸ਼ੁਰੂ ਕਰ ਸਕਦੇ ਹਨ।",
+    "renewalTrialPolicy": "ਤੁਹਾਡੀ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਦੀ ਮੁਫਤ ਅਜ਼ਮਾਇਸ਼ ਤੋਂ ਬਾਅਦ ਪਹਿਲਾਂ ਚਾਰਜ ਲਿਆ ਜਾਂਦਾ ਹੈ, ਫਿਰ ਰੱਦ ਹੋਣ ਤੱਕ ਮਹੀਨਾਵਾਰ ਨਵੀਨੀਕਰਨ ਹੁੰਦਾ ਹੈ। ਅਣਵਰਤਿਆ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਟਰਾਇਲ ਸਮਾਂ ਜੋੜਿਆ ਨਹੀਂ ਜਾਂਦਾ ਹੈ।",
+    "manageSubscription": "ਗਾਹਕੀ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "monthlyBilling": "ਮਹੀਨਾਵਾਰ",
+    "refreshSubscription": "ਗਾਹਕੀ ਨੂੰ ਤਾਜ਼ਾ ਕਰੋ",
+    "subscriptionTrial": "ਗਾਹਕੀ ਮੁਫ਼ਤ ਅਜ਼ਮਾਇਸ਼",
+    "testPayments": "ਟੈਸਟ ਮੋਡ। ਕੋਈ ਅਸਲ ਪੈਸਾ ਨਹੀਂ ਲਗਾਇਆ ਜਾਂਦਾ ਹੈ।"
   },
   "ne": {
     "confirmFamilyZone": "जडान गर्नु अघि आफ्नो अभिभावकलाई पारिवारिक समय क्षेत्र पुष्टि गर्न सोध्नुहोस्।",
@@ -11642,7 +11915,7 @@
     "welcomeNotification": "AI StudyNest मा स्वागत छ",
     "safetyNotification": "सुरक्षा-सम्बन्धित सामग्री ब्लक गरिएको थियो",
     "offTopicNotification": "सिकाइ बाहिरको प्रश्न अवरुद्ध गरियो",
-    "trialNotification": "तपाईंको ३०-दिनको नि:शुल्क परीक्षण सुरु भएको छ। आफ्नो बच्चाको सिक्ने यन्त्र जडान गर्नको लागि जडान कोड सिर्जना गर्नुहोस्।",
+    "trialNotification": "तपाईंको 3-दिनको निःशुल्क परीक्षण सुरु भएको छ। आफ्नो बच्चाको सिक्ने यन्त्र जडान गर्नको लागि जडान कोड सिर्जना गर्नुहोस्।",
     "you": "तपाईं",
     "student": "विद्यार्थी",
     "menu": "नेभिगेसन खोल्नुहोस्",
@@ -11917,7 +12190,14 @@
     "cropLeft": "बायाँबाट काट्नुहोस् (%)",
     "cropTop": "माथिबाट क्रप गर्नुहोस् (%)",
     "cropWidth": "फसल चौडाइ (%)",
-    "cropHeight": "फसल उचाइ (%)"
+    "cropHeight": "फसल उचाइ (%)",
+    "trialPaymentPolicy": "दर्ताले भुक्तानी विधि बिना 3 निःशुल्क दिनहरू समावेश गर्दछ। योग्य परिवारहरूले त्यसपछि 30-दिने Waffo सदस्यता परीक्षण सुरु गर्न सक्छन्।",
+    "renewalTrialPolicy": "तपाइँको सदस्यता पहिले यसको निःशुल्क परीक्षण पछि शुल्क लगाइन्छ, त्यसपछि रद्द नभएसम्म मासिक नवीकरण हुन्छ। प्रयोग नगरिएको दर्ता परीक्षण समय थपिएको छैन।",
+    "manageSubscription": "सदस्यता प्रबन्ध गर्नुहोस्",
+    "monthlyBilling": "मासिक",
+    "refreshSubscription": "सदस्यता रिफ्रेस गर्नुहोस्",
+    "subscriptionTrial": "सदस्यता नि: शुल्क परीक्षण",
+    "testPayments": "परीक्षण मोड। कुनै वास्तविक पैसा चार्ज गरिएको छैन।"
   },
   "si": {
     "confirmFamilyZone": "සම්බන්ධ වීමට පෙර පවුලේ වේලා කලාපය තහවුරු කරන ලෙස ඔබේ මාපියන්ගෙන් ඉල්ලා සිටින්න.",
@@ -11940,7 +12220,7 @@
     "welcomeNotification": "AI StudyNest වෙත සාදරයෙන් පිළිගනිමු",
     "safetyNotification": "ආරක්ෂාවට අදාළ අන්තර්ගතය අවහිර කර ඇත",
     "offTopicNotification": "ඉගෙනීමෙන් පිටත ප්‍රශ්නයක් අවහිර විය",
-    "trialNotification": "ඔබගේ දින 30ක නොමිලේ අත්හදා බැලීම ආරම්භ කර ඇත. ඔබේ දරුවාගේ ඉගෙනුම් උපාංගය සම්බන්ධ කිරීමට සම්බන්ධතා කේතයක් සාදන්න.",
+    "trialNotification": "ඔබගේ දින 3ක නොමිලේ අත්හදා බැලීම ආරම්භ කර ඇත. ඔබේ දරුවාගේ ඉගෙනුම් උපාංගය සම්බන්ධ කිරීමට සම්බන්ධතා කේතයක් සාදන්න.",
     "you": "ඔබ",
     "student": "ශිෂ්යයා",
     "menu": "සංචාලනය විවෘත කරන්න",
@@ -12215,7 +12495,14 @@
     "cropLeft": "වමේ සිට කපන්න (%)",
     "cropTop": "ඉහළ සිට කප්පාදු කරන්න (%)",
     "cropWidth": "කපන පළල (%)",
-    "cropHeight": "බෝග උස (%)"
+    "cropHeight": "බෝග උස (%)",
+    "trialPaymentPolicy": "ලියාපදිංචියට ගෙවීම් ක්‍රමයක් නොමැතිව නොමිලේ දින 3ක් ඇතුළත් වේ. සුදුසුකම් ලබන පවුල්වලට පසුව දින 30ක Waffo දායකත්ව අත්හදා බැලීමක් ආරම්භ කළ හැක.",
+    "renewalTrialPolicy": "ඔබගේ දායකත්වය නොමිලේ අත්හදා බැලීමෙන් පසුව පළමුව අය කරනු ලැබේ, පසුව අවලංගු වන තෙක් මාසිකව අලුත් වේ. භාවිතයට නොගත් ලියාපදිංචි අත්හදා බැලීමේ කාලය එකතු නොකෙරේ.",
+    "manageSubscription": "දායකත්වය කළමනාකරණය කරන්න",
+    "monthlyBilling": "මාසිකව",
+    "refreshSubscription": "දායකත්වය නැවුම් කරන්න",
+    "subscriptionTrial": "දායකත්ව නොමිලේ අත්හදා බැලීම",
+    "testPayments": "පරීක්ෂණ මාදිලිය. සැබෑ මුදල් අය නොකෙරේ."
   },
   "hr": {
     "confirmFamilyZone": "Zamoli roditelja da potvrdi vremensku zonu obitelji prije povezivanja.",
@@ -12238,7 +12525,7 @@
     "welcomeNotification": "Dobrodošli u AI StudyNest",
     "safetyNotification": "Sadržaj povezan sa sigurnošću je blokiran",
     "offTopicNotification": "Pitanje izvan učenja je blokirano",
-    "trialNotification": "Vaše 30-dnevno besplatno probno razdoblje je počelo. Napravite kod za povezivanje za povezivanje uređaja za učenje vašeg djeteta.",
+    "trialNotification": "Vaše 3-dnevno besplatno probno razdoblje je počelo. Napravite kod za povezivanje za povezivanje uređaja za učenje vašeg djeteta.",
     "you": "ti",
     "student": "student",
     "menu": "Otvorite navigaciju",
@@ -12513,7 +12800,14 @@
     "cropLeft": "Obrezivanje slijeva (%)",
     "cropTop": "Obrezivanje od vrha (%)",
     "cropWidth": "Širina usjeva (%)",
-    "cropHeight": "Visina usjeva (%)"
+    "cropHeight": "Visina usjeva (%)",
+    "trialPaymentPolicy": "Registracija uključuje 3 besplatna dana bez načina plaćanja. Obitelji koje ispunjavaju uvjete tada mogu započeti 30-dnevnu probnu pretplatu na Waffo.",
+    "renewalTrialPolicy": "Vaša se pretplata prvo naplaćuje nakon besplatnog probnog razdoblja, a zatim se obnavlja svaki mjesec do otkazivanja. Neiskorišteno probno vrijeme registracije se ne dodaje.",
+    "manageSubscription": "Upravljanje pretplatom",
+    "monthlyBilling": "Mjesečno",
+    "refreshSubscription": "Osvježi pretplatu",
+    "subscriptionTrial": "Besplatna probna pretplata",
+    "testPayments": "Testni način rada. Ne naplaćuje se pravi novac."
   },
   "sk": {
     "confirmFamilyZone": "Pred pripojením požiadaj rodiča, aby potvrdil rodinné časové pásmo.",
@@ -12536,7 +12830,7 @@
     "welcomeNotification": "Vitajte v AI StudyNest",
     "safetyNotification": "Obsah súvisiaci s bezpečnosťou bol zablokovaný",
     "offTopicNotification": "Otázka mimo učenia bola zablokovaná",
-    "trialNotification": "Vaša 30-dňová bezplatná skúšobná verzia sa začala. Vytvorte kód pripojenia na pripojenie vzdelávacieho zariadenia vášho dieťaťa.",
+    "trialNotification": "Vaša 3-dňová bezplatná skúšobná verzia sa začala. Vytvorte kód pripojenia na pripojenie vzdelávacieho zariadenia vášho dieťaťa.",
     "you": "vy",
     "student": "Študent",
     "menu": "Otvorte navigáciu",
@@ -12811,7 +13105,14 @@
     "cropLeft": "Orezať zľava (%)",
     "cropTop": "Orezať zhora (%)",
     "cropWidth": "Šírka orezania (%)",
-    "cropHeight": "Výška orezania (%)"
+    "cropHeight": "Výška orezania (%)",
+    "trialPaymentPolicy": "Registrácia zahŕňa 3 voľné dni bez spôsobu platby. Oprávnené rodiny potom môžu začať 30-dňovú skúšobnú verziu predplatného Waffo.",
+    "renewalTrialPolicy": "Váš odber je najskôr účtovaný po jeho bezplatnej skúšobnej verzii a potom sa každý mesiac obnovuje, kým ho nezrušíte. Nevyužitý skúšobný čas registrácie sa nepridáva.",
+    "manageSubscription": "Spravovať predplatné",
+    "monthlyBilling": "Mesačne",
+    "refreshSubscription": "Obnoviť predplatné",
+    "subscriptionTrial": "Bezplatná skúšobná verzia predplatného",
+    "testPayments": "Testovací režim. Neúčtujú sa žiadne skutočné peniaze."
   },
   "sl": {
     "confirmFamilyZone": "Pred vzpostavitvijo povezave prosi svojega starša, da potrdi družinski časovni pas.",
@@ -12834,7 +13135,7 @@
     "welcomeNotification": "Dobrodošli v AI StudyNest",
     "safetyNotification": "Vsebina, povezana z varnostjo, je bila blokirana",
     "offTopicNotification": "Vprašanje zunaj učenja je bilo blokirano",
-    "trialNotification": "Začelo se je vaše 30-dnevno brezplačno preskusno obdobje. Ustvarite kodo povezave za povezavo otrokove učne naprave.",
+    "trialNotification": "Začelo se je vaše 3-dnevno brezplačno preskusno obdobje. Ustvarite kodo povezave za povezavo otrokove učne naprave.",
     "you": "Ti",
     "student": "študent",
     "menu": "Odpri navigacijo",
@@ -13109,7 +13410,14 @@
     "cropLeft": "Obrez z leve (%)",
     "cropTop": "Obreži od zgoraj (%)",
     "cropWidth": "Širina posevka (%)",
-    "cropHeight": "Višina pridelka (%)"
+    "cropHeight": "Višina pridelka (%)",
+    "trialPaymentPolicy": "Registracija vključuje 3 brezplačne dni brez načina plačila. Upravičene družine lahko nato začnejo 30-dnevno preskusno obdobje naročnine Waffo.",
+    "renewalTrialPolicy": "Vaša naročnina se najprej zaračuna po brezplačnem preizkusu, nato pa se mesečno obnavlja do preklica. Neuporabljen preskusni čas registracije se ne doda.",
+    "manageSubscription": "Upravljanje naročnine",
+    "monthlyBilling": "Mesečno",
+    "refreshSubscription": "Osveži naročnino",
+    "subscriptionTrial": "Brezplačni preizkus naročnine",
+    "testPayments": "Testni način. Pravi denar se ne zaračuna."
   },
   "sr": {
     "confirmFamilyZone": "Замоли родитеља да потврди временску зону породице пре повезивања.",
@@ -13132,7 +13440,7 @@
     "welcomeNotification": "Добродошли у АИ СтудиНест",
     "safetyNotification": "Безбедносни садржај је блокиран",
     "offTopicNotification": "Питање ван учења је блокирано",
-    "trialNotification": "Ваша 30-дневна бесплатна пробна верзија је почела. Направите код за повезивање да бисте повезали уређај за учење вашег детета.",
+    "trialNotification": "Ваша 3-дневна бесплатна пробна верзија је почела. Направите код за повезивање да бисте повезали уређај за учење вашег детета.",
     "you": "Ви",
     "student": "Студент",
     "menu": "Отворите навигацију",
@@ -13407,7 +13715,14 @@
     "cropLeft": "Опсецање с лева (%)",
     "cropTop": "Опеци одозго (%)",
     "cropWidth": "Ширина опсецања (%)",
-    "cropHeight": "Висина усева (%)"
+    "cropHeight": "Висина усева (%)",
+    "trialPaymentPolicy": "Регистрација укључује 3 бесплатна дана без начина плаћања. Породице које испуњавају услове тада могу започети 30-дневну пробну верзију Waffo претплате.",
+    "renewalTrialPolicy": "Ваша претплата се прво наплаћује након бесплатног пробног периода, а затим се обнавља сваког месеца док се не откаже. Неискоришћено пробно време регистрације се не додаје.",
+    "manageSubscription": "Управљајте претплатом",
+    "monthlyBilling": "Месечно",
+    "refreshSubscription": "Освежите претплату",
+    "subscriptionTrial": "Бесплатна пробна верзија претплате",
+    "testPayments": "Тест режим. Прави новац се не наплаћује."
   },
   "bg": {
     "confirmFamilyZone": "Помолете родителя си да потвърди семейната часова зона, преди да се свържете.",
@@ -13430,7 +13745,7 @@
     "welcomeNotification": "Добре дошли в AI StudyNest",
     "safetyNotification": "Съдържанието, свързано с безопасността, беше блокирано",
     "offTopicNotification": "Въпрос извън обучението беше блокиран",
-    "trialNotification": "Вашият 30-дневен безплатен пробен период започна. Създайте код за връзка, за да свържете учебното устройство на вашето дете.",
+    "trialNotification": "Вашият 3-дневен безплатен пробен период започна. Създайте код за връзка, за да свържете учебното устройство на вашето дете.",
     "you": "Вие",
     "student": "Студент",
     "menu": "Отворете навигацията",
@@ -13705,7 +14020,14 @@
     "cropLeft": "Изрязване отляво (%)",
     "cropTop": "Изрязване отгоре (%)",
     "cropWidth": "Ширина на изрязване (%)",
-    "cropHeight": "Височина на културата (%)"
+    "cropHeight": "Височина на културата (%)",
+    "trialPaymentPolicy": "Регистрацията включва 3 безплатни дни без начин на плащане. След това отговарящите на условията семейства могат да започнат 30-дневен пробен период за абонамент за Waffo.",
+    "renewalTrialPolicy": "Вашият абонамент първо се таксува след безплатния му пробен период, след което се подновява всеки месец, докато не бъде анулиран. Неизползваното пробно време за регистрация не се добавя.",
+    "manageSubscription": "Управление на абонамента",
+    "monthlyBilling": "Месечно",
+    "refreshSubscription": "Опресняване на абонамента",
+    "subscriptionTrial": "Безплатен пробен период за абонамент",
+    "testPayments": "Тестови режим. Не се таксуват реални пари."
   },
   "be": {
     "confirmFamilyZone": "Перад падключэннем папрасіце бацькоў пацвердзіць часавы пояс сям'і.",
@@ -13728,7 +14050,7 @@
     "welcomeNotification": "Сардэчна запрашаем у AI StudyNest",
     "safetyNotification": "Кантэнт, звязаны з бяспекай, быў заблакіраваны",
     "offTopicNotification": "Пытанне па-за навучаннем было заблакіравана",
-    "trialNotification": "Ваш 30-дзённы бясплатны пробны перыяд пачаўся. Стварыце код злучэння, каб падключыць навучальную прыладу вашага дзіцяці.",
+    "trialNotification": "Ваш 3-дзённы бясплатны пробны перыяд пачаўся. Стварыце код злучэння, каб падключыць навучальную прыладу вашага дзіцяці.",
     "you": "Вы",
     "student": "Студэнт",
     "menu": "Адкрыць навігацыю",
@@ -14003,7 +14325,14 @@
     "cropLeft": "Абрэзаць злева (%)",
     "cropTop": "Абрэзаць зверху (%)",
     "cropWidth": "Шырыня кадравання (%)",
-    "cropHeight": "Вышыня ўраджаю (%)"
+    "cropHeight": "Вышыня ўраджаю (%)",
+    "trialPaymentPolicy": "Рэгістрацыя ўключае 3 бясплатныя дні без спосабу аплаты. Адпаведныя сем'і могуць пачаць 30-дзённую пробную падпіску на Waffo.",
+    "renewalTrialPolicy": "Ваша падпіска спачатку спаганяецца пасля заканчэння бясплатнага пробнага перыяду, потым падаўжаецца штомесяц да адмены. Нявыкарыстаны пробны час рэгістрацыі не дадаецца.",
+    "manageSubscription": "Кіраванне падпіскай",
+    "monthlyBilling": "Штомесяц",
+    "refreshSubscription": "Абнавіць падпіску",
+    "subscriptionTrial": "Бясплатная пробная версія падпіскі",
+    "testPayments": "Тэставы рэжым. Рэальныя грошы не спаганяюцца."
   },
   "lt": {
     "confirmFamilyZone": "Prieš prisijungdami paprašykite savo tėvų patvirtinti šeimos laiko juostą.",
@@ -14026,7 +14355,7 @@
     "welcomeNotification": "Sveiki atvykę į AI StudyNest",
     "safetyNotification": "Su sauga susijęs turinys buvo užblokuotas",
     "offTopicNotification": "Klausimas už mokymosi ribų buvo užblokuotas",
-    "trialNotification": "Jūsų 30 dienų nemokama bandomoji versija prasidėjo. Sukurkite ryšio kodą, kad prijungtumėte vaiko mokymosi įrenginį.",
+    "trialNotification": "Jūsų 3 dienų nemokama bandomoji versija prasidėjo. Sukurkite ryšio kodą, kad prijungtumėte vaiko mokymosi įrenginį.",
     "you": "Jūs",
     "student": "Studentas",
     "menu": "Atidaryti navigaciją",
@@ -14301,7 +14630,14 @@
     "cropLeft": "Apkarpyti iš kairės (%)",
     "cropTop": "Apkarpyti iš viršaus (%)",
     "cropWidth": "Apkarpymo plotis (%)",
-    "cropHeight": "Apkarpymo aukštis (%)"
+    "cropHeight": "Apkarpymo aukštis (%)",
+    "trialPaymentPolicy": "Registracija apima 3 nemokamas dienas be mokėjimo būdo. Tinkamos šeimos gali pradėti 30 dienų Waffo prenumeratos bandomąjį laikotarpį.",
+    "renewalTrialPolicy": "Iš pradžių prenumerata apmokestinama po nemokamos bandomosios versijos, tada atnaujinama kas mėnesį, kol bus atšaukta. Nepanaudotas registracijos bandomasis laikas nepridedamas.",
+    "manageSubscription": "Tvarkyti prenumeratą",
+    "monthlyBilling": "Kas mėnesį",
+    "refreshSubscription": "Atnaujinti prenumeratą",
+    "subscriptionTrial": "Prenumeratos nemokama bandomoji versija",
+    "testPayments": "Bandymo režimas. Tikri pinigai neimami."
   },
   "lv": {
     "confirmFamilyZone": "Pirms savienojuma izveides lūdziet vecākiem apstiprināt ģimenes laika joslu.",
@@ -14324,7 +14660,7 @@
     "welcomeNotification": "Laipni lūdzam AI StudyNest!",
     "safetyNotification": "Ar drošību saistīts saturs tika bloķēts",
     "offTopicNotification": "Jautājums ārpus mācīšanās tika bloķēts",
-    "trialNotification": "Jūsu 30 dienu bezmaksas izmēģinājums ir sācies. Izveidojiet savienojuma kodu, lai savienotu bērna mācību ierīci.",
+    "trialNotification": "Jūsu 3 dienu bezmaksas izmēģinājums ir sācies. Izveidojiet savienojuma kodu, lai savienotu bērna mācību ierīci.",
     "you": "Tu",
     "student": "Students",
     "menu": "Atveriet navigāciju",
@@ -14599,7 +14935,14 @@
     "cropLeft": "Apgriezt no kreisās puses (%)",
     "cropTop": "Apgriezt no augšas (%)",
     "cropWidth": "Apgriešanas platums (%)",
-    "cropHeight": "Apgriešanas augstums (%)"
+    "cropHeight": "Apgriešanas augstums (%)",
+    "trialPaymentPolicy": "Reģistrācija ietver 3 bezmaksas dienas bez maksājuma veida. Atbilstīgās ģimenes pēc tam var sākt 30 dienu Waffo abonementa izmēģinājumu.",
+    "renewalTrialPolicy": "No jūsu abonementa vispirms tiek iekasēta maksa pēc tā bezmaksas izmēģinājuma perioda, pēc tam tas tiek atjaunots katru mēnesi, līdz tas tiek atcelts. Neizmantotais reģistrācijas izmēģinājuma laiks netiek pievienots.",
+    "manageSubscription": "Pārvaldīt abonementu",
+    "monthlyBilling": "Ikmēneša",
+    "refreshSubscription": "Atsvaidziniet abonementu",
+    "subscriptionTrial": "Abonēšanas bezmaksas izmēģinājums",
+    "testPayments": "Pārbaudes režīms. Par reālu naudu netiek iekasēta maksa."
   },
   "et": {
     "confirmFamilyZone": "Paluge vanemal enne ühenduse loomist pere ajavööndit kinnitada.",
@@ -14622,7 +14965,7 @@
     "welcomeNotification": "Tere tulemast AI StudyNesti",
     "safetyNotification": "Ohutusega seotud sisu blokeeriti",
     "offTopicNotification": "Küsimus väljaspool õppimist blokeeriti",
-    "trialNotification": "Teie 30-päevane tasuta prooviperiood on alanud. Looge lapse õppeseadme ühendamiseks ühenduskood.",
+    "trialNotification": "Teie 3-päevane tasuta prooviperiood on alanud. Looge lapse õppeseadme ühendamiseks ühenduskood.",
     "you": "Sina",
     "student": "Üliõpilane",
     "menu": "Ava navigeerimine",
@@ -14897,7 +15240,14 @@
     "cropLeft": "Kärbi vasakult (%)",
     "cropTop": "Kärbi ülalt (%)",
     "cropWidth": "Kärpimislaius (%)",
-    "cropHeight": "Kärpimise kõrgus (%)"
+    "cropHeight": "Kärpimise kõrgus (%)",
+    "trialPaymentPolicy": "Registreerimine sisaldab 3 tasuta päeva ilma makseviisita. Abikõlblikud pered saavad seejärel alustada 30-päevast Waffo tellimuse prooviperioodi.",
+    "renewalTrialPolicy": "Teie tellimuse eest võetakse esmalt tasu pärast tasuta prooviperioodi, seejärel uuendatakse seda iga kuu kuni tühistamiseni. Kasutamata registreerimise prooviaega ei lisata.",
+    "manageSubscription": "Tellimuse haldamine",
+    "monthlyBilling": "Igakuine",
+    "refreshSubscription": "Värskenda tellimust",
+    "subscriptionTrial": "Tellimuse tasuta prooviperiood",
+    "testPayments": "Testirežiim. Päris raha ei võeta."
   },
   "mk": {
     "confirmFamilyZone": "Побарајте од вашиот родител да ја потврди семејната временска зона пред да се поврзете.",
@@ -14920,7 +15270,7 @@
     "welcomeNotification": "Добредојдовте во AI StudyNest",
     "safetyNotification": "Содржините поврзани со безбедноста беа блокирани",
     "offTopicNotification": "Беше блокирано прашање надвор од учењето",
-    "trialNotification": "Вашиот 30-дневен бесплатен пробен период започна. Создадете код за поврзување за да го поврзете уредот за учење на вашето дете.",
+    "trialNotification": "Вашиот 3-дневен бесплатен пробен период започна. Создадете код за поврзување за да го поврзете уредот за учење на вашето дете.",
     "you": "Вие",
     "student": "Студент",
     "menu": "Отворете ја навигацијата",
@@ -15195,7 +15545,14 @@
     "cropLeft": "Исечете од лево (%)",
     "cropTop": "Исечете од врвот (%)",
     "cropWidth": "Ширина на исечете (%)",
-    "cropHeight": "Висина на сечење (%)"
+    "cropHeight": "Висина на сечење (%)",
+    "trialPaymentPolicy": "Регистрацијата вклучува 3 бесплатни дена без начин на плаќање. Подобните семејства потоа можат да започнат 30-дневен пробен период за претплата на Waffo.",
+    "renewalTrialPolicy": "Вашата претплата прво се наплаќа по бесплатниот пробен период, а потоа се обновува месечно додека не се откаже. Неискористеното пробно време за регистрација не се додава.",
+    "manageSubscription": "Управувајте со претплатата",
+    "monthlyBilling": "Месечно",
+    "refreshSubscription": "Освежете ја претплатата",
+    "subscriptionTrial": "Бесплатен пробен период за претплата",
+    "testPayments": "Тест режим. Не се наплаќаат вистински пари."
   },
   "sq": {
     "confirmFamilyZone": "Kërkoji prindit të konfirmojë zonën kohore të familjes përpara se të lidhesh.",
@@ -15218,7 +15575,7 @@
     "welcomeNotification": "Mirë se vini në AI StudyNest",
     "safetyNotification": "Përmbajtja e lidhur me sigurinë u bllokua",
     "offTopicNotification": "Një pyetje jashtë mësimit u bllokua",
-    "trialNotification": "Prova jote falas 30-ditore ka filluar. Krijo një kod lidhjeje për të lidhur pajisjen mësimore të fëmijës suaj.",
+    "trialNotification": "Prova jote falas 3-ditore ka filluar. Krijo një kod lidhjeje për të lidhur pajisjen mësimore të fëmijës suaj.",
     "you": "Ju",
     "student": "Studenti",
     "menu": "Hap navigimin",
@@ -15493,7 +15850,14 @@
     "cropLeft": "Pri nga e majta (%)",
     "cropTop": "Pri nga lart (%)",
     "cropWidth": "Gjerësia e prerjes (%)",
-    "cropHeight": "Lartësia e prerjes (%)"
+    "cropHeight": "Lartësia e prerjes (%)",
+    "trialPaymentPolicy": "Regjistrimi përfshin 3 ditë falas pa një mënyrë pagese. Familjet e kualifikuara më pas mund të fillojnë një provë 30-ditore të abonimit në Waffo.",
+    "renewalTrialPolicy": "Abonimi juaj fillimisht tarifohet pas provës së tij falas, më pas rinovohet çdo muaj derisa të anulohet. Koha e papërdorur e provës së regjistrimit nuk shtohet.",
+    "manageSubscription": "Menaxho abonimin",
+    "monthlyBilling": "Mujore",
+    "refreshSubscription": "Rifresko abonimin",
+    "subscriptionTrial": "Provë falas me abonim",
+    "testPayments": "Mënyra e testimit. Nuk tarifohen para të vërteta."
   },
   "az-Cyrl": {
     "confirmFamilyZone": "Гошулмаздан әввәл валидејниниздән аилә саат гуршағыны тәсдигләмәсини хаһиш един.",
@@ -15516,7 +15880,7 @@
     "welcomeNotification": "AI StudyNest-ә хош ҝәлмисиниз",
     "safetyNotification": "Тәһлүкәсизликлә әлагәли мәзмун блокланды",
     "offTopicNotification": "Өјрәнмәдән кәнар суал блокланды",
-    "trialNotification": "30 ҝүнлүк өдәнишсиз сынаг мүддәтиниз башлады. Өвладынызын өјрәнмә ҹиһазыны гошмаг үчүн әлагә коду јарадын.",
+    "trialNotification": "3 ҝүнлүк өдәнишсиз сынаг мүддәтиниз башлады. Өвладынызын өјрәнмә ҹиһазыны гошмаг үчүн әлагә коду јарадын.",
     "you": "сән",
     "student": "тәләбә",
     "menu": "Навигасијаны ачын",
@@ -15791,7 +16155,14 @@
     "cropLeft": "Солдан кәсин (%)",
     "cropTop": "Јухарыдан кәсин (%)",
     "cropWidth": "Кәсмә ени (%)",
-    "cropHeight": "Әкин һүндүрлүјү (%)"
+    "cropHeight": "Әкин һүндүрлүјү (%)",
+    "trialPaymentPolicy": "Гејдијјата өдәниш үсулу олмадан 3 пулсуз ҝүн дахилдир. Ујғун аиләләр даһа сонра 30 ҝүнлүк Waffo абунә сынағына башлаја биләрләр.",
+    "renewalTrialPolicy": "Абунәлијиниз илк өнҹә өдәнишсиз сынаг мүддәтиндән сонра тутулур, сонра ләғв едиләнә гәдәр ајлыг јениләнир. Истифадә едилмәмиш гејдијјат сынаг мүддәти әлавә едилмир.",
+    "manageSubscription": "Абунәлији идарә един",
+    "monthlyBilling": "Ајлыг",
+    "refreshSubscription": "Абунәлији тәзәләјин",
+    "subscriptionTrial": "Абунә пулсуз сынаг",
+    "testPayments": "Тест рејими. Реал пул тутулмур."
   },
   "kk": {
     "confirmFamilyZone": "Қосылмас бұрын ата-анаңыздан отбасылық уақыт белдеуін растауды сұраңыз.",
@@ -15814,7 +16185,7 @@
     "welcomeNotification": "AI StudyNest-ке қош келдіңіз",
     "safetyNotification": "Қауіпсіздікке қатысты мазмұн бұғатталды",
     "offTopicNotification": "Оқудан тыс сұрақ бұғатталды",
-    "trialNotification": "30 күндік тегін сынақ нұсқасы басталды. Балаңыздың оқу құрылғысын қосу үшін қосылым кодын жасаңыз.",
+    "trialNotification": "3 күндік тегін сынақ нұсқасы басталды. Балаңыздың оқу құрылғысын қосу үшін қосылым кодын жасаңыз.",
     "you": "Сіз",
     "student": "студент",
     "menu": "Навигацияны ашыңыз",
@@ -16089,7 +16460,14 @@
     "cropLeft": "Солдан қию (%)",
     "cropTop": "Жоғарыдан қию (%)",
     "cropWidth": "Кесу ені (%)",
-    "cropHeight": "Кесу биіктігі (%)"
+    "cropHeight": "Кесу биіктігі (%)",
+    "trialPaymentPolicy": "Тіркелу төлем әдісінсіз 3 тегін күнді қамтиды. Жарамды отбасылар Waffo жазылымының 30 күндік сынақ нұсқасын бастай алады.",
+    "renewalTrialPolicy": "Жазылымыңыздың ақысы алдымен тегін сынақ нұсқасынан кейін алынады, содан кейін бас тартылғанға дейін ай сайын жаңартылады. Пайдаланылмаған тіркеу сынақ уақыты қосылмайды.",
+    "manageSubscription": "Жазылымды басқару",
+    "monthlyBilling": "Ай сайын",
+    "refreshSubscription": "Жазылымды жаңарту",
+    "subscriptionTrial": "Жазылым тегін сынақ нұсқасы",
+    "testPayments": "Сынақ режимі. Нақты ақша алынбайды."
   },
   "ky": {
     "confirmFamilyZone": "Туташуудан мурун ата-энеңизден үй-бүлөлүк убакыт алкагын ырастоосун сураныңыз.",
@@ -16112,7 +16490,7 @@
     "welcomeNotification": "AI StudyNestке кош келиңиз",
     "safetyNotification": "Коопсуздукка байланыштуу мазмун бөгөттөлгөн",
     "offTopicNotification": "Окутуудан тышкаркы суроо бөгөттөлдү",
-    "trialNotification": "30 күндүк акысыз сынооңуз башталды. Балаңыздын окуу түзмөгүн туташтыруу үчүн байланыш кодун түзүңүз.",
+    "trialNotification": "3 күндүк акысыз сынооңуз башталды. Балаңыздын окуу түзмөгүн туташтыруу үчүн байланыш кодун түзүңүз.",
     "you": "сен",
     "student": "Студент",
     "menu": "Навигацияны ачуу",
@@ -16387,7 +16765,14 @@
     "cropLeft": "Солдон кесүү (%)",
     "cropTop": "Үстүнөн кесүү (%)",
     "cropWidth": "Кесүү туурасы (%)",
-    "cropHeight": "Өсүмдүктүн бийиктиги (%)"
+    "cropHeight": "Өсүмдүктүн бийиктиги (%)",
+    "trialPaymentPolicy": "Каттоо төлөм ыкмасы жок 3 акысыз күндү камтыйт. Жарамдуу үй-бүлөлөр андан кийин 30 күндүк Waffo жазылуу сыноосун баштаса болот.",
+    "renewalTrialPolicy": "Жазылууңуз биринчи жолу акысыз сынамык версиясынан кийин төлөнөт, андан кийин жокко чыгарылганга чейин ай сайын жаңырып турат. Колдонулбаган каттоо сыноо убактысы кошулбайт.",
+    "manageSubscription": "Жазылууну башкаруу",
+    "monthlyBilling": "Ай сайын",
+    "refreshSubscription": "Жазылууну жаңыртуу",
+    "subscriptionTrial": "Жазылуу акысыз сыноо",
+    "testPayments": "Сыноо режими. Чыныгы акча алынбайт."
   },
   "hy": {
     "confirmFamilyZone": "Խնդրեք ձեր ծնողին հաստատել ընտանեկան ժամային գոտին նախքան միանալը:",
@@ -16410,7 +16795,7 @@
     "welcomeNotification": "Բարի գալուստ AI StudyNest",
     "safetyNotification": "Անվտանգության հետ կապված բովանդակությունն արգելափակվել է",
     "offTopicNotification": "Ուսուցումից դուրս հարց արգելափակվել է",
-    "trialNotification": "Ձեր 30-օրյա անվճար փորձաշրջանը սկսվել է: Ստեղծեք կապի կոդը՝ ձեր երեխայի ուսումնական սարքը միացնելու համար:",
+    "trialNotification": "Ձեր 3-օրյա անվճար փորձաշրջանը սկսվել է: Ստեղծեք կապի կոդը՝ ձեր երեխայի ուսումնական սարքը միացնելու համար:",
     "you": "Դուք",
     "student": "Ուսանող",
     "menu": "Բացեք նավիգացիան",
@@ -16685,7 +17070,14 @@
     "cropLeft": "Կտրել ձախից (%)",
     "cropTop": "Կտրել վերևից (%)",
     "cropWidth": "Բերքի լայնությունը (%)",
-    "cropHeight": "Բերքի բարձրությունը (%)"
+    "cropHeight": "Բերքի բարձրությունը (%)",
+    "trialPaymentPolicy": "Գրանցումը ներառում է 3 անվճար օր առանց վճարման եղանակի: Այնուհետև իրավասու ընտանիքները կարող են սկսել Waffo-ի բաժանորդագրության 30-օրյա փորձարկում:",
+    "renewalTrialPolicy": "Ձեր բաժանորդագրությունը նախ գանձվում է անվճար փորձաշրջանից հետո, այնուհետև ամսական թարմացվում է մինչև չեղարկվելը: Չօգտագործված գրանցման փորձնական ժամանակը չի ավելացվել:",
+    "manageSubscription": "Կառավարեք բաժանորդագրությունը",
+    "monthlyBilling": "Ամսական",
+    "refreshSubscription": "Թարմացնել բաժանորդագրությունը",
+    "subscriptionTrial": "Բաժանորդագրության անվճար փորձարկում",
+    "testPayments": "Փորձարկման ռեժիմ. Իրական գումար չի գանձվում:"
   },
   "ka": {
     "confirmFamilyZone": "სთხოვეთ თქვენს მშობელს დაადასტუროს ოჯახის დროის სარტყელი დაკავშირებამდე.",
@@ -16708,7 +17100,7 @@
     "welcomeNotification": "კეთილი იყოს თქვენი მობრძანება AI StudyNest-ში",
     "safetyNotification": "უსაფრთხოებასთან დაკავშირებული კონტენტი დაიბლოკა",
     "offTopicNotification": "სწავლის გარეთ შეკითხვა დაბლოკილია",
-    "trialNotification": "თქვენი 30-დღიანი უფასო საცდელი ვერსია დაიწყო. შექმენით კავშირის კოდი თქვენი ბავშვის სასწავლო მოწყობილობის დასაკავშირებლად.",
+    "trialNotification": "თქვენი 3-დღიანი უფასო საცდელი ვერსია დაიწყო. შექმენით კავშირის კოდი თქვენი ბავშვის სასწავლო მოწყობილობის დასაკავშირებლად.",
     "you": "შენ",
     "student": "სტუდენტი",
     "menu": "გახსენით ნავიგაცია",
@@ -16983,7 +17375,14 @@
     "cropLeft": "ჩამოჭრა მარცხნიდან (%)",
     "cropTop": "ჩამოჭრა ზემოდან (%)",
     "cropWidth": "ჩამოჭრის სიგანე (%)",
-    "cropHeight": "მოსავლის სიმაღლე (%)"
+    "cropHeight": "მოსავლის სიმაღლე (%)",
+    "trialPaymentPolicy": "რეგისტრაცია მოიცავს 3 უფასო დღეს გადახდის მეთოდის გარეშე. უფლებამოსილ ოჯახებს შეუძლიათ დაიწყონ Waffo-ს გამოწერის 30-დღიანი საცდელი ვერსია.",
+    "renewalTrialPolicy": "თქვენი გამოწერა ჯერ ჩამოიჭრება უფასო საცდელი პერიოდის შემდეგ, შემდეგ განახლდება ყოველთვიურად გაუქმებამდე. გამოუყენებელი რეგისტრაციის საცდელი დრო არ ემატება.",
+    "manageSubscription": "მართეთ გამოწერა",
+    "monthlyBilling": "ყოველთვიური",
+    "refreshSubscription": "განაახლეთ გამოწერა",
+    "subscriptionTrial": "გამოწერის უფასო საცდელი ვერსია",
+    "testPayments": "ტესტის რეჟიმი. რეალური ფული არ არის გადახდილი."
   },
   "is": {
     "confirmFamilyZone": "Biddu foreldri þitt um að staðfesta tímabelti fjölskyldunnar áður en þú tengist.",
@@ -17006,7 +17405,7 @@
     "welcomeNotification": "Velkomin í AI StudyNest",
     "safetyNotification": "Lokað var fyrir öryggistengt efni",
     "offTopicNotification": "Spurning utan náms var læst",
-    "trialNotification": "30 daga ókeypis prufuáskriftin þín er hafin. Búðu til tengikóða til að tengja námstæki barnsins þíns.",
+    "trialNotification": "3 daga ókeypis prufuáskriftin þín er hafin. Búðu til tengikóða til að tengja námstæki barnsins þíns.",
     "you": "Þú",
     "student": "Nemandi",
     "menu": "Opna flakk",
@@ -17281,7 +17680,14 @@
     "cropLeft": "Skera frá vinstri (%)",
     "cropTop": "Skera ofan frá (%)",
     "cropWidth": "Skurðarbreidd (%)",
-    "cropHeight": "Uppskeruhæð (%)"
+    "cropHeight": "Uppskeruhæð (%)",
+    "trialPaymentPolicy": "Skráning inniheldur 3 ókeypis dagar án greiðslumáta. Hæfar fjölskyldur geta síðan hafið 30 daga Waffo áskriftarpróf.",
+    "renewalTrialPolicy": "Áskriftin þín er fyrst rukkuð eftir ókeypis prufuáskrift og endurnýjast síðan mánaðarlega þar til henni er sagt upp. Ónotaður prufutími fyrir skráningu er ekki bætt við.",
+    "manageSubscription": "Stjórna áskrift",
+    "monthlyBilling": "Mánaðarlega",
+    "refreshSubscription": "Endurnýjaðu áskrift",
+    "subscriptionTrial": "Áskrift ókeypis prufuáskrift",
+    "testPayments": "Prófunarhamur. Engir raunverulegir peningar eru rukkaðir."
   },
   "ca": {
     "confirmFamilyZone": "Demana als teus pares que confirmin la zona horària familiar abans de connectar-te.",
@@ -17304,7 +17710,7 @@
     "welcomeNotification": "Benvingut a AI StudyNest",
     "safetyNotification": "S'ha bloquejat el contingut relacionat amb la seguretat",
     "offTopicNotification": "S'ha bloquejat una pregunta fora de l'aprenentatge",
-    "trialNotification": "La vostra prova gratuïta de 30 dies ha començat. Creeu un codi de connexió per connectar el dispositiu d'aprenentatge del vostre fill.",
+    "trialNotification": "La vostra prova gratuïta de 3 dies ha començat. Creeu un codi de connexió per connectar el dispositiu d'aprenentatge del vostre fill.",
     "you": "tu",
     "student": "Estudiant",
     "menu": "Navegació oberta",
@@ -17579,7 +17985,14 @@
     "cropLeft": "Retalla des de l'esquerra (%)",
     "cropTop": "Retalla des de dalt (%)",
     "cropWidth": "Amplada de retall (%)",
-    "cropHeight": "Alçada del cultiu (%)"
+    "cropHeight": "Alçada del cultiu (%)",
+    "trialPaymentPolicy": "El registre inclou 3 dies gratuïts sense forma de pagament. Aleshores, les famílies elegibles poden iniciar una prova de subscripció a Waffo de 30 dies.",
+    "renewalTrialPolicy": "La teva subscripció es cobra primer després de la prova gratuïta i després es renova mensualment fins que es cancel·la. No s'afegeix el temps de prova de registre no utilitzat.",
+    "manageSubscription": "Gestionar la subscripció",
+    "monthlyBilling": "Mensualment",
+    "refreshSubscription": "Actualitza la subscripció",
+    "subscriptionTrial": "Prova gratuïta de subscripció",
+    "testPayments": "Mode de prova. No es cobren diners reals."
   },
   "eu": {
     "confirmFamilyZone": "Eskatu gurasoei familiaren ordu-zona berresteko, konektatu aurretik.",
@@ -17602,7 +18015,7 @@
     "welcomeNotification": "Ongi etorri AI StudyNest-era",
     "safetyNotification": "Segurtasunarekin lotutako edukia blokeatu da",
     "offTopicNotification": "Ikaskuntzaz kanpoko galdera bat blokeatu da",
-    "trialNotification": "Hasi da 30 eguneko doako proba. Sortu konexio-kode bat zure haurraren ikasteko gailua konektatzeko.",
+    "trialNotification": "Hasi da 3 eguneko doako proba. Sortu konexio-kode bat zure haurraren ikasteko gailua konektatzeko.",
     "you": "Zuk",
     "student": "Ikaslea",
     "menu": "Ireki nabigazioa",
@@ -17877,7 +18290,14 @@
     "cropLeft": "Moztu ezkerretik (%)",
     "cropTop": "Ebaki goitik (%)",
     "cropWidth": "Mozketaren zabalera (%)",
-    "cropHeight": "Laborantza altuera (%)"
+    "cropHeight": "Laborantza altuera (%)",
+    "trialPaymentPolicy": "Izen emateak 3 doako egun barne hartzen ditu ordainketa-metodorik gabe. Ondoren, eskubidea duten familiek 30 eguneko Waffo harpidetza proba bat has dezakete.",
+    "renewalTrialPolicy": "Zure harpidetza doako probaren ondoren kobratzen da, ondoren hilero berritzen da bertan behera utzi arte. Erabili gabeko erregistroaren proba-denbora ez da gehitzen.",
+    "manageSubscription": "Kudeatu harpidetza",
+    "monthlyBilling": "Hilerokoa",
+    "refreshSubscription": "Freskatu harpidetza",
+    "subscriptionTrial": "Harpidetza doan proba",
+    "testPayments": "Proba modua. Ez da benetako dirurik kobratzen."
   },
   "gl": {
     "confirmFamilyZone": "Pídelle ao teu pai que confirme a zona horaria familiar antes de conectarte.",
@@ -17900,7 +18320,7 @@
     "welcomeNotification": "Benvido a AI StudyNest",
     "safetyNotification": "Bloqueouse o contido relacionado coa seguridade",
     "offTopicNotification": "Bloqueouse unha pregunta fóra da aprendizaxe",
-    "trialNotification": "Comezou a túa proba gratuíta de 30 días. Crea un código de conexión para conectar o dispositivo de aprendizaxe do teu fillo.",
+    "trialNotification": "Comezou a túa proba gratuíta de 3 días. Crea un código de conexión para conectar o dispositivo de aprendizaxe do teu fillo.",
     "you": "Ti",
     "student": "Estudante",
     "menu": "Navegación aberta",
@@ -18175,7 +18595,14 @@
     "cropLeft": "Recortar desde a esquerda (%)",
     "cropTop": "Recortar desde arriba (%)",
     "cropWidth": "Ancho de corte (%)",
-    "cropHeight": "Altura de corte (%)"
+    "cropHeight": "Altura de corte (%)",
+    "trialPaymentPolicy": "O rexistro inclúe 3 días libres sen método de pago. As familias que reúnan os requisitos poden comezar unha proba de subscrición a Waffo de 30 días.",
+    "renewalTrialPolicy": "A túa subscrición cárgase primeiro despois da proba gratuíta e, a continuación, renóvase mensualmente ata que se cancele. Non se engade o tempo de proba de rexistro non utilizado.",
+    "manageSubscription": "Xestionar a subscrición",
+    "monthlyBilling": "Mensuais",
+    "refreshSubscription": "Actualizar a subscrición",
+    "subscriptionTrial": "Proba gratuíta da subscrición",
+    "testPayments": "Modo de proba. Non se cobra diñeiro real."
   },
   "af": {
     "confirmFamilyZone": "Vra jou ouer om die gesin se tydsone te bevestig voordat jy koppel.",
@@ -18198,7 +18625,7 @@
     "welcomeNotification": "Welkom by AI StudyNest",
     "safetyNotification": "Veiligheidsverwante inhoud is geblokkeer",
     "offTopicNotification": "'n Vraag buite leer is geblokkeer",
-    "trialNotification": "Jou gratis proeftydperk van 30 dae het begin. Skep 'n verbindingskode om jou kind se leertoestel te koppel.",
+    "trialNotification": "Jou gratis proeftydperk van 3 dae het begin. Skep 'n verbindingskode om jou kind se leertoestel te koppel.",
     "you": "Jy",
     "student": "Student",
     "menu": "Maak navigasie oop",
@@ -18473,7 +18900,14 @@
     "cropLeft": "Sny van links (%)",
     "cropTop": "Sny van bo af (%)",
     "cropWidth": "Snywydte (%)",
-    "cropHeight": "Gewashoogte (%)"
+    "cropHeight": "Gewashoogte (%)",
+    "trialPaymentPolicy": "Registrasie sluit 3 gratis dae sonder 'n betaalmetode in. Kwalifiserende gesinne kan dan 'n 30-dae Waffo-intekeningproeftydperk begin.",
+    "renewalTrialPolicy": "Jou intekening word eers na die gratis proeftydperk gehef, en word dan maandeliks hernu totdat dit gekanselleer word. Ongebruikte registrasieproeftyd word nie bygevoeg nie.",
+    "manageSubscription": "Bestuur intekening",
+    "monthlyBilling": "Maandeliks",
+    "refreshSubscription": "Herlaai intekening",
+    "subscriptionTrial": "Intekening gratis proeflopie",
+    "testPayments": "Toetsmodus. Geen regte geld word gehef nie."
   },
   "sw": {
     "confirmFamilyZone": "Mwombe mzazi wako athibitishe saa za eneo la familia kabla ya kuunganisha.",
@@ -18496,7 +18930,7 @@
     "welcomeNotification": "Karibu kwenye AI StudyNest",
     "safetyNotification": "Maudhui yanayohusiana na usalama yamezuiwa",
     "offTopicNotification": "Swali la nje ya masomo lilizuiwa",
-    "trialNotification": "Jaribio lako la siku 30 bila malipo limeanza. Unda msimbo wa muunganisho ili kuunganisha kifaa cha kujifunza cha mtoto wako.",
+    "trialNotification": "Jaribio lako la siku 3 bila malipo limeanza. Unda msimbo wa muunganisho ili kuunganisha kifaa cha kujifunza cha mtoto wako.",
     "you": "Wewe",
     "student": "Mwanafunzi",
     "menu": "Fungua urambazaji",
@@ -18771,7 +19205,14 @@
     "cropLeft": "Punguza kutoka kushoto (%)",
     "cropTop": "Punguza kutoka juu (%)",
     "cropWidth": "Upana wa mazao (%)",
-    "cropHeight": "Urefu wa mazao (%)"
+    "cropHeight": "Urefu wa mazao (%)",
+    "trialPaymentPolicy": "Usajili unajumuisha siku 3 bila malipo bila njia ya kulipa. Familia zinazotimiza masharti zinaweza kuanza jaribio la usajili la Waffo la siku 30.",
+    "renewalTrialPolicy": "Usajili wako hutozwa kwanza baada ya jaribio lisilolipishwa, kisha husasishwa kila mwezi hadi ughairiwe. Muda wa majaribio ya usajili usiotumika hauongezwe.",
+    "manageSubscription": "Dhibiti usajili",
+    "monthlyBilling": "Kila mwezi",
+    "refreshSubscription": "Onyesha upya usajili",
+    "subscriptionTrial": "Jaribio lisilolipishwa la usajili",
+    "testPayments": "Mtihani wa hali. Hakuna pesa halisi inayotozwa."
   },
   "zu": {
     "confirmFamilyZone": "Cela umzali wakho ukuthi aqinisekise indawo yesikhathi yomndeni ngaphambi kokuxhuma.",
@@ -18794,7 +19235,7 @@
     "welcomeNotification": "Siyakwamukela ku-AI StudyNest",
     "safetyNotification": "Okuqukethwe okuhlobene nokuphepha kuvinjiwe",
     "offTopicNotification": "Umbuzo ongaphandle kokufunda uvinjiwe",
-    "trialNotification": "Isivivinyo sakho samahhala sezinsuku ezingu-30 sesiqalile. Dala ikhodi yokuxhumana ukuze uxhume idivayisi yokufunda yengane yakho.",
+    "trialNotification": "Isivivinyo sakho samahhala sezinsuku ezingu-3 sesiqalile. Dala ikhodi yokuxhumana ukuze uxhume idivayisi yokufunda yengane yakho.",
     "you": "Wena",
     "student": "Mfundi",
     "menu": "Vula ukuzulazula",
@@ -19069,7 +19510,14 @@
     "cropLeft": "Nqampuna ukusuka kwesokunxele (%)",
     "cropTop": "Nqampuna ukusuka phezulu (%)",
     "cropWidth": "Ububanzi bokunqampuna (%)",
-    "cropHeight": "Ubude bokunqampuna (%)"
+    "cropHeight": "Ubude bokunqampuna (%)",
+    "trialPaymentPolicy": "Ukubhalisa kufaka izinsuku ezingu-3 zamahhala ngaphandle kwendlela yokukhokha. Imindeni efanelekayo ingaqala isivivinyo sezinsuku ezingu-30 sokubhaliselwe se-Waffo.",
+    "renewalTrialPolicy": "Ukubhalisa kwakho kukhokhiswa kuqala ngemuva kwesivivinyo samahhala, bese kuvuselelwa nyanga zonke kuze kukhanselwe. Isikhathi sesilingo sokubhalisa esingasetshenzisiwe asengeziwe.",
+    "manageSubscription": "Phatha ukubhalisa",
+    "monthlyBilling": "Nyanga zonke",
+    "refreshSubscription": "Vuselela ukubhalisa",
+    "subscriptionTrial": "Isivivinyo samahhala sokubhaliselwe",
+    "testPayments": "Imodi yokuhlola. Ayikho imali yangempela ekhokhiswayo."
   },
   "am": {
     "confirmFamilyZone": "ከመገናኘትዎ በፊት ወላጅዎ የቤተሰብ የሰዓት ዞኑን እንዲያረጋግጡ ይጠይቋቸው።",
@@ -19092,7 +19540,7 @@
     "welcomeNotification": "እንኳን ወደ AI StudyNest በደህና መጡ",
     "safetyNotification": "ከደህንነት ጋር የተያያዘ ይዘት ታግዷል",
     "offTopicNotification": "ከመማር ውጭ ያለ ጥያቄ ታግዷል",
-    "trialNotification": "የ30-ቀን ነጻ ሙከራህ ተጀምሯል። የልጅዎን የመማሪያ መሳሪያ ለማገናኘት የግንኙነት ኮድ ይፍጠሩ።",
+    "trialNotification": "የ3-ቀን ነጻ ሙከራህ ተጀምሯል። የልጅዎን የመማሪያ መሳሪያ ለማገናኘት የግንኙነት ኮድ ይፍጠሩ።",
     "you": "አንተ",
     "student": "ተማሪ",
     "menu": "አሰሳ ክፈት",
@@ -19367,7 +19815,14 @@
     "cropLeft": "ከግራ ሰብል (%)",
     "cropTop": "ከላይ ከርክም (%)",
     "cropWidth": "የሰብል ስፋት (%)",
-    "cropHeight": "የሰብል ቁመት (%)"
+    "cropHeight": "የሰብል ቁመት (%)",
+    "trialPaymentPolicy": "ምዝገባው የመክፈያ ዘዴ ሳይኖር 3 ነጻ ቀናትን ያካትታል። ብቁ ቤተሰቦች የ30 ቀን የWaffo ምዝገባ ሙከራ መጀመር ይችላሉ።",
+    "renewalTrialPolicy": "የደንበኝነት ምዝገባዎ መጀመሪያ የሚከፈለው ከነጻ ሙከራው በኋላ ነው፣ ከዚያ እስኪሰረዝ ድረስ በየወሩ ይታደሳል። ጥቅም ላይ ያልዋለ የምዝገባ ሙከራ ጊዜ አልተጨመረም።",
+    "manageSubscription": "የደንበኝነት ምዝገባን ያስተዳድሩ",
+    "monthlyBilling": "ወርሃዊ",
+    "refreshSubscription": "የደንበኝነት ምዝገባን ያድሱ",
+    "subscriptionTrial": "የደንበኝነት ምዝገባ ነጻ ሙከራ",
+    "testPayments": "የሙከራ ሁነታ. እውነተኛ ገንዘብ አይጠየቅም።"
   },
   "km": {
     "confirmFamilyZone": "សុំឱ្យមាតាបិតារបស់អ្នកបញ្ជាក់ពីតំបន់ពេលវេលាគ្រួសារ មុនពេលភ្ជាប់។",
@@ -19390,7 +19845,7 @@
     "welcomeNotification": "សូមស្វាគមន៍មកកាន់ AI StudyNest",
     "safetyNotification": "មាតិកាដែលទាក់ទងនឹងសុវត្ថិភាពត្រូវបានរារាំង",
     "offTopicNotification": "សំណួរនៅខាងក្រៅការសិក្សាត្រូវបានរារាំង",
-    "trialNotification": "ការសាកល្បងឥតគិតថ្លៃរយៈពេល 30 ថ្ងៃរបស់អ្នកបានចាប់ផ្តើមហើយ។ បង្កើតលេខកូដភ្ជាប់ ដើម្បីភ្ជាប់ឧបករណ៍សិក្សារបស់កូនអ្នក។",
+    "trialNotification": "ការសាកល្បងឥតគិតថ្លៃរយៈពេល 3 ថ្ងៃរបស់អ្នកបានចាប់ផ្តើមហើយ។ បង្កើតលេខកូដភ្ជាប់ ដើម្បីភ្ជាប់ឧបករណ៍សិក្សារបស់កូនអ្នក។",
     "you": "អ្នក",
     "student": "សិស្ស",
     "menu": "បើកការរុករក",
@@ -19665,7 +20120,14 @@
     "cropLeft": "ច្រឹបពីខាងឆ្វេង (%)",
     "cropTop": "ច្រឹបពីលើ (%)",
     "cropWidth": "ទទឹងដំណាំ (%)",
-    "cropHeight": "កម្ពស់ដំណាំ (%)"
+    "cropHeight": "កម្ពស់ដំណាំ (%)",
+    "trialPaymentPolicy": "ការចុះឈ្មោះរួមបញ្ចូល 3 ថ្ងៃដោយឥតគិតថ្លៃដោយគ្មានវិធីបង់ប្រាក់។ បន្ទាប់មកគ្រួសារដែលមានសិទ្ធិអាចចាប់ផ្តើមការសាកល្បងការជាវ Waffo រយៈពេល 30 ថ្ងៃ។",
+    "renewalTrialPolicy": "ការជាវរបស់អ្នកត្រូវបានគិតប្រាក់ជាលើកដំបូងបន្ទាប់ពីការសាកល្បងឥតគិតថ្លៃរបស់វា បន្ទាប់មកបន្តបន្តប្រចាំខែរហូតដល់ការលុបចោល។ ពេលវេលាសាកល្បងចុះឈ្មោះដែលមិនប្រើមិនត្រូវបានបន្ថែមទេ។",
+    "manageSubscription": "គ្រប់គ្រងការជាវ",
+    "monthlyBilling": "ប្រចាំខែ",
+    "refreshSubscription": "ធ្វើឱ្យការជាវឡើងវិញ",
+    "subscriptionTrial": "ការជាវសាកល្បងឥតគិតថ្លៃ",
+    "testPayments": "របៀបសាកល្បង។ គ្មានប្រាក់ពិតប្រាកដត្រូវបានគិតប្រាក់ទេ។"
   },
   "lo": {
     "confirmFamilyZone": "ຂໍໃຫ້ພໍ່ແມ່ຂອງເຈົ້າຢືນຢັນເຂດເວລາຂອງຄອບຄົວກ່ອນທີ່ຈະເຊື່ອມຕໍ່.",
@@ -19688,7 +20150,7 @@
     "welcomeNotification": "ຍິນດີຕ້ອນຮັບສູ່ AI StudyNest",
     "safetyNotification": "ເນື້ອຫາທີ່ກ່ຽວຂ້ອງກັບຄວາມປອດໄພຖືກບລັອກ",
     "offTopicNotification": "ຄຳຖາມນອກການຮຽນຮູ້ຖືກບລັອກ",
-    "trialNotification": "ການທົດລອງໃຊ້ຟຣີ 30 ມື້ຂອງທ່ານໄດ້ເລີ່ມຂຶ້ນແລ້ວ. ສ້າງລະຫັດການເຊື່ອມຕໍ່ເພື່ອເຊື່ອມຕໍ່ອຸປະກອນການຮຽນຮູ້ຂອງລູກທ່ານ.",
+    "trialNotification": "ການທົດລອງໃຊ້ຟຣີ 3 ມື້ຂອງທ່ານໄດ້ເລີ່ມຂຶ້ນແລ້ວ. ສ້າງລະຫັດການເຊື່ອມຕໍ່ເພື່ອເຊື່ອມຕໍ່ອຸປະກອນການຮຽນຮູ້ຂອງລູກທ່ານ.",
     "you": "ເຈົ້າ",
     "student": "ນັກສຶກສາ",
     "menu": "ເປີດການນໍາທາງ",
@@ -19963,7 +20425,14 @@
     "cropLeft": "ຕັດຈາກຊ້າຍ (%)",
     "cropTop": "ຕັດຈາກເທິງສຸດ (%)",
     "cropWidth": "ຄວາມກວ້າງຂອງການປູກພືດ (%)",
-    "cropHeight": "ຄວາມສູງຂອງການປູກພືດ (%)"
+    "cropHeight": "ຄວາມສູງຂອງການປູກພືດ (%)",
+    "trialPaymentPolicy": "ການລົງທະບຽນລວມມີ 3 ມື້ຟຣີໂດຍບໍ່ມີວິທີການຈ່າຍເງິນ. ຫຼັງຈາກນັ້ນ, ຄອບຄົວທີ່ມີສິດສາມາດເລີ່ມການທົດລອງການສະໝັກໃຊ້ Waffo ເປັນເວລາ 30 ມື້.",
+    "renewalTrialPolicy": "ການສະໝັກໃຊ້ຂອງທ່ານຖືກຮຽກເກັບເງິນຄັ້ງທຳອິດຫຼັງຈາກການທົດລອງໃຊ້ຟຣີຂອງມັນ, ຈາກນັ້ນຕໍ່ອາຍຸທຸກໆເດືອນຈົນກວ່າຈະຖືກຍົກເລີກ. ເວລາທົດລອງການລົງທະບຽນທີ່ບໍ່ໄດ້ໃຊ້ບໍ່ໄດ້ຖືກເພີ່ມ.",
+    "manageSubscription": "ຈັດການການສະໝັກໃຊ້",
+    "monthlyBilling": "ປະຈໍາເດືອນ",
+    "refreshSubscription": "ໂຫຼດຂໍ້ມູນການສະໝັກໃຊ້ຄືນໃໝ່",
+    "subscriptionTrial": "ການສະໝັກໃຊ້ທົດລອງໃຊ້ຟຣີ",
+    "testPayments": "ໂໝດທົດສອບ. ບໍ່ມີເງິນທີ່ແທ້ຈິງຖືກຄິດຄ່າທໍານຽມ."
   },
   "my": {
     "confirmFamilyZone": "မချိတ်ဆက်မီ မိသားစုအချိန်ဇုန်ကို အတည်ပြုရန် သင့်မိဘကို တောင်းဆိုပါ။",
@@ -19986,7 +20455,7 @@
     "welcomeNotification": "AI StudyNest မှလှိုက်လှဲစွာကြိုဆိုပါသည်။",
     "safetyNotification": "လုံခြုံရေးဆိုင်ရာ အကြောင်းအရာများကို ပိတ်ဆို့ထားသည်။",
     "offTopicNotification": "သင်ယူမှုပြင်ပမေးခွန်းတစ်ခုကို ပိတ်ဆို့ထားသည်။",
-    "trialNotification": "သင်၏ ရက် 30 အခမဲ့ အစမ်းသုံးမှု စတင်ပါပြီ။ သင့်ကလေး၏ သင်ကြားရေးကိရိယာကို ချိတ်ဆက်ရန် ချိတ်ဆက်ကုဒ်တစ်ခု ဖန်တီးပါ။",
+    "trialNotification": "သင်၏ ရက် 3 အခမဲ့ အစမ်းသုံးမှု စတင်ပါပြီ။ သင့်ကလေး၏ သင်ကြားရေးကိရိယာကို ချိတ်ဆက်ရန် ချိတ်ဆက်ကုဒ်တစ်ခု ဖန်တီးပါ။",
     "you": "မင်း",
     "student": "ကျောင်းသား",
     "menu": "လမ်းညွှန်မှုကို ဖွင့်ပါ။",
@@ -20261,7 +20730,14 @@
     "cropLeft": "ဘယ်ဘက်မှ (%) ဖြတ်ယူပါ",
     "cropTop": "အပေါ်မှဖြတ်ရန် (%)",
     "cropWidth": "ဖြတ်တောက်မှု အကျယ် (%)",
-    "cropHeight": "သီးနှံအမြင့် (%)"
+    "cropHeight": "သီးနှံအမြင့် (%)",
+    "trialPaymentPolicy": "မှတ်ပုံတင်ခြင်းတွင် ငွေပေးချေမှုနည်းလမ်းမပါဘဲ ၃ ရက်အခမဲ့ ပါဝင်ပါသည်။ ထို့နောက် အရည်အချင်းပြည့်မီသော မိသားစုများသည် ရက် 30 ကြာ Waffo စာရင်းသွင်းမှု အစမ်းသုံးမှုကို စတင်နိုင်သည်။",
+    "renewalTrialPolicy": "သင်၏စာရင်းသွင်းမှုကို ၎င်း၏ အခမဲ့အစမ်းသုံးပြီးနောက် ပထမဆုံးကောက်ခံပြီး မဖျက်သိမ်းမချင်း လစဉ်သက်တမ်းတိုးပါ။ အသုံးမပြုသော မှတ်ပုံတင်ခြင်း အစမ်းကာလကို ထည့်မထားပါ။",
+    "manageSubscription": "စာရင်းသွင်းမှုကို စီမံပါ။",
+    "monthlyBilling": "လစဉ်",
+    "refreshSubscription": "စာရင်းသွင်းမှုကို ပြန်လည်စတင်ပါ။",
+    "subscriptionTrial": "စာရင်းသွင်းခြင်း အခမဲ့ အစမ်းသုံးခြင်း။",
+    "testPayments": "စမ်းသပ်မှုမုဒ်။ ငွေအစစ်အမှန်ကို ကောက်ခံခြင်းမရှိပါ။"
   },
   "mn": {
     "confirmFamilyZone": "Холбохын өмнө эцэг эхээсээ гэр бүлийн цагийн бүсийг баталгаажуулахыг хүс.",
@@ -20284,7 +20760,7 @@
     "welcomeNotification": "AI StudyNest-д тавтай морил",
     "safetyNotification": "Аюулгүй байдалтай холбоотой контентыг блоклосон",
     "offTopicNotification": "Сургалтаас гадуурх асуултыг блоклосон",
-    "trialNotification": "Таны 30 хоногийн үнэгүй туршилт эхэллээ. Хүүхдийнхээ сургалтын төхөөрөмжийг холбохын тулд холболтын код үүсгэнэ үү.",
+    "trialNotification": "Таны 3 хоногийн үнэгүй туршилт эхэллээ. Хүүхдийнхээ сургалтын төхөөрөмжийг холбохын тулд холболтын код үүсгэнэ үү.",
     "you": "Та",
     "student": "Оюутан",
     "menu": "Навигацыг нээх",
@@ -20559,7 +21035,14 @@
     "cropLeft": "Зүүн талаас тайрах (%)",
     "cropTop": "Дээрээс нь тайрах (%)",
     "cropWidth": "Тариалангийн өргөн (%)",
-    "cropHeight": "Тариалангийн өндөр (%)"
+    "cropHeight": "Тариалангийн өндөр (%)",
+    "trialPaymentPolicy": "Бүртгэлд төлбөрийн хэрэгсэлгүйгээр 3 үнэгүй өдөр багтсан болно. Дараа нь эрх бүхий гэр бүлүүд 30 хоногийн Waffo захиалгын туршилтыг эхлүүлэх боломжтой.",
+    "renewalTrialPolicy": "Таны захиалгыг эхлээд үнэгүй туршилтын хугацаа дууссаны дараа төлж, дараа нь цуцлах хүртэл сар бүр шинэчлэгдэнэ. Ашиглагдаагүй бүртгэлийн туршилтын хугацааг нэмээгүй.",
+    "manageSubscription": "Бүртгэлийг удирдах",
+    "monthlyBilling": "Сар бүр",
+    "refreshSubscription": "Бүртгэлийг сэргээх",
+    "subscriptionTrial": "Захиалга үнэгүй туршилт",
+    "testPayments": "Туршилтын горим. Бодит мөнгө авахгүй."
   },
   "es-US": {
     "confirmFamilyZone": "Pide a tu padre o madre que confirme la zona horaria familiar antes de conectar.",
@@ -20582,7 +21065,7 @@
     "welcomeNotification": "Te damos la bienvenida a AI StudyNest",
     "safetyNotification": "Se ha bloqueado contenido relacionado con la seguridad",
     "offTopicNotification": "Se ha bloqueado una pregunta ajena al aprendizaje",
-    "trialNotification": "Ha comenzado tu prueba gratuita de 30 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija.",
+    "trialNotification": "Ha comenzado tu prueba gratuita de 3 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija.",
     "you": "Tú",
     "student": "Estudiante",
     "menu": "Abrir navegación",
@@ -20857,7 +21340,14 @@
     "cropLeft": "Recorte desde la izquierda (%)",
     "cropTop": "Recorte desde arriba (%)",
     "cropWidth": "Ancho del recorte (%)",
-    "cropHeight": "Alto del recorte (%)"
+    "cropHeight": "Alto del recorte (%)",
+    "trialPaymentPolicy": "La inscripción incluye 3 días gratis sin método de pago. Las familias elegibles pueden comenzar una prueba de suscripción a Waffo de 30 días.",
+    "renewalTrialPolicy": "Su suscripción se cobra primero después de la prueba gratuita y luego se renueva mensualmente hasta que se cancela. No se agrega el tiempo de prueba de registro no utilizado.",
+    "manageSubscription": "Administrar suscripción",
+    "monthlyBilling": "Mensual",
+    "refreshSubscription": "Actualizar suscripción",
+    "subscriptionTrial": "Prueba gratuita de suscripción",
+    "testPayments": "Modo de prueba. No se cobra dinero real."
   },
   "es-419": {
     "confirmFamilyZone": "Pide a tu padre o madre que confirme la zona horaria familiar antes de conectar.",
@@ -20880,7 +21370,7 @@
     "welcomeNotification": "Te damos la bienvenida a AI StudyNest",
     "safetyNotification": "Se ha bloqueado contenido relacionado con la seguridad",
     "offTopicNotification": "Se ha bloqueado una pregunta ajena al aprendizaje",
-    "trialNotification": "Ha comenzado tu prueba gratuita de 30 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija.",
+    "trialNotification": "Ha comenzado tu prueba gratuita de 3 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija.",
     "you": "Tú",
     "student": "Estudiante",
     "menu": "Abrir navegación",
@@ -21155,7 +21645,14 @@
     "cropLeft": "Recorte desde la izquierda (%)",
     "cropTop": "Recorte desde arriba (%)",
     "cropWidth": "Ancho del recorte (%)",
-    "cropHeight": "Alto del recorte (%)"
+    "cropHeight": "Alto del recorte (%)",
+    "trialPaymentPolicy": "La inscripción incluye 3 días gratis sin método de pago. Las familias elegibles pueden comenzar una prueba de suscripción a Waffo de 30 días.",
+    "renewalTrialPolicy": "Su suscripción se cobra primero después de la prueba gratuita y luego se renueva mensualmente hasta que se cancela. No se agrega el tiempo de prueba de registro no utilizado.",
+    "manageSubscription": "Administrar suscripción",
+    "monthlyBilling": "Mensual",
+    "refreshSubscription": "Actualizar suscripción",
+    "subscriptionTrial": "Prueba gratuita de suscripción",
+    "testPayments": "Modo de prueba. No se cobra dinero real."
   },
   "ja": {
     "welcome": "学習状況",
@@ -21171,7 +21668,15 @@
     "loadingAnswer": "回答を準備中…",
     "breakHint": "画面から目を離して、少し体を動かしましょう。",
     "assessmentHint": "AIが学習記録をもとに作成した結果です。誤りを含む場合があり、学校の評価や医療機関の診断に代わるものではありません。",
-    "rewardRule": "学習の会話を終えてフィードバックを送ると、1日1個の星がもらえます。フィードバックを変更しても追加の星はもらえません。"
+    "rewardRule": "学習の会話を終えてフィードバックを送ると、1日1個の星がもらえます。フィードバックを変更しても追加の星はもらえません。",
+    "trialPaymentPolicy": "登録には、支払い方法を使用しない 3 日間の無料期間が含まれます。対象となる家族は、30 日間の Waffo サブスクリプション トライアルを開始できます。",
+    "renewalTrialPolicy": "サブスクリプションは無料トライアル後に最初に課金され、その後キャンセルされるまで毎月更新されます。未使用の登録試用時間は加算されません。",
+    "trialNotification": "3 日間の無料トライアルが開始されました。お子様の学習デバイスを接続するための接続コードを作成します。",
+    "manageSubscription": "サブスクリプションの管理",
+    "monthlyBilling": "毎月",
+    "refreshSubscription": "サブスクリプションを更新する",
+    "subscriptionTrial": "サブスクリプションの無料トライアル",
+    "testPayments": "テストモード。実際のお金は請求されません。"
   },
   "ko": {
     "welcome": "학습 현황",
@@ -21187,7 +21692,15 @@
     "loadingAnswer": "답변 준비 중…",
     "breakHint": "화면에서 눈을 떼고 잠깐 몸을 움직여 보세요.",
     "assessmentHint": "AI가 학습 기록을 바탕으로 작성한 결과입니다. 부정확할 수 있으며 학교 평가나 의료 진단을 대신하지 않습니다.",
-    "rewardRule": "학습 대화를 마치고 피드백을 보내면 하루에 별 1개를 받을 수 있습니다. 피드백을 수정해도 별이 추가로 지급되지는 않습니다."
+    "rewardRule": "학습 대화를 마치고 피드백을 보내면 하루에 별 1개를 받을 수 있습니다. 피드백을 수정해도 별이 추가로 지급되지는 않습니다.",
+    "trialPaymentPolicy": "등록에는 결제 수단 없이 3일 무료 체험이 포함됩니다. 그러면 자격을 갖춘 가족은 30일 Waffo 구독 평가판을 시작할 수 있습니다.",
+    "renewalTrialPolicy": "무료 평가판이 끝난 후 먼저 구독 요금이 청구되며, 취소할 때까지 매월 갱신됩니다. 사용하지 않은 등록 체험 시간은 추가되지 않습니다.",
+    "trialNotification": "3일 무료 평가판이 시작되었습니다. 자녀의 학습 장치를 연결하기 위한 연결 코드를 만듭니다.",
+    "manageSubscription": "구독 관리",
+    "monthlyBilling": "월간",
+    "refreshSubscription": "구독 새로고침",
+    "subscriptionTrial": "구독 무료 평가판",
+    "testPayments": "테스트 모드. 실제 돈은 청구되지 않습니다."
   },
   "de": {
     "welcome": "Lernübersicht",
@@ -21202,7 +21715,15 @@
     "loadingAnswer": "Antwort wird vorbereitet…",
     "breakHint": "Schau vom Bildschirm weg und bewege dich ein wenig.",
     "assessmentHint": "Die KI erstellt diese Einschätzung anhand der Lernaufzeichnungen. Sie kann Fehler enthalten und ersetzt weder schulische Bewertungen noch medizinische Diagnosen.",
-    "rewardRule": "Nach einem Lerngespräch mit Feedback gibt es einen Stern pro Tag. Änderungen am Feedback bringen keine weiteren Sterne."
+    "rewardRule": "Nach einem Lerngespräch mit Feedback gibt es einen Stern pro Tag. Änderungen am Feedback bringen keine weiteren Sterne.",
+    "trialPaymentPolicy": "Die Registrierung beinhaltet 3 kostenlose Tage ohne Zahlungsmethode. Berechtigte Familien können dann ein 30-tägiges Waffo-Abonnement testen.",
+    "renewalTrialPolicy": "Ihr Abonnement wird zunächst nach der kostenlosen Testphase in Rechnung gestellt und verlängert sich dann monatlich, bis es gekündigt wird. Ungenutzte Testzeit für die Registrierung wird nicht hinzugefügt.",
+    "trialNotification": "Ihre dreitägige kostenlose Testversion hat begonnen. Erstellen Sie einen Verbindungscode, um das Lerngerät Ihres Kindes zu verbinden.",
+    "manageSubscription": "Abonnement verwalten",
+    "monthlyBilling": "Monatlich",
+    "refreshSubscription": "Abonnement aktualisieren",
+    "subscriptionTrial": "Kostenlose Testversion des Abonnements",
+    "testPayments": "Testmodus. Es wird kein echtes Geld berechnet."
   },
   "es": {
     "welcome": "Resumen del aprendizaje",
@@ -21217,6 +21738,34 @@
     "loadingAnswer": "Preparando la respuesta…",
     "breakHint": "Descansa la vista y muévete un poco.",
     "assessmentHint": "La IA genera estos resultados a partir del historial de aprendizaje. Pueden contener errores y no sustituyen las evaluaciones escolares ni los diagnósticos médicos.",
-    "rewardRule": "Completa una conversación de aprendizaje y envía tu opinión para recibir una estrella al día. Cambiar la opinión no da estrellas adicionales."
+    "rewardRule": "Completa una conversación de aprendizaje y envía tu opinión para recibir una estrella al día. Cambiar la opinión no da estrellas adicionales.",
+    "trialPaymentPolicy": "La inscripción incluye 3 días gratis sin método de pago. Las familias elegibles pueden comenzar una prueba de suscripción a Waffo de 30 días.",
+    "renewalTrialPolicy": "Su suscripción se cobra primero después de la prueba gratuita y luego se renueva mensualmente hasta que se cancela. No se agrega el tiempo de prueba de registro no utilizado.",
+    "trialNotification": "Tu prueba gratuita de 3 días ha comenzado. Cree un código de conexión para conectar el dispositivo de aprendizaje de su hijo.",
+    "manageSubscription": "Administrar suscripción",
+    "monthlyBilling": "Mensual",
+    "refreshSubscription": "Actualizar suscripción",
+    "subscriptionTrial": "Prueba gratuita de suscripción",
+    "testPayments": "Modo de prueba. No se cobra dinero real."
+  },
+  "zh-Hant": {
+    "trialPaymentPolicy": "註冊包括 3 天免費，無需付款方式。符合資格的家庭可以開始為期 30 天的 Waffo 訂閱試用。",
+    "renewalTrialPolicy": "您的訂閱在免費試用後首先收費，然後每月續訂，直至取消。未使用的註冊試用時間不計入。",
+    "trialNotification": "您的 3 天免費試用已經開始。建立連接代碼以連接您孩子的學習設備。",
+    "manageSubscription": "管理訂閱",
+    "monthlyBilling": "每月",
+    "refreshSubscription": "重新整理訂閱",
+    "subscriptionTrial": "訂閱免費試用",
+    "testPayments": "測試模式。不收取真金白銀。"
+  },
+  "zh-Hans": {
+    "trialPaymentPolicy": "注册即享 3 天免绑卡试用。符合资格的家庭可再开通 Waffo 订阅，享 30 天免费试用。",
+    "renewalTrialPolicy": "订阅免费试用结束后首次扣款，此后按月自动续费，直至取消；未使用的注册试用时间不再补赠。",
+    "trialNotification": "3 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。",
+    "manageSubscription": "管理订阅",
+    "monthlyBilling": "按月计费",
+    "refreshSubscription": "刷新订阅",
+    "subscriptionTrial": "订阅免费试用",
+    "testPayments": "测试模式，不会真实扣款。"
   }
 }

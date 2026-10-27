@@ -2,11 +2,11 @@
 
 日期：2026-10-24。状态：React/TypeScript 双端已实施并上线；旧 Web 已下线。当前部署以 [部署与运维](deployment.md#6-google-play-海外双端-web) 为准，证据及剩余范围见 [Web 验收记录](web-acceptance.md)。
 
-当前决策：品牌 **AI StudyNest**；官网 `https://aistudynest.com`、家长 `https://parents.aistudynest.com`、学生 `https://learn.aistudynest.com`。Web 订阅仅展示权益，支付按用户要求留空，不作为本轮待补功能；验单中继及通知已迁至官网，旧 `i.lix.do` 返回 410。真实 Google／模型／私有存储联调已完成记录范围，物理设备验收按用户“暂时不真机验收”延期。学生端支持同源资源访问，系统网站白名单仍须真机验证，网页不提供整机锁定。
+当前决策：品牌 **AI StudyNest**；官网 `https://aistudynest.com`、家长 `https://parents.aistudynest.com`、学生 `https://learn.aistudynest.com`。家长 Web 使用 Waffo 订阅收款并展示已核验权益；验单中继及通知已迁至官网，旧 `i.lix.do` 返回 410。真实 Google／模型／私有存储联调已完成记录范围，物理设备验收按用户“暂时不真机验收”延期。学生端支持同源资源访问，系统网站白名单仍须真机验证，网页不提供整机锁定。
 
-以下第 1–9 节保留实施前的选型依据、当时现状和工时估算，其中“建议／需新增／未验证”是提案阶段描述，不是当前部署状态；网站结算方案仅为未来选项。
+以下第 1–9 节保留实施前的选型依据、当时现状和工时估算，其中“建议／需新增／未验证”是提案阶段描述，不是当前部署状态；其中历史结算候选不替代当前 Waffo 接入方案。
 
-2026-10-25 新请求进展：[Paddle Sandbox](paddle-sandbox.md) 已完成本地隔离测试支付闭环，线上家长 Web 已仅对指定测试家庭开放 Sandbox；正式收款未启用。
+2026-10-27：海外 Web 收款改为 [Waffo](waffo-billing.md)，采用注册 3 天免绑卡与原生 30 天订阅试用。
 
 ## 1. 新的产品边界与结论
 

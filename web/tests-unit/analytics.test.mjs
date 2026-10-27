@@ -59,7 +59,7 @@ test('revocation stops collection immediately, including after cross-tab changes
 test('API events do not leak resource IDs and ignore all learning content routes', async () => {
   const { api, events } = await load();
   api.setAnalyticsConsent(true);
-  for (const path of ['/api/parent/students/123/rebind-code','/api/parent/creem/verify','/api/parent/conversations/456/messages'])
+  for (const path of ['/api/parent/students/123/rebind-code','/api/parent/waffo/verify','/api/parent/conversations/456/messages'])
     window.dispatchEvent(new CustomEvent('parent-api-result', {detail:{path,method:'POST',status:200}}));
   await api.track('login');
   assert.deepEqual(events.map(e => e.event).sort(), ['bind_code_create','login','subscription_verify'].sort());

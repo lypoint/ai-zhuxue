@@ -15,8 +15,8 @@
 | `bind_code_create` | 新建孩子时成功生成绑定码，或重新生成绑定码的成功/失败；不发送码值 |
 | `child_connected_observed` | 同意后，家长页面在本次挂载中首次从已认证家庭响应看到孩子已连接设备。不发送孩子/家庭 ID；不是服务端真实首次激活时间，刷新页面可再次观察 |
 | `view_subscription` | 登录后的订阅页面展示；在该页面授予授权时也记录 |
-| `begin_checkout`、`checkout_open` | 点击选定名额商品；Paddle 确认 `checkout.loaded`、Creem 发起已校验的支付 URL 跳转。Creem 跨站实际加载不可观测；埋点不阻塞跳转 |
-| `checkout_closed`、`checkout_error` | Paddle 关闭/错误事件；Creem 创建或跳转失败。Creem 离站后取消不会伪造关闭事件 |
+| `begin_checkout`、`checkout_open` | 选择套餐并跳转经过服务端校验的 Waffo 收银台；跨站实际加载不可观测，埋点不阻塞跳转 |
+| `checkout_closed`、`checkout_error` | Waffo 创建或跳转失败记错误；离站后关闭或取消不伪造关闭事件 |
 | `subscription_verify` | 服务端验单请求成功/失败，包含重复核验和恢复；不是首次付款、营收或续费事件 |
 | `subscription_manage` | 请求订阅管理入口成功/失败；不等于用户已取消自动续订 |
 

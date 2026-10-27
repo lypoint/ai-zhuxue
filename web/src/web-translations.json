@@ -88,12 +88,12 @@
     "Te damos la bienvenida a AI StudyNest"
   ],
   "trialNotification": [
-    "30 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。",
-    "30 天免費試用已開始。請在家長端產生綁定碼，再到學生端輸入綁定碼。",
-    "30日間の無料体験が始まりました。接続コードを作成し、お子さまの学習端末を接続してください。",
-    "30일 무료 체험이 시작되었습니다. 연결 코드를 만들어 자녀의 학습 기기를 연결하세요.",
-    "Dein kostenloser Testzeitraum von 30 Tagen hat begonnen. Erstelle einen Verbindungscode, um das Lerngerät deines Kindes zu verbinden.",
-    "Ha comenzado tu prueba gratuita de 30 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija."
+    "3 天免费试用已开始。请在家长端生成绑定码，再到学生端输入绑定码。",
+    "3 天免費試用已開始。請在家長端產生綁定碼，再到學生端輸入綁定碼。",
+    "3日間の無料体験が始まりました。接続コードを作成し、お子さまの学習端末を接続してください。",
+    "3일 무료 체험이 시작되었습니다. 연결 코드를 만들어 자녀의 학습 기기를 연결하세요.",
+    "Dein kostenloser Testzeitraum von 3 Tagen hat begonnen. Erstelle einen Verbindungscode, um das Lerngerät deines Kindes zu verbinden.",
+    "Ha comenzado tu prueba gratuita de 3 días. Crea un código de conexión para conectar el dispositivo de aprendizaje de tu hijo o hija."
   ],
   "you": ["你", "你", "あなた", "나", "Du", "Tú"],
   "student": ["学生", "學生", "生徒", "학생", "Kind", "Estudiante"],
@@ -1703,5 +1703,61 @@
     "웹 브라우저",
     "Webbrowser",
     "Navegador web"
+  ],
+  "trialPaymentPolicy": [
+    "注册即享 3 天免绑卡试用。符合资格的家庭可再开通 Waffo 订阅，享 30 天免费试用。",
+    "註冊包括 3 天免費，無需付款方式。符合資格的家庭可以開始為期 30 天的 Waffo 訂閱試用。",
+    "登録には、支払い方法を使用しない 3 日間の無料期間が含まれます。対象となる家族は、30 日間の Waffo サブスクリプション トライアルを開始できます。",
+    "등록에는 결제 수단 없이 3일 무료 체험이 포함됩니다. 그러면 자격을 갖춘 가족은 30일 Waffo 구독 평가판을 시작할 수 있습니다.",
+    "Die Registrierung beinhaltet 3 kostenlose Tage ohne Zahlungsmethode. Berechtigte Familien können dann ein 30-tägiges Waffo-Abonnement testen.",
+    "La inscripción incluye 3 días gratis sin método de pago. Las familias elegibles pueden comenzar una prueba de suscripción a Waffo de 30 días."
+  ],
+  "renewalTrialPolicy": [
+    "订阅免费试用结束后首次扣款，此后按月自动续费，直至取消；未使用的注册试用时间不再补赠。",
+    "您的訂閱在免費試用後首先收費，然後每月續訂，直至取消。未使用的註冊試用時間不計入。",
+    "サブスクリプションは無料トライアル後に最初に課金され、その後キャンセルされるまで毎月更新されます。未使用の登録試用時間は加算されません。",
+    "무료 평가판이 끝난 후 먼저 구독 요금이 청구되며, 취소할 때까지 매월 갱신됩니다. 사용하지 않은 등록 체험 시간은 추가되지 않습니다.",
+    "Ihr Abonnement wird zunächst nach der kostenlosen Testphase in Rechnung gestellt und verlängert sich dann monatlich, bis es gekündigt wird. Ungenutzte Testzeit für die Registrierung wird nicht hinzugefügt.",
+    "Su suscripción se cobra primero después de la prueba gratuita y luego se renueva mensualmente hasta que se cancela. No se agrega el tiempo de prueba de registro no utilizado."
+  ],
+  "manageSubscription": [
+    "管理订阅",
+    "管理訂閱",
+    "サブスクリプションの管理",
+    "구독 관리",
+    "Abonnement verwalten",
+    "Administrar suscripción"
+  ],
+  "monthlyBilling": [
+    "按月计费",
+    "每月",
+    "毎月",
+    "월간",
+    "Monatlich",
+    "Mensual"
+  ],
+  "refreshSubscription": [
+    "刷新订阅",
+    "重新整理訂閱",
+    "サブスクリプションを更新する",
+    "구독 새로고침",
+    "Abonnement aktualisieren",
+    "Actualizar suscripción"
+  ],
+  "subscriptionTrial": [
+    "订阅免费试用",
+    "訂閱免費試用",
+    "サブスクリプションの無料トライアル",
+    "구독 무료 평가판",
+    "Kostenlose Testversion des Abonnements",
+    "Prueba gratuita de suscripción"
+  ],
+  "testPayments": [
+    "测试模式，不会真实扣款。",
+    "測試模式。不收取真金白銀。",
+    "テストモード。実際のお金は請求されません。",
+    "테스트 모드. 실제 돈은 청구되지 않습니다.",
+    "Testmodus. Es wird kein echtes Geld berechnet.",
+    "Modo de prueba. No se cobra dinero real."
   ]
 }

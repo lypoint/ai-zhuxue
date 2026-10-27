@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # 订阅策略：仅用于首次初始化数据库配置，运行中的业务始终读库。
     pricing_base_monthly_price: float = 66.0
     pricing_additional_seat_price: float = 33.0
-    pricing_trial_days: int = 30
+    pricing_trial_days: int = 3
     pricing_post_trial_daily_free_count: int = 0
 
     # Demo never calls WeChat and is forbidden in production.
@@ -73,16 +73,14 @@ class Settings(BaseSettings):
     store_products_json: str = "{}"
     store_token_secret: str = ""  # Fernet key (generate once, retain across deployments)
     store_test_account_tokens: str = ""  # comma-separated family UUIDs allowed for review/test purchases
-    creem_test_enabled: bool = False
-    creem_test_api_key: str = ""
-    creem_test_webhook_secret: str = ""
-    creem_test_account_tokens: str = ""
+    waffo_enabled: bool = False
+    waffo_environment: Literal["test", "prod"] = "test"
+    waffo_merchant_id: str = ""
+    waffo_store_id: str = ""
+    waffo_private_key_path: str = ""
+    waffo_webhook_public_key_path: str = ""
+    waffo_test_account_tokens: str = ""
 
-    paddle_sandbox_enabled: bool = False
-    paddle_sandbox_api_key: str = ""
-    paddle_sandbox_client_token: str = ""
-    paddle_sandbox_webhook_secret: str = ""
-    paddle_sandbox_test_account_tokens: str = ""
     apple_environment: Literal["Production", "Sandbox"] = "Production"
     apple_bundle_id: str = "com.aizhuxue.appParent"
     apple_app_id: int = 0

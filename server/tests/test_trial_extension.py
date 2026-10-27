@@ -48,7 +48,7 @@ def test_demo_payment_preserves_trial_and_replay_does_not_extend(client, monkeyp
     assert client.post(url, headers=h(token)).json()['subscription']['expires_at'] == paid['expires_at']
 
 
-@pytest.mark.parametrize('channel', ['appstore', 'googleplay', 'paddle_sandbox', 'creem_test'])
+@pytest.mark.parametrize('channel', ['appstore', 'googleplay'])
 def test_store_bonus_survives_restore_renewal_and_cancel_but_not_refund(client, stores, monkeypatch, channel):
     monkeypatch.setattr(settings, 'store_products_json', json.dumps({channel: {'family_monthly_10': 'tier.10'}}))
     token, _ = make_family(client)
