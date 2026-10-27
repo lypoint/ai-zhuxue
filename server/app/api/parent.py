@@ -251,12 +251,22 @@ def conversation_messages(conversation_id: int, guardian: Guardian = Depends(cur
 
 @router.get("/conversations/{conversation_id}/fence-events", response_model=list[FenceEventOut])
 def conversation_fence_events(conversation_id: int, guardian: Guardian = Depends(current_guardian),
-                              db: Session = Depends(get_db)):
+                              db: Session = Depends(get_db), final_only: bool = False):
     conv = db.get(Conversation, conversation_id)
     if not conv or conv.student.family_id != guardian.family_id:
         raise HTTPException(404, "conversation not found")
-    return (db.query(FenceEvent).filter_by(conversation_id=conversation_id)
-            .order_by(FenceEvent.id).all())
+    events = (db.query(FenceEvent).filter_by(conversation_id=conversation_id)
+              .order_by(FenceEvent.id).all())
+    if not final_only:
+        return events
+    # A retry or relaxed policy can supersede an earlier decision for the same message.
+    final_events = {}
+    for event in events:
+        if (event.stage in ("policy", "parent_keywords", "output_check")
+                and event.decision in ("allow", "rewrite", "reject")):
+            key = ("message", event.message_id) if event.message_id is not None else ("event", event.id)
+            final_events[key] = event
+    return sorted(final_events.values(), key=lambda event: event.id)
 
 
 @router.post("/conversations/{conversation_id}/feedback")

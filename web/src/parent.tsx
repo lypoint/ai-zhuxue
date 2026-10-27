@@ -1122,7 +1122,7 @@ function Review({ timezone }: { timezone: string | null }) {
     `/parent/conversations/${conversationId}/messages`,
   );
   const events = useResource<FenceEvent[]>(
-    `/parent/conversations/${conversationId}/fence-events`,
+    `/parent/conversations/${conversationId}/fence-events?final_only=true`,
   );
   const [reviewing, setReviewing] = useState<number | null>(null);
   const { run, busy } = useAction();
