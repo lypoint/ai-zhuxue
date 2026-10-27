@@ -32,3 +32,9 @@ Flutter 内置控件使用 SDK 自带的本地化委托，78 个选项逐一进�
 - `server`：`python -m pytest tests/test_language.py -q`，检查普通/流式聊天、安全提示、地区归一化及非法语言拒绝。
 - `web`：`npm run check`，检查所有语言的完整文案、插值和地区识别。
 - iOS：用 `plutil -lint` 检查 plist、工程文件及新增权限提示文件；发行构建与母语真机视觉验收另行执行。
+
+## 国际官网
+
+国际官网的首页、定价、隐私、条款和 AUP 使用同一份 78 个语言/地区清单。私有源码中的 `scripts/sync_site_languages.py` 从本仓库 `server/app/locales.json` 同步选择器、原生名称和 RTL 标记；`scripts/check_site_i18n.py` 检查清单一致及五页词条完整性。
+
+官网保留原有七语译文，新增语言为机器翻译，尚未完成母语审校；部分地区选项共用通用译文。浏览器按需读取 `/assets/locales/<version>/<tag>.json`，不在首屏下载全部语言。地区识别规则与学习站一致，兼容原官网保存的 zh-CN/zh-TW 偏好；加载失败保留当前语言，并可重新选择重试。四种 RTL 语言同步设置页面方向。
