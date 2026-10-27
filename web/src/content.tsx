@@ -162,7 +162,7 @@ export function MessageCard({
         {assistant && teacherAvatar !== undefined && <TeacherAvatar url={teacherAvatar} />}
         {assistant
           ? teacher
-            ? contentText(teacher)
+            ? teacher
             : t("teacher")
           : t(ROLE === "student" ? "you" : "student")}
         {message.fence_action === "failed" && (

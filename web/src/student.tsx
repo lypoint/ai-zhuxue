@@ -56,7 +56,7 @@ import {
   useNotify,
   useResource,
 } from "./ui";
-import { date, number, tx, contentText } from "./i18n";
+import { date, number, tx } from "./i18n";
 import { Favorites, MessageCard } from "./content";
 import { TeacherAvatar } from "./teacher-avatar";
 import { PhotoPicker, type Attachment } from "./photo";
@@ -859,14 +859,12 @@ function Chat({
             <TeacherAvatar url={avatarUrl} />
             <span>
               {conversation
-                ? contentText(
-                    existingTeacher?.name ||
+                ? existingTeacher?.name || messages[0]?.teacher_name ||
                       sessions.data?.find(
                         (row) => row.conversation_id === conversation,
                       )?.teacher_name ||
-                      t("teacher"),
-                  )
-                : contentText(chosen?.name || t("teacher"))}
+                      t("teacher")
+                : chosen?.name || t("teacher")}
             </span>
             <ChevronDown size={17} />
           </button>
@@ -921,7 +919,7 @@ function Chat({
             <div id={`message-${message.id}`} key={message.id}>
               <MessageCard
                 message={message}
-                teacher={conversation ? existingTeacher?.name : chosen?.name}
+                teacher={conversation ? existingTeacher?.name || messages[0]?.teacher_name : chosen?.name}
                 teacherAvatar={avatarUrl || ""}
                 saved={saved.data?.some((row) => row.message_id === message.id)}
                 feedback={feedbacks.data?.[String(message.id)]}
@@ -1167,7 +1165,7 @@ function Chat({
             >
               <TeacherAvatar url={teacher.avatar_url} />
               <span>
-                <strong>{contentText(teacher.name)}</strong>
+                <strong>{teacher.name}</strong>
                 <small>
                   {teacher.access === "available"
                     ? t("active")

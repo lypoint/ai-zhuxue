@@ -1147,6 +1147,8 @@ function Review({ timezone }: { timezone: string | null }) {
             </small>
             <MessageCard
               message={message}
+              teacher={message.teacher_name}
+              teacherAvatar={message.teacher_avatar_url || ""}
               onReview={
                 ["reject", "rewrite"].includes(message.fence_action || "")
                   ? () => setReviewing(message.id)

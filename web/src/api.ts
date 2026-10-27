@@ -222,6 +222,8 @@ export type Message = {
   content_blocks: ImageBlock[];
   fence_action: string | null;
   created_at: string;
+  teacher_name?: string;
+  teacher_avatar_url?: string;
   image_job?: ImageJob | null;
 };
 export type ImageJob = {

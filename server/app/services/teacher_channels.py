@@ -20,6 +20,14 @@ def channel_teachers(db, channel: str):
     ).order_by(LLMGroup.teacher_sort_order, LLMGroup.id)
 
 
+def conversation_teacher_profile(db, conversation):
+    group = db.get(LLMGroup, conversation.teacher_group_id) if conversation.teacher_group_id else None
+    return {
+        "teacher_name": group.teacher_name if group else conversation.teacher_name_snapshot,
+        "teacher_avatar_url": group.teacher_avatar_url if group else conversation.teacher_avatar_snapshot,
+    }
+
+
 def default_teacher(db, channel: str):
     configured = db.get(ChannelTeacherDefault, channel)
     if configured is not None:

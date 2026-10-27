@@ -19,7 +19,7 @@ from ..models import (AcademicAssessment, AssessmentAudit, Conversation, Family,
 from ..schemas import (ConversationOut, FamilySettingsIn, FenceEventOut, MessageOut,
                        StudentFenceSettingsIn, StudentCreateIn, StudentLearningSettingsIn)
 from ..services import learning_settings
-from ..services.teacher_channels import current_channel, channel_teachers
+from ..services.teacher_channels import current_channel, channel_teachers, conversation_teacher_profile
 
 router = APIRouter(prefix="/parent", tags=["parent"])
 
@@ -239,12 +239,12 @@ def conversation_messages(conversation_id: int, guardian: Guardian = Depends(cur
     conv = db.get(Conversation, conversation_id)
     if not conv or conv.student.family_id != guardian.family_id:
         raise HTTPException(404, "conversation not found")
+    profile = conversation_teacher_profile(db, conv)
     return [{"id": message.id, "role": message.role, "content": message.content,
              "content_blocks": message.content_blocks, "image_job": message.image_job,
              "fence_action": message.fence_action, "created_at": message.created_at,
              "teacher_id": conv.teacher_group_id,
-             "teacher_name": conv.teacher_name_snapshot,
-             "teacher_avatar_url": conv.teacher_avatar_snapshot}
+             **profile}
             for message in db.query(Message).filter_by(conversation_id=conversation_id)
             .order_by(Message.id).all()]
 
