@@ -113,4 +113,5 @@ async def notify(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(400, "Invalid Waffo notification.") from None
     except Exception:
         db.rollback()
+        store.log.error("WAFFO_CALLBACK_FAILED; return 503 for platform retry")
         raise HTTPException(503, "Notification was not processed. Please retry.") from None

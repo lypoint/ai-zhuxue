@@ -292,3 +292,82 @@ def test_distinct_lifecycle_notifications_are_not_mistaken_for_retries(client, g
         event['timestamp'] = '2026-10-28T01:01:00.000Z'
     send()
     assert not client.get('/parent/subscription', headers=h(token)).json()['auto_renew']
+
+
+@pytest.mark.parametrize('state', ['trialing', 'canceling', 'canceled'])
+def test_expired_waffo_stops_paid_access_even_without_callback(client, gateway, state):
+    from app.models import Subscription, Student
+    from app.services.subscription import get_status
+    from app.api.chat import _check_subscription
+    from fastapi import HTTPException
+    token, ref = purchase(client)
+    assert verify(client, gateway, token, ref).json()['active']
+    with SessionLocal() as db:
+        row = db.query(StoreSubscription).filter_by(chain_key=gateway['order']['id']).one()
+        # Both independent clocks elapsed. No callback is required for time enforcement.
+        db.query(Subscription).filter_by(family_id=row.family_id).one().expires_at = datetime.utcnow()-timedelta(days=1)
+        row.expires_at = datetime.utcnow()-timedelta(seconds=1)
+        row.state = {'canceled':'expired', 'canceling':'active', 'trialing':'trialing'}[state]
+        row.auto_renew = False
+        row.trial_extension_seconds = 0
+        db.commit()
+        assert not get_status(row.family_id, db)['active']
+        with pytest.raises(HTTPException) as exc:
+            _check_subscription(Student(family_id=row.family_id), db)
+        assert exc.value.status_code == 402
+
+
+def test_canceling_unpaid_period_processes_without_granting_paid_access(client, gateway):
+    from app.models import Subscription
+    token, ref = purchase(client)
+    gateway['order'].update(status='canceling', isInTrial=False, currentPeriodNumber=7, willRenew=False)
+    gateway['order']['payments'] = [dict(id='PAY_failed', status='failed', testMode=True,
+        periodNumber=7, createdAt=datetime.utcnow().isoformat()+'Z', isFullyRefunded=False,
+        amount={'amount':'1499','currency':'USD'}, chargebacks=[])]
+    with SessionLocal() as db:
+        family = db.query(store.StoreAccount).filter_by(account_token=gateway['order']['merchantProvidedBuyerIdentity']).one().family_id
+        db.query(Subscription).filter_by(family_id=family).one().expires_at = datetime.utcnow()-timedelta(days=1)
+        db.commit()
+    response = verify(client, gateway, token, ref)
+    assert response.status_code == 200 and not response.json()['active']
+    with SessionLocal() as db:
+        row = db.query(StoreSubscription).filter_by(chain_key=gateway['order']['id']).one()
+        assert row.state == 'inactive' and not row.auto_renew
+
+
+def test_canceled_callback_expires_access_and_duplicate_is_processed_once(client, gateway):
+    from app.models import Subscription
+    token, ref = purchase(client)
+    assert verify(client, gateway, token, ref).json()['active']
+    with SessionLocal() as db:
+        row = db.query(StoreSubscription).filter_by(chain_key=gateway['order']['id']).one()
+        db.query(Subscription).filter_by(family_id=row.family_id).one().expires_at = datetime.utcnow()-timedelta(days=1)
+        db.commit()
+    gateway['order'].update(status='canceled', willRenew=False,
+        currentPeriodEnd=(datetime.utcnow()-timedelta(seconds=1)).isoformat()+'Z')
+    raw=json.dumps({'eventId':'final-expiry', 'eventType':'subscription.canceled',
+        'storeId':'STO_test','mode':'test','data':{'orderId':gateway['order']['id']}}).encode()
+    for _ in range(2):
+        response=client.post('/payments/waffo/notify',content=raw,
+            headers={'x-waffo-signature':signature(gateway,raw)})
+        assert response.status_code == 200
+    assert not client.get('/parent/subscription',headers=h(token)).json()['active']
+    with SessionLocal() as db:
+        key='waffo:'+hashlib.sha256(b'subscription.canceled:final-expiry').hexdigest()
+        assert db.get(StoreEvent,key).processed
+
+
+def test_partial_current_payment_refund_preserves_paid_access(client, gateway):
+    token, ref = purchase(client); paid(gateway)
+    gateway['order']['payments'][0]['refundedAmount']={'amount':'100','currency':'USD'}
+    assert verify(client, gateway, token, ref).json()['plan'] == 'monthly'
+
+
+def test_unpaid_canceling_does_not_overwrite_superseded_subscription(client, gateway):
+    token, ref = purchase(client)
+    gateway['order'].update(status='canceling', isInTrial=False, willRenew=False,
+        supersededByOrderId='ORD_successor', payments=[])
+    assert verify(client, gateway, token, ref).status_code == 200
+    with SessionLocal() as db:
+        row = db.query(StoreSubscription).filter_by(chain_key=gateway['order']['id']).one()
+        assert row.state == 'replaced' and not row.auto_renew

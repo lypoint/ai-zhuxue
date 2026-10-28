@@ -125,3 +125,16 @@ def test_cms_no_longer_served_by_api(client):
     """CMS 已拆分为独立服务（../cms，端口 8101）；API server 不再托管 /cms。"""
     resp = client.get("/cms")
     assert resp.status_code == 404
+
+
+def test_billing_notification_health_requires_admin_and_hides_references(client, admin):
+    assert client.get('/admin/billing/notification-health').status_code == 403
+    from app.db import SessionLocal
+    from app.models import StoreEvent
+    with SessionLocal() as db:
+        db.add(StoreEvent(event_key='admin-alert', channel='waffo', encrypted_reference='must-not-leak',
+                          processed=False, attempts=3))
+        db.commit()
+    response = client.get('/admin/billing/notification-health', headers=admin)
+    assert response.status_code == 200 and response.json()['alert']
+    assert 'must-not-leak' not in response.text and 'admin-alert' not in response.text

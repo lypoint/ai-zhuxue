@@ -199,6 +199,7 @@
   <div class="page-heading"><h1 id="pageTitle" tabindex="-1">概览</h1><p id="pageDescription">查看平台运行和使用情况。</p></div>
   <section id="overviewPage" data-page="overview">
     <h2>核心指标</h2>
+    <p id="billingHealth" role="status">正在检查支付回调…</p>
     <div class="cards" id="cards"></div>
   </section>
 
@@ -533,6 +534,8 @@ function boot() {
       el.hidden = ROLE !== 'super' && ROLE !== 'admin';
     });
     showPage(sessionStorage.getItem('cms_page') || 'overview', false);
+    loadBillingHealth();
+    if (!billingHealthTimer) billingHealthTimer = setInterval(loadBillingHealth, 60000);
     const s=d.scale, a=d.activity, c=d.cost, f=d.fence;
     const metricGroups=[['用户规模',[['家庭',s.families],['监护人',s.guardians],['学生',s.students],['对话',s.conversations],['消息',s.messages]]],
       ['使用活跃',[['今日消息',a.messages_today],['昨日消息',a.messages_yesterday]]]];
@@ -552,6 +555,20 @@ function boot() {
 }
 
 let fenceRequest=0;
+let billingHealthTimer=null;
+async function loadBillingHealth() {
+  const el=$('billingHealth');
+  try {
+    const d=await api('/admin/billing/notification-health');
+    el.className=d.alert?'err':'section-note';
+    el.setAttribute('role', d.alert?'alert':'status');
+    el.textContent=(d.alert?'支付回调告警：':'支付回调：') + (d.channels.length ? d.channels.map(c=>`${c.channel} 待处理 ${c.pending}，最久 ${Math.floor(c.oldest_age_seconds/60)} 分钟，最多失败 ${c.max_attempts} 次`).join('；') : '无重试积压');
+  } catch(e) {
+    el.className='err'; el.setAttribute('role','alert');
+    el.textContent='支付回调监控不可用，请检查服务状态';
+  }
+}
+
 async function loadOperations() {
   const day = offset => new Date(Date.now() - offset * 86400000).toISOString().slice(0, 10);
   if (!$('operationsStart').value) $('operationsStart').value = day(60);

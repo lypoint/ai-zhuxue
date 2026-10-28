@@ -273,6 +273,12 @@ def update_admin_user(user_id: int, body: dict, principal: AdminPrincipal = Depe
 
 # ---------- 运营数据 ----------
 
+@router.get("/billing/notification-health")
+def billing_notification_health(principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
+    from ..services.store_billing import notification_health
+    return notification_health(db)
+
+
 @router.get("/overview")
 def overview(principal: AdminPrincipal = Depends(require_admin), db: Session = Depends(get_db)):
     """核心运营面板：规模、活跃、围栏分布、成本。"""

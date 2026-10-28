@@ -278,3 +278,37 @@ def test_short_store_period_is_paid_even_if_trial_lasts_longer(client, stores):
         assert not status['can_purchase_subscription']
     response = client.post('/parent/billing/purchase', headers=h(token), json={'channel':'appstore','product_code':'family_monthly_1'})
     assert response.status_code == 409
+
+
+def test_notification_health_thresholds_and_recovery(client, stores, caplog):
+    now = datetime.utcnow()
+    with SessionLocal() as db:
+        assert billing.notification_health(db, now) == {'alert': False, 'channels': []}
+        row = StoreEvent(event_key='health-check', channel='waffo', encrypted_reference='private',
+                         processed=False, attempts=0, created_at=now)
+        db.add(row); db.commit()
+        assert not billing.notification_health(db, now)['alert']
+        row.created_at = now - timedelta(seconds=600); db.commit()
+        health = billing.notification_health(db, now)
+        assert health['alert'] and health['channels'][0]['pending'] == 1
+        state = billing.report_notification_health(health, None, 1000)
+        billing.report_notification_health(health, state, 1001)
+        assert caplog.text.count('STORE_CALLBACK_BACKLOG') == 1
+        billing.report_notification_health(health, state, 1900)
+        assert caplog.text.count('STORE_CALLBACK_BACKLOG') == 2
+        assert 'private' not in caplog.text
+        row.created_at = now; row.attempts = 3; db.commit()
+        assert billing.notification_health(db, now)['alert']
+        row.processed = True; db.commit()
+        healthy = billing.notification_health(db, now)
+        assert not healthy['alert']
+        assert billing.report_notification_health(healthy, state, 1901) is None
+        assert caplog.text.count('STORE_CALLBACK_RECOVERED') == 1
+
+
+def test_notification_health_count_threshold(client, stores):
+    with SessionLocal() as db:
+        db.add_all([StoreEvent(event_key=f'backlog-{i}', channel='waffo', encrypted_reference='private',
+                              processed=False, attempts=0) for i in range(100)])
+        db.commit()
+        assert billing.notification_health(db)['alert']

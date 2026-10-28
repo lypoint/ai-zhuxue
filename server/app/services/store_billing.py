@@ -14,7 +14,7 @@ import httpx
 import jwt
 from cryptography.fernet import Fernet
 from fastapi import HTTPException
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -492,6 +492,32 @@ def process_event(key: str):
                 event.attempts += 1
                 event.next_attempt_at = datetime.utcnow() + timedelta(seconds=min(3600, 60 * 2 ** min(event.attempts, 6)))
                 db.commit()
+                if event.attempts == 1:
+                    log.error("STORE_CALLBACK_FAILED channel=%s; persisted for retry", event.channel)
+
+
+def notification_health(db: Session, now: datetime | None = None):
+    """Only aggregate counts; never expose encrypted references or buyer identities."""
+    now = now or datetime.utcnow()
+    channels = []
+    for channel, pending, oldest, attempts in db.query(
+            StoreEvent.channel, func.count(), func.min(StoreEvent.created_at),
+            func.max(StoreEvent.attempts)).filter(StoreEvent.processed.is_(False)).group_by(StoreEvent.channel):
+        age = max(0, int((now - naive(oldest)).total_seconds()))
+        channels.append(dict(channel=channel, pending=pending, oldest_age_seconds=age,
+                             max_attempts=attempts, alert=age >= 600 or attempts >= 3 or pending >= 100))
+    return {"alert": any(c["alert"] for c in channels), "channels": channels}
+
+
+def report_notification_health(health: dict, previous: float | None, now: float):
+    # Remind every 15 minutes while unhealthy; emit one recovery, not one per retry.
+    if health["alert"] and (previous is None or now - previous >= 900):
+        log.error("STORE_CALLBACK_BACKLOG %s", json.dumps(health, sort_keys=True))
+        return now
+    if not health["alert"] and previous is not None:
+        log.warning("STORE_CALLBACK_RECOVERED")
+        return None
+    return previous
 
 
 def refresh_subscription(row_id: int):
@@ -506,9 +532,11 @@ def refresh_subscription(row_id: int):
 
 async def reconcile_forever():
     from ..db import SessionLocal
+    alert_state = None
     while True:
         try:
             with SessionLocal() as db:
+                alert_state = report_notification_health(notification_health(db), alert_state, time.monotonic())
                 keys = [e.event_key for e in db.query(StoreEvent).filter(StoreEvent.processed.is_(False), StoreEvent.next_attempt_at <= datetime.utcnow()).order_by(StoreEvent.next_attempt_at).limit(100)]
                 cutoff = datetime.utcnow().timestamp() - 3600
                 ids = [r.id for r in db.query(StoreSubscription).filter(StoreSubscription.state != "replaced", or_(StoreSubscription.auto_renew.is_(True), StoreSubscription.state.in_(["active", "grace", "trialing"]), and_(StoreSubscription.state == "expired", StoreSubscription.trial_extension_seconds > 0)), StoreSubscription.checked_at < datetime.fromtimestamp(cutoff, timezone.utc).replace(tzinfo=None)).order_by(StoreSubscription.checked_at).limit(100)]
@@ -523,5 +551,5 @@ async def reconcile_forever():
                 except Exception:
                     log.warning("Store subscription reconciliation failed")
         except Exception:
-            log.warning("Store reconciliation unavailable")
+            log.error("STORE_RECONCILIATION_UNAVAILABLE")
         await asyncio.sleep(60)

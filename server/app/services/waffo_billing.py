@@ -240,6 +240,9 @@ def verify_subscription(reference: str):
     payments = [p for p in data["payments"] if p["status"] == "succeeded" and
                 p["periodNumber"] == data["currentPeriodNumber"] and p["testMode"] == data["testMode"]]
     payment = max(payments, key=lambda p: p["createdAt"]) if payments else None
+    if state == "active" and data["status"] == "canceling" and not data["isInTrial"] and not payment:
+        # Cancellation of a past-due subscription has no paid period to preserve.
+        state = "inactive"
     if state == "active" and not data["isInTrial"] and not payment:
         raise store.StoreError("The current subscription payment has not been confirmed.")
     if payment and ((Decimal(payment["amount"]["amount"]) > 0 and payment["isFullyRefunded"]) or
