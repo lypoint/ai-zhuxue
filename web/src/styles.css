@@ -338,6 +338,11 @@ select {
 .page-heading {
   margin: 20px 0 32px;
 }
+.page-heading > div {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
 .page-heading p {
   margin-bottom: 0;
   max-width: 700px;
@@ -564,16 +569,73 @@ select {
   margin: 0;
   flex-direction: row;
   align-items: center;
+  min-width: 0;
+  gap: 16px;
 }
-.child-switcher .field > span {
-  font-size: 11px;
+.child-switcher .field > label {
+  flex-shrink: 0;
+  white-space: nowrap;
   color: var(--muted);
 }
 .child-switcher select {
-  min-width: 130px;
-  max-width: 300px;
+  width: 220px;
+  min-width: 0;
   border: 0;
   font-weight: 600;
+}
+.child-switcher small {
+  flex-shrink: 0;
+}
+.subscription-policy p {
+  margin: 0;
+}
+.subscription-policy p + p {
+  margin-top: 8px;
+}
+.subscription-plans h2 {
+  margin: 0 0 20px;
+}
+.subscription-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 16px;
+}
+.subscription-plan {
+  min-width: 0;
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 24px;
+  gap: 10px;
+  text-align: start;
+  border-radius: 12px;
+  background: linear-gradient(150deg, #f5f8f1, #fff);
+}
+.subscription-plan:hover {
+  border-color: var(--green);
+  box-shadow: var(--shadow-sm);
+}
+.subscription-plan-seats {
+  color: var(--muted);
+}
+.subscription-plan-seats strong {
+  color: var(--green-deep);
+  font-size: 20px;
+  margin-inline-end: 4px;
+}
+.subscription-plan-price {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  overflow-wrap: anywhere;
+}
+.subscription-plan-period {
+  color: var(--muted);
+  font-size: 12px;
+}
+.subscription-actions {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 24px;
 }
 .metrics {
   display: grid;
@@ -1616,13 +1678,18 @@ dd {
     gap: 4px;
   }
   .child-switcher > .field {
-    flex: 1;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+  .child-switcher select {
+    flex: 1 1 130px;
+    width: auto;
   }
   .child-switcher > .small {
     font-size: 10px;
   }
-  .child-switcher .field > span {
-    display: none;
+  .child-switcher .field {
+    gap: 10px;
   }
   .child-switcher small {
     font-size: 10px;
@@ -1694,9 +1761,22 @@ dd {
   }
   .topbar-end {
     gap: 4px;
+    min-width: 0;
+    max-width: 50%;
+  }
+  .topbar > small {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .topbar .icon-button {
+    flex-shrink: 0;
+  }
+  .topbar-end .language-picker {
+    min-width: 0;
   }
   .language-picker select {
-    min-width: 86px;
+    min-width: 0;
+    width: 100%;
     padding: 8px;
     font-size: 11px;
   }
@@ -1808,11 +1888,6 @@ dd {
 .attachment .icon-button {
   min-width: 44px;
   min-height: 44px;
-}
-@media (max-width: 760px) {
-  .child-switcher .field > label {
-    display: none;
-  }
 }
 
 @media (max-width: 1050px) {

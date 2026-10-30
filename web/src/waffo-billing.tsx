@@ -37,13 +37,10 @@ export default function WaffoBilling({ reload, provider }: { reload: () => void;
     if (checkout) void track("checkout_open", { provider: "waffo" });
     location.assign(parsed.href);
   };
-  return <section className="panel">
+  return <section className="panel subscription-plans">
     <h2>{t("subscription")}</h2>
     {catalog.data.test_mode && <p className="notice">{t("testPayments")}</p>}
-    {(provider === "waffo" || catalog.data.has_subscription) && <button className="button" disabled={busy} onClick={() => void run(async () => {
-      const result = await api<{ url: string }>("/parent/waffo/manage"); navigate(result.url, false);
-    })}>{t("manageSubscription")}</button>}
-    {provider !== "waffo" && catalog.data.items.map(item => <button className="button" key={item.product_code} disabled={busy} onClick={() => void run(async () => {
+    {provider !== "waffo" && <div className="subscription-plan-grid">{catalog.data.items.map(item => <button className="button subscription-plan" key={item.product_code} disabled={busy} onClick={() => void run(async () => {
       void track("begin_checkout", { provider: "waffo", seat_count: item.seat_count });
       try {
         const result = await api<{ reference: string; url: string }>("/parent/waffo/checkout", "POST", { product_code: item.product_code });
@@ -51,11 +48,18 @@ export default function WaffoBilling({ reload, provider }: { reload: () => void;
         navigate(result.url, true);
       } catch (error) { void track("checkout_error", { provider: "waffo" }); throw error; }
     })}>
-      {new Intl.NumberFormat(i18n.language).format(item.seat_count)} · {t("seats")} · {new Intl.NumberFormat(i18n.language, { style: "currency", currency: item.currency }).format(Number(item.amount))} · {t("monthlyBilling")}
-    </button>)}
+      <span className="subscription-plan-seats"><strong>{new Intl.NumberFormat(i18n.language).format(item.seat_count)}</strong> {t("seats")}</span>
+      <strong className="subscription-plan-price">{new Intl.NumberFormat(i18n.language, { style: "currency", currency: item.currency }).format(Number(item.amount))}</strong>
+      <span className="subscription-plan-period">{t("monthlyBilling")}</span>
+    </button>)}</div>}
+    <div className="actions subscription-actions">
+    {(provider === "waffo" || catalog.data.has_subscription) && <button className="button" disabled={busy} onClick={() => void run(async () => {
+      const result = await api<{ url: string }>("/parent/waffo/manage"); navigate(result.url, false);
+    })}>{t("manageSubscription")}</button>}
     {pending && <button className="button secondary" disabled={busy} onClick={() => void run(() => verify(pending))}>{t("retry")}</button>}
     <button className="button secondary" disabled={busy} onClick={() => void run(async () => {
       await api("/parent/waffo/refresh", "POST"); reload();
     })}>{t("refreshSubscription")}</button>
+    </div>
   </section>;
 }

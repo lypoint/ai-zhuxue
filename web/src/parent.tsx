@@ -1337,8 +1337,10 @@ function Subscription({ timezone }: { timezone: string | null }) {
   return (
     <>
       <Heading title={t("subscription")} />
-      <p className="notice">{t("trialPaymentPolicy")}</p>
-      <p className="notice">{t("renewalTrialPolicy")}</p>
+      <div className="notice subscription-policy">
+        <p>{t("trialPaymentPolicy")}</p>
+        <p>{t("renewalTrialPolicy")}</p>
+      </div>
       <WaffoBilling reload={resource.reload} provider={resource.data?.provider} />
       <ResourceState {...resource} retry={resource.reload} />
       {resource.data && (
