@@ -1,3 +1,4 @@
+import 'display_date.dart';
 import 'language.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +34,7 @@ Future<AssessmentRange?> chooseAssessmentRange(BuildContext context) async {
     ),
   );
   if (days == null) return null;
-  final now = DateTime.now();
+  final now = FamilyTime.today;
   return AssessmentRange(
     from: now.subtract(Duration(days: days)).toIso8601String().substring(0, 10),
     to: now.toIso8601String().substring(0, 10),

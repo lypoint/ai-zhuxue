@@ -15,6 +15,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _loading = false;
   bool _markingRead = false;
   bool _unreadOnly = false;
+  int _page = 1;
+  int _loadedPage = 1;
+  bool _loadedUnreadOnly = false;
 
   @override
   void initState() {
@@ -29,15 +32,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (_data == null) _error = null;
     });
     try {
-      final d = await Api.I.notifications();
+      var d = await Api.I.notifications(page: _page, unreadOnly: _unreadOnly);
+      final lastPage = ((d['total'] as num? ?? 0) / 30).ceil().clamp(
+        1,
+        1000000,
+      );
+      if (_page > lastPage) {
+        _page = lastPage;
+        d = await Api.I.notifications(page: _page, unreadOnly: _unreadOnly);
+      }
       if (mounted) {
         setState(() {
           _data = d;
+          _loadedPage = _page;
+          _loadedUnreadOnly = _unreadOnly;
           _error = null;
         });
       }
     } on ApiException catch (e) {
       if (mounted) {
+        _page = _loadedPage;
+        _unreadOnly = _loadedUnreadOnly;
         if (_data == null) {
           setState(() => _error = e.message);
         } else {
@@ -48,6 +63,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       }
     } catch (_) {
       if (mounted) {
+        _page = _loadedPage;
+        _unreadOnly = _loadedUnreadOnly;
         if (_data == null) {
           setState(() => _error = tr("通知加载失败，请检查网络后重试"));
         } else {
@@ -78,6 +95,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(tr("已全部标为已读"))));
       }
+      _page = 1;
       await _load();
     } on ApiException catch (e) {
       if (mounted) {
@@ -100,9 +118,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final d = _data;
-    final items = (d?['items'] as List? ?? [])
-        .where((n) => !_unreadOnly || n['is_read'] != true)
-        .toList();
+    final items = d?['items'] as List? ?? [];
     return Scaffold(
       appBar: AppBar(
         title: Text(tr("通知")),
@@ -119,7 +135,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 : const Icon(Icons.refresh),
           ),
           TextButton(
-            onPressed: d == null || d['unread'] == 0 || _markingRead
+            onPressed: d == null || d['unread'] == 0 || _markingRead || _loading
                 ? null
                 : _readAll,
             child: Text(_markingRead ? tr("处理中…") : tr("全部已读")),
@@ -143,7 +159,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 SwitchListTile(
                   title: Text(tr("只看未读")),
                   value: _unreadOnly,
-                  onChanged: (value) => setState(() => _unreadOnly = value),
+                  onChanged: _loading || _markingRead
+                      ? null
+                      : (value) {
+                          setState(() {
+                            _unreadOnly = value;
+                            _page = 1;
+                          });
+                          _load();
+                        },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: _loading || _markingRead || _loadedPage <= 1
+                          ? null
+                          : () {
+                              _page = _loadedPage - 1;
+                              _load();
+                            },
+                      child: Text(tr('上一页')),
+                    ),
+                    Text(
+                      '$_loadedPage / ${((d['total'] as num? ?? 0) / 30).ceil().clamp(1, 1000000)}',
+                    ),
+                    TextButton(
+                      onPressed:
+                          _loading ||
+                              _markingRead ||
+                              _loadedPage * 30 >= (d['total'] as num? ?? 0)
+                          ? null
+                          : () {
+                              _page = _loadedPage + 1;
+                              _load();
+                            },
+                      child: Text(tr('下一页')),
+                    ),
+                  ],
                 ),
                 Expanded(
                   child: items.isEmpty
@@ -195,16 +248,35 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         trailing: n['conversation_id'] != null
             ? const Icon(Icons.chevron_right, size: 18)
             : null,
-        onTap: n['conversation_id'] != null
-            ? () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ConversationDetailScreen(
-                    conversationId: n['conversation_id'] as int,
-                    title: tr("相关对话"),
-                  ),
-                ),
-              )
-            : null,
+        onTap: _loading || _markingRead
+            ? null
+            : () async {
+                try {
+                  await Api.I.readNotification(n['id'] as int);
+                  if (!mounted) return;
+                  if (n['conversation_id'] != null) {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ConversationDetailScreen(
+                          conversationId: n['conversation_id'] as int,
+                          title: tr('相关对话'),
+                        ),
+                      ),
+                    );
+                  }
+                  if (mounted) _load();
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          e is ApiException ? e.message : tr('操作失败，请检查网络后重试'),
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
       ),
     );
   }

@@ -240,3 +240,14 @@ StoreKit 本地配置用于开发流程验证，上架前还需 Apple Sandbox/Te
 - [Google Play Billing 服务端集成](https://developer.android.com/google/play/billing/backend)
 
 实施时以目标商店、地区和所选 SDK 的当前要求为准；本方案采用两家商店原生购买的发布路径。
+
+
+## 当前试用规则（2026-11-02）
+
+- 国内 App（手机号注册，包括微信及 App Store 登录入口）默认注册试用 30 天；CMS 的 `trial_days` 仅调整国内新家庭。Google 登录创建的家庭（Google Play App 与国际 Web）注册试用固定 3 天，不能通过切换客户端渠道重新领取。已有家庭的到期时间不追溯改写。
+- Google Play App 支持符合资格的 30 天订阅免费试用，然后按所选套餐月价自动续费；注册试用与订阅试用重叠，不补剩余注册试用。Apple 和微信购买继续按各自现行付费规则，不套用 Google 的订阅试用。
+- 四个已配置的 Google 月度商品各需在真实 Play Console 的自动续订月度基础方案下配置、启用唯一一个 30 天优惠：免费阶段 `P30D`、零价、1 次，随后正价 `P1M` 无限续订。资格选择“从未拥有本应用任何订阅”，不要使用开发者自行判断资格的无限领取优惠。其他地区与基础方案的可售地区同步；资格最终还受 Google 账号、地区及平台返回结果限制。
+- 客户端只展示 Google 实际返回的合格优惠，并额外要求当前家庭没有 Google 订阅历史；已有订阅、恢复及升级不重复试用。没有可用优惠时明确展示普通月价；购买时资格已变化则要求刷新，不静默转为立即收费。购买参数必须传所选 `offerToken`，试用后月价来自最后一个付费阶段，不能把首阶段零价当成月费。
+- 权益以 subscriptionsv2 当前 `lineItems.offerPhase.freeTrial` 判断；`offerDetails.offerId` 在续费后仍可能存在，不能据此永久判为试用。试用仍须 acknowledge；保留当期名额与取消状态，不创建实付交易或实付统计，不补赠本地注册试用。验单、重复通知和续费使用现有账本幂等机制。
+
+Google 官方接口：[订阅购买状态](https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2)、[订阅优惠](https://developers.google.com/android-publisher/api-ref/rest/v3/monetization.subscriptions.basePlans.offers)。仅代码与隔离测试通过不代表 Play Console 的真实优惠已启用。

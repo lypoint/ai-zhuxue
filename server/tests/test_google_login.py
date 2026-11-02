@@ -50,6 +50,8 @@ def test_google_identity_creates_family_and_reuses_subject(client, identity):
         assert db.query(Notification).filter_by(family_id=g.family_id).count() == 1
     h = {'Authorization':'Bearer '+first.json()['token']}
     assert client.get('/parent/family',headers=h).status_code == 200
+    status = client.get('/parent/subscription', headers=h).json()
+    assert status['plan'] == 'free_trial' and 2 <= status['days_left'] <= 3
     assert client.post('/auth/logout',headers=h).status_code == 200
     assert client.get('/parent/family',headers=h).status_code == 401
     assert login(client, identity()).status_code == 200

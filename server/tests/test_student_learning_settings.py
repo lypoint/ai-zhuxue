@@ -83,3 +83,13 @@ def test_child_time_quota_rest_and_notifications_are_enforced_independently(clie
         _notify(family,'security','security-a','',conversation_id=ca.id,db=db)
         titles=[n.title for n in db.query(Notification).filter_by(family_id=family)]
         assert 'child-a' not in titles and 'child-b' in titles and 'security-a' in titles
+
+
+def test_native_clients_receive_legacy_timezone_offset(client, monkeypatch):
+    from app.config import settings
+    monkeypatch.setattr(settings, 'tz_offset_hours', -5)
+    parent, student = make_family(client)
+    family = client.get('/parent/family', headers=h(parent)).json()
+    availability = client.get('/chat/availability', headers=h(student)).json()
+    assert family['timezone'] is None and family['legacy_timezone_offset_hours'] == -5
+    assert availability['timezone'] is None and availability['legacy_timezone_offset_hours'] == -5

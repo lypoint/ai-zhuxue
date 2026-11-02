@@ -1,5 +1,7 @@
 import 'language.dart';
 import 'telemetry.dart';
+import 'display_date.dart';
+import 'student_drafts.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:math';
@@ -75,9 +77,31 @@ class Api {
     _token = t;
     final prefs = await SharedPreferences.getInstance();
     if (t == null) {
+      FamilyTime.zone = null;
       await prefs.remove(_tokenKey);
+      try {
+        await StudentDrafts.clear();
+      } catch (_) {
+        /* No private storage available. */
+      }
     } else {
       await prefs.setString(_tokenKey, t);
+    }
+  }
+
+  String? get studentDraftOwner {
+    try {
+      final claims =
+          jsonDecode(
+                utf8.decode(
+                  base64Url.decode(base64Url.normalize(_token!.split('.')[1])),
+                ),
+              )
+              as Map;
+      if (claims['role'] != 'student') return null;
+      return '${Uri.encodeComponent(apiBase)}:$appChannel:${claims['family_id']}:${claims['sub']}';
+    } catch (_) {
+      return null;
     }
   }
 
@@ -299,8 +323,30 @@ class Api {
     return data['role'] as String;
   }
 
-  Future<Map<String, dynamic>> familyOverview() =>
-      _send('GET', '/parent/family');
+  Future<Map<String, dynamic>> familyOverview() async {
+    final data = await _send('GET', '/parent/family');
+    FamilyTime.configure(data);
+    return data;
+  }
+
+  Future<void> updateFamilyTimezone(String zone) async {
+    await _send('PUT', '/parent/timezone', body: {'timezone': zone});
+    FamilyTime.zone = zone;
+  }
+
+  Future<Map<String, dynamic>> updateStudentLearningSettings(
+    int studentId,
+    Map<String, dynamic> values,
+  ) => _send(
+    'PUT',
+    '/parent/students/$studentId/learning-settings',
+    body: values,
+  );
+  Future<Map<String, dynamic>> exportStudent(int studentId) =>
+      _send('GET', '/parent/students/$studentId/export');
+  Future<String> waffoManagementUrl() async =>
+      (await _send('GET', '/parent/waffo/manage'))['url'] as String;
+
   Future<Map<String, dynamic>> students() => _send('GET', '/parent/students');
 
   Future<Map<String, dynamic>> createStudent(
@@ -488,8 +534,11 @@ class Api {
   /// 我的学习统计（学生自己可见）：{today:{questions,blocked,minutes}, week:{...,active_days}, favorites}
   Future<Map<String, dynamic>> myStats() => _send('GET', '/chat/my-stats');
 
-  Future<Map<String, dynamic>> chatAvailability() =>
-      _send('GET', '/chat/availability');
+  Future<Map<String, dynamic>> chatAvailability() async {
+    final data = await _send('GET', '/chat/availability');
+    FamilyTime.configure(data);
+    return data;
+  }
 
   /// 端侧活跃心跳（每 60s，聊天页活跃时上报；防刷单次≤120）
   Future<void> heartbeat(int seconds) =>
@@ -579,11 +628,16 @@ class Api {
   );
 
   // ---------- 通知中心（P0） ----------
-  Future<Map<String, dynamic>> notifications({bool unreadOnly = false}) =>
-      _send(
-        'GET',
-        '/parent/notifications${unreadOnly ? '?unread_only=true' : ''}',
-      );
+  Future<Map<String, dynamic>> notifications({
+    bool unreadOnly = false,
+    int page = 1,
+    int size = 30,
+  }) => _send(
+    'GET',
+    '/parent/notifications?page=$page&size=$size&unread_only=$unreadOnly',
+  );
+  Future<void> readNotification(int id) =>
+      _send('PUT', '/parent/notifications/$id/read');
   Future<void> readAllNotifications() =>
       _send('POST', '/parent/notifications/read-all');
 

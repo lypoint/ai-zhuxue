@@ -289,7 +289,7 @@ def availability(student: Student = Depends(current_student), db: Session = Depe
             "daily_minutes_cap": cap, "remaining_seconds": max(0, cap * 60 - used) if cap else None,
             "quiet_start": fs.quiet_start if fs else settings.fence_quiet_start,
             "quiet_end": fs.quiet_end if fs else settings.fence_quiet_end,
-            "timezone": student.family.timezone, "day": _local_day(student.id, db)}
+            "timezone": student.family.timezone, "legacy_timezone_offset_hours": settings.tz_offset_hours, "day": _local_day(student.id, db)}
 
 
 def _check_policy(student: Student, db: Session, teacher_id: int | None = None,

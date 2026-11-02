@@ -1,4 +1,4 @@
-"""订阅权益：注册开 3 天免费试用；到期未续费拦截学生端（P0 商业闭环）。
+"""订阅权益：国内注册默认 30 天、Google 登录注册 3 天免费试用；到期未续费拦截学生端（P0 商业闭环）。
 
 支付通道骨架期为 mock；生产接微信/支付宝需商户资质与回调（外部依赖，见 roadmap）。
 """
@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from ..config import settings
 from ..models import PricingConfig, Subscription, SubscriptionOrder
 
-TRIAL_DAYS = 3
+GOOGLE_REGISTRATION_TRIAL_DAYS = 3
 PRICE_CNY = 66.0
 
 
@@ -101,6 +101,14 @@ def apply_monthly_purchase(sub: Subscription, snapshot: dict, start: dt.datetime
     snapshot.update(period_start=start.isoformat(), period_end=end.isoformat())
 
 
+def registration_trial_days(family_id: int, db: Session) -> int:
+    from ..models import Guardian
+    # Use the stored registration identity, never a caller-controlled channel header.
+    international = db.query(Guardian.id).filter(
+        Guardian.family_id == family_id, Guardian.google_sub.isnot(None)).first()
+    return GOOGLE_REGISTRATION_TRIAL_DAYS if international else get_pricing_config(db).trial_days
+
+
 def ensure_subscription(family_id: int, db: Session) -> Subscription:
     """家庭创建时调用：开免费试用。已存在则原样返回。"""
     from ..models import Family
@@ -111,7 +119,7 @@ def ensure_subscription(family_id: int, db: Session) -> Subscription:
     cfg = get_pricing_config(db)
     base_cents, seat_cents = _config_cents(cfg)
     sub = Subscription(family_id=family_id, plan="free_trial",
-                       expires_at=dt.datetime.utcnow() + dt.timedelta(days=cfg.trial_days),
+                       expires_at=dt.datetime.utcnow() + dt.timedelta(days=registration_trial_days(family_id, db)),
                        seat_count=1, base_price_snapshot=cfg.base_monthly_price,
                        additional_seat_price_snapshot=cfg.additional_seat_price,
                        base_price_snapshot_cents=base_cents,

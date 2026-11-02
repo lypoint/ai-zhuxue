@@ -94,6 +94,7 @@ Base URL：本地开发 `http://localhost:8100`；Android 模拟器内 `http://1
  "students": [{"id","nickname","grade_band"}],
  "settings": {"daily_message_cap": 200, "review_enabled": true}}
 ```
+家庭根对象另返回 `timezone`（确认的 IANA 时区，历史家庭可为 null）及 `legacy_timezone_offset_hours`（当前 `TZ_OFFSET_HOURS`）。`GET /chat/availability` 同样返回这两个字段；原生端在时区尚未确认时用此偏移显示日期，避免误用设备时区。`PUT /parent/timezone` 保存 IANA 时区，每 24 小时最多变更一次，失败不改变原设置。
 
 ### PUT /parent/guardian/nickname — 修改当前监护人名字
 `{"nickname": "小明妈妈"}`（去除首尾空白后为 1–50 字符）→ `200 {"ok": true, "nickname": "小明妈妈"}`。
@@ -287,7 +288,7 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 
 ## 订阅 `/parent/subscription`（P0 商业闭环）
 
-注册按 CMS 配置开免费试用（默认 30 天）；到期后 `post_trial_daily_free_count` 是每位老师**每天回复每个学生**的次数上限（≤0 不免费）。只统计已生成并保存的老师回复；未收到回复的提问和围栏拒绝话术不占次数。同家庭的学生各有额度。未开放免费次数的老师返回 **402**，该学生在该老师的次数耗尽返回 **429**。
+国内注册按 CMS 配置开免费试用（默认 30 天），Google 登录创建的家庭（App／国际 Web）固定注册试用 3 天，已有到期时间不因切换渠道重新发放；到期后 `post_trial_daily_free_count` 是每位老师**每天回复每个学生**的次数上限（≤0 不免费）。只统计已生成并保存的老师回复；未收到回复的提问和围栏拒绝话术不占次数。同家庭的学生各有额度。未开放免费次数的老师返回 **402**，该学生在该老师的次数耗尽返回 **429**。
 
 ### GET /parent/subscription — 订阅状态
 ```json
@@ -302,7 +303,7 @@ admin 可执行赠送/扣除并由 CMS 二次确认；support 不能直接生效
 仅开发/测试环境支持模拟支付。生产环境在真实支付通道接入前返回 `503`，不生成订单、不变更订阅；`POST /parent/subscription/seats` 购买孩子名额同样返回 `503`。真实支付接入后应由经过验签的支付回调确认订单并发放权益。
 按当前名额档位购买一个自然月；有效付费订阅重复购买同档位返回 `409`，不累加时长。试用期内可开通，立即付款生效，剩余试用时长只保留一次：新月周期结束时间加上支付时剩余试用时长，按实际秒数计算，不向下取整为天；原有更晚的付费权益继续保留。正式微信购买走 `/parent/payments/orders`，核验支付后生效。
 
-Apple/Google 自动续订仍按权威首次购买时间一次性保留剩余注册试用权益，不推迟平台扣款。海外 Web 使用 Waffo 原生免费试用，不补赠注册试用余额；接口、回调与 USD 商品规则见 [Waffo 订阅](waffo-billing.md)。
+Apple 自动续订仍按权威首次购买时间一次性保留剩余注册试用权益，不推迟平台扣款。Google Play 符合资格的订阅提供原生 30 天免费试用，不补赠注册试用余额，历史已授予的 Google 赠送时长保留。海外 Web 使用 Waffo 原生免费试用，同样不补赠注册试用余额；接口、回调与 USD 商品规则见 [Waffo 订阅](waffo-billing.md)。
 
 订阅状态的 `expires_at` 为权益到期；`billing_period_ends_at` 为平台原周期结束；`next_billing_at` 为平台确认的下次扣款日（非自动扣款或未知时为 `null`）；`trial_extension_seconds` 为该来源保留的试用时长。客户端须分别展示权益到期和下次扣款，说明赠送时长不推迟平台扣款，取消自动续订后仍可使用。未知扣款日不得用权益到期日代替。
 
@@ -370,7 +371,7 @@ Apple/Google 自动续订仍按权威首次购买时间一次性保留剩余注�
 
 - `GET /parent/subscription`：返回 `seat_count`、`used_seats`、基础价、增量价、免费期和 `free_teacher_count`；各老师的免费次数由 LLM 分组决定。
 - `POST /parent/subscription/seats`：仅开发/测试环境：全额购买升级后档位的月订阅并立即增加孩子名额，必须携带幂等键；例如 1 名额升级至 2 名额收费 ¥99，不按天补差，也不抵扣已付费用。新周期按一个自然月计算，保留既有更晚到期时间但不相加。正式微信购买使用 `kind=seat_add` 的支付订单。
-- `GET/POST /admin/pricing-config`：super 读取/修改基础价、增量价、试用天数；旧的到期免费次数字段保留兼容，实际额度在 LLM 分组中配置。
+- `GET/POST /admin/pricing-config`：super 读取/修改基础价、增量价、国内注册试用天数（Google 注册固定 3 天）；旧的到期免费次数字段保留兼容，实际额度在 LLM 分组中配置。
 - `POST /admin/users`、`PATCH /admin/users/{id}`：super 创建和调整 `super/admin/support` 账号。
 
 ### 成绩与趋势
@@ -399,7 +400,7 @@ Apple/Google 自动续订仍按权威首次购买时间一次性保留剩余注�
 家长端按渠道调用 `/parent/billing/catalog`（wechat/appstore/googleplay）；商店商品由 STORE_PRODUCTS_JSON 明确注册，业务月价与微信一致。
 
 - `GET /parent/billing/account`：稳定家庭账号 token。
-- `POST /parent/billing/purchase`：channel、product_code，返回商品 ID、账号 token；Google 升级包含原订阅 token。
+- `POST /parent/billing/purchase`：channel、product_code，返回商品 ID、账号 token；Google 升级包含原订阅 token；目录和购买准备均返回 `trial_eligible`，仅表示家庭尚无 Google 订阅历史，还须满足 Google 返回的优惠资格。试用购买须显式传所选优惠的 `offerToken`，资格失效不得静默按正价扣款。
 - `POST /parent/billing/verify`：channel、reference（Apple 交易号 / Google purchase token），权威验单后返回家庭订阅状态。
 - `POST /payments/appstore/notify`：验签的 Apple V2 通知。
 - `POST /payments/googleplay/notify`：经 Google OIDC 认证的 Pub/Sub RTDN。

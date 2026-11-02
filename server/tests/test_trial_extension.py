@@ -49,7 +49,7 @@ def test_demo_payment_preserves_trial_and_replay_does_not_extend(client, monkeyp
 
 
 @pytest.mark.parametrize('channel', ['appstore', 'googleplay'])
-def test_store_bonus_survives_restore_renewal_and_cancel_but_not_refund(client, stores, monkeypatch, channel):
+def test_apple_and_legacy_google_bonus_survive_restore_renewal_cancel_but_not_refund(client, stores, monkeypatch, channel):
     monkeypatch.setattr(settings, 'store_products_json', json.dumps({channel: {'family_monthly_10': 'tier.10'}}))
     token, _ = make_family(client)
     family, account = owner(client, token)
@@ -61,6 +61,13 @@ def test_store_bonus_survives_restore_renewal_and_cancel_but_not_refund(client, 
         raw_end = start + dt.timedelta(days=31)
         result = replace(verified(account, channel=channel), expires=raw_end,
                          first_paid_at=start, next_billing_at=raw_end, transaction_id='first')
+        if channel == 'googleplay':
+            # Previously granted Google credit survives the new no-bonus policy.
+            legacy = billing.record(result, db, family)
+            assert not legacy.trial_extension_seconds
+            legacy.trial_extension_seconds = 15 * 86400
+            sub.trial_extension_claimed = True
+            db.commit()
         for _ in range(2):
             row = billing.record(result, db, family)
             status = get_status(family, db)
@@ -157,3 +164,12 @@ def test_restart_deducts_bonus_already_used_even_before_expiry_notification(clie
         for _ in range(2):
             row = billing.record(result, db, family)
             assert row.trial_extension_seconds == credit - 2 * 86400
+
+
+def test_new_google_paid_purchase_gets_no_registration_trial_credit(client, stores):
+    token, _ = make_family(client)
+    family, account = owner(client, token)
+    with SessionLocal() as db:
+        result = replace(verified(account, channel='googleplay'), first_paid_at=dt.datetime.utcnow())
+        row = billing.record(result, db, family)
+        assert not row.trial_extension_seconds

@@ -312,3 +312,54 @@ def test_notification_health_count_threshold(client, stores):
                               processed=False, attempts=0) for i in range(100)])
         db.commit()
         assert billing.notification_health(db)['alert']
+
+
+def test_google_trial_then_payment_never_extends_trial_or_records_free_payment(client, stores, monkeypatch):
+    from app.api.auth import _guardian_token
+    from app.security import parse_token
+    with SessionLocal() as db:
+        token = _guardian_token(None, 'Trial parent', db, google_sub='play-trial-family').token
+    family = parse_token(token)['family_id']
+    owner = client.get('/parent/billing/account', headers=h(token)).json()['account_token']
+    expiry = datetime.utcnow() + timedelta(days=30)
+    item = {'productId': 'tier.2', 'expiryTime': expiry.isoformat()+'Z',
+            'autoRenewingPlan': {'autoRenewEnabled': True}, 'offerPhase': {'freeTrial': {}},
+            'offerDetails': {'offerId': 'trial-30d'}, 'latestSuccessfulOrderId': 'zero-order'}
+    data = {'subscriptionState': 'SUBSCRIPTION_STATE_ACTIVE',
+            'externalAccountIdentifiers': {'obfuscatedExternalAccountId': owner},
+            'acknowledgementState': 'ACKNOWLEDGEMENT_STATE_PENDING',
+            'startTime': datetime.utcnow().isoformat()+'Z', 'lineItems': [item]}
+    calls = []
+    async def request(method, path, body=None):
+        calls.append(method)
+        return data if method == 'GET' else {}
+    monkeypatch.setattr(billing, 'google_request', request)
+    def verify(reference='trial-token'):
+        return client.post('/parent/billing/verify', headers=h(token), json={'channel': 'googleplay', 'reference': reference})
+    assert client.get('/parent/billing/catalog?channel=googleplay', headers=h(token)).json()['trial_eligible']
+    first = verify().json()
+    assert first['plan'] == 'subscription_trial' and first['seat_count'] == 2
+    assert first['trial_extension_seconds'] == 0 and first['next_billing_at'] is not None
+    assert 'POST' in calls  # Free trials still require purchase acknowledgement.
+    assert verify().json()['expires_at'] == first['expires_at']
+    with SessionLocal() as db:
+        assert db.query(StoreTransaction).filter_by(family_id=family).count() == 0
+        from app.models import AnalyticsEvent
+        assert db.query(AnalyticsEvent).filter_by(family_id=family, name='subscription_activated').count() == 1
+        assert db.query(AnalyticsEvent).filter_by(family_id=family, name='payment_confirmed').count() == 0
+    assert not client.get('/parent/billing/catalog?channel=googleplay', headers=h(token)).json()['trial_eligible']
+    assert verify('another-trial-chain').status_code == 409
+    data['subscriptionState'] = 'SUBSCRIPTION_STATE_CANCELED'
+    item['autoRenewingPlan']['autoRenewEnabled'] = False
+    canceled = verify().json()
+    assert canceled['active'] and canceled['plan'] == 'subscription_trial' and not canceled['auto_renew']
+    # The offer ID remains on paid renewals; the current phase, not that ID, decides status.
+    data['subscriptionState'] = 'SUBSCRIPTION_STATE_ACTIVE'
+    item['autoRenewingPlan']['autoRenewEnabled'] = True
+    item['offerPhase'] = {'basePrice': {}}
+    item['latestSuccessfulOrderId'] = 'paid-order'
+    item['expiryTime'] = (expiry + timedelta(days=30)).isoformat()+'Z'
+    paid = verify().json()
+    assert paid['plan'] == 'monthly' and paid['trial_extension_seconds'] == 0
+    with SessionLocal() as db:
+        assert db.query(StoreTransaction).filter_by(family_id=family).count() == 1

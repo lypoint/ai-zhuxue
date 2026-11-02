@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:app_core/app_core.dart';
 import 'conversation_detail_screen.dart';
@@ -27,6 +29,38 @@ class _ReviewScreenState extends State<ReviewScreen> {
   bool _refreshing = false;
   int _loadGeneration = 0;
   bool _searching = false;
+  bool _exporting = false;
+  Future<void> _export(BuildContext buttonContext) async {
+    final box = buttonContext.findRenderObject() as RenderBox?;
+    final origin = box == null
+        ? null
+        : box.localToGlobal(Offset.zero) & box.size;
+    setState(() => _exporting = true);
+    try {
+      final data = await Api.I.exportStudent(widget.studentId);
+      if (!mounted) return;
+      await Share.shareXFiles(
+        [
+          XFile.fromData(
+            utf8.encode(const JsonEncoder.withIndent('  ').convert(data)),
+            mimeType: 'application/json',
+          ),
+        ],
+        fileNameOverrides: ['learning-${widget.studentId}.json'],
+        sharePositionOrigin: origin,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is ApiException ? e.message : tr('导出失败，请重试')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
 
   @override
   void initState() {
@@ -165,6 +199,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
       appBar: AppBar(
         title: Text(tr("{0} · 学习记录", [widget.studentName])),
         actions: [
+          Builder(
+            builder: (buttonContext) => IconButton(
+              tooltip: tr('导出学习数据'),
+              onPressed: _exporting ? null : () => _export(buttonContext),
+              icon: _exporting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(),
+                    )
+                  : const Icon(Icons.file_download_outlined),
+            ),
+          ),
           IconButton(
             tooltip: tr("刷新学习记录"),
             onPressed: _refreshing ? null : () => _load(reportRetry: true),

@@ -27,7 +27,7 @@ class _StudentGradeDialogState extends State<StudentGradeDialog> {
         text:
             widget.current?[key]?.toString() ??
             (key == 'exam_date'
-                ? DateTime.now().toIso8601String().substring(0, 10)
+                ? FamilyTime.today.toIso8601String().substring(0, 10)
                 : key == 'max_score'
                 ? '100'
                 : ''),
@@ -104,7 +104,7 @@ class _StudentGradeDialogState extends State<StudentGradeDialog> {
               final date = await showDatePicker(
                 context: context,
                 initialDate:
-                    (DateTime.tryParse(_fields[key]!.text) ?? DateTime.now())
+                    (DateTime.tryParse(_fields[key]!.text) ?? FamilyTime.today)
                         .clampDate(),
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100, 12, 31),

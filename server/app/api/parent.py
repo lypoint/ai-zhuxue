@@ -57,6 +57,7 @@ def family_overview(guardian: Guardian = Depends(current_guardian), db: Session 
     return {
         "guardian": {"id": guardian.id, "phone": guardian.phone, "nickname": guardian.nickname},
         "timezone": db.get(Family, guardian.family_id).timezone,
+        "legacy_timezone_offset_hours": settings.tz_offset_hours,
         "students": [{"id": s.id, "nickname": s.nickname, "grade_band": s.grade_band,
                       "learning_settings": vars(learning_settings.effective(s, db, settings_row)),
                       "fence_settings": {"fence_level": s.fence_level,
@@ -97,7 +98,7 @@ def set_timezone(body: dict, guardian: Guardian = Depends(current_guardian), db:
         family.previous_timezone, family.timezone = family.timezone, name
         family.timezone_changed_at = now
         db.commit()
-    return {"timezone": family.timezone}
+    return {"timezone": family.timezone, "legacy_timezone_offset_hours": settings.tz_offset_hours}
 
 
 @router.put("/guardian/nickname")

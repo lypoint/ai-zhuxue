@@ -9,7 +9,7 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:parent_store/store_billing.dart';
 
-class GoogleAdapter implements StoreAdapter {
+class GoogleAdapter extends StoreAdapter {
   @override
   String get channel => 'googleplay';
   @override
@@ -20,20 +20,60 @@ class GoogleAdapter implements StoreAdapter {
   @override
   String reference(PurchaseDetails purchase) =>
       purchase.verificationData.serverVerificationData;
-  @override
-  bool monthly(ProductDetails product) {
+  SubscriptionOfferDetailsWrapper? _offer(ProductDetails product) {
     if (product is! GooglePlayProductDetails ||
         product.subscriptionIndex == null) {
+      return null;
+    }
+    return product.productDetails.subscriptionOfferDetails![product
+        .subscriptionIndex!];
+  }
+
+  @override
+  bool hasTrial(ProductDetails product) {
+    final offer = _offer(product);
+    if (offer == null ||
+        offer.offerId == null ||
+        offer.pricingPhases.length != 2) {
       return false;
     }
-    final offer = product
-        .productDetails
-        .subscriptionOfferDetails![product.subscriptionIndex!];
-    return offer.offerId == null &&
-        offer.pricingPhases.length == 1 &&
-        offer.pricingPhases.single.billingPeriod == 'P1M' &&
-        offer.pricingPhases.single.recurrenceMode ==
-            RecurrenceMode.infiniteRecurring;
+    final trial = offer.pricingPhases.first;
+    return trial.billingPeriod == 'P30D' &&
+        trial.priceAmountMicros == 0 &&
+        trial.billingCycleCount == 1 &&
+        trial.recurrenceMode == RecurrenceMode.finiteRecurring;
+  }
+
+  @override
+  bool monthly(ProductDetails product) {
+    final offer = _offer(product);
+    if (offer == null ||
+        offer.installmentPlanDetails != null ||
+        offer.pricingPhases.isEmpty) {
+      return false;
+    }
+    final price = offer.pricingPhases.last;
+    return (offer.offerId == null && offer.pricingPhases.length == 1 ||
+            hasTrial(product)) &&
+        price.billingPeriod == 'P1M' &&
+        price.priceAmountMicros > 0 &&
+        price.recurrenceMode == RecurrenceMode.infiniteRecurring &&
+        offer.pricingPhases.every(
+          (phase) => phase.priceCurrencyCode == price.priceCurrencyCode,
+        );
+  }
+
+  @override
+  ProductDetails billingPrice(ProductDetails product) {
+    final price = _offer(product)!.pricingPhases.last;
+    return ProductDetails(
+      id: product.id,
+      title: product.title,
+      description: product.description,
+      price: price.formattedPrice,
+      rawPrice: price.priceAmountMicros / 1000000,
+      currencyCode: price.priceCurrencyCode,
+    );
   }
 
   @override
@@ -41,6 +81,13 @@ class GoogleAdapter implements StoreAdapter {
     ProductDetails product,
     Map<String, dynamic> intent,
   ) async {
+    if (!monthly(product) || product is! GooglePlayProductDetails) {
+      throw StateError(tr('商店商品配置已变更，请刷新页面'));
+    }
+    if (hasTrial(product) &&
+        (intent['trial_eligible'] != true || intent['old_reference'] != null)) {
+      throw StateError(tr('试用资格已变化，请刷新订阅商品'));
+    }
     ChangeSubscriptionParam? change;
     if (intent['old_reference'] != null) {
       final purchases =
@@ -59,6 +106,7 @@ class GoogleAdapter implements StoreAdapter {
     }
     return GooglePlayPurchaseParam(
       productDetails: product,
+      offerToken: product.offerToken,
       applicationUserName: intent['account_token'] as String,
       changeSubscriptionParam: change,
     );

@@ -94,7 +94,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(attempts, 2);
         expect(find.byType(StudentReviewCard), findsNothing);
-        expect(find.text('添加孩子，开启学习陪伴'), findsOneWidget);
+        expect(find.text(tr('添加孩子，开启学习陪伴')), findsOneWidget);
         expect(tester.takeException(), isNull);
       }, () => client);
     });

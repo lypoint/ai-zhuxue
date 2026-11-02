@@ -162,7 +162,7 @@ class _GradesScreenState extends State<GradesScreen> {
     final date = TextEditingController(
       text:
           current?['exam_date'] as String? ??
-          DateTime.now().toIso8601String().substring(0, 10),
+          FamilyTime.today.toIso8601String().substring(0, 10),
     );
     final score = TextEditingController(
       text: current?['score']?.toString() ?? '',
@@ -222,7 +222,7 @@ class _GradesScreenState extends State<GradesScreen> {
                                 context: ctx,
                                 initialDate:
                                     DateTime.tryParse(date.text) ??
-                                    DateTime.now(),
+                                    FamilyTime.today,
                                 firstDate: DateTime(2000),
                                 lastDate: DateTime(2100),
                               );

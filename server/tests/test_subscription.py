@@ -28,7 +28,7 @@ def test_trial_created_on_register(client):
     g, s = make_family(client)
     d = client.get("/parent/subscription", headers=h(g)).json()
     assert d["plan"] == "free_trial" and d["active"] is True
-    assert 2 <= d["days_left"] <= 3
+    assert 29 <= d["days_left"] <= 30
     assert d["price_cny"] == 66.0
 
 
@@ -88,3 +88,11 @@ def _fid(client, g):
     payload = parse_token(g)
     db.close()
     return payload["family_id"]
+
+
+def test_existing_trial_is_not_reissued_by_channel_header(client):
+    guardian, _ = make_family(client)
+    before = client.get('/parent/subscription', headers=h(guardian)).json()
+    foreign = client.get('/parent/subscription', headers={**h(guardian), 'X-App-Channel': 'googleplay'}).json()
+    assert foreign['expires_at'] == before['expires_at']
+    assert foreign['days_left'] == before['days_left']

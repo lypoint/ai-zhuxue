@@ -26,7 +26,7 @@ class FakeStore extends InAppPurchasePlatform {
   }
 }
 
-class FakeAdapter implements StoreAdapter {
+class FakeAdapter extends StoreAdapter {
   final store = FakeStore();
   @override
   String get channel => 'googleplay';

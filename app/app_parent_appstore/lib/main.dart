@@ -8,7 +8,7 @@ import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:overseas_compliance/overseas_compliance.dart';
 import 'package:parent_store/store_billing.dart';
 
-class AppleAdapter implements StoreAdapter {
+class AppleAdapter extends StoreAdapter {
   @override
   String get channel => 'appstore';
   @override

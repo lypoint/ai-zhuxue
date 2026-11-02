@@ -273,6 +273,10 @@ async def google_request(method: str, path: str, body=None):
         raise StoreError("Google Play 验单暂时失败，请稍后恢复购买") from None
 
 
+def google_trial_eligible(family_id: int, db: Session) -> bool:
+    return db.query(StoreSubscription.id).filter_by(family_id=family_id, channel="googleplay").first() is None
+
+
 async def google_status(reference: str) -> VerifiedSubscription:
     package = quote(settings.google_package_name, safe="")
     data = await google_request("GET", f"applications/{package}/purchases/subscriptionsv2/tokens/{quote(reference, safe='')}")
@@ -288,14 +292,18 @@ async def google_status(reference: str) -> VerifiedSubscription:
     product = item["productId"]
     seats_for("googleplay", product)
     expiry = datetime.fromisoformat(item["expiryTime"].replace("Z", "+00:00"))
+    # Offer IDs persist after renewal; only the authority's CURRENT phase proves a free trial.
+    free_trial = "freeTrial" in (item.get("offerPhase") or {})
+    if state == "active" and free_trial:
+        state = "trialing"
     return VerifiedSubscription("googleplay", hashlib.sha256(reference.encode()).hexdigest(), reference,
         data.get("externalAccountIdentifiers", {}).get("obfuscatedExternalAccountId", ""), product,
         naive(expiry), state, item.get("autoRenewingPlan", {}).get("autoRenewEnabled", False),
         hashlib.sha256(data["linkedPurchaseToken"].encode()).hexdigest() if data.get("linkedPurchaseToken") else None,
-        state in ("active", "grace") and naive(expiry) > datetime.utcnow() and data.get("acknowledgementState") == "ACKNOWLEDGEMENT_STATE_PENDING",
-        transaction_id=item.get("latestSuccessfulOrderId") or data.get("latestOrderId"),
-        first_paid_at=datetime.fromisoformat(data["startTime"].replace("Z", "+00:00")) if data.get("startTime") else None,
-        next_billing_at=naive(expiry) if state == "active" else None)
+        state in ("active", "grace", "trialing") and naive(expiry) > datetime.utcnow() and data.get("acknowledgementState") == "ACKNOWLEDGEMENT_STATE_PENDING",
+        transaction_id=None if free_trial else item.get("latestSuccessfulOrderId") or data.get("latestOrderId"),
+        first_paid_at=None,
+        next_billing_at=naive(expiry) if state in ("active", "trialing") else None)
 
 
 async def verify(channel: str, reference: str) -> VerifiedSubscription:
@@ -324,6 +332,8 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
     if any(r and r.family_id != owner.family_id for r in (row, linked, successor)):
         raise HTTPException(409, "订阅交易链已绑定其他家庭")
     if row is None:
+        if result.channel == "googleplay" and result.state == "trialing" and not google_trial_eligible(owner.family_id, db):
+            raise HTTPException(409, "该家庭已开通过 Google Play 订阅，请在商店管理原订阅")
         row = StoreSubscription(family_id=owner.family_id, channel=result.channel, chain_key=result.chain)
         if linked:
             row.trial_extension_seconds = min(int(linked.trial_extension_seconds or 0),
@@ -343,7 +353,7 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
             max(0, int((entitlement_expiry(row) - datetime.utcnow()).total_seconds())))
     # Capture once from the authority's initial purchase time, never from restore time.
     # Missing authority timestamps can be filled by a subsequent reconciliation.
-    if (result.channel != "waffo" and result.state == "active" and naive(result.expires) > datetime.utcnow()
+    if (result.channel not in ("waffo", "googleplay") and result.state == "active" and naive(result.expires) > datetime.utcnow()
             and result.first_paid_at is not None and naive(result.first_paid_at) <= datetime.utcnow()
             and row.state != "replaced" and not successor):
         sub = db.query(Subscription).filter_by(family_id=owner.family_id).with_for_update().one()
@@ -365,10 +375,10 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
     environment = "test" if ((result.channel == "waffo" and settings.waffo_environment == "test") or
         (result.channel == "appstore" and (result.chain.startswith("sandbox:") or settings.apple_environment == "Sandbox")) or
         result.account_token.lower() in test_accounts()) else "production"
-    if result.channel == "waffo" and row.state in ("active", "trialing") and active(row):
+    if result.channel in ("waffo", "googleplay") and row.state in ("active", "trialing") and active(row):
         # Native free trials activate access even before a payment exists.
         db.flush()
-        record_event(db, "subscription_activated", owner.family_id, f"waffo-subscription:{row.id}:active",
+        record_event(db, "subscription_activated", owner.family_id, f"{result.channel}-subscription:{row.id}:active",
                      provider=result.channel, seat_count=row.seat_count, environment=environment)
     if result.transaction_id:
         transaction = db.query(StoreTransaction).filter_by(channel=result.channel, transaction_id=result.transaction_id).first()
@@ -383,7 +393,7 @@ def record(result: VerifiedSubscription, db: Session, family_id: int | None = No
         transaction.price_milliunits = result.price_milliunits
         transaction.currency = result.currency
         db.flush()
-        if result.channel != "waffo" and result.state == "active":
+        if result.channel not in ("waffo", "googleplay") and result.state == "active":
             record_event(db, "subscription_activated", owner.family_id, f"transaction:{transaction.id}:active",
                    provider=result.channel, seat_count=row.seat_count,
                    environment=environment)

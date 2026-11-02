@@ -7,9 +7,11 @@ class ManagementSettingsCard extends StatefulWidget {
   final Map<String, dynamic> settings;
   final VoidCallback onSaved;
   final bool scrollable;
+  final int? studentId;
   const ManagementSettingsCard({
     super.key,
     this.scrollable = false,
+    this.studentId,
     required this.settings,
     required this.onSaved,
   });
@@ -83,15 +85,26 @@ class _ManagementSettingsCardState extends State<ManagementSettingsCard> {
     }
     setState(() => _saving = true);
     try {
-      await Api.I.updateSettings(
-        cap,
-        widget.settings['review_enabled'] as bool? ?? true,
-        quietEnabled: _quietEnabled,
-        quietStart: _quietStart,
-        quietEnd: _quietEnd,
-        dailyMinutesCap: minutes,
-        notifyFence: _notifyFence,
-      );
+      if (widget.studentId != null) {
+        await Api.I.updateStudentLearningSettings(widget.studentId!, {
+          'daily_message_cap': cap,
+          'daily_minutes_cap': minutes,
+          'quiet_enabled': _quietEnabled,
+          'quiet_start': _quietStart,
+          'quiet_end': _quietEnd,
+          'notify_fence': _notifyFence,
+        });
+      } else {
+        await Api.I.updateSettings(
+          cap,
+          widget.settings['review_enabled'] as bool? ?? true,
+          quietEnabled: _quietEnabled,
+          quietStart: _quietStart,
+          quietEnd: _quietEnd,
+          dailyMinutesCap: minutes,
+          notifyFence: _notifyFence,
+        );
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(_snackBar(tr("已保存")));
       setState(() => _savedValue = _value);

@@ -59,7 +59,8 @@ def purchase(body: PurchaseInput, guardian: Guardian = Depends(current_guardian)
         if len(active_rows) > 1:
             raise HTTPException(409, "存在多个有效订阅，请先在商店处理重复订阅")
         old_reference = billing.cipher().decrypt(active_rows[0].encrypted_token.encode()).decode() if active_rows and body.channel == "googleplay" else None
-        return {"product_id": product, "account_token": token, "old_reference": old_reference}
+        return {"product_id": product, "account_token": token, "old_reference": old_reference,
+                "trial_eligible": body.channel == "googleplay" and billing.google_trial_eligible(guardian.family_id, db)}
     except billing.StoreError as error:
         raise HTTPException(503, str(error)) from None
 

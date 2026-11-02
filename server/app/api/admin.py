@@ -185,7 +185,7 @@ def get_pricing_config(principal: AdminPrincipal = Depends(require_admin), db: S
             "last_modified_by": last.admin if last else None,
             "last_modified_at": last.created_at.isoformat() if last and last.created_at else None,
             "last_reason": last.detail if last else None,
-            "effective_scope": "各渠道统一月度档位的新订单；商店控制台价格需同步配置，已创建订单保留原报价；老师免费次数在 LLM 分组中配置"}
+            "effective_scope": "国内注册试用天数；Google 注册固定 3 天；各渠道月度档位的新订单；商店控制台价格及订阅试用需同步配置，已创建订单保留原报价；老师免费次数在 LLM 分组中配置"}
 
 
 @router.post("/pricing-config")

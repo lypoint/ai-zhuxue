@@ -22,6 +22,11 @@ class SubscriptionCard extends StatelessWidget {
     AppLanguage.watch(context);
     final active = sub['active'] == true;
     final trial = sub['plan'] == 'free_trial';
+    final subscriptionTrial = sub['plan'] == 'subscription_trial';
+    final recovering = sub['billing_status'] == 'grace';
+    final waffo = sub['provider'] == 'waffo';
+    final google =
+        sub['provider'] == 'googleplay' || Api.I.appChannel == 'googleplay';
     if (sub['plan'] == 'permanent' && active) {
       return Card(
         child: Padding(
@@ -81,7 +86,9 @@ class SubscriptionCard extends StatelessWidget {
                     children: [
                       Text(
                         active
-                            ? (trial
+                            ? (recovering
+                                  ? tr('付款恢复中')
+                                  : (trial || subscriptionTrial)
                                   ? tr("免费试用中 · 剩余 {0} 天", [days])
                                   : tr("订阅生效中 · 剩余 {0} 天", [days]))
                             : (freeTeacherCount > 0
@@ -133,7 +140,9 @@ class SubscriptionCard extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             Text(
-              onManage == null
+              waffo
+                  ? tr('Waffo 月度订阅 · 价格与扣款周期见原购买渠道')
+                  : onManage == null
                   ? tr("家庭月订阅 ¥{0}/月 · 到期手动续订", [
                       (sub['monthly_price_cny'] as num? ?? 66).toStringAsFixed(
                         2,
@@ -150,22 +159,35 @@ class SubscriptionCard extends StatelessWidget {
                   ]),
                 ),
               ),
-            if (active && !trial)
+            if (active && !trial && !waffo && onAddSeat != null)
               Text(
                 onManage == null
                     ? tr("当前订阅仍有效，可升级名额档位，到期后再续订。")
                     : tr("当前订阅仍有效，可立即升级名额或管理自动续订。"),
               ),
-            if (trial) Text(tr("立即付款，剩余试用时长保留。")),
-            if (onManage != null)
+            if (trial && !waffo && !google) Text(tr("立即付款，剩余试用时长保留。")),
+            if (trial && google)
+              Text(
+                tr('注册试用 3 天；符合资格的订阅享 30 天免费试用，结束后按月扣款。两段试用重叠，不补赠剩余注册试用时间。'),
+              ),
+            if (subscriptionTrial)
+              Text(tr('订阅试用结束后首次扣款，此后按月续费直至取消；未使用的注册试用时间不补赠。')),
+            Text(
+              tr('购买来源：{0}', [sub['provider'] ?? (trial ? tr('免费试用') : '—')]),
+            ),
+            if (onManage != null && !waffo && !google)
               Text(tr("赠送时长不推迟自动扣款；取消自动续订后仍可使用。")),
             if (!trial && onManage != null) ...[
               Text(tr("下次扣款")),
-              Text(sub['auto_renew'] == true
-                  ? sub['next_billing_at'] != null
-                      ? displayDate(sub['next_billing_at'])
-                      : tr("扣款日期以支付平台为准。")
-                  : tr("不会自动扣款")),
+              Text(
+                recovering
+                    ? tr('扣款日期以支付平台为准。')
+                    : sub['auto_renew'] == true
+                    ? sub['next_billing_at'] != null
+                          ? displayDate(sub['next_billing_at'])
+                          : tr("扣款日期以支付平台为准。")
+                    : tr("不会自动扣款"),
+              ),
             ],
             const SizedBox(height: 8),
             Wrap(
@@ -197,7 +219,15 @@ class SubscriptionCard extends StatelessWidget {
                 if (onManage != null)
                   TextButton(
                     onPressed: billingPending ? null : onManage,
-                    child: Text(tr("恢复购买 / 管理订阅")),
+                    child: Text(
+                      tr(
+                        waffo ||
+                                sub['provider'] != null &&
+                                    sub['provider'] != Api.I.appChannel
+                            ? '管理原渠道订阅'
+                            : '恢复购买 / 管理订阅',
+                      ),
+                    ),
                   ),
                 if (onAddSeat != null)
                   TextButton(

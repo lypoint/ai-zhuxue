@@ -1,5 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +30,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _scrollCtrl = ScrollController();
   final List<Bubble> _bubbles = [];
   final List<_DraftImage> _draftImages = [];
+  late final StudentDrafts? _draftStore = Api.I.studentDraftOwner == null
+      ? null
+      : StudentDrafts(Api.I.studentDraftOwner!);
+  Timer? _draftTimer;
+  bool _draftReady = false;
+  bool _loadingDraft = false;
+  bool _draftWarningShown = false;
+  bool _pauseDraftSave = false;
+
+  void _scheduleDraft() {
+    if (!_draftReady || _pauseDraftSave || _handling401) return;
+    _draftTimer?.cancel();
+    _draftTimer = Timer(const Duration(milliseconds: 300), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    if (!_draftReady || _pauseDraftSave || _handling401) return;
+    _draftTimer?.cancel();
+    final data = <String, dynamic>{
+      'conversation_id': _conversationId,
+      'text': _inputCtrl.text,
+      'images': _draftImages.map((d) => base64Encode(d.bytes)).toList(),
+    };
+    try {
+      await _draftStore?.save(data);
+    } catch (_) {
+      if (mounted && !_draftWarningShown) {
+        _draftWarningShown = true;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr('草稿保存失败，退出前请保留输入内容'))));
+      }
+    }
+  }
+
   Map<String, dynamic> _imageCapabilities = {};
   bool _uploadingImage = false;
   Timer? _imagePollTimer;
@@ -41,6 +77,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   bool get _canSend =>
       !_resting &&
+      !_loadingDraft &&
       !_sending &&
       !_uploadingImage &&
       !_openingSession &&
@@ -50,6 +87,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       (_inputCtrl.text.trim().isNotEmpty || _draftImages.isNotEmpty);
 
   void _inputChanged() {
+    _scheduleDraft();
     if (mounted) setState(() {});
   }
 
@@ -182,6 +220,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _heartbeat.start();
       _loadRestStatus();
     } else {
+      unawaited(_saveDraft());
       ++_restRevision;
       _restTimer?.cancel();
       _heartbeat.stop();
@@ -190,6 +229,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    unawaited(_saveDraft());
+    _draftTimer?.cancel();
     for (final draft in _draftImages) {
       draft.uploadCancellation?.complete();
     }
@@ -208,6 +249,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _loadingDraft = _draftStore != null;
     _inputCtrl.addListener(_inputChanged);
     _loadRestStatus();
     WidgetsBinding.instance.addObserver(this);
@@ -418,6 +460,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _chatRevision++;
       _restoringLatest = false;
+      _draftReady = true;
       _conversationId = null;
       _bubbles.clear();
       _teacherName = selected['name'] as String? ?? 'AI 学习助手';
@@ -447,32 +490,87 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> _restore() async {
     final revision = _chatRevision;
+    Map<String, dynamic>? draft;
     try {
-      final data = await Api.I.latestConversation().timeout(
-        const Duration(seconds: 10),
+      draft = await _draftStore?.load();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr('草稿恢复失败，请重试'))));
+      }
+      // Do not overwrite a draft that could not be read.
+      _draftWarningShown = true;
+    }
+    if (!mounted || revision != _chatRevision || _handling401) return;
+    setState(() => _loadingDraft = false);
+    _draftReady = !_draftWarningShown;
+    final savedConversation = draft?['conversation_id'] as int?;
+    if (draft != null) {
+      _conversationId = savedConversation;
+      _inputCtrl.text = draft['text'] as String;
+      setState(
+        () => _draftImages.addAll(
+          (draft!['images'] as List).map(
+            (raw) => _DraftImage(base64Decode(raw as String))..error = true,
+          ),
+        ),
       );
-      if (!mounted || revision != _chatRevision) return;
+    }
+    try {
+      final data = savedConversation == null
+          ? await Api.I.latestConversation().timeout(
+              const Duration(seconds: 10),
+            )
+          : <String, dynamic>{
+              'conversation_id': savedConversation,
+              'messages': await Api.I
+                  .conversationMessages(savedConversation)
+                  .timeout(const Duration(seconds: 10)),
+            };
+      if (!mounted || revision != _chatRevision || _handling401) return;
       final convId = data['conversation_id'] as int?;
-      final msgs = (data['messages'] as List?) ?? const [];
-      if (convId != null && msgs.isNotEmpty) {
+      final msgs = data['messages'] as List? ?? const [];
+      if (convId != null &&
+          msgs.isNotEmpty &&
+          !(draft != null && savedConversation == null)) {
         setState(() {
           _conversationId = convId;
-          _teacherName = data['teacher_name'] as String? ?? _teacherName;
-          _teacherAvatarUrl = data['teacher_avatar_url'] as String? ?? '';
+          final first = msgs.first as Map;
+          _teacherName =
+              data['teacher_name'] as String? ??
+              first['teacher_name'] as String? ??
+              _teacherName;
+          _teacherAvatarUrl =
+              data['teacher_avatar_url'] as String? ??
+              first['teacher_avatar_url'] as String? ??
+              '';
           _replaceBubbles(msgs);
           unawaited(_loadImageCapabilities());
         });
         _scrollToBottom(animate: false);
       }
+    } on ApiException catch (e) {
+      if (mounted && revision == _chatRevision && !_handling401) {
+        if (e.status == 404 || e.status == 410) _conversationId = null;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(tr('未能恢复上次对话，可在聊天记录中重新打开'))));
+      }
     } catch (_) {
       if (mounted && revision == _chatRevision) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(tr("未能恢复上次对话，可在聊天记录中重新打开"))));
+        ).showSnackBar(SnackBar(content: Text(tr('未能恢复上次对话，可在聊天记录中重新打开'))));
       }
     } finally {
-      if (mounted) {
+      if (mounted && revision == _chatRevision && !_handling401) {
+        _draftReady = !_draftWarningShown;
         setState(() => _restoringLatest = false);
+        // Upload again: assets can expire while the app is closed.
+        for (final image in _draftImages) {
+          unawaited(_uploadDraft(image));
+        }
         _loadSessions();
       }
     }
@@ -520,11 +618,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     setState(() {
       _chatRevision++;
       _restoringLatest = false;
+      _draftReady = true;
       _conversationId = null;
       _bubbles.clear();
       _draftImages.clear();
       _imageCapabilities = {};
     });
+    _scheduleDraft();
     _loadTeachers();
     _loadSessions();
   }
@@ -551,6 +651,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _chatRevision++;
       _restoringLatest = false;
       _openingSession = true;
+      _draftReady = true;
     });
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
@@ -575,6 +676,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _replaceBubbles(msgs);
         unawaited(_loadImageCapabilities());
       });
+      _scheduleDraft();
       messenger.hideCurrentSnackBar();
       _scrollToBottom(animate: false);
     } on ApiException catch (e) {
@@ -1058,6 +1160,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (!mounted || _resting) return;
       final draft = _DraftImage(bytes);
       setState(() => _draftImages.add(draft));
+      _scheduleDraft();
       unawaited(_uploadDraft(draft));
     } catch (_) {
       if (mounted) {
@@ -1081,6 +1184,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       draft.uploadCancellation?.complete();
       draft.uploadCancellation = null;
       _draftImages.remove(draft);
+      _scheduleDraft();
       _uploadingImage = _draftImages.any(
         (image) => image.uploadCancellation != null,
       );
@@ -1311,12 +1415,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (retrying && retryMessageId == null) {
       _inputCtrl.text = text;
       _draftImages.addAll(drafts);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr("问题未成功入库，已保留在输入框，请重新发送"))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr("问题未成功入库，已保留在输入框，请重新发送"))));
       return;
     }
     if (!retrying && followUp == null) {
+      unawaited(_saveDraft());
+      _pauseDraftSave = true;
       _inputCtrl.clear();
       _draftImages.clear();
     }
@@ -1398,6 +1504,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 meta['conversation_id'] as int? ?? _conversationId;
             final id = meta['user_message_id'] as int?;
             if (id != null) {
+              _pauseDraftSave = false;
+              _scheduleDraft();
               setState(
                 () => _bubbles[userIndex] = Bubble(
                   'user',
@@ -1464,7 +1572,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           await _refreshCurrentConversation();
           if (mounted) {
             _scrollToBottom();
-            final hasAssistant = _bubbles.isNotEmpty &&
+            final hasAssistant =
+                _bubbles.isNotEmpty &&
                 _bubbles.last.role == 'assistant' &&
                 !_bubbles.last.failed;
             if (hasAssistant) {
@@ -1500,7 +1609,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       showFailure(tr("⚠️ 老师回复失败，请检查网络后重试"), retryable: canRetry);
     } finally {
       revealTimer?.cancel();
-      if (mounted) setState(() => _sending = false);
+      _pauseDraftSave = false;
+      if (mounted) {
+        _scheduleDraft();
+        setState(() => _sending = false);
+      }
     }
   }
 
@@ -1923,7 +2036,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ),
                   Expanded(
                     child: TextField(
-                      enabled: !_resting,
+                      enabled: !_resting && !_loadingDraft,
                       controller: _inputCtrl,
                       focusNode: _inputFocus,
                       minLines: 1,

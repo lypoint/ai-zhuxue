@@ -9,6 +9,8 @@ import '../widgets/management_settings_card.dart';
 import '../widgets/student_fence_dialog.dart';
 import '../widgets/guardian_name_dialog.dart';
 import 'notifications_screen.dart';
+import 'family_timezone_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../billing.dart';
 import 'login_screen.dart';
 import 'device_manage_screen.dart';
@@ -523,6 +525,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _manageSubscription() async {
+    final provider = _subscription?['provider'] as String?;
+    try {
+      if (provider != 'waffo' && provider == _billing?.channel) {
+        await _purchase('manage');
+        return;
+      }
+      final url = subscriptionManagementUri(
+        provider,
+        waffoUrl: provider == 'waffo' ? await Api.I.waffoManagementUrl() : null,
+      );
+      if (url == null) {
+        await _purchase('manage');
+      } else if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        throw StateError('Cannot open subscription portal');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is ApiException ? e.message : tr('无法打开订阅管理')),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _pay() async {
     await _purchase('subscription');
   }
@@ -801,11 +830,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ]),
-                ManagementSettingsCard(
-                  scrollable: true,
-                  settings: family['settings'] as Map<String, dynamic>,
-                  onSaved: _refresh,
-                ),
+                _tabList('controls', [
+                  ListTile(
+                    title: Text(tr('家庭时区')),
+                    subtitle: Text(family['timezone'] as String? ?? tr('未设置')),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => FamilyTimezoneScreen(
+                            zone: family['timezone'] as String?,
+                          ),
+                        ),
+                      );
+                      if (mounted) _refresh();
+                    },
+                  ),
+                  for (final student in students) ...[
+                    Text(
+                      student['nickname'] as String? ?? '',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    ManagementSettingsCard(
+                      key: ValueKey(
+                        '${student['id']}:${student['learning_settings']}',
+                      ),
+                      studentId: student['id'] as int,
+                      settings:
+                          student['learning_settings']
+                              as Map<String, dynamic>? ??
+                          family['settings'] as Map<String, dynamic>,
+                      onSaved: _refresh,
+                    ),
+                  ],
+                  if (students.isEmpty) Text(tr('添加孩子，开启学习陪伴')),
+                ]),
                 _tabList('account', [
                   Card(
                     child: ListTile(
@@ -834,12 +893,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   if (sub != null)
                     SubscriptionCard(
                       onManage:
-                          _billing != null && _billing!.channel != 'wechat'
-                          ? () => _purchase('manage')
+                          [
+                                'waffo',
+                                'appstore',
+                                'googleplay',
+                              ].contains(sub['provider']) ||
+                              (_billing != null &&
+                                  _billing!.channel != 'wechat')
+                          ? _manageSubscription
                           : null,
                       sub: sub,
                       onPay: _pay,
-                      onAddSeat: _addSeat,
+                      onAddSeat:
+                          sub['provider'] == 'waffo' ||
+                              (sub['active'] == true &&
+                                  [
+                                    'appstore',
+                                    'googleplay',
+                                    'wechat',
+                                  ].contains(sub['provider']) &&
+                                  sub['provider'] != _billing?.channel)
+                          ? null
+                          : _addSeat,
                       billingPending: _billingPending,
                     ),
                   const SizedBox(height: 16),
@@ -853,8 +928,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  if (context.dependOnInheritedWidgetOfExactType<ParentLoginScope>()?.extraAccountActionBuilder != null) ...[
-                    context.dependOnInheritedWidgetOfExactType<ParentLoginScope>()!.extraAccountActionBuilder!(context),
+                  if (context
+                          .dependOnInheritedWidgetOfExactType<
+                            ParentLoginScope
+                          >()
+                          ?.extraAccountActionBuilder !=
+                      null) ...[
+                    context
+                        .dependOnInheritedWidgetOfExactType<ParentLoginScope>()!
+                        .extraAccountActionBuilder!(context),
                     const SizedBox(height: 12),
                   ],
                   OutlinedButton.icon(
@@ -869,11 +951,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             MaterialPageRoute(
                               builder: (_) => AccountDeletionScreen(
                                 onManageSubscription:
-                                    _billing != null &&
-                                        _billing!.channel != 'wechat'
-                                    ? () {
-                                        _purchase('manage');
-                                      }
+                                    [
+                                          'waffo',
+                                          'appstore',
+                                          'googleplay',
+                                        ].contains(sub?['provider']) ||
+                                        (_billing != null &&
+                                            _billing!.channel != 'wechat')
+                                    ? _manageSubscription
                                     : null,
                               ),
                             ),

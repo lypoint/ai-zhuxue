@@ -38,6 +38,7 @@ def billing_catalog(channel: Literal["wechat", "appstore", "googleplay"] = "wech
     seats_list = sorted({seat_count, 10, 100}) if channel == "wechat" else sorted(
         int(code.removeprefix("family_monthly_")) for code in mapping)
     return {"channel": channel, "pricing_version": cfg.version, "currency": "CNY",
+            "trial_eligible": channel == "googleplay" and store_billing.google_trial_eligible(guardian.family_id, db),
             "billing_period": "month", "items": [{
                 "product_code": f"family_monthly_{seats}", "seat_count": seats,
                 "product_id": mapping.get(f"family_monthly_{seats}"),

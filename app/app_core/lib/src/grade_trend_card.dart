@@ -1,3 +1,4 @@
+import 'display_date.dart';
 import 'language.dart';
 import 'package:flutter/material.dart';
 import 'trend_chart.dart';
@@ -13,7 +14,7 @@ List<(String, int?)> get trendRangeOptions => <(String, int?)>[
 /// 由范围天数计算 from 日期（YYYY-MM-DD）；null 表示不筛选。
 String? trendFromDate(int? days) => days == null
     ? null
-    : DateTime.now()
+    : FamilyTime.today
           .subtract(Duration(days: days))
           .toIso8601String()
           .substring(0, 10);

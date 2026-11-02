@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # 订阅策略：仅用于首次初始化数据库配置，运行中的业务始终读库。
     pricing_base_monthly_price: float = 66.0
     pricing_additional_seat_price: float = 33.0
-    pricing_trial_days: int = 3
+    pricing_trial_days: int = 30
     pricing_post_trial_daily_free_count: int = 0
 
     # Demo never calls WeChat and is forbidden in production.

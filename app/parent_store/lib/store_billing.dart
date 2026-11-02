@@ -13,6 +13,21 @@ abstract class StoreAdapter {
   InAppPurchasePlatform get platform;
   String reference(PurchaseDetails purchase);
   bool monthly(ProductDetails product);
+  bool hasTrial(ProductDetails product) => false;
+  ProductDetails billingPrice(ProductDetails product) => product;
+  ProductDetails? selectMonthly(
+    List<ProductDetails> products, {
+    bool allowTrial = false,
+  }) {
+    final valid = products.where(monthly).toList();
+    final trials = valid.where(hasTrial).toList();
+    if (allowTrial && trials.isNotEmpty) {
+      return trials.length == 1 ? trials.single : null;
+    }
+    final paid = valid.where((product) => !hasTrial(product)).toList();
+    return paid.length == 1 ? paid.single : null;
+  }
+
   Future<PurchaseParam> parameters(
     ProductDetails product,
     Map<String, dynamic> intent,
@@ -242,15 +257,17 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
             target <= seats) {
           continue;
         }
-        final matches = response.productDetails
-            .where(
-              (p) => p.id == tier['product_id'] && billing.adapter.monthly(p),
-            )
-            .toList();
-        if (matches.length == 1) {
-          final product = matches.single;
-          if (product.currencyCode == 'CNY' &&
-              (product.rawPrice * 100).round() != tier['amount_cents']) {
+        final product = billing.adapter.selectMonthly(
+          response.productDetails
+              .where((p) => p.id == tier['product_id'])
+              .toList(),
+          allowTrial:
+              catalog['trial_eligible'] == true && widget.kind != 'seat_add',
+        );
+        if (product != null) {
+          final price = billing.adapter.billingPrice(product);
+          if (price.currencyCode == 'CNY' &&
+              (price.rawPrice * 100).round() != tier['amount_cents']) {
             throw StateError(tr("商店月价与统一价格不一致，请联系客服"));
           }
           items.add((tier, product));
@@ -305,8 +322,12 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(tr("订阅按月自动续订，名额升级在商店确认并完成验单后立即生效。升级扣款、旧订阅结算和续订时间以商店确认页面为准。")),
-          Text(tr("立即付款，剩余试用时长保留。")),
-          Text(tr("赠送时长不推迟自动扣款；取消自动续订后仍可使用。")),
+          if (billing.channel == 'googleplay')
+            Text(tr('注册试用 3 天；符合资格的订阅享 30 天免费试用，结束后按月扣款。两段试用重叠，不补赠剩余注册试用时间。'))
+          else ...[
+            Text(tr("立即付款，剩余试用时长保留。")),
+            Text(tr("赠送时长不推迟自动扣款；取消自动续订后仍可使用。")),
+          ],
           const SizedBox(height: 16),
           if (_error != null) Text(trMessage(_error!)),
           if (billing.message != null) Text(trMessage(billing.message!)),
@@ -317,7 +338,15 @@ class _StoreSubscriptionScreenState extends State<StoreSubscriptionScreen> {
             Card(
               child: ListTile(
                 title: Text(tr("{0} 个孩子名额", [tier['seat_count']])),
-                subtitle: Text(tr("{0}/月 · 自动续订", [product.price])),
+                subtitle: Text(
+                  billing.adapter.hasTrial(product)
+                      ? tr('免费试用 30 天，之后 {0}/月 · 自动续订', [
+                          billing.adapter.billingPrice(product).price,
+                        ])
+                      : tr("{0}/月 · 自动续订", [
+                          billing.adapter.billingPrice(product).price,
+                        ]),
+                ),
                 trailing: FilledButton(
                   onPressed: disabled || !billing.canBuy
                       ? null
