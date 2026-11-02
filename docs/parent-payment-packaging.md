@@ -251,3 +251,6 @@ StoreKit 本地配置用于开发流程验证，上架前还需 Apple Sandbox/Te
 - 权益以 subscriptionsv2 当前 `lineItems.offerPhase.freeTrial` 判断；`offerDetails.offerId` 在续费后仍可能存在，不能据此永久判为试用。试用仍须 acknowledge；保留当期名额与取消状态，不创建实付交易或实付统计，不补赠本地注册试用。验单、重复通知和续费使用现有账本幂等机制。
 
 Google 官方接口：[订阅购买状态](https://developers.google.com/android-publisher/api-ref/rest/v3/purchases.subscriptionsv2)、[订阅优惠](https://developers.google.com/android-publisher/api-ref/rest/v3/monetization.subscriptions.basePlans.offers)。仅代码与隔离测试通过不代表 Play Console 的真实优惠已启用。
+
+
+2026-11-02 已在 Play Console 为四档启用 `trial-30d`（ACTIVE），资格为从未订阅过本应用任何订阅。美元月价 1/2/10/100 名额为 9.99/14.99/49.99/499.99，与国际 Web 对齐；当地价格由 Google 按汇率、税费及价格规则生成，韩国百名额受当地上限限制。注册试用政策已随 API/CMS 上线，Google 家长端 1.0.6（8）已发布到现有内部测试轨道；公开轨道未发布。商店配置、内部测试发布均不代替真实购买生命周期验收。
