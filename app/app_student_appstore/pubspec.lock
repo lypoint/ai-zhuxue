@@ -14,7 +14,7 @@ packages:
       path: "../app_student"
       relative: true
     source: path
-    version: "1.0.6+7"
+    version: "1.0.7+8"
   app_tracking_transparency:
     dependency: "direct main"
     description:

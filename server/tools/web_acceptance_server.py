@@ -142,7 +142,14 @@ def enqueue(db, student, conversation, message, locale="en", **kwargs):
     return job
 
 
+async def classify_fixture(content, *args, **kwargs):
+    # HTTPS runs ENV=prod, so mandatory semantic review also needs a local model fixture.
+    category, _ = chat.fence._heuristic_classify(content)
+    return category, 1.0, {"tokens_in": 1, "tokens_out": 1, "provider": "acceptance", "model": "fixture"}
+
+
 auth.verify_google_identity = identity
+chat.fence._llm_classify = classify_fixture
 chat.llm.chat_stream = model_stream
 media.store = store
 media.fetch_image = fetch
