@@ -14,6 +14,7 @@ class ChatDrawer extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onOpenStats;
   final VoidCallback onOpenFavorites;
+  final VoidCallback? onOpenVideos;
   final VoidCallback onOpenReports;
   final VoidCallback onOpenGrades;
   final VoidCallback onLogout;
@@ -34,6 +35,7 @@ class ChatDrawer extends StatelessWidget {
     required this.onSearchChanged,
     required this.onOpenStats,
     required this.onOpenFavorites,
+    this.onOpenVideos,
     required this.onOpenReports,
     required this.onOpenGrades,
     required this.onLogout,
@@ -109,6 +111,12 @@ class ChatDrawer extends StatelessWidget {
                                     tr("我的收藏"),
                                     onOpenFavorites,
                                   ),
+                                  if (onOpenVideos != null)
+                                    (
+                                      Icons.play_circle_outline,
+                                      tr('讲解视频'),
+                                      onOpenVideos!,
+                                    ),
                                   (
                                     Icons.school_outlined,
                                     tr("成绩与评估"),

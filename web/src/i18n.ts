@@ -9,6 +9,7 @@ export const languages: Record<string, string> = Object.fromEntries(
   Object.entries(localeMetadata).map(([tag, value]) => [tag, value.name]),
 );
 const en: Record<string, string> = {
+  lessonVideos: "Lesson videos",
   trialPaymentPolicy: "Registration includes 3 free days without a payment method. Eligible families can then start a 30-day Waffo subscription trial.",
   renewalTrialPolicy: "Your subscription is first charged after its free trial, then renews monthly until canceled. Unused registration trial time is not added.",
   manageSubscription: "Manage subscription",

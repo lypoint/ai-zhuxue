@@ -103,7 +103,7 @@ test("HTTPS gateway enforces role routes, secure host-only cookies, CSP and unbu
   const learningDocument = await page.goto(student + "/chat");
   const policy = learningDocument!.headers()["content-security-policy"];
   expect(policy).toContain("connect-src 'self'");
-  expect(policy).toContain("frame-src 'none'");
+  expect(policy).toContain("frame-src https://player.bilibili.com");
   expect(policy).not.toContain("google");
   expect(await page.evaluate(() => document.cookie)).not.toContain(
     "ailearning",

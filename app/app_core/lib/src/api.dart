@@ -544,6 +544,11 @@ class Api {
   Future<void> heartbeat(int seconds) =>
       _send('POST', '/chat/heartbeat', body: {'seconds': seconds});
 
+  Future<Map<String, dynamic>> searchVideos(String query, {int page = 1}) =>
+      _send('GET', '/chat/videos?q=${Uri.encodeQueryComponent(query)}&page=$page');
+  Future<Map<String, dynamic>> videoPlayback(String id) =>
+      _send('GET', '/chat/videos/${Uri.encodeComponent(id)}');
+
   // ---------- 收藏（P2 学生端） ----------
   Future<Map<String, dynamic>> addFavorite(int messageId) =>
       _send('POST', '/chat/favorites', body: {'message_id': messageId});

@@ -24,6 +24,7 @@ import {
   Square,
   ChevronDown,
   Clock3,
+  PlayCircle,
 } from "lucide-react";
 import {
   api,
@@ -62,6 +63,7 @@ import { TeacherAvatar } from "./teacher-avatar";
 import { PhotoPicker, type Attachment } from "./photo";
 import Grades from "./grades";
 import Learning from "./learning";
+import Videos from "./videos";
 import Assessments from "./assessments";
 
 type Availability = {
@@ -203,6 +205,7 @@ export default function Student({
     ["/chat", "studentSpace", MessagesSquare],
     ["/favorites", "favorites", Bookmark],
     ["/learning", "learning", Sparkles],
+    ["/videos", "lessonVideos", PlayCircle],
     ["/grades", "grades", GraduationCap],
     ["/assessments", "assessments", BarChart3],
     ["/stats", "activity", BarChart3],
@@ -324,6 +327,7 @@ export default function Student({
                 </>
               }
             />
+            <Route path="/videos" element={<Videos />} />
             <Route path="/stats" element={<StudentStats />} />
             <Route
               path="/reports"

@@ -1,7 +1,7 @@
 name: app_student
 description: "AI 助学 · 学生端：受学习围栏约束的 AI 学习聊天。"
 publish_to: 'none'
-version: 1.0.6+7
+version: 1.0.7+8
 
 environment:
   sdk: ^3.8.1
@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   app_core:
     path: ../app_core
+  webview_flutter: ^4.13.0
   gpt_markdown: 1.0.19
   cupertino_icons: ^1.0.8
   mobile_scanner: 7.1.4

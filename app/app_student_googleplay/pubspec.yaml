@@ -1,6 +1,6 @@
 name: app_student_googleplay
 publish_to: 'none'
-version: 1.0.6+4
+version: 1.0.7+5
 environment:
   sdk: ^3.10.0
 dependencies:

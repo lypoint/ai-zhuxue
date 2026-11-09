@@ -11,6 +11,7 @@ import '../widgets/chat_drawer.dart';
 import '../widgets/message_bubble.dart';
 import 'bind_screen.dart';
 import 'favorites_screen.dart';
+import 'videos_screen.dart';
 import 'my_reports_screen.dart';
 import 'my_stats_screen.dart';
 import 'grades_screen.dart';
@@ -210,6 +211,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   String _teacherName = 'AI 学习助手';
   String _teacherAvatarUrl = '';
   String _search = '';
+  bool _videoOpen = false;
   late final _heartbeat = ForegroundHeartbeat((seconds) {
     unawaited(Api.I.heartbeat(seconds).then<void>((_) {}, onError: (_) {}));
   });
@@ -217,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _heartbeat.start();
+      if (!_videoOpen) _heartbeat.start();
       _loadRestStatus();
     } else {
       unawaited(_saveDraft());
@@ -1625,6 +1627,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (mounted && cid != null) await _openSession(cid, closeDrawer: false);
   }
 
+  Future<void> _openVideos() async {
+    Navigator.of(context).pop();
+    _videoOpen = true;
+    _heartbeat.stop();
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(builder: (_) => const VideosScreen()),
+      );
+    } finally {
+      _videoOpen = false;
+      if (mounted) {
+        if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+          _heartbeat.start();
+        }
+        _loadRestStatus();
+      }
+    }
+  }
+
   Future<void> _openFavorites() async {
     Navigator.of(context).pop();
     final cid = await Navigator.of(
@@ -1835,6 +1856,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         onSearchChanged: (v) => setState(() => _search = v),
         onOpenStats: _openStats,
         onOpenFavorites: _openFavorites,
+        onOpenVideos: _openVideos,
         onOpenReports: _openReports,
         onOpenGrades: _openGrades,
         onLogout: _logout,

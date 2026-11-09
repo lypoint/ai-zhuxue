@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 
-from .api import analytics, admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin, browser, waffo_payments
+from .api import videos, analytics, admin, auth, bind, chat, parent, learning, payments, store_payments, images, image_admin, browser, waffo_payments
 from .db import Base, engine
 from .config import settings
 from .ratelimit import RateLimitMiddleware
@@ -63,6 +63,7 @@ app.include_router(payments.router)
 app.include_router(store_payments.router)
 app.include_router(waffo_payments.router)
 app.include_router(learning.router)
+app.include_router(videos.router)
 app.include_router(admin.router)
 app.include_router(images.router)
 app.include_router(image_admin.router)

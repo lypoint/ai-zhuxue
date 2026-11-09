@@ -1902,3 +1902,9 @@ dd {
   background: var(--surface, white);
   border-radius: 8px;
 }
+
+.video-search, .video-pagination { display: flex; gap: 12px; align-items: center; margin-block: 20px; }
+.video-search input { flex: 1; min-width: 0; }
+.video-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+.video-results h2 { font-size: 1.1rem; }
+.video-player iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
