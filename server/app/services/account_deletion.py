@@ -112,6 +112,7 @@ def complete_deletion(db: Session, family_id: int) -> m.AccountDeletionRequest:
         student.fence_level = "strict"
         student.active = False
         student.token_version += 1
+    family.registration_device = None
     family.tag = None
     # Keep non-identifying ID tombstones to prevent old JWT subjects being
     # reassigned. Payment records remain isolated for settlement/refund/security.

@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 import json
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -26,6 +26,8 @@ class RateLimitWindow(Base):
 class Family(TimestampMixin, Base):
     __tablename__ = "families"
     id: Mapped[int] = mapped_column(primary_key=True)
+    registration_channel: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    registration_device: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # 家庭标签（如 beta/vip/free-trial）：绑定同名 llm_groups.tag 的分组，决定该家庭用哪个 provider/model
     tag: Mapped[str | None] = mapped_column(String(50), nullable=True)
     access_disabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))

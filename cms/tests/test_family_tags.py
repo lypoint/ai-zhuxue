@@ -17,10 +17,10 @@ const assert=require('node:assert/strict');
 const tbody={innerHTML:''};
 const $=()=>({querySelector:()=>tbody});
 const esc=value=>String(value??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let ROLE='super',tags=[],tag=null;
+let ROLE='super',tags=[],tag=null,registration_channel=null,registration_device=null;
 const api=async path=>path.startsWith('/admin/llm-groups')
   ? {items:tags.map(tag=>({tag}))}
-  : {total:1,items:[{family_id:7,tag,guardians:[],students:[],message_count:0}]};
+  : {total:1,items:[{family_id:7,tag,registration_channel,registration_device,guardians:[],students:[],message_count:0}]};
 '''
     checks = r'''
 (async()=>{
@@ -28,6 +28,13 @@ const api=async path=>path.startsWith('/admin/llm-groups')
   assert(tbody.innerHTML.includes('未设置标签'));
   assert(tbody.innerHTML.includes('disabled'));
   assert(!tbody.innerHTML.includes('清除'));
+  assert(tbody.innerHTML.includes('未记录'));
+  registration_channel='googleplay';registration_device={platform:'android',os_version:'<device>',installation_id:'abc'};
+  await loadFamilies();
+  assert(tbody.innerHTML.includes('Google Play'));assert(tbody.innerHTML.includes('Android'));
+  assert(tbody.innerHTML.includes('&lt;device&gt;'));assert(!tbody.innerHTML.includes('<device>'));
+  assert(tbody.innerHTML.includes('安装标识：abc'));
+  registration_channel=null;
   tags=['内测']; await loadFamilies();
   assert(!tbody.innerHTML.includes('disabled'));
   assert(tbody.innerHTML.includes('value="" selected>未设置标签'));

@@ -376,6 +376,8 @@ def families(principal: AdminPrincipal = Depends(require_admin),page: int = 1, s
                          .filter(Conversation.student_id.in_(sids)).scalar() or 0)
         out.append({
             "family_id": fam.id, "tag": fam.tag,
+            "registration_channel": fam.registration_channel,
+            "registration_device": fam.registration_device,
             "access_disabled": fam.access_disabled,
             "deletion_requested": db.get(AccountDeletionRequest, fam.id) is not None,
             "created_at": fam.created_at.isoformat() if fam.created_at else None,

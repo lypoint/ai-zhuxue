@@ -10,7 +10,7 @@ from ..config import settings
 from ..db import SessionLocal, get_db
 from ..models import BindCode, Family, FamilySettings, Guardian, Student, StudentDevice
 from ..ratelimit import _hit
-from ..schemas import GuardianGoogleIn, GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, PasswordLoginIn, StudentPasswordLoginIn, StudentLoginIn, TokenOut
+from ..schemas import RegistrationDevice, GuardianGoogleIn, GuardianOneTapIn, GuardianRegisterIn, GuardianSmsSendIn, PasswordLoginIn, StudentPasswordLoginIn, StudentLoginIn, TokenOut
 from ..security import make_token, hash_password, verify_password
 from .deps import current_student, require_family_access
 from ..services import aliyun_phone
@@ -119,7 +119,7 @@ async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_
         passed = body.sms_code == DEV_SMS_CODE
     if not passed:
         raise HTTPException(400, "invalid sms code")
-    return _guardian_token(body.phone, body.nickname, db)
+    return _guardian_token(body.phone, body.nickname, db, channel=channel, device=body.registration_device)
 
 
 @router.post("/guardian/one-tap", response_model=TokenOut)
@@ -130,7 +130,7 @@ async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db)
         phone = await run_in_threadpool(aliyun_phone.get_mobile, body.access_token)
     except aliyun_phone.PhoneServiceUnavailable as exc:
         raise HTTPException(503, str(exc)) from exc
-    return _guardian_token(phone, body.nickname, db)
+    return _guardian_token(phone, body.nickname, db, channel=channel, device=body.registration_device)
 
 
 def _require_phone_channel(channel: str):
@@ -143,16 +143,22 @@ async def guardian_google(body: GuardianGoogleIn, db: Session = Depends(get_db),
                           channel: str = Depends(current_channel)):
     if channel != "googleplay":
         raise HTTPException(403, "此渠道不支持 Google 登录")
+    return await _google_token(body, db, channel)
+
+
+async def _google_token(body: GuardianGoogleIn, db: Session, channel: str):
     claims = await run_in_threadpool(verify_google_identity, body.id_token)
-    return _guardian_token(None, "Parent", db, google_sub=claims["sub"])
+    return _guardian_token(None, "Parent", db, google_sub=claims["sub"],
+                           channel=channel, device=body.registration_device)
 
 
-def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub: str | None = None) -> TokenOut:
+def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub: str | None = None,
+                    channel: str | None = None, device: RegistrationDevice | None = None) -> TokenOut:
     identity = {"google_sub": google_sub} if google_sub else {"phone": phone}
     guardian = db.query(Guardian).filter_by(**identity).first()
     if not guardian:
         try:
-            return _create_guardian(phone, nickname, db, google_sub=google_sub)
+            return _create_guardian(phone, nickname, db, google_sub=google_sub, channel=channel, device=device)
         except IntegrityError:
             db.rollback()
             guardian = db.query(Guardian).filter_by(**identity).first()
@@ -163,13 +169,15 @@ def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub
                                      guardian.token_version), role="guardian")
 
 
-def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_sub: str | None) -> TokenOut:
+def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_sub: str | None,
+                     channel: str | None = None, device: RegistrationDevice | None = None) -> TokenOut:
     # Initialize pricing before opening the family transaction.  If two
     # first registrations race, a config-row conflict cannot roll back a
     # partially created family.
     from ..services import subscription
     subscription.get_pricing_config(db)
-    family = Family()
+    family = Family(registration_channel=channel,
+                    registration_device=device.model_dump() if device else None)
     db.add(family)
     db.flush()
     guardian = Guardian(family_id=family.id, phone=phone, google_sub=google_sub, nickname=nickname)

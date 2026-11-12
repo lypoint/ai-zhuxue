@@ -4,7 +4,18 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class GuardianRegisterIn(BaseModel):
+class RegistrationDevice(BaseModel):
+    platform: str = Field(default="", max_length=30)
+    os_version: str = Field(default="", max_length=300)
+    installation_id: str = Field(default="", max_length=64)
+    user_agent: str = Field(default="", max_length=512)
+
+
+class GuardianRegistrationIn(BaseModel):
+    registration_device: RegistrationDevice | None = None
+
+
+class GuardianRegisterIn(GuardianRegistrationIn):
     phone: str = Field(pattern=r"^1\d{10}$")
     sms_code: str = Field(pattern=r"^\d{4,6}$")
     nickname: str = ""
@@ -14,12 +25,12 @@ class GuardianSmsSendIn(BaseModel):
     phone: str = Field(pattern=r"^1\d{10}$")
 
 
-class GuardianOneTapIn(BaseModel):
+class GuardianOneTapIn(GuardianRegistrationIn):
     access_token: str = Field(min_length=10, max_length=4096)
     nickname: str = ""
 
 
-class GuardianGoogleIn(BaseModel):
+class GuardianGoogleIn(GuardianRegistrationIn):
     id_token: str = Field(min_length=20, max_length=16384)
 
 

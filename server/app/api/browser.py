@@ -79,8 +79,11 @@ def config(role: str):
 
 
 @router.post("/parent/login")
-async def login(body: auth.GuardianGoogleIn, response: Response, db: Session = Depends(get_db)):
-    result = await auth.guardian_google(body, db, "googleplay")
+async def login(body: auth.GuardianGoogleIn, response: Response, request: Request, db: Session = Depends(get_db)):
+    from ..schemas import RegistrationDevice
+    body.registration_device = RegistrationDevice(
+        platform="web", user_agent=request.headers.get("user-agent", "")[:512])
+    result = await auth._google_token(body, db, "web")
     return issue(result, "parent", response, db)
 
 

@@ -78,7 +78,26 @@
   td button { min-height:32px; padding:5px 10px; font-size:12px; margin-bottom:5px; box-shadow:none; }
   td button:hover { transform:none; }
   td:last-child:has(button) { min-width:150px; }
-  #famTable td:nth-child(6) { min-width:185px; }
+  .family-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+  .family-toolbar h2 { margin:0; }
+  .family-toolbar p { margin:5px 0 0; color:var(--muted); font-size:12px; }
+  .family-toolbar .row { margin:0; }
+  #famTable { min-width:880px; }
+  #famTable td { vertical-align:middle; padding:18px 16px; }
+  #famTable .family-name { font-weight:650; color:var(--primary); }
+  #famTable .family-meta { display:block; color:var(--muted); font-size:12px; margin-top:5px; }
+  #famTable .family-date { white-space:nowrap; }
+  #famTable .family-device { min-width:180px; max-width:230px; }
+  #famTable .family-device details { margin-top:5px; font-size:12px; color:var(--muted); }
+  #famTable summary { cursor:pointer; border-radius:5px; }
+  #famTable .family-actions { min-width:180px; }
+  #famTable .family-actions>button { color:var(--accent-deep); border-color:#cfe3da; }
+  #famTable .family-actions details { display:inline-block; vertical-align:top; margin:3px 0 0 8px; font-size:12px; }
+  #famTable .family-actions details[open] { display:block; margin:8px 0 0; }
+  #famTable .family-actions details button { display:block; margin-top:8px; }
+  #familiesPage .pagination { justify-content:flex-end; }
+  .registration-note { color:var(--muted); font-size:12px; margin:0; }
+  .family-tag-select { max-width:140px; }
   .family-tag-select { width:170px; min-height:36px; padding:7px 10px; font-size:12px; color:var(--muted); background:#f7f9fa; }
   .family-tag-select.is-set { color:#42629b; background:#f0f4fc; border-color:#d7e1f2; font-weight:600; }
   #reportTable td:nth-child(3),#reportTable td:nth-child(4),#reportTable td:nth-child(6),#logTable td:last-child { min-width:180px; max-width:360px; }
@@ -298,9 +317,9 @@
 
 
   <section id="familiesPage" data-page="families" hidden>
-    <h2>家庭与学生</h2>
-    <div class="row"><button class="ghost" onclick="loadFamilies()">刷新列表</button><span id="familyStatus" role="status"></span></div>
-    <div class="table-wrap" tabindex="0" role="region" aria-label="家庭与学生列表"><table id="famTable"><thead><tr><th>ID</th><th>监护人</th><th>学生</th><th>消息数</th><th>标签</th><th>协助/会员操作</th><th>创建</th></tr></thead><tbody></tbody></table></div>
+    <div class="family-toolbar"><div><h2>家庭档案 <span class="tag" id="familyTotal">—</span></h2><p>查看成员、注册来源与设备，管理家庭标签及权益。</p></div><div class="row"><span id="familyStatus" role="status"></span><button class="ghost" onclick="loadFamilies()">刷新列表</button></div></div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="家庭与学生列表"><table id="famTable"><thead><tr><th>家庭 / 监护人</th><th>学生 / 消息</th><th>注册渠道 / 日期</th><th>注册设备</th><th>家庭标签</th><th>家庭操作</th></tr></thead><tbody></tbody></table></div>
+    <p class="registration-note">注册渠道和设备仅记录首次注册信息；历史或旧客户端未上报的信息显示“未记录”。</p>
     <div class="row pagination"><button class="ghost" id="familyPrev" onclick="loadFamilies(familyPage-1)" disabled>上一页</button><span id="familyPagination"></span><button class="ghost" id="familyNext" onclick="loadFamilies(familyPage+1)" disabled>下一页</button></div>
   </section>
 
@@ -665,19 +684,24 @@ async function loadFamilies(page=familyPage) {
       const constTag = ROLE==='support' ? `<span class="tag ${f.tag?'beta-tag':''}">${esc(f.tag||'未设置标签')}</span>`
         : `<select class="family-tag-select ${f.tag?'is-set':''}" aria-label="家庭 ${f.family_id} 标签" ${familyTags.length?'':'disabled'} onchange="setTag(${f.family_id},this.value)">
           <option value="" ${f.tag?'':'selected'}>${f.tag?'移除标签':'未设置标签'}</option>${familyTags.map(t=>`<option value="${esc(t)}" ${f.tag===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
-      return `<tr><td>${f.family_id}</td>
-       <td>${esc(f.guardians.map(g=>g.nickname||g.phone).join(', ')||'—')}</td>
-       <td>${esc(f.students.map(s=>s.nickname+(s.active?'':'(注销)')).join(', ')||'—')}</td>
-       <td>${f.message_count}</td>
+      const device=f.registration_device;
+      const platforms={android:'Android',iOS:'iOS',web:'浏览器',macOS:'macOS',windows:'Windows',linux:'Linux',fuchsia:'Fuchsia'};
+      const channels={wechat:'国内 / 微信',appstore:'App Store',googleplay:'Google Play',web:'国际网页版'};
+      const deviceDetails=device ? [device.os_version,device.user_agent,device.installation_id ? '安装标识：'+device.installation_id : ''].filter(Boolean) : [];
+      return `<tr><td><span class="family-name">${esc(f.guardians.map(g=>g.nickname||g.phone).join(', ')||'未设置监护人')}</span><span class="family-meta">家庭 #${f.family_id}${f.deletion_requested?' · 注销处理中':f.access_disabled?' · 已暂停访问':''}</span></td>
+       <td>${esc(f.students.map(s=>s.nickname+(s.active?'':'（注销）')).join(', ')||'未绑定学生')}<span class="family-meta">${f.message_count} 条消息</span></td>
+       <td><span class="tag ${f.registration_channel?'beta-tag':''}">${esc(channels[f.registration_channel]||f.registration_channel||'未记录')}</span><span class="family-meta family-date">${esc((f.created_at||'').slice(0,10)||'—')}</span></td>
+       <td class="family-device">${esc(platforms[device?.platform]||device?.platform||'未记录')}${deviceDetails.length?`<details><summary>查看设备信息</summary>${deviceDetails.map(v=>`<span class="family-meta">${esc(v)}</span>`).join('')}</details>`:''}</td>
        <td>${constTag}</td>
-       <td><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?` <button class="ghost" onclick="grantMembership(${f.family_id})">赠送会员</button> <button class="ghost" onclick="revokeMembership(${f.family_id})">扣除会员</button>${!f.deletion_requested?` <button class="ghost" onclick="setFamilyAccess(${f.family_id},${!f.access_disabled})">${f.access_disabled?'申诉通过恢复':'暂停家庭访问'}</button>`:' 注销处理中'}`:''}</td>
-       <td>${(f.created_at||'').slice(0,10)}</td></tr>`;
-    }).join('') || '<tr><td colspan="7">暂无家庭与学生</td></tr>';
+       <td class="family-actions"><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?`<details><summary>更多操作</summary><button class="ghost" onclick="grantMembership(${f.family_id})">赠送会员</button><button class="ghost" onclick="revokeMembership(${f.family_id})">扣除会员</button>${!f.deletion_requested?`<button class="${f.access_disabled?'ghost':'danger'}" onclick="setFamilyAccess(${f.family_id},${!f.access_disabled})">${f.access_disabled?'申诉通过恢复':'暂停家庭访问'}</button>`:''}</details>`:''}</td></tr>`;
+    }).join('') || '<tr><td colspan="6">暂无家庭与学生</td></tr>';
+    $('familyTotal').textContent=d.total+' 个家庭';
     $('familyPagination').textContent=`第 ${page} / ${Math.max(1,Math.ceil(d.total/10))} 页 · 共 ${d.total} 个家庭`;
     $('familyPrev').disabled=page<=1; $('familyNext').disabled=page*10>=d.total;
     $('familyStatus').textContent='';
   } catch(e) {
     if(request!==familyRequest) return;
+    $('familyTotal').textContent='—';
     $('familyStatus').textContent='加载失败：'+e.message;
     $('familyPrev').disabled=page<=1;
     $('familyPagination').textContent=`第 ${page} 页加载失败，请刷新重试`;

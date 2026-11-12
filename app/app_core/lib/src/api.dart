@@ -1,4 +1,6 @@
 import 'language.dart';
+import 'registration_device.dart'
+    if (dart.library.io) 'registration_device_io.dart';
 import 'telemetry.dart';
 import 'display_date.dart';
 import 'student_drafts.dart';
@@ -248,6 +250,12 @@ class Api {
         '/parent/students/$studentId/redemptions/$redemptionId/fulfill',
       );
 
+  Future<Map<String, String>> _registrationDevice() async => {
+    'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
+    'os_version': registrationOsVersion(),
+    'installation_id': await installationId(),
+  };
+
   Future<String> registerGuardian(
     String phone,
     String smsCode,
@@ -256,7 +264,12 @@ class Api {
     final data = await _send(
       'POST',
       '/auth/guardian/register',
-      body: {'phone': phone, 'sms_code': smsCode, 'nickname': nickname},
+      body: {
+        'phone': phone,
+        'sms_code': smsCode,
+        'nickname': nickname,
+        'registration_device': await _registrationDevice(),
+      },
     );
     await _saveToken(data['token'] as String);
     return data['role'] as String;
@@ -283,7 +296,10 @@ class Api {
     final data = await _send(
       'POST',
       '/auth/guardian/google',
-      body: {'id_token': idToken},
+      body: {
+        'id_token': idToken,
+        'registration_device': await _registrationDevice(),
+      },
     );
     await _saveToken(data['token'] as String);
   }
@@ -299,7 +315,11 @@ class Api {
     final data = await _send(
       'POST',
       '/auth/guardian/one-tap',
-      body: {'access_token': accessToken, 'nickname': nickname},
+      body: {
+        'access_token': accessToken,
+        'nickname': nickname,
+        'registration_device': await _registrationDevice(),
+      },
     );
     await _saveToken(data['token'] as String);
   }
