@@ -37,6 +37,17 @@ const api=async path=>path.startsWith('/admin/llm-groups')
   assert(!tbody.innerHTML.includes('查看设备信息'));
   registration_device={platform:'android'}; await loadFamilies();
   assert(tbody.innerHTML.includes('品牌型号未记录'));assert(tbody.innerHTML.includes('IP：未记录'));
+  registration_channel='web';registration_device={platform:'web',brand:'忽略品牌',model:'忽略型号',user_agent:'Mozilla/5.0 <browser> "quoted"',ip_address:'198.51.100.1'};
+  await loadFamilies();
+  assert(tbody.innerHTML.includes('title="Mozilla/5.0 &lt;browser&gt; &quot;quoted&quot;"'));
+  assert(tbody.innerHTML.includes('>Mozilla/5.0 &lt;browser&gt; &quot;quoted&quot;</span>'));
+  assert(!tbody.innerHTML.includes('忽略品牌'));assert(!tbody.innerHTML.includes('<browser>'));
+  assert(tbody.innerHTML.includes('IP：198.51.100.1'));
+  registration_device=null;await loadFamilies();assert(tbody.innerHTML.includes('User-Agent 未记录'));
+  registration_channel=null;registration_device={platform:'web',user_agent:'Platform web UA'};
+  await loadFamilies();assert(tbody.innerHTML.includes('>Platform web UA</span>'));
+  registration_channel='googleplay';registration_device={brand:'Xiaomi',model:'Phone',user_agent:'Native UA'};
+  await loadFamilies();assert(tbody.innerHTML.includes('>Xiaomi Phone</span>'));assert(!tbody.innerHTML.includes('Native UA'));
   registration_channel=null;
   tags=['内测']; await loadFamilies();
   assert(!tbody.innerHTML.includes('disabled'));
