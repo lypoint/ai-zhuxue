@@ -88,7 +88,7 @@
   #famTable .family-meta { display:block; color:var(--muted); font-size:12px; margin-top:5px; }
   #famTable .family-date { white-space:nowrap; }
   #famTable .family-device { min-width:180px; max-width:230px; }
-  #famTable .family-device details { margin-top:5px; font-size:12px; color:var(--muted); }
+  #famTable .family-ip { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
   #famTable summary { cursor:pointer; border-radius:5px; }
   #famTable .family-actions { min-width:180px; }
   #famTable .family-actions>button { color:var(--accent-deep); border-color:#cfe3da; }
@@ -685,13 +685,12 @@ async function loadFamilies(page=familyPage) {
         : `<select class="family-tag-select ${f.tag?'is-set':''}" aria-label="家庭 ${f.family_id} 标签" ${familyTags.length?'':'disabled'} onchange="setTag(${f.family_id},this.value)">
           <option value="" ${f.tag?'':'selected'}>${f.tag?'移除标签':'未设置标签'}</option>${familyTags.map(t=>`<option value="${esc(t)}" ${f.tag===t?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
       const device=f.registration_device;
-      const platforms={android:'Android',iOS:'iOS',web:'浏览器',macOS:'macOS',windows:'Windows',linux:'Linux',fuchsia:'Fuchsia'};
       const channels={wechat:'国内 / 微信',appstore:'App Store',googleplay:'Google Play',web:'国际网页版'};
-      const deviceDetails=device ? [device.os_version,device.user_agent,device.installation_id ? '安装标识：'+device.installation_id : ''].filter(Boolean) : [];
+      const deviceName=[device?.brand,device?.model].filter(Boolean).join(' ')||'品牌型号未记录';
       return `<tr><td><span class="family-name">${esc(f.guardians.map(g=>g.nickname||g.phone).join(', ')||'未设置监护人')}</span><span class="family-meta">家庭 #${f.family_id}${f.deletion_requested?' · 注销处理中':f.access_disabled?' · 已暂停访问':''}</span></td>
        <td>${esc(f.students.map(s=>s.nickname+(s.active?'':'（注销）')).join(', ')||'未绑定学生')}<span class="family-meta">${f.message_count} 条消息</span></td>
        <td><span class="tag ${f.registration_channel?'beta-tag':''}">${esc(channels[f.registration_channel]||f.registration_channel||'未记录')}</span><span class="family-meta family-date">${esc((f.created_at||'').slice(0,10)||'—')}</span></td>
-       <td class="family-device">${esc(platforms[device?.platform]||device?.platform||'未记录')}${deviceDetails.length?`<details><summary>查看设备信息</summary>${deviceDetails.map(v=>`<span class="family-meta">${esc(v)}</span>`).join('')}</details>`:''}</td>
+       <td class="family-device"><span>${esc(deviceName)}</span><span class="family-meta family-ip">IP：${esc(device?.ip_address||'未记录')}</span></td>
        <td>${constTag}</td>
        <td class="family-actions"><button class="ghost" onclick="assistBind(${f.family_id})">生成绑定码</button>${(ROLE==='super'||ROLE==='admin')?`<details><summary>更多操作</summary><button class="ghost" onclick="grantMembership(${f.family_id})">赠送会员</button><button class="ghost" onclick="revokeMembership(${f.family_id})">扣除会员</button>${!f.deletion_requested?`<button class="${f.access_disabled?'ghost':'danger'}" onclick="setFamilyAccess(${f.family_id},${!f.access_disabled})">${f.access_disabled?'申诉通过恢复':'暂停家庭访问'}</button>`:''}</details>`:''}</td></tr>`;
     }).join('') || '<tr><td colspan="6">暂无家庭与学生</td></tr>';

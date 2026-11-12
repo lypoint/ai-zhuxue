@@ -1,7 +1,8 @@
 """Channel-specific guardian login; students use a binding code and device identity."""
 import time
+from ipaddress import ip_address
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
@@ -107,7 +108,7 @@ async def guardian_sms_send(body: GuardianSmsSendIn, channel: str = Depends(curr
 
 
 @router.post("/guardian/register", response_model=TokenOut)
-async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_db),
+async def guardian_register(body: GuardianRegisterIn, request: Request, db: Session = Depends(get_db),
                             channel: str = Depends(current_channel)):
     _require_phone_channel(channel)
     if settings.env == "prod":
@@ -119,18 +120,18 @@ async def guardian_register(body: GuardianRegisterIn, db: Session = Depends(get_
         passed = body.sms_code == DEV_SMS_CODE
     if not passed:
         raise HTTPException(400, "invalid sms code")
-    return _guardian_token(body.phone, body.nickname, db, channel=channel, device=body.registration_device)
+    return _guardian_token(body.phone, body.nickname, db, channel=channel, device=body.registration_device, registration_ip=_registration_ip(request))
 
 
 @router.post("/guardian/one-tap", response_model=TokenOut)
-async def guardian_one_tap(body: GuardianOneTapIn, db: Session = Depends(get_db),
+async def guardian_one_tap(body: GuardianOneTapIn, request: Request, db: Session = Depends(get_db),
                            channel: str = Depends(current_channel)):
     _require_phone_channel(channel)
     try:
         phone = await run_in_threadpool(aliyun_phone.get_mobile, body.access_token)
     except aliyun_phone.PhoneServiceUnavailable as exc:
         raise HTTPException(503, str(exc)) from exc
-    return _guardian_token(phone, body.nickname, db, channel=channel, device=body.registration_device)
+    return _guardian_token(phone, body.nickname, db, channel=channel, device=body.registration_device, registration_ip=_registration_ip(request))
 
 
 def _require_phone_channel(channel: str):
@@ -139,26 +140,35 @@ def _require_phone_channel(channel: str):
 
 
 @router.post("/guardian/google", response_model=TokenOut)
-async def guardian_google(body: GuardianGoogleIn, db: Session = Depends(get_db),
+async def guardian_google(body: GuardianGoogleIn, request: Request, db: Session = Depends(get_db),
                           channel: str = Depends(current_channel)):
     if channel != "googleplay":
         raise HTTPException(403, "此渠道不支持 Google 登录")
-    return await _google_token(body, db, channel)
+    return await _google_token(body, db, channel, registration_ip=_registration_ip(request))
 
 
-async def _google_token(body: GuardianGoogleIn, db: Session, channel: str):
+def _registration_ip(request: Request) -> str | None:
+    # Uvicorn resolves forwarded addresses only from its configured trusted proxies.
+    try:
+        return str(ip_address(request.client.host)) if request.client else None
+    except ValueError:
+        return None
+
+
+async def _google_token(body: GuardianGoogleIn, db: Session, channel: str, *, registration_ip: str | None = None):
     claims = await run_in_threadpool(verify_google_identity, body.id_token)
     return _guardian_token(None, "Parent", db, google_sub=claims["sub"],
-                           channel=channel, device=body.registration_device)
+                           channel=channel, device=body.registration_device, registration_ip=registration_ip)
 
 
 def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub: str | None = None,
-                    channel: str | None = None, device: RegistrationDevice | None = None) -> TokenOut:
+                    channel: str | None = None, device: RegistrationDevice | None = None,
+                    registration_ip: str | None = None) -> TokenOut:
     identity = {"google_sub": google_sub} if google_sub else {"phone": phone}
     guardian = db.query(Guardian).filter_by(**identity).first()
     if not guardian:
         try:
-            return _create_guardian(phone, nickname, db, google_sub=google_sub, channel=channel, device=device)
+            return _create_guardian(phone, nickname, db, google_sub=google_sub, channel=channel, device=device, registration_ip=registration_ip)
         except IntegrityError:
             db.rollback()
             guardian = db.query(Guardian).filter_by(**identity).first()
@@ -170,14 +180,17 @@ def _guardian_token(phone: str | None, nickname: str, db: Session, *, google_sub
 
 
 def _create_guardian(phone: str | None, nickname: str, db: Session, *, google_sub: str | None,
-                     channel: str | None = None, device: RegistrationDevice | None = None) -> TokenOut:
+                     channel: str | None = None, device: RegistrationDevice | None = None,
+                     registration_ip: str | None = None) -> TokenOut:
     # Initialize pricing before opening the family transaction.  If two
     # first registrations race, a config-row conflict cannot roll back a
     # partially created family.
     from ..services import subscription
     subscription.get_pricing_config(db)
-    family = Family(registration_channel=channel,
-                    registration_device=device.model_dump() if device else None)
+    snapshot = device.model_dump() if device else {}
+    if registration_ip:
+        snapshot["ip_address"] = registration_ip
+    family = Family(registration_channel=channel, registration_device=snapshot or None)
     db.add(family)
     db.flush()
     guardian = Guardian(family_id=family.id, phone=phone, google_sub=google_sub, nickname=nickname)

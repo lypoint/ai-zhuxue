@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import Darwin
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -9,6 +10,20 @@ import UIKit
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
     let controller = window?.rootViewController as! FlutterViewController
+    FlutterMethodChannel(name: "ai.zhuxue/device_info", binaryMessenger: controller.binaryMessenger)
+      .setMethodCallHandler { call, result in
+        guard call.method == "registrationDevice" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        var info = utsname()
+        uname(&info)
+        let model = Mirror(reflecting: info.machine).children.reduce("") { value, element in
+          guard let character = element.value as? Int8, character != 0 else { return value }
+          return value + String(UnicodeScalar(UInt8(bitPattern: character)))
+        }
+        result(["brand": "Apple", "model": ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] ?? model])
+      }
     FlutterMethodChannel(name: "ai.zhuxue/one_tap", binaryMessenger: controller.binaryMessenger)
       .setMethodCallHandler { call, result in
 #if canImport(ATAuthSDK_D)

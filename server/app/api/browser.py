@@ -83,7 +83,7 @@ async def login(body: auth.GuardianGoogleIn, response: Response, request: Reques
     from ..schemas import RegistrationDevice
     body.registration_device = RegistrationDevice(
         platform="web", user_agent=request.headers.get("user-agent", "")[:512])
-    result = await auth._google_token(body, db, "web")
+    result = await auth._google_token(body, db, "web", registration_ip=auth._registration_ip(request))
     return issue(result, "parent", response, db)
 
 

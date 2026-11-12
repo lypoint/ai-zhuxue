@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:app_core/src/registration_device_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_core/app_core.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +11,11 @@ import 'package:http/testing.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('ai.zhuxue/device_info'),
+          null,
+        );
     Api.I.channel = '';
     debugDefaultTargetPlatformOverride = null;
   });
@@ -18,6 +25,14 @@ void main() {
       'installation_id': 'test-installation',
     });
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('ai.zhuxue/device_info'),
+          (call) async {
+            expect(call.method, 'registrationDevice');
+            return {'brand': 'Xiaomi', 'model': '23127PN0CC'};
+          },
+        );
     final paths = <String>[];
     await http.runWithClient(
       () async {
@@ -28,6 +43,8 @@ void main() {
       () => MockClient((request) async {
         final device = jsonDecode(request.body)['registration_device'];
         expect(device['platform'], 'android');
+        expect(device['brand'], 'Xiaomi');
+        expect(device['model'], '23127PN0CC');
         expect(device['installation_id'], 'test-installation');
         expect(device['os_version'], isA<String>());
         paths.add(request.url.path);
@@ -40,6 +57,19 @@ void main() {
       '/auth/guardian/google',
     ]);
     Api.I.clearToken();
+  });
+
+  test('device metadata failure does not block login', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    expect(await registrationHardware(), isEmpty);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('ai.zhuxue/device_info'),
+          (call) async {
+            throw PlatformException(code: 'UNAVAILABLE');
+          },
+        );
+    expect(await registrationHardware(), isEmpty);
   });
 
   test('student channel defaults follow platform', () {

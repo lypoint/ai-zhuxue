@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class RegistrationDevice(BaseModel):
+    brand: str = Field(default="", max_length=100)
+    model: str = Field(default="", max_length=150)
     platform: str = Field(default="", max_length=30)
     os_version: str = Field(default="", max_length=300)
     installation_id: str = Field(default="", max_length=64)

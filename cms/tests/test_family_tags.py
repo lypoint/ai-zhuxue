@@ -29,11 +29,14 @@ const api=async path=>path.startsWith('/admin/llm-groups')
   assert(tbody.innerHTML.includes('disabled'));
   assert(!tbody.innerHTML.includes('清除'));
   assert(tbody.innerHTML.includes('未记录'));
-  registration_channel='googleplay';registration_device={platform:'android',os_version:'<device>',installation_id:'abc'};
+  registration_channel='googleplay';registration_device={brand:'Xiaomi',model:'<device>',ip_address:'2001:db8::17'};
   await loadFamilies();
-  assert(tbody.innerHTML.includes('Google Play'));assert(tbody.innerHTML.includes('Android'));
+  assert(tbody.innerHTML.includes('Google Play'));assert(tbody.innerHTML.includes('Xiaomi &lt;device&gt;'));
   assert(tbody.innerHTML.includes('&lt;device&gt;'));assert(!tbody.innerHTML.includes('<device>'));
-  assert(tbody.innerHTML.includes('安装标识：abc'));
+  assert(tbody.innerHTML.includes('IP：2001:db8::17'));
+  assert(!tbody.innerHTML.includes('查看设备信息'));
+  registration_device={platform:'android'}; await loadFamilies();
+  assert(tbody.innerHTML.includes('品牌型号未记录'));assert(tbody.innerHTML.includes('IP：未记录'));
   registration_channel=null;
   tags=['内测']; await loadFamilies();
   assert(!tbody.innerHTML.includes('disabled'));

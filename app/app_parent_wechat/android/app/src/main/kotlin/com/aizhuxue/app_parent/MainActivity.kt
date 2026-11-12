@@ -3,6 +3,7 @@ package com.aizhuxue.app_parent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
+import android.os.Build
 import com.mobile.auth.gatewayauth.AuthUIConfig
 import com.mobile.auth.gatewayauth.PhoneNumberAuthHelper
 import com.mobile.auth.gatewayauth.ResultCode
@@ -18,6 +19,12 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ai.zhuxue/device_info")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "registrationDevice") {
+                    result.success(mapOf("brand" to Build.BRAND, "model" to Build.MODEL))
+                } else result.notImplemented()
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "ai.zhuxue/one_tap")
             .setMethodCallHandler { call, result ->
                 when (call.method) {

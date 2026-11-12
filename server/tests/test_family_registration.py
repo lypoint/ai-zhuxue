@@ -2,6 +2,7 @@
 import uuid
 
 import pytest
+from fastapi.testclient import TestClient
 
 from app.db import SessionLocal
 from app.models import Family
@@ -12,9 +13,10 @@ from tests.conftest import make_admin
 @pytest.mark.parametrize('channel', ['wechat', 'appstore'])
 def test_phone_registration_snapshot(client, channel):
     phone = f'139{uuid.uuid4().int % 10**8:08d}'
-    device = {'platform': 'android', 'os_version': 'Android 15', 'installation_id': uuid.uuid4().hex}
+    device = {'brand': 'Xiaomi', 'model': '23127PN0CC', 'platform': 'android', 'os_version': 'Android 15', 'installation_id': uuid.uuid4().hex}
     body = {'phone': phone, 'sms_code': '123456', 'registration_device': device}
-    first = client.post('/auth/guardian/register', headers={'X-App-Channel': channel}, json=body)
+    peer = TestClient(client.app, client=('198.51.100.17', 50000))
+    first = peer.post('/auth/guardian/register', headers={'X-App-Channel': channel}, json=body)
     assert first.status_code == 200
     fid = parse_token(first.json()['token'])['family_id']
     body['registration_device'] = {'platform': 'iOS'}
@@ -23,7 +25,7 @@ def test_phone_registration_snapshot(client, channel):
     rows = client.get('/admin/families?size=100', headers=make_admin(client)).json()['items']
     row = next(row for row in rows if row['family_id'] == fid)
     assert row['registration_channel'] == channel
-    assert row['registration_device'] == {**device, 'user_agent': ''}
+    assert row['registration_device'] == {**device, 'user_agent': '', 'ip_address': '198.51.100.17'}
     deleted = client.post('/parent/account/deletion-request', headers={'Authorization': 'Bearer '+first.json()['token']}, json={'confirmation': 'DELETE'})
     assert deleted.status_code == 202
     with SessionLocal() as db:
@@ -36,13 +38,15 @@ def test_google_and_web_registration(client, monkeypatch, web):
     monkeypatch.setattr(settings, 'web_enabled', True)
     monkeypatch.setattr('app.api.auth.verify_google_identity', lambda _: {'sub': uuid.uuid4().hex})
     path = '/browser/parent/login' if web else '/auth/guardian/google'
-    response = client.post(path, headers={'X-App-Channel': 'googleplay', 'User-Agent': 'Test browser', 'Origin': settings.web_parent_origin},
+    peer = TestClient(client.app, client=('2001:db8::17', 50000))
+    response = peer.post(path, headers={'X-App-Channel': 'googleplay', 'User-Agent': 'Test browser', 'Origin': settings.web_parent_origin},
                            json={'id_token': 'x'*30, 'registration_device': {'platform': 'android'}})
     assert response.status_code == 200, response.text
     with SessionLocal() as db:
         family = db.query(Family).order_by(Family.id.desc()).first()
         assert family.registration_channel == ('web' if web else 'googleplay')
         assert family.registration_device['platform'] == ('web' if web else 'android')
+        assert family.registration_device['ip_address'] == '2001:db8::17'
         if web:
             assert family.registration_device['user_agent'] == 'Test browser'
 
@@ -92,3 +96,24 @@ def test_registration_migration_preserves_legacy_rows():
             migration.downgrade()
             assert connection.execute(text('SELECT id FROM families')).scalar() == 1
     engine.dispose()
+
+
+def test_registration_ip_ignores_client_supplied_addresses(client):
+    peer = TestClient(client.app, client=('198.51.100.18', 50000))
+    response = peer.post('/auth/guardian/register', headers={'X-Forwarded-For': '203.0.113.9'}, json={
+        'phone': f'139{uuid.uuid4().int % 10**8:08d}', 'sms_code': '123456',
+        'registration_device': {'ip_address': '203.0.113.10'}})
+    assert response.status_code == 200
+    with SessionLocal() as db:
+        family = db.get(Family, parse_token(response.json()['token'])['family_id'])
+        assert family.registration_device['ip_address'] == '198.51.100.18'
+
+
+def test_old_client_still_records_registration_ip(client):
+    peer = TestClient(client.app, client=('198.51.100.19', 50000))
+    response = peer.post('/auth/guardian/register', json={
+        'phone': f'139{uuid.uuid4().int % 10**8:08d}', 'sms_code': '123456'})
+    assert response.status_code == 200
+    with SessionLocal() as db:
+        family = db.get(Family, parse_token(response.json()['token'])['family_id'])
+        assert family.registration_device == {'ip_address': '198.51.100.19'}

@@ -251,6 +251,7 @@ class Api {
       );
 
   Future<Map<String, String>> _registrationDevice() async => {
+    ...await registrationHardware(),
     'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
     'os_version': registrationOsVersion(),
     'installation_id': await installationId(),
